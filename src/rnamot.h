@@ -88,6 +88,7 @@ typedef	struct	strel_t	{
 	int	s_lineno;
 	char	*s_tag;
 	struct	strel_t	*s_next;
+	struct	strel_t	*s_prev;
 	struct	strel_t	*s_inner;
 	struct	strel_t	**s_mates;
 	int	s_n_mates;
