@@ -2,24 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 
-#define	SBUF_SIZE	5000000
-static	char	sbuf[ SBUF_SIZE ];
-static	int	slen;
-static	char	locus[ 20 ];
-
-main( argc, argv )
-int	argc;
-char	*argv[];
-{
-	FILE	*ifp = stdin;
-
-	while( slen = DB_get_seq( ifp, locus, SBUF_SIZE, sbuf ) ){
-		printf( "%-12s: %5d: %.15s...\n", locus, slen, sbuf );
-	}
-	exit( 0 );
-}
-
-int	DB_get_seq( fp, locus, s_sbuf, sbuf )
+int	FN_fgetseq( fp, locus, s_sbuf, sbuf )
 FILE	*fp;
 char	locus[];
 int	s_sbuf;
