@@ -64,7 +64,7 @@ static	void	duptags_error();
 static	int	chk_strel_parms();
 static	int	chk_1_strel_parms();
 static	int	chk_len_seq();
-static	void	chk_site();
+static	int	chk_site();
 
 int	RM_init()
 {
@@ -226,8 +226,6 @@ int	stype;
 	stp->s_mismatch = 0;
 	stp->s_mispair = 0;
 	stp->s_pairset = NULL;
-	stp->s_sites = NULL;
-	stp->s_n_sites = 0;
 	
 	n_local_ids = 0;
 	val.v_type = T_STRING;
@@ -329,6 +327,7 @@ int	n_descr;
 STREL_T	descr[];
 {
 	SITE_T	*sip;
+	int	err;
 
 	if( n_descr == 0 ){
 		errormsg( 0, "SE_link: Descriptor has 0 elements." );
@@ -341,8 +340,8 @@ STREL_T	descr[];
 	if( chk_strel_parms( n_descr, descr ) )
 		return( 1 );
 
-	for( sip = rm_sites; sip; sip = sip->s_next )
-		chk_site( sip );
+	for( err = 0, sip = rm_sites; sip; sip = sip->s_next )
+		err |= chk_site( sip );
 
 	return( 0 );
 }
@@ -1626,24 +1625,27 @@ NODE_T	*expr;
 	rm_n_pos = 0;
 }
 
-static	void	chk_site( sip )
+static	int	chk_site( sip )
 SITE_T	*sip;
 {
+	int	err;
 	int	i, j;
 	POS_T	*posp;
 	char	*sp;
 	STREL_T	*stp;
 
+	err = 0;
 	if( sip->s_n_pos != sip->s_pairset->ps_pairs[ 0 ].p_n_bases ){
+		err = 1;
 		rm_emsg_lineno = sip->s_pos[ 0 ].p_lineno;
 		errormsg( 0,
 	"chk_site: Number of positions in site must agree with pairset." );
 	}
 	for( posp = sip->s_pos, i = 0; i < sip->s_n_pos; i++, posp++ ){
 		if( ( sp = posp->p_tag ) == NULL ){
+			err = 1;
 			rm_emsg_lineno = posp->p_lineno;
-			errormsg( 0,
-				"chk_site: all positions must be tagged." );
+			errormsg( 0, "all positions must be tagged." );
 		}else{
 			stp = rm_descr;
 			for( j = 0; j < rm_n_descr; j++, stp++ ){
@@ -1657,12 +1659,32 @@ SITE_T	*sip;
 				}
 			}
 			if( posp->p_dindex == UNDEF ){
+				err = 1;
 				sprintf( emsg,
-				"chk_site: position with undefined tag '%s'.",
+					"position with undefined tag '%s'.",
 					sp );
 				rm_emsg_lineno = posp->p_lineno;
 				errormsg( 0, emsg );
 			}
 		}
 	}
+	for( posp = sip->s_pos, i = 0; i < sip->s_n_pos; i++, posp++ ){
+		if( posp->p_dindex == UNDEF )
+			continue;
+		stp = &rm_descr[ posp->p_dindex ];
+		if( posp->p_l2r ){
+			if( posp->p_offset > stp->s_minlen ){
+				err = 1;
+				rm_emsg_lineno = posp->p_lineno;
+				errormsg( 0,
+					"position offset > strel minlen." );
+			}
+		}else if( posp->p_offset + 1 > stp->s_minlen ){
+			err = 1;
+			rm_emsg_lineno = posp->p_lineno;
+			errormsg( 0, "position offset > strel minlen." );
+		}
+	}
+
+	return( err );
 }
