@@ -6,3 +6,6 @@ program:
 test::
 	cd test; make
 
+clean:
+	cd src; make clean
+
