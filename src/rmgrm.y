@@ -134,7 +134,7 @@ strtype		: SYM_SE	{ $$ = SYM_SE; }
 
 site_list	: site
 		| site_list site ;
-site		: pairing SYM_IN expr 
+site		: pairing SYM_IN pairset 
 				{ SI_close( $3 ); } ;
 
 rule_list	: rule
@@ -239,7 +239,8 @@ expr		: conj		{ $$ = $1; }
 conj		: compare	{ $$ = $1; }
 		| compare SYM_AND conj
 				{ $$ = RM_node( SYM_AND, 0, $1, $3 ); } ;
-compare		: a_expr	{ $$ = $1; }
+compare		: site		{ $$ = $1; }
+		| a_expr	{ $$ = $1; }
 		| a_expr comp_op a_expr
 				{ $$ = RM_node( $2, 0, $1, $3 ); } ;
 comp_op		: SYM_DONT_MATCH
@@ -248,7 +249,6 @@ comp_op		: SYM_DONT_MATCH
 		| SYM_GREATER	{ $$ = SYM_GREATER; }
 		| SYM_GREATER_EQUAL
 				{ $$ = SYM_GREATER_EQUAL; }
-		| SYM_IN	{ $$ = SYM_IN; }
 		| SYM_LESS	{ $$ = SYM_LESS; }
 		| SYM_LESS_EQUAL
 				{ $$ = SYM_LESS_EQUAL; }
@@ -333,7 +333,7 @@ pairset		: SYM_LCURLY 	{ if( rm_context != CTX_SCORE )
 				{ if( rm_context != CTX_SCORE )
 					$$ = PR_close();
 				  else
-					$$ = RM_node( SYM_LCURLY, 0, 0, $3 );
+					$$ = RM_node( SYM_LCURLY, 0, 0, $2 );
 				} ;
 empty		: 		{ $$ = (  int )NULL; } ;
 %%

@@ -598,7 +598,6 @@ dumpstk( stdout, "after op " );
 static	void	fixexpr( np )
 NODE_T	*np;
 {
-	int	sc;
 
 	if( np ){
 		fixexpr( np->n_left );
@@ -615,16 +614,13 @@ static	void	genexpr( lval, np )
 int	lval;
 NODE_T	*np;
 {
-	char	name[ 20 ];
 	int	l_andor;
-	VALUE_T	v_expr;
 
 	if( np ){
 		if( np->n_sym == SYM_CALL ){
 			addinst( OP_MRK, NULL );
 		}else if( np->n_sym == SYM_LCURLY ){
 			addinst( OP_MRK, NULL );
-RM_dumpexpr( stderr, np, 0 );
 		}
 
 		genexpr( ISLVAL( np->n_sym ), np->n_left );
@@ -670,7 +666,7 @@ NODE_T	*np;
 {
 	NODE_T	*np1, *np2, *np3;
 	NODE_T	*n_index, *n_tag, *n_pos, *n_len;
-	char	*ip, *sp;
+	char	*ip;
 	VALUE_T	v_expr;
 
 	n_index = n_tag = n_pos = n_len = NULL;
@@ -1096,7 +1092,7 @@ int	len;
 			b1 = sc_sbuf[ p1 + pos + i ];
 			b2 = sc_sbuf[ p2 - pos - i ];
 			b3 = sc_sbuf[ p3 + pos + i ];
-			b4 = sc_sbuf[ p3 - pos - i ];
+			b4 = sc_sbuf[ p4 - pos - i ];
 			if( !RM_quad( stp1->s_pairset, b1, b2, b3, b4 ) )
 				return( 0 );
 		}
@@ -1105,6 +1101,7 @@ int	len;
 	default :
 		rm_emsg_lineno = stp->s_lineno;
 		RM_errormsg( 1, "paired() does not accept descr type 'ss'." );
+		return( 0 );
 		break;
 	}
 }
@@ -1504,7 +1501,33 @@ static	void	do_not()
 
 static	void	do_mat()
 {
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
+	char	*s_tm1, *s_top;
+#define	EXPBUF_SIZE	256
+	static	char	expbuf[ EXPBUF_SIZE ];
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	v_tm1->v_type = T_INT;
+
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_STRING, T_STRING ) :
+		s_tm1 = v_tm1->v_value.v_pval;
+		s_top = v_top->v_value.v_pval;
+		compile( s_top, expbuf, &expbuf[ EXPBUF_SIZE ], '\0' );
+		v_tm1->v_value.v_ival = step( s_tm1, expbuf );
+		free( s_top );
+		free( s_tm1 );
+		break;
+	default :
+		rm_emsg_lineno = UNDEF;
+		RM_errormsg( 1, "do_mat: type mismatch." );
+		break;
+	}
 }
 
 static	void	do_ins()
@@ -2140,7 +2163,6 @@ int	lval;
 NODE_T	*np;
 int	l_andor;
 {
-	POS_T	*posp;
 	VALUE_T	v_node;
 	int	sc;
 
@@ -2382,7 +2404,6 @@ FILE	*fp;
 INST_T	*ip;
 {
 	VALUE_T	*vp;
-	char	name[ 20 ];
 	
 	if( ip->i_op < 0 || ip->i_op >= N_OP ){
 		rm_emsg_lineno = UNDEF;

@@ -26,7 +26,7 @@ compile.o:	rnamot.h y.tab.h
 dump.o:		rnamot.h y.tab.h
 
 dumpnode.h:	y.tab.h mk_dumpnode.h
-		mk_dumpnode.h y.tab.h > dumpnode.h
+		./mk_dumpnode.h y.tab.h > dumpnode.h
 
 find_motif.o:	rnamot.h y.tab.h
 

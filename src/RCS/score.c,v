@@ -1,9 +1,19 @@
-head	1.19;
+head	1.21;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.21
+date	2000.03.17.22.03.32;	author macke;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	2000.03.08.03.56.05;	author macke;	state Exp;
+branches;
+next	1.19;
 
 1.19
 date	2000.02.10.00.13.27;	author macke;	state Exp;
@@ -106,10 +116,9 @@ desc
 @
 
 
-1.19
+1.21
 log
-@fixed bug that considered descriptor indexes on the interval
-[0,n_descr) even though they were on the interval [1,n_descr]
+@added code that implements match & don't match (=~, !~)
 @
 text
 @#include <stdio.h>
@@ -712,7 +721,6 @@ dumpstk( stdout, "after op " );
 static	void	fixexpr( np )
 NODE_T	*np;
 {
-	int	sc;
 
 	if( np ){
 		fixexpr( np->n_left );
@@ -729,16 +737,13 @@ static	void	genexpr( lval, np )
 int	lval;
 NODE_T	*np;
 {
-	char	name[ 20 ];
 	int	l_andor;
-	VALUE_T	v_expr;
 
 	if( np ){
 		if( np->n_sym == SYM_CALL ){
 			addinst( OP_MRK, NULL );
 		}else if( np->n_sym == SYM_LCURLY ){
 			addinst( OP_MRK, NULL );
-RM_dumpexpr( stderr, np, 0 );
 		}
 
 		genexpr( ISLVAL( np->n_sym ), np->n_left );
@@ -784,7 +789,7 @@ NODE_T	*np;
 {
 	NODE_T	*np1, *np2, *np3;
 	NODE_T	*n_index, *n_tag, *n_pos, *n_len;
-	char	*ip, *sp;
+	char	*ip;
 	VALUE_T	v_expr;
 
 	n_index = n_tag = n_pos = n_len = NULL;
@@ -1210,7 +1215,7 @@ int	len;
 			b1 = sc_sbuf[ p1 + pos + i ];
 			b2 = sc_sbuf[ p2 - pos - i ];
 			b3 = sc_sbuf[ p3 + pos + i ];
-			b4 = sc_sbuf[ p3 - pos - i ];
+			b4 = sc_sbuf[ p4 - pos - i ];
 			if( !RM_quad( stp1->s_pairset, b1, b2, b3, b4 ) )
 				return( 0 );
 		}
@@ -1219,6 +1224,7 @@ int	len;
 	default :
 		rm_emsg_lineno = stp->s_lineno;
 		RM_errormsg( 1, "paired() does not accept descr type 'ss'." );
+		return( 0 );
 		break;
 	}
 }
@@ -1618,7 +1624,33 @@ static	void	do_not()
 
 static	void	do_mat()
 {
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
+	char	*s_tm1, *s_top;
+#define	EXPBUF_SIZE	256
+	static	char	expbuf[ EXPBUF_SIZE ];
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	v_tm1->v_type = T_INT;
+
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_STRING, T_STRING ) :
+		s_tm1 = v_tm1->v_value.v_pval;
+		s_top = v_top->v_value.v_pval;
+		compile( s_top, expbuf, &expbuf[ EXPBUF_SIZE ], '\0' );
+		v_tm1->v_value.v_ival = step( s_tm1, expbuf );
+		free( s_top );
+		free( s_tm1 );
+		break;
+	default :
+		rm_emsg_lineno = UNDEF;
+		RM_errormsg( 1, "do_mat: type mismatch." );
+		break;
+	}
 }
 
 static	void	do_ins()
@@ -2254,7 +2286,6 @@ int	lval;
 NODE_T	*np;
 int	l_andor;
 {
-	POS_T	*posp;
 	VALUE_T	v_node;
 	int	sc;
 
@@ -2496,7 +2527,6 @@ FILE	*fp;
 INST_T	*ip;
 {
 	VALUE_T	*vp;
-	char	name[ 20 ];
 	
 	if( ip->i_op < 0 || ip->i_op >= N_OP ){
 		rm_emsg_lineno = UNDEF;
@@ -2628,6 +2658,46 @@ char	msg[];
 		fprintf( fp, "\n" );
 	}
 }
+@
+
+
+1.20
+log
+@removed unused vars as detected by fermat's C compiler.  Fixed (undetected)
+bug that would have made pair( 4-plex ) not work as it used the 3d
+base for 3 & 4.
+@
+text
+@d1504 5
+d1510 21
+@
+
+
+1.19
+log
+@fixed bug that considered descriptor indexes on the interval
+[0,n_descr) even though they were on the interval [1,n_descr]
+@
+text
+@a600 1
+	int	sc;
+a616 1
+	char	name[ 20 ];
+a617 1
+	VALUE_T	v_expr;
+a623 1
+RM_dumpexpr( stderr, np, 0 );
+d669 1
+a669 1
+	char	*ip, *sp;
+d1095 1
+a1095 1
+			b4 = sc_sbuf[ p3 - pos - i ];
+d1104 1
+a2139 1
+	POS_T	*posp;
+a2380 1
+	char	name[ 20 ];
 @
 
 

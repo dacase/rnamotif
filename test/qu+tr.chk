@@ -1,10 +1,11 @@
 #RM scored
 #RM descr q1(tag="1") ss q2(tag="1") ss q3(tag="1") ss q4(tag="1") ss t1(tag="2") ss t2(tag="2") ss t3(tag="2")
-GARRRITS 0.000 0 190 59 gtg gttt      gag aactggata  gtg gacac    gag taag      aata gtgagac    tgtt ttttgg     tttt
-GARRRITS 0.000 0 190 59 gtg gttt      gag aactggata  gtg gacac    gag taag      aata gtgagactg  tttt ttgg       tttt
-GARRRITS 0.000 0 190 59 gtg gttt      gag aactggata  gtg gacac    gag taag      aata gtgagactgt tttt tgg        tttt
-GARRRITS 0.000 0 190 65 gtg gttt      gag aactggata  gtg gacac    gag taag      aata gtgagactg  tttt ttggttttgc ttgt
-GARRRITS 0.000 0 190 65 gtg gttt      gag aactggata  gtg gacac    gag taag      aata gtgagactgt tttt tggttttgc  ttgt
-GNGRRN02 0.000 0   6 67 gtg gacggcaac gtg agggagtccg gag aggccggc gag ggccctggg aaga gtta       tctt ttc        tttt
-GNGRRN02 0.000 0   6 68 gtg gacggcaac gtg agggagtccg gag aggccggc gag ggccctggg aaga gtta       tctt ttct       tttt
-ZAMRRN02 0.000 0  21 64 gcg gcaacgtca ggg aatccg     gag acgtcggc ggg ggccccgtg aaga gtta       tctt ttcc       tttt
+GARRRITS 0.000 0 190 59 gtg gttt      gag aactggata  gtg gacac     gag taag      aata gtgagac    tgtt ttttgg     tttt
+GARRRITS 0.000 0 190 59 gtg gttt      gag aactggata  gtg gacac     gag taag      aata gtgagactg  tttt ttgg       tttt
+GARRRITS 0.000 0 190 59 gtg gttt      gag aactggata  gtg gacac     gag taag      aata gtgagactgt tttt tgg        tttt
+GARRRITS 0.000 0 190 65 gtg gttt      gag aactggata  gtg gacac     gag taag      aata gtgagactg  tttt ttggttttgc ttgt
+GARRRITS 0.000 0 190 65 gtg gttt      gag aactggata  gtg gacac     gag taag      aata gtgagactgt tttt tggttttgc  ttgt
+GNGRRN02 0.000 0   6 67 gtg gacggcaac gtg agggagtccg gag aggccggc  gag ggccctggg aaga gtta       tctt ttc        tttt
+GNGRRN02 0.000 0   6 68 gtg gacggcaac gtg agggagtccg gag aggccggc  gag ggccctggg aaga gtta       tctt ttct       tttt
+ZAMRRN02 0.000 0  21 64 gcg gcaacgtca ggg aatccg     gag acgtcggc  ggg ggccccgtg aaga gtta       tctt ttcc       tttt
+ZAMRRN02 0.000 0  21 64 gcg gcaacgtca ggg aatccg     gag acgtcggcg ggg gccccgtg  aaga gtta       tctt ttcc       tttt

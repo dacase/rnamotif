@@ -1,9 +1,14 @@
-head	1.18;
+head	1.19;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.19
+date	2000.03.03.19.49.34;	author macke;	state Exp;
+branches;
+next	1.18;
 
 1.18
 date	99.10.03.19.17.02;	author macke;	state Exp;
@@ -101,9 +106,9 @@ desc
 @
 
 
-1.18
+1.19
 log
-@remove unused fun RM_updnode()
+@removed all unused vars that were detected by the fermat C-compiler.
 @
 text
 @#include <stdio.h>
@@ -180,7 +185,6 @@ FILE	*fp;
 NODE_T	*np;
 int	indent;
 {
-	POS_T	*posp;
 
 	fprintf( fp, "%*s",indent, "" );
 	fprintf( fp, "%7p: lf = %7p rt = %7p ln,tp,cl = %3d,%2d,%2d ",
@@ -192,6 +196,16 @@ int	indent;
 
 	}
 }
+@
+
+
+1.18
+log
+@remove unused fun RM_updnode()
+@
+text
+@a74 1
+	POS_T	*posp;
 @
 
 

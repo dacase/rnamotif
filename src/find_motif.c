@@ -37,7 +37,6 @@ static	int	find_motif();
 static	int	find_1_motif();
 static	int	find_ss();
 static	int	find_wchlx();
-static	int	find_pknot0();
 static	int	find_pknot();
 static	int	find_pknot5();
 static	int	find_pknot3();
@@ -48,6 +47,7 @@ static	int	find_phlx();
 static	int	find_triplex();
 static	int	find_4plex();
 static	int	find_4plex_inner();
+static	int	match_wchlx0();
 static	int	match_wchlx();
 static	int	match_phlx();
 static	int	match_triplex();
@@ -68,7 +68,6 @@ static	int	chk_seq();
 
 static	void	print_match();
 static	void	mk_cstr();
-static	void	set_mbuf();
 
 IDENT_T	*RM_find_id();
 
@@ -84,9 +83,8 @@ int	comp;
 int	slen;
 char	sbuf[];
 {
-	int	i, w_winsize, slev;
-	int	szero, l_szero;
-	int	sdollar, f_sdollar, l_sdollar;
+	int	w_winsize;
+	int	l_szero;
 	IDENT_T	*ip;
 	SEARCH_T	*srp;
 	int	rv;
@@ -144,12 +142,10 @@ char	sbuf[];
 static	int	find_motif( srp )
 SEARCH_T	*srp;
 {
-	STREL_T	*stp, *stp1, *stp3, *n_stp, *o_stp;
-	SEARCH_T	*n_srp, *n_srp1;
+	STREL_T	*stp;
+	SEARCH_T	*n_srp;
 	int	sdollar, o_sdollar, f_sdollar, l_sdollar; 
 	int	rv, loop;
-	int	d, fd, ld;
-	int	g_minl, g_maxl;
 
 	rv = 0;
 	stp = srp->s_descr;
@@ -200,14 +196,10 @@ SEARCH_T	*srp;
 		rv = find_ss( srp );
 		break;
 	case SYM_H5 :
-		if( stp->s_attr & SA_PROPER ){
+		if( stp->s_attr & SA_PROPER )
 			rv = find_wchlx( srp );
-		}else{
+		else
 			rv = find_pknot( srp );
-/*
-			rv = find_pknot0( srp );
-*/
-		}
 		break;
 	case SYM_P5 :
 		rv = find_phlx( srp );
@@ -241,7 +233,7 @@ static	int	find_ss( srp )
 SEARCH_T	*srp;
 {
 	STREL_T	*stp;
-	int	s, slen, szero, sdollar;
+	int	slen, szero, sdollar;
 	STREL_T	*n_stp;
 	SEARCH_T	*n_srp;
 	int	rv;
@@ -290,17 +282,18 @@ static	int	find_wchlx( srp )
 SEARCH_T	*srp;
 {
 	STREL_T	*stp, *stp3;
-	int	s3lim, slen, szero, sdollar;
-	int	h_minl, h_maxl;
+	int	s3lim, szero, sdollar;
+	int	h_maxl;
 	int	i_minl, i_maxl, i_len;
-	int	h3, hlen, n_mpr;
+	int	h3[ 101 ], hlen[ 101 ], n_mpr[ 101 ];
+	int	h, n_h3;
 	STREL_T	*i_stp;
 	SEARCH_T	*i_srp;
 	int	rv;
 
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
-	slen = sdollar - szero + 1;
+
 	stp = srp->s_descr;
 	stp->s_n_mismatches = 0;
 	stp->s_n_mispairs = 0;
@@ -308,7 +301,6 @@ SEARCH_T	*srp;
 	stp3->s_n_mismatches = 0;
 	stp3->s_n_mispairs = 0;
 
-	h_minl = stp->s_minlen;
 	h_maxl = stp->s_maxlen;
 	i_minl = stp->s_minilen;
 	i_maxl = stp->s_maxilen;
@@ -319,135 +311,35 @@ SEARCH_T	*srp;
 	s3lim = sdollar - s3lim + 1;
 
 	rv = 0;
-	if(match_wchlx(stp, stp3, szero, sdollar, s3lim, &h3, &hlen, &n_mpr )){
 
+	if(n_h3=match_wchlx(stp,stp3,szero,sdollar,s3lim,h3,hlen,n_mpr )){
+
+		for( h = 0; h < n_h3; h++ ){
 /*
-		if( !chk_wchlx0( srp, szero, h3 ) )
-			return( 0 );
+			if( !chk_wchlx0( srp, szero, h3[h] ) )
+				return( 0 );
 */
 
-		i_len = h3 - szero - 2 * hlen + 1;
-		if( i_len > i_maxl )
-			return( 0 );
+			i_len = h3[h] - szero - 2 * hlen[h] + 1;
+/*
+			if( i_len > i_maxl )
+				return( 0 );
+*/
+			if( i_len > i_maxl )
+				continue;
 
-		stp->s_n_mispairs = n_mpr;
-		stp3->s_n_mispairs = n_mpr;
-		mark_duplex( stp, szero, stp3, h3, hlen );
+			stp->s_n_mispairs = n_mpr[h];
+			stp3->s_n_mispairs = n_mpr[h];
+			mark_duplex( stp, szero, stp3, h3[h], hlen[h] );
 
-		i_stp = stp->s_inner;
-		i_srp = rm_searches[ i_stp->s_searchno ];
-		i_srp->s_zero = szero + hlen;
-		i_srp->s_dollar = h3 - hlen;
+			i_stp = stp->s_inner;
+			i_srp = rm_searches[ i_stp->s_searchno ];
+			i_srp->s_zero = szero + hlen[h];
+			i_srp->s_dollar = h3[h] - hlen[h];
 
-		rv = find_motif( i_srp );
-		unmark_duplex( stp, szero, stp3, h3, hlen );
-	}
-	return( rv );
-}
-
-static	int	find_pknot0( srp )
-SEARCH_T	*srp;
-{
-	STREL_T	*stp, *stp1, *stp2, *stp3;
-	int	s, slen, szero, sdollar;
-	int	s13_lim, s1_dollar;
-	int	h1_minl, h1_maxl;
-	int	i1_minl, i1_maxl;
-	int	h2_minl, h2_maxl;
-	int	i2_minl, i2_maxl;
-	int	i3_minl, i3_maxl;
-	int	h13, h1len, n_mpr1;
-	int	s2, s2_zero, s20_lim, s23_lim;
-	int	h23, h2len, n_mpr2;
-	int	i1_len, i2_len, i3_len;
-	STREL_T	*i1_stp, *i2_stp, *i3_stp;
-	SEARCH_T	*i1_srp, *i2_srp, *i3_srp;
-	int	rv;
-
-	szero = srp->s_zero;
-	sdollar = srp->s_dollar;
-	slen = sdollar - szero + 1;
-	stp = srp->s_descr;
-	stp->s_n_mismatches = 0;
-	stp->s_n_mispairs = 0;
-	stp1 = stp->s_scopes[ 1 ];
-	stp1->s_n_mismatches = 0;
-	stp1->s_n_mispairs = 0;
-	stp2 = stp->s_scopes[ 2 ];
-	stp2->s_n_mismatches = 0;
-	stp2->s_n_mispairs = 0;
-	stp3 = stp->s_scopes[ 3 ];
-	stp3->s_n_mismatches = 0;
-	stp3->s_n_mispairs = 0;
-
-	s1_dollar = sdollar - stp2->s_minilen - stp3->s_minlen;
-
-	h1_minl = stp->s_minlen;
-	h1_maxl = stp->s_maxlen;
-	i1_minl = stp->s_minilen;
-	i1_maxl = stp->s_maxilen;
-	i1_stp = stp->s_inner;
-	i1_srp = rm_searches[ i1_stp->s_searchno ];
-
-	h2_minl = stp1->s_minlen;
-	h2_maxl = stp1->s_maxlen;
-	i2_minl = stp1->s_minilen;
-	i2_maxl = stp1->s_maxilen;
-	i2_stp = stp1->s_inner;
-	i2_srp = rm_searches[ i2_stp->s_searchno ];
-
-	i3_minl = stp2->s_minilen;
-	i3_maxl = stp2->s_maxilen;
-	i3_stp = stp2->s_inner;
-	i3_srp = rm_searches[ i3_stp->s_searchno ];
-
-	s13_lim = s1_dollar - szero + 1;
-	s13_lim = ( s13_lim - i1_minl - h2_minl - i2_minl ) / 2;
-	s13_lim = MIN( s13_lim, h1_maxl );
-	s13_lim = s1_dollar - s13_lim + 1;
-
-	rv = 0;
-	if( match_wchlx(stp, stp2, szero, s1_dollar, s13_lim,
-		&h13, &h1len, &n_mpr1 ) ){
-
-		mark_duplex( stp, szero, stp2, h13, h1len );
-
-		s2_zero = szero + h1len + stp->s_minilen;
-		s20_lim = h13 - h1len - stp1->s_minilen - stp1->s_minlen + 1;
-		s23_lim = s1_dollar + stp2->s_minilen + 1;
-
-		for( s2 = s2_zero; s2 <= s20_lim; s2++ ){
-			if( match_wchlx( stp1, stp3,
-				s2, sdollar, s23_lim, &h23, &h2len, &n_mpr2 ) ){
-
-				i1_len = s2 - szero - h1len;
-				if( i1_len > i1_maxl )
-					continue;
-				i2_len = h13 - h1len - ( s2 + h2len ) + 1;
-				if( i2_len > i2_maxl )
-					continue;
-				i3_len = h23 - h13 - h2len;
-				if( i3_len > i3_maxl )
-					continue;
-
-				stp->s_n_mispairs = n_mpr1;
-				stp1->s_n_mispairs = n_mpr2;
-				stp2->s_n_mispairs = n_mpr1;
-				stp3->s_n_mispairs = n_mpr2;
-				mark_duplex( stp1, s2, stp3, h23, h2len );
-
-				i1_srp->s_zero = szero + h1len;
-				i1_srp->s_dollar = s2 - 1;
-				i2_srp->s_zero = s2 + h2len;
-				i2_srp->s_dollar = h13 - h1len;
-				i3_srp->s_zero = h13 + 1;
-				i3_srp->s_dollar = h23 - h2len;
-
-				rv |= find_motif( i1_srp );
-				unmark_duplex( stp1, s2, stp3, h23, h2len );
-			}
+			rv |= find_motif( i_srp );
+			unmark_duplex( stp, szero, stp3, h3[h], hlen[h] );
 		}
-		unmark_duplex( stp, szero, stp2, h13, h1len );
 	}
 	return( rv );
 }
@@ -486,7 +378,7 @@ SEARCH_T	*srp;
 static	int	find_pknot5( srp )
 SEARCH_T	*srp;
 {
-	STREL_T	*stp0, *stp5, *stp3, *stpn;
+	STREL_T	*stp0, *stp5, *stpn;
 	int	szero, sdollar, slen;
 	int	p_minl, p_maxl;
 	int	r_minl, r_maxl;
@@ -498,7 +390,6 @@ SEARCH_T	*srp;
 	slen = sdollar - szero + 1;
 	stp5 = srp->s_descr;
 
-	stp3 = stp5->s_mates[ 0 ];
 	stp0 = stp5->s_scopes[ 0 ];
 	stpn = stp5->s_scopes[ stp5->s_n_scopes - 1 ];
 
@@ -524,35 +415,32 @@ static	int	find_pknot3( srp, s5 )
 SEARCH_T	*srp;
 int	s5;
 {
-	STREL_T	*stp0, *stp5, *stp3, *stpn;
-	int	szero, sdollar, slen;
-	int	g_minl, g_maxl;
+	STREL_T	*stp5, *stp3, *stpn;
+	int	sdollar, slen;
+	int	g_minl;
 	int	h_minl, h_maxl;
-	int	i_minl, i_maxl;
+	int	i_minl;
 	int	s_minl, s_maxl;
 	int	s3, f_s3, l_s3;
-	int	s3lim, h3, hlen, n_mpr;
+	int	s3lim;
+	int	h3[ 101 ], hlen[ 101 ], n_mpr[ 101 ];
+	int	h, n_h3;
 	SEARCH_T	*n_srp;
-	STREL_T	*i_stp;
 	int	rv = 0;
 
-	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
 	slen = sdollar - s5 + 1;
 	stp5 = srp->s_descr;
 
 	stp3 = stp5->s_mates[ 0 ];
-	stp0 = stp5->s_scopes[ 0 ];
 	stpn = stp5->s_scopes[ stp5->s_n_scopes - 1 ];
 
 	h_minl = stp5->s_minlen;
 	h_maxl = stp5->s_maxlen;
 
 	i_minl = find_minlen( stp5->s_index + 1, stp3->s_index - 1 );
-	i_maxl = find_maxlen( stp5->s_index + 1, stp3->s_index - 1 );
 
 	g_minl = 2*h_minl + i_minl;
-	g_maxl = 2*h_maxl + i_maxl;
 
 	s_minl = find_minlen( stp3->s_index + 1, stpn->s_index );
 	s_maxl = find_maxlen( stp3->s_index + 1, stpn->s_index );
@@ -569,12 +457,16 @@ int	s5;
 		s3lim = MIN( s3lim, h_maxl );
 		s3lim = s3 - s3lim + 1;
 
-		if( match_wchlx( stp5,stp3,s5,s3,s3lim,&h3,&hlen,&n_mpr ) ){
-			mark_duplex( stp5, s5, stp3, h3, hlen );
-			upd_pksearches( stp5, s5, h3, hlen );
-			n_srp = rm_searches[ stp5->s_searchno + 1 ];		
-			rv |= find_motif( n_srp );
-			unmark_duplex( stp5, s5, stp3, h3, hlen );
+		if( n_h3=match_wchlx( stp5,stp3,s5,s3,s3lim,h3,hlen,n_mpr )){
+			for( h = 0; h < n_h3; h++ ){
+				stp5->s_n_mispairs = n_mpr[h];
+				stp3->s_n_mispairs = n_mpr[h];
+				mark_duplex( stp5, s5, stp3, h3[h], hlen[h] );
+				upd_pksearches( stp5, s5, h3[h], hlen[h] );
+				n_srp = rm_searches[ stp5->s_searchno + 1 ];
+				rv |= find_motif( n_srp );
+				unmark_duplex( stp5, s5, stp3, h3[h], hlen[h] );
+			}
 		}
 	}
 	
@@ -655,10 +547,10 @@ SEARCH_T	*srp;
 {
 	STREL_T	*stp, *stp3, *i_stp;
 	int	ilen, slen, szero, sdollar;
-	int	s, s3lim, s5hi, s5lo;
+	int	s5hi, s5lo;
 	int	h_minl, h_maxl;
 	int	i_minl, i_maxl, i_len;
-	int	h, hlen, n_mpr;
+	int	hlen, n_mpr;
 	SEARCH_T	*i_srp;
 	int	rv;
 
@@ -717,12 +609,12 @@ SEARCH_T	*srp;
 	STREL_T	*stp, *stp1, *stp2;
 	STREL_T	*i1_stp, *i2_stp;
 	int	slen, szero, sdollar;
-	int	s, s1, s3lim, s5hi, s5lo;
+	int	s, s5hi, s5lo;
 	int	h_minl, h_maxl;
-	int	i_len, i_minl, i_maxl;
+	int	i_len;
 	int	i1_len, i2_len;
 	int	i1_minl, i1_maxl, i2_minl, i2_maxl;
-	int	h, hlen, n_mpr;
+	int	hlen, n_mpr;
 	SEARCH_T	*i1_srp, *i2_srp;
 	int	rv;
 
@@ -804,18 +696,17 @@ static	int	find_4plex( srp )
 SEARCH_T	*srp;
 {
 	STREL_T	*stp, *stp1, *stp2, *stp3;
-	int	s3lim, slen, szero, sdollar;
-	int	s1, s1lim, s2, s2lim;
+	int	s3lim, szero, sdollar;
 	int	h_minl, h_maxl;
-	int	i_minl, i_maxl, i_len;
+	int	i_minl;
 	int	i1_minl, i2_minl, i3_minl;
-	int	i1_maxl, i2_maxl, i3_maxl;
-	int	h, h3, hlen, n_mpr;
+	int	h3[ 101 ], hlen[ 101 ], n_mpr[ 101 ];
+	int	h, n_h3;
 	int	rv;
 
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
-	slen = sdollar - szero + 1;
+
 	stp = srp->s_descr;
 	stp->s_n_mismatches = 0;
 	stp->s_n_mispairs = 0;
@@ -832,11 +723,8 @@ SEARCH_T	*srp;
 	h_minl = stp->s_minlen;
 	h_maxl = stp->s_maxlen;
 	i1_minl = stp->s_minilen;
-	i1_maxl = stp->s_maxilen;
 	i2_minl = stp1->s_minilen;
-	i2_maxl = stp1->s_maxilen;
 	i3_minl = stp2->s_minilen;
-	i3_maxl = stp2->s_maxilen;
 
 	i_minl = i1_minl + i2_minl + i3_minl + 2 * h_minl;
 
@@ -846,10 +734,12 @@ SEARCH_T	*srp;
 	s3lim = sdollar - s3lim + 1;
 
 	rv = 0;
-	if(match_wchlx( stp, stp3, szero, sdollar, s3lim, &h3, &hlen, &n_mpr )){
-		mark_duplex( stp, szero, stp3, h3, hlen );
-		rv = find_4plex_inner( srp, h3, hlen );
-		unmark_duplex( stp, szero, stp3, h3, hlen );
+	if(n_h3=match_wchlx(stp,stp3,szero,sdollar,s3lim,h3,hlen,n_mpr)){
+		for( h = 0; h < n_h3; h++ ){
+			mark_duplex( stp, szero, stp3, h3[h], hlen[h] );
+			rv |= find_4plex_inner( srp, h3[h], hlen[h] );
+			unmark_duplex( stp, szero, stp3, h3[h], hlen[h] );
+		}
 	}
 	return( rv );
 }
@@ -860,10 +750,8 @@ int	s3;
 int	hlen;
 {
 	STREL_T	*stp, *stp1, *stp2, *stp3;
-	int	slen, szero, sdollar;
-	int	s, s1, s1lim, s2, s2lim;
-	int	h_minl, h_maxl;
-	int	i_minl, i_maxl, i_len;
+	int	szero;
+	int	s1, s1lim, s2, s2lim;
 	int	i1_minl, i2_minl, i3_minl;
 	int	i1_maxl, i2_maxl, i3_maxl;
 	int	i1_len, i2_len, i3_len, n_mpr;
@@ -872,15 +760,12 @@ int	hlen;
 	int	rv;
 
 	szero = srp->s_zero;
-	sdollar = srp->s_dollar;
-	slen = sdollar - szero + 1;
+
 	stp = srp->s_descr;
 	stp1 = stp->s_mates[ 0 ];
 	stp2 = stp->s_mates[ 1 ];
 	stp3 = stp->s_mates[ 2 ];
 
-	h_minl = stp->s_minlen;
-	h_maxl = stp->s_maxlen;
 	i1_minl = stp->s_minilen;
 	i1_maxl = stp->s_maxilen;
 	i1_stp = stp->s_inner;
@@ -935,19 +820,19 @@ int	hlen;
 	return( rv );
 }
 
-int	match_wchlx( stp, stp3, s5, s3, s3lim, h3, hlen, n_mpr )
+int	match_wchlx0( stp, stp3, s5, s3, s3lim, h3, hlen, n_mpr )
 STREL_T	*stp;
 STREL_T	*stp3;
 int	s5;
 int	s3;
 int	s3lim;
-int	*h3;
-int	*hlen;
-int	*n_mpr;
+int	h3[];
+int	hlen[];
+int	n_mpr[];
 {
-	int	s, s3_5plim;
+	int	s;
 	int	b5, b3;
-	int	mplim, mpr, l_n_mpr, l_pr;
+	int	mplim, l_n_mpr;
 	int	i_lpb, pfrac;
 
 	*n_mpr = 0;
@@ -966,12 +851,10 @@ int	*n_mpr;
 	if( RM_paired( stp->s_pairset, b5, b3 ) ){
 		*h3 = s3;
 		i_lpb = 0;
-		l_pr = 1;
 	}else if( !( stp->s_attr & SA_5PAIRED ) ){
 		*h3 = s3;
 		*n_mpr = 1;
 		i_lpb = UNDEF;
-		l_pr = 0;
 		l_n_mpr = *n_mpr;
 	}else
 		return( 0 );
@@ -982,17 +865,14 @@ int	*n_mpr;
 		if( RM_paired( stp->s_pairset, b5, b3 ) ){
 			if( pfrac ){
 				if(1.*(*hlen-*n_mpr)/(*hlen)>=stp->s_pairfrac){
-					l_pr = 1;
 					i_lpb = *hlen;
 					l_n_mpr = *n_mpr;
 				}
 			}else{
-				l_pr = 1;
 				i_lpb = *hlen;
 				l_n_mpr = *n_mpr;
 			}
 		}else{
-			l_pr = 0;
 			( *n_mpr )++;
 			if( *n_mpr > mplim ){
 				if( *hlen < stp->s_minlen )
@@ -1029,6 +909,93 @@ int	*n_mpr;
 	return( 1 );
 }
 
+static	int	match_wchlx( stp, stp3, s5, s3, s3lim, h3, hlen, n_mpr )
+STREL_T	*stp;
+STREL_T	*stp3;
+int	s5;
+int	s3;
+int	s3lim;
+int	h3[];
+int	hlen[];
+int	n_mpr[];
+{
+	int	nh, hl, mpr, l_bpr;
+	int	b5, b3;
+	int	mplim; 
+	int	pfrac;
+
+	b5 = fm_sbuf[ s5 ];
+	b3 = fm_sbuf[ s3 ];
+	if( RM_paired( stp->s_pairset, b5, b3 ) ){
+		hl = 1;
+		mpr = 0;
+		l_bpr = 1;
+	}else if( !( stp->s_attr & SA_5PAIRED ) ){
+		hl = 1;
+		mpr = 1;
+		l_bpr = 0;
+	}else{
+		return( 0 );
+	}
+
+	if( stp->s_mispair > 0 ){
+		mplim = stp->s_mispair;
+		pfrac = 0;
+	}else if( stp->s_pairfrac < 1.0 ){
+		mplim = (1.-stp->s_pairfrac)*MIN(stp->s_maxlen, fm_windowsize);
+		pfrac = 1;
+	}else{
+		mplim = 0;
+		pfrac = 0;
+	}
+
+	for( nh = 0; s3 - hl + 1 >= s3lim; ){
+		if( hl >= stp->s_minlen ){
+
+			if( !l_bpr && ( stp->s_attr & SA_3PAIRED ) )
+				goto SKIP;
+
+			if( pfrac ){
+				if( 1.*( hl - mpr )/hl < stp->s_pairfrac )
+					goto SKIP;
+			}
+
+			if( stp->s_seq != NULL ){
+				if( !chk_seq( stp, &fm_sbuf[ s5 ], hl ) )
+					goto SKIP;
+			}
+
+			if( stp3->s_seq != NULL ){
+				if( chk_seq(stp3, &fm_sbuf[s3-hl+1], hl ) ){
+					h3[ nh ] = s3;
+					hlen[ nh ] = hl;
+					n_mpr[ nh ] = mpr;
+					nh++;
+				}
+			}else{
+				h3[ nh ] = s3;
+				hlen[ nh ] = hl;
+				n_mpr[ nh ] = mpr;
+				nh++;
+			}
+		}
+SKIP : ;
+		b5 = fm_sbuf[ s5 + hl ];
+		b3 = fm_sbuf[ s3 - hl ];
+		if( RM_paired( stp->s_pairset, b5, b3 ) )
+			l_bpr = 1;
+		else{
+			mpr++;
+			if( mpr > mplim )
+				break;
+			l_bpr = 0;
+		}
+		hl++;
+	}
+
+	return( nh );
+}
+
 static	int	match_phlx( stp, stp3, s5, s3, s5hi, s5lo, hlen, n_mpr )
 STREL_T	*stp;
 STREL_T	*stp3;
@@ -1041,7 +1008,7 @@ int	*n_mpr;
 {
 	int	s, s1;
 	int	b5, b3;
-	int	mplim, mpr, l_pr;
+	int	mplim, l_pr;
 	int	pfrac;
 
 	mplim = 0;
@@ -1115,7 +1082,7 @@ int	*n_mpr;
 {
 	int	t;
 	int	b1, b2, b3;
-	int	mplim, mpr, l_pr;
+	int	mplim, l_pr;
 
 	mplim = 0;
 	if( stp->s_mispair > 0 )
@@ -1173,7 +1140,7 @@ int	*n_mpr;
 {
 	int	q;
 	int	b1, b2, b3, b4;
-	int	mplim, mpr, l_pr;
+	int	mplim, l_pr;
 
 	mplim = 0;
 	if( stp1->s_mispair > 0 )
@@ -1720,7 +1687,7 @@ STREL_T	descr[];
 	char	name[ 20 ];
 	int	d, len, offset;
 	STREL_T	*stp;
-	char	mbuf[ 256 ], cstr[ 256 ];
+	char	cstr[ 256 ];
 
 	if( first ){
 		first = 0;
@@ -1777,21 +1744,6 @@ char	cstr[];
 		*cp++ = *sp;
 	}
 	*cp = '\0';
-}
-static	void	set_mbuf( off, len, mbuf )
-int	off;
-int	len;
-char	mbuf[];
-{
-
-	if( len <= 20 ){
-		strncpy( mbuf, &fm_sbuf[ off ], len );
-		mbuf[ len ] = '\0';
-	}else{
-		sprintf( mbuf, "%.*s...(%d)...%.*s",
-			3, &fm_sbuf[ off ], len,
-			3, &fm_sbuf[ off + len - 3 ] );
-	}
 }
 
 static	int	chk_seq( stp, seq, slen )

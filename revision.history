@@ -1,15 +1,57 @@
+1.2.1	2000-mar-19
+	Replaced incorrect greedy match_wchlx() that returned only the
+	longest helix in the interval [minlen,maxlen] with correct code
+	that returns a vector of all helices in the interval [minlen,maxlen].
+
+	Extended input language to accept single quote string 'xxx' as well
+	as double quote strings "xxx".  Single quote strings are uninterpreted
+	except for the usual C escapes (\t,\n,\f,\',\ooo, etc).  Double quote
+	strings however are DNA-sequences and all are forced to lower, all u's
+	are converted to t's and the iupac codes are converted into the 
+	equivalent RE's (n = .; r = [ag], etc).  
+
+	Implemented the match/don't match operator in the score section.
+	Changed the grammar so that the in operator is always site in pairset,
+	so it looks just like site.  This operator is not yet implemented.
+
+1.2.0   2000-feb-09
+	Removed restriction on pknots that limited them to two helices. This
+	required modifications to both the compile phase (compile.c) and
+	the search phase (find_motif.c)  The new search algorithm fixes an
+	(apparantly) overlooked bug in the old search algorithm that joined
+	the loop over the 3' end of the 1st helix with the 3' end of the 
+	region in which the pknot must be found.  The new algorithm correctly
+	treats these loops as independent; as a result many more pknots are
+	found.
+
+	Also redid fastn.c to read fastn records char by char rather than
+	line by line.  The original line by line method incorrectly handled
+	defintion lines that were longer than the line buf.  The new fastn.c
+	routine adds chars from the def line to line buf until line buf is
+	full, then discards the rest of the def line with a message to stderr
+	that the def line was XXXX chars long and was truncated to TTTT chars.
+
+	Fixed bug that considered the descriptor score indexes to be on the
+	interval [0,n_descr) to put them on the correct interval [1,n_descr]
+
+	Finally, added new builtin symbol 'show_progress' which is normally
+	0, but when set to 1 will print the name of each entry as it is read
+	by the main loop.  I added it to make sure that the new pknot finder
+	which is slower than the old one was actually working!
+
 1.1.1	1999-nov-08
 	Modified helix finding codes to allow a helix to begin and/or end with
 	a mismatch.  This is normally off, but may be turned on at two levels:
 	If the *_ends variable (* = {wc, phlx, tr, qu}) is set its value becomes
-	the default end condition for all helices of the specified type.  The values
-	of these variables are the strings "pp", "pm", "mp" and "mm" (case doesn't
-	matter) which mean 5'&3' paired; 5' paired, 3' mispair OK; 5' mispair ok, 3' paired;
-	and mispairs ok at either or both 5'&3'.  Note that mispairs are not required, just
-	permitted.  To select for a mispair at that position use the score section.
-	The default value is "pp".  In addition, the ends may be specified at the str-el
-	level using the ends= parameter.  This uses the same values as the global symbols,
-	but the scope is limited to that str-el.
+	the default end condition for all helices of the specified type.  The
+	values of these variables are the strings "pp", "pm", "mp" and "mm"
+	(case doesn't matter) which mean 5'&3' paired; 5' paired, 3' mispair OK;
+	5' mispair OK, 3' paired; and mispairs OK at either or both 5'&3'.  Note
+	that mispairs are not required, just permitted.  To select for a mispair
+	at that position use the score section.  The default value is "pp".  In
+	addition, the ends may be specified at the str-el level using the ends=
+	parameter.  This uses the same values as the global symbols, but the
+	scope is limited to that str-el.
 
 1.1.0	1999-oct-23
 	Added builtins mispairs(), mismatches() and paired() to score

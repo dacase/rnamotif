@@ -6,8 +6,10 @@ descr
 score
 	{ gcnt = 0;
 	  len = length( h5( index = 1 ) );
+#	  len = length( h5[1] );
 	  for( i = 1; i <= len; i++ ){
 		b = h5( index = 1, pos = i, len = 1 );
+#		b = h5[1,i,1];
 		if( b == "g" || b == "c" )
 			gcnt++;
 	  }

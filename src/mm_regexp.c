@@ -37,7 +37,6 @@ int	*exact;
 int	*mmok;
 {
 	char	*ep;
-	int	i, dol;
 
 	*minl = *maxl = 0;
 	*exact = 0;

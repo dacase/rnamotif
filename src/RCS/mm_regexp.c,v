@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2000.03.03.19.47.56;	author macke;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	99.10.13.17.28.01;	author macke;	state Exp;
@@ -23,9 +28,9 @@ ranges \{n,m\}, where n!=m as well as \<\> and XCL(?)
 @
 
 
-1.2
+1.3
 log
-@modified mm_step() to return the # of mismatches.
+@removed all unused vars that were detected by the C compiler on fermat.
 @
 text
 @#include <stdio.h>
@@ -67,7 +72,6 @@ int	*exact;
 int	*mmok;
 {
 	char	*ep;
-	int	i, dol;
 
 	*minl = *maxl = 0;
 	*exact = 0;
@@ -362,6 +366,16 @@ int	*n_mm;
 	}
 	return( 0 );
 }
+@
+
+
+1.2
+log
+@modified mm_step() to return the # of mismatches.
+@
+text
+@a39 1
+	int	i, dol;
 @
 
 

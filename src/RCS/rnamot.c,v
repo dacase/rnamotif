@@ -1,9 +1,14 @@
-head	1.47;
+head	1.48;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.48
+date	2000.03.03.18.25.02;	author macke;	state Exp;
+branches;
+next	1.47;
 
 1.47
 date	2000.02.10.00.14.23;	author macke;	state Exp;
@@ -246,10 +251,9 @@ desc
 @
 
 
-1.47
+1.48
 log
-@added variable show_progress so as to be able to monitor the
-search
+@removed unused var dbnp.
 @
 text
 @#include <stdio.h>
@@ -299,7 +303,6 @@ int	argc;
 char	*argv[];
 {
 	IDENT_T	*ip;
-	char	*dbnp;
 	int	chk_both_strs;
 	int	show_progress;
 
@@ -408,6 +411,17 @@ char	csbuf[];
 	for( sp = sbuf, cp = &csbuf[ slen - 1 ], i = 0; i < slen; i++ )
 		*cp-- = wc_cmp[ *sp++ ];
 }
+@
+
+
+1.47
+log
+@added variable show_progress so as to be able to monitor the
+search
+@
+text
+@a47 1
+	char	*dbnp;
 @
 
 

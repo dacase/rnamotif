@@ -72,7 +72,6 @@ FILE	*fp;
 NODE_T	*np;
 int	indent;
 {
-	POS_T	*posp;
 
 	fprintf( fp, "%*s",indent, "" );
 	fprintf( fp, "%7p: lf = %7p rt = %7p ln,tp,cl = %3d,%2d,%2d ",

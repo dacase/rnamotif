@@ -3,6 +3,7 @@
 #include "rnamot.h"
 #include "y.tab.h"
 double	atof();		/* get it it if we ever need reals	*/
+char	*RM_str2seq();
 
 extern	int	rm_lineno;
 extern	VALUE_T	rm_tokval;
@@ -80,6 +81,26 @@ while		return( SYM_WHILE );
 			strncpy( sp, &yytext[1], yyleng - 2 );
 			sp[ yyleng - 2 ] = '\0';
 			rm_tokval.v_type = T_STRING;
+/*
+			rm_tokval.v_value.v_pval = sp;
+*/
+			rm_tokval.v_value.v_pval = RM_str2seq( sp );
+			return( SYM_STRING );
+		  }
+		}
+\'[^'\n]*	{ if( yytext[ yyleng - 1 ] == '\\' )
+			yymore();
+		  else{
+			yytext[ yyleng++ ] = input();
+			yytext[ yyleng ] = '\0';
+			sp = ( char * )malloc( ( yyleng - 1 )*sizeof( char ) );
+			if( sp == NULL ){
+				RM_errormsg( 1,
+				"lex.yy.c: can't alloc sp for SYM_STRING." );
+			}
+			strncpy( sp, &yytext[1], yyleng - 2 );
+			sp[ yyleng - 2 ] = '\0';
+			rm_tokval.v_type = T_STRING;
 			rm_tokval.v_value.v_pval = sp;
 			return( SYM_STRING );
 		  }
@@ -126,6 +147,8 @@ while		return( SYM_WHILE );
 
 \(		return( SYM_LPAREN );
 \)		return( SYM_RPAREN );
+\[		return( SYM_LBRACK );
+\]		return( SYM_RBRACK );
 \{		return( SYM_LCURLY );
 \}		return( SYM_RCURLY );
 \,		return( SYM_COMMA );

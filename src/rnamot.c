@@ -45,7 +45,6 @@ int	argc;
 char	*argv[];
 {
 	IDENT_T	*ip;
-	char	*dbnp;
 	int	chk_both_strs;
 	int	show_progress;
 

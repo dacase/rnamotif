@@ -82,6 +82,8 @@ NODE_T	*PR_close();
 IDENT_T	*RM_enter_id();
 IDENT_T	*RM_find_id();
 
+char	*RM_str2seq();
+
 static	int	ends2attr();
 static	void	eval();
 static	int	loadidval();
@@ -91,7 +93,6 @@ static	void	*mk_bmatp();
 static	void	*mk_rbmatp();
 static	POS_T	*posop();
 
-static	char	*str2seq();
 static	int	seqlen();
 static	int	link_tags();
 static	void	chk_tagorder();
@@ -127,7 +128,6 @@ int	argc;
 char	*argv[];
 {
 	int	ac, i, err;
-	IDENT_T	*ip;
 	NODE_T	*np;
 	char	*dfnp, *dbfnp;
 	VALUE_T	val;
@@ -406,7 +406,6 @@ int	stype;
 {
 	VALUE_T	val;
 	IDENT_T	*ip;
-	PAIRSET_T *ps;
 
 	n_valstk = 0;
 	if( stype == SYM_SE ){
@@ -549,10 +548,6 @@ int	stype;
 void	SE_addval( expr )
 NODE_T	*expr;
 {
-	int	op;
-	NODE_T	*npl, *npr;
-	char	*id;
-	char	*sp;
 
 	n_valstk = 0;
 	eval( expr, 0 );
@@ -561,8 +556,7 @@ NODE_T	*expr;
 void	SE_close()
 {
 	int	i, s_minlen, s_maxlen, s_len, s_mispair, s_pairfrac;
-	int	l_seq;
-	IDENT_T	*ip, *ip1;
+	IDENT_T	*ip;
 
 	s_minlen = 0;
 	s_maxlen = 0;
@@ -589,7 +583,10 @@ void	SE_close()
 				}
 			}
 		}else if( !strcmp( ip->i_name, "seq" ) ){
+/*
 			stp->s_seq = str2seq( ip->i_val.v_value.v_pval );
+*/
+			stp->s_seq = ip->i_val.v_value.v_pval;
 		}else if( !strcmp( ip->i_name, "mismatch" ) ){
 			stp->s_mismatch = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "matchfrac" ) ){
@@ -1081,8 +1078,7 @@ STREL_T	*stp;
 int	n_descr;
 STREL_T	descr[];
 {
-	int	i, j, k;
-	int	pk, h5, h3;
+	int	i, j;
 	STREL_T	*stp1, *stp2, *stp3;
 	static	STREL_T	**pknot = NULL;
 	int	n_pknot;
@@ -1266,31 +1262,6 @@ STREL_T	descr[];
 	}
 }
 
-dump_pknot( fp, s_pknot, pknot )
-FILE	*fp;
-int	s_pknot;
-int	pknot[];
-{
-	int	p, lp;
-	int	first;
-
-	for( first = 1, lp = 0, p = 0; p < s_pknot; p++ ){
-		if( pknot[ p ] == UNDEF )
-			continue;
-		if( first ){
-			fprintf( fp, "fd = %3d: ", p );
-			first = 0;
-		}
-		fprintf( fp, " %3d", pknot[ p ] ); 
-		lp = p;
-		if( p < s_pknot - 1 ){
-			if( pknot[ p + 1 ] != UNDEF )
-				putc( ',', fp );
-		}
-	}
-	fprintf( fp, ": ld = %3d\n", lp );
-}
-
 static	int	chk_strel_parms( n_descr, descr )
 int	n_descr;
 STREL_T	descr[];
@@ -1438,7 +1409,7 @@ static	int	chk_len_seq( n_egroup, egroup )
 int	n_egroup;
 STREL_T	*egroup[];
 {
-	int	err, seq;
+	int	err;
 	int	exact, exact1, inexact, mmok;
 	int	i, l_seq;
 	int	minl, maxl;
@@ -1497,7 +1468,6 @@ STREL_T	*egroup[];
 	si_minl = si_maxl = UNDEF;
 	exact = 0;
 	inexact = 0;
-	seq = 0;
 	for( i = 0; i < n_egroup; i++ ){
 		stp = egroup[ i ];
 		if( stp->s_seq == NULL )
@@ -1510,7 +1480,6 @@ STREL_T	*egroup[];
 				RM_errormsg( 0,
 		"specified seq= and mismatch= >0 are not consistant." );
 			}
-			seq = 1;
 			if( exact1 ){
 				if( se_minl == UNDEF ){
 					exact = 1;
@@ -1601,22 +1570,6 @@ STREL_T	*egroup[];
 			stp = egroup[ i ];
 			stp->s_minlen = minl;
 			stp->s_maxlen = maxl;
-/*
-			if( stp->s_seq != NULL ){
-				l_seq = strlen( stp->s_seq );
-				l_seq = 2*l_seq > 256 ? 2*l_seq : 256;
-				stp->s_expbuf =
-					( char * )malloc( l_seq*sizeof(char) );
-				if( stp->s_expbuf == NULL ){
-					rm_emsg_lineno = stp->s_lineno;
-					RM_errormsg( 1,
-						"can't allocate s_expbuf." );
-				}
-				stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
-				compile( stp->s_seq, stp->s_expbuf,
-					stp->s_e_expbuf, '\0' );
-			}
-*/
 		}
 	}
 
@@ -1748,9 +1701,8 @@ NODE_T	*expr;
 int	d_ok;
 {
 	char	*sp, *l_sp, *r_sp;
-	IDENT_T	*ip, *ip1;
+	IDENT_T	*ip;
 	int	l_type, r_type;
-	VALUE_T	*vp;
 	PAIRSET_T	*n_ps, *l_ps, *r_ps;
 	POS_T	*l_pos, *r_pos, *n_pos;
 
@@ -2061,7 +2013,6 @@ VALUE_T	*vp;
 	int	type;
 	IDENT_T	*ip;
 	char	*sp;
-	int	i;
 	PAIRSET_T	*ps ;
 
 	ip = vp->v_value.v_pval;
@@ -2152,7 +2103,6 @@ PAIRSET_T	*ps2;
 	int	i, j, c, b, nb, sz, diff, fnd;
 	PAIRSET_T	*n_ps;
 	PAIR_T	*n_pp, *pp, *ppi, *ppj;
-	void	*bmatp;
 
 	if( !strcmp( op, "check" ) ){
 		if( ps1 == NULL ){
@@ -2421,7 +2371,7 @@ static	void*	mk_rbmatp( ps )
 PAIRSET_T	*ps;
 {
 	PAIR_T	*pp;
-	int	i, nb;
+	int	nb;
 	int	bi1, bi2, bi3, bi4;
 	void	*bmatp;
 	BP_MAT_T	*bpmatp;
@@ -2511,7 +2461,7 @@ POS_T	*r_pos;
 	}
 }
 
-static	char	*str2seq( str )
+char	*RM_str2seq( str )
 char	str[];
 {
 	char	*s1, *s2, *s3, *sp;
@@ -2540,7 +2490,7 @@ char	str[];
 	*s2 = '\0';
 	sp = ( char * )malloc( strlen( seq ) + 1 );
 	if( sp == NULL ){
-		RM_errormsg( 1, "str2seq: can't alloc sp." );
+		RM_errormsg( 1, "RM_str2seq: can't alloc sp." );
 	}
 	strcpy( sp, seq );
 	return( sp );
@@ -2553,7 +2503,7 @@ int	*maxlen;
 int	*exact;
 int	*kclos;
 {
-	char	*sp, *sp1;
+	char	*sp;
 	int	rbr;
 	int	minl, maxl;
 	int	circ, dollar;
@@ -2661,7 +2611,6 @@ void	POS_open( ptype )
 int	ptype;
 {
 	VALUE_T	val;
-	IDENT_T	*ip;
 
 	n_valstk = 0;
 	if( ptype == SYM_SE ){
@@ -2687,11 +2636,11 @@ int	ptype;
 	n_local_ids = 0;
 	val.v_type = T_STRING;
 	val.v_value.v_pval = NULL;
-	ip = RM_enter_id( "tag", T_STRING, C_VAR, S_SITE, 0, &val );
+	RM_enter_id( "tag", T_STRING, C_VAR, S_SITE, 0, &val );
 
 	val.v_type = T_POS;
 	val.v_value.v_pval = NULL;
-	ip = RM_enter_id( "pos", T_POS, C_VAR, S_SITE, 0, &val );
+	RM_enter_id( "pos", T_POS, C_VAR, S_SITE, 0, &val );
 }
 
 void	POS_addval( expr )
@@ -2878,10 +2827,10 @@ STREL_T	descr[];
 int	*tminlen;
 int	*tmaxlen;
 {
-	int	d, d1, d2, nd;
+	int	d, d1, nd;
 	int	gminlen, gmaxlen;
-	int	minlen2, minlen3;
-	int	maxlen2, maxlen3;
+	int	minlen3;
+	int	maxlen3;
 	STREL_T	*stp, *stp1, *stp2, *stp3;
 
 	*tminlen = 0;
@@ -2963,9 +2912,6 @@ static	void	find_1_limit( stp, descr )
 STREL_T	*stp;
 STREL_T	descr[];
 {
-	int	start, stop, l2r;
-	char	name[ 20 ], tstr[ 20 ];
-	char	*bp, buf[ 200 ];
 
 	find_start( stp, descr );
 	find_stop( stp, descr );
@@ -2975,7 +2921,6 @@ static	void	find_start( stp, descr )
 STREL_T	*stp;
 STREL_T	descr[];
 {
-	int	start;
 
 	if( stp->s_scope == UNDEF ){	/* ss	*/
 		stp->s_start.a_l2r = 1;
@@ -3006,9 +2951,6 @@ static	void	find_stop( stp, descr )
 STREL_T	*stp;
 STREL_T	descr[];
 {
-	int	i, unbnd;
-	int	stop;
-	STREL_T	*stp1;
 
 	if( RM_R2L( stp->s_type ) ){
 		stp->s_stop.a_offset =

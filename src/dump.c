@@ -74,9 +74,7 @@ void	RM_dump_id( fp, ip )
 FILE	*fp;
 IDENT_T	*ip;
 {
-	PAIR_T	*pp;
 	PAIRSET_T	*ps;
-	int	i, b;
 
 	fprintf( fp, "%s = {\n", ip->i_name );
 
@@ -181,7 +179,7 @@ FILE	*fp;
 PAIRSET_T	*ps;
 {
 	PAIR_T	*pp;
-	int	i, b;
+	int	i;
 
 	fprintf( fp, "{ " );
 	if( ps != NULL ){
@@ -560,7 +558,6 @@ FILE	*fp;
 	int	i, j, n_sites;
 	SITE_T	*sp;
 	POS_T	*posp;
-	PAIRSET_T	*ps;
 
 	for( n_sites = 0, sp = rm_sites; sp; sp = sp->s_next )
 		n_sites++;
@@ -655,7 +652,7 @@ int	attr;
 			break;
 		}
 	}
-	strcat( astr, " }" );
+	return( strcat( astr, " }" ) );
 }
 
 static	void	print_hierarchy( fp, lev, prefix, fd, descr )
@@ -695,7 +692,6 @@ FILE	*fp;
 char	prefix[];
 STREL_T	*stp;
 {
-	int	start, stop, l2r;
 	char	name[ 20 ], tstr[ 20 ];
 	char	*bp, buf[ 200 ];
 
@@ -769,9 +765,8 @@ STREL_T	*stp;
 char	prefix[];
 char	prefix1[];
 {
-	char	*pp, *pp1;
+	char	*pp;
 	int	plen;
-	STREL_T	*stp0;
 	int	inner, next, first;
 
 	strcpy( prefix1, prefix );
