@@ -222,7 +222,7 @@ PAIRSET_T	*ps;
 	nb = pp->p_n_bases;
 	fprintf( fp, "{ " );
 	if( nb == 2 ){
-		bpmatp = ps->ps_mat;
+		bpmatp = ps->ps_mat[ 0 ];
 		for( np = 0, i1 = 0; i1 < N_BCODES; i1++ ){
 		    for( i2 = 0; i2 < N_BCODES; i2++ ){
 			if( (*bpmatp)[i1][i2] ){
@@ -236,7 +236,7 @@ PAIRSET_T	*ps;
 		    }
 		}
 	}else if( nb == 3 ){
-		btmatp = ps->ps_mat;
+		btmatp = ps->ps_mat[ 0 ];
 		for( np = 0, i1 = 0; i1 < N_BCODES; i1++ ){
 		    for( i2 = 0; i2 < N_BCODES; i2++ ){
 			for( i3 = 0; i3 < N_BCODES; i3++ ){
@@ -253,7 +253,7 @@ PAIRSET_T	*ps;
 		    }
 		}
 	}else if( nb == 4 ){
-		bqmatp = ps->ps_mat;
+		bqmatp = ps->ps_mat[ 0 ];
 		for( np = 0, i1 = 0; i1 < N_BCODES; i1++ ){
 		    for( i2 = 0; i2 < N_BCODES; i2++ ){
 			for( i3 = 0; i3 < N_BCODES; i3++ ){
