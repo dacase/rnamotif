@@ -64,7 +64,7 @@ char	*argv[];
 			exit( 1 );
 		fprintf( stderr, "%s: complete descr length: min/max = %d/",
 			rm_dfname, rm_dminlen );
-		SC_link();
+		RM_linkscore();
 		if( rm_dmaxlen == UNBOUNDED )
 			fprintf( stderr, "UNBND\n" );
 		else
@@ -75,7 +75,7 @@ char	*argv[];
 		RM_dump( stderr, rm_dopt, rm_dopt, rm_dopt, rm_hopt );
 
 	if( rm_dopt || rm_popt )
-		SC_dump( stderr );
+		RM_dumpscore( stderr );
 
 	if( rm_error )
 		exit( 1 );
