@@ -1,10 +1,20 @@
 #  Edit the configuration variables below to match your system:
 
-CC= cc
+CC= gcc
 CFLAGS= -O2
 #CFLAGS= -g
-YACC = yacc
-LEX = lex
+
+#  the yacc compiler is typically "yacc" (for the *real* yacc), "byacc"
+#  (for the Berkeley equivalent) or "bison -y" (to get yacc compatible output 
+#  from bison).  Note that /bin/yacc is sometimes a symlink to bison; on
+#  such systems you need the -y flag.
+
+YACC = bison -y
+
+#  The GNU version of lex is called flex.  So the following variable is 
+#  either "lex" or "flex", depending upon your system.
+
+LEX = flex
 
 # Uncomment & use these 3 lines to use Genbank in addition to FASTN:
 
