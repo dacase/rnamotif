@@ -1560,7 +1560,10 @@ int	*exact;
 		sp++;
 	}
 	*minlen = minl;
-	*maxlen = maxl;
+	if( circ && dollar )
+		*maxlen = maxl;
+	else
+		*maxlen = UNBOUNDED;
 	*exact = circ && dollar;
 	return( 1 );
 }
