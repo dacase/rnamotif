@@ -63,6 +63,7 @@ static	void	mk_links();
 static	void	duptags_error();
 static	int	chk_strel_parms();
 static	int	chk_1_strel_parms();
+static	int	chk_len_seq();
 static	void	chk_site();
 
 int	RM_init()
@@ -620,6 +621,7 @@ STREL_T	*stp;
 	if(	stype == SYM_SS || stype == SYM_P5 || stype == SYM_H5 ||
 		stype == SYM_T1 || stype == SYM_Q1 )
 	{
+		err = chk_len_seq( n_egroup, egroup ); 
 	}
 
 	/* check & set the mispair & pair values	*/
@@ -681,6 +683,138 @@ STREL_T	*stp;
 					stp1->s_pairset = pairop( "copy",
 						pval, NULL );
 			}
+		}
+	}
+
+	return( err );
+}
+
+static	int	chk_len_seq( n_egroup, egroup )
+int	n_egroup;
+STREL_T	*egroup[];
+{
+	int	err, exact, exact1, inexact, seq;
+	int	i;
+	int	minl, maxl;
+	int	se_minl, se_maxl;
+	int	si_minl, si_maxl;
+	int	s_minl, s_maxl;
+	STREL_T	*stp;
+
+	err = 0;
+	for( minl = UNDEF, i = 0; i < n_egroup; i++ ){
+		stp = egroup[ i ];
+		if( stp->s_minlen != UNDEF ){
+			if( minl == UNDEF )
+				minl = stp->s_minlen;
+			else if( stp->s_minlen != minl ){
+				err = 1;
+				rm_emsg_lineno = stp->s_lineno;
+				errormsg( 0, "inconsistant minlen values." );
+			}
+		}
+	}
+
+	for( maxl = UNDEF, i = 0; i < n_egroup; i++ ){
+		stp = egroup[ i ];
+		if( stp->s_maxlen != UNDEF ){
+			if( maxl == UNDEF )
+				maxl = stp->s_maxlen;
+			else if( stp->s_maxlen != maxl ){
+				err = 1;
+				rm_emsg_lineno = stp->s_lineno;
+				errormsg( 0, "inconsistant maxlen values." );
+			}
+		}
+	}
+
+	se_minl = se_maxl = UNDEF;
+	si_minl = si_maxl = UNDEF;
+	exact = 0;
+	inexact = 0;
+	seq = 0;
+	for( i = 0; i < n_egroup; i++ ){
+		stp = egroup[ i ];
+		if( seqlen( stp->s_seq, &s_minl, &s_maxl, &exact1 ) ){
+			seq = 1;
+			if( exact1 ){
+				if( se_minl == UNDEF ){
+					exact = 1;
+					se_minl = s_minl;
+					se_maxl = s_maxl;
+				}else{
+					if( s_minl != se_minl ){
+						err = 1;
+						rm_emsg_lineno = stp->s_lineno;
+						errormsg( 0,
+						"inconsistant seq lengths." );
+					}
+					if( s_maxl != se_maxl ){
+						err = 1;
+						rm_emsg_lineno = stp->s_lineno;
+						errormsg( 0,
+						"inconsistant seq lengths." );
+					}
+				}
+			}else{
+				inexact = 1;
+				if( si_minl == UNDEF ){
+					si_minl = s_minl;
+					si_maxl = s_maxl;
+				}else{
+					if( s_minl > si_minl )
+						si_minl = s_minl;
+					if( s_maxl > si_maxl )
+						si_maxl = s_maxl;
+				}
+			}
+		}
+	}
+
+	if( exact ){
+		if( inexact ){
+			if( si_minl > se_maxl ){
+				err = 1;
+				rm_emsg_lineno = egroup[ 0 ]->s_lineno;
+				errormsg( 0, "inconsistant seq lengths." );
+			}
+		}
+		if( minl == UNDEF )
+			minl = se_minl;
+		else if( minl != se_minl ){
+			err = 1;
+			rm_emsg_lineno = egroup[ 0 ]->s_lineno;
+			errormsg( 0, "inconsistant seq & minlen parms." );
+		}
+		if( maxl == UNDEF )
+			maxl = se_maxl;
+		else if( maxl != se_maxl ){
+			err = 1;
+			rm_emsg_lineno = egroup[ 0 ]->s_lineno;
+			errormsg( 0, "inconsistant seq & maxlen parms." );
+		}
+	}else if( inexact ){
+		if( minl == UNDEF )
+			minl = si_minl;
+		if( maxl == UNDEF )
+			maxl = si_maxl;
+		else if( maxl < si_minl ){
+			err = 1;
+			rm_emsg_lineno = egroup[ 0 ]->s_lineno;
+			errormsg( 0, "inconsistant seq & maxlen parms." );
+		}
+	}
+
+	if( minl == UNDEF )
+		minl = 1;
+	if( maxl == UNDEF )
+		maxl = UNBOUNDED;
+
+	if( !err ){
+		for( i = 0; i < n_egroup; i++ ){
+			stp = egroup[ i ];
+			stp->s_minlen = minl;
+			stp->s_maxlen = maxl;
 		}
 	}
 
@@ -1299,27 +1433,37 @@ POS_T	*r_pos;
 	}
 }
 
-static	int	seqlen( seq, minlen, maxlen )
+static	int	seqlen( seq, minlen, maxlen, exact )
 char	seq[];
 int	*minlen;
 int	*maxlen;
+int	*exact;
 {
 	char	*sp, *sp1;
 	int	rbr;
 	int	minl, maxl;
+	int	circ, dollar;
+
+	/* no string! */
+	if( seq == NULL || *seq == '\0' )
+		return( 0 );
 
 	/* useful exception to strict rules of RE*	*/
 	if( *seq == '*' ){
 		*minlen = 0;
 		*maxlen = UNBOUNDED;
-		return;
+		return( 1 );
 	}
 
+	circ = 0;
+	dollar = 0;
 	minl = 0;
 	maxl = 0;
 	sp = seq;
-	if( *sp == '^' )	/* leading ^ anchors to position 1 */
+	if( *sp == '^' ){	/* leading ^ anchors to position 1 */
+		circ = 1;
 		sp++;
+	}
 	while( *sp ){
 		if( *sp == '.' ){
 			if( sp[ 1 ] == '*' ){
@@ -1343,7 +1487,10 @@ int	*maxlen;
 				}
 			}
 			if( !rbr ){
-/* ERROR: unclosed char class	*/
+				sprintf( emsg,
+					"unclosed char class in pat '%s'",
+					seq );
+				errormsg( 0, emsg );
 				return( 0 );
 			}
 			if( sp[ 1 ] == '*' ){
@@ -1362,7 +1509,8 @@ int	*maxlen;
 				minl++;
 				if( maxl != UNBOUNDED )
 					maxl++;
-			}
+			}else
+				dollar = 1;
 		}else if( *sp == '\\' ){
 			if( sp[ 1 ] != '(' && sp[ 1 ] != ')' ){
 				minl++;
@@ -1382,6 +1530,7 @@ int	*maxlen;
 	}
 	*minlen = minl;
 	*maxlen = maxl;
+	*exact = circ && dollar;
 	return( 1 );
 }
 
