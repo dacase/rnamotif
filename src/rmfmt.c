@@ -8,8 +8,9 @@ main( argc, argv )
 int	argc;
 char	*argv[];
 {
-	FILE	*ifp, *tfp;
-	char	*tfnp;
+	FILE	*ifp, *tfp1, *tfp2;
+	char	*tfnp1, *tfnp2;
+	char	cmd[ 256 ];
 	char	line[ 1024 ];
 	char	*fields[ MAXFIELDS ];
 	int	f, n_fields, t_fields;
@@ -26,10 +27,10 @@ char	*argv[];
 		exit( 1 );
 	}
 
-	tfnp = tmpnam( NULL );
-	if( ( tfp = fopen( tfnp, "w+" ) ) == NULL ){
+	tfnp1 = tempnam( NULL, "raw" );
+	if( ( tfp1 = fopen( tfnp1, "w" ) ) == NULL ){
 		fprintf( stderr, "%s: can't open temp-file '%s'\n",
-			argv[ 0 ], tfnp );
+			argv[ 0 ], tfnp1 );
 		exit( 1 );
 	}
 
@@ -47,17 +48,28 @@ char	*argv[];
 			if( fw > maxw[ f ] )
 				maxw[ f ] = fw;
 		}
-		fprintf( tfp, "%s", fields[ 0 ] );
+		fprintf( tfp1, "%s", fields[ 0 ] );
 		for( f = 1; f < n_fields; f++ )
-			fprintf( tfp, " %s", fields[ f ] );
-		fprintf( tfp, "\n" );
+			fprintf( tfp1, " %s", fields[ f ] );
+		fprintf( tfp1, "\n" );
 		for( f = 0; f < n_fields; f++ )
 			free( fields[ f ] );
 	}
+	fclose( tfp1 );
 
-	rewind( tfp );
+	tfnp2 = tempnam( NULL, "srt" );
+	sprintf( cmd, "sort +0 -1 +1n -2 +2n -3 +3n -4 %s > %s\n",
+		tfnp1, tfnp2 );
+	system( cmd );
 
-	while( fgets( line, sizeof( line ), tfp ) ){
+	if( ( tfp2 = fopen( tfnp2, "r" ) ) == NULL ){
+		fprintf( stderr,
+			"%s: can't open sorted temp-file '%s'\n",
+			argv[ 0 ], tfnp2 );
+		exit( 1 );
+	}
+
+	while( fgets( line, sizeof( line ), tfp2 ) ){
 		n_fields = split( line, fields, " \t\n" );
 		printf( "%-12s %s %7s %4s",
 			fields[ 0 ], fields[ 1 ], fields[ 2 ], fields[ 3 ] );
@@ -71,9 +83,12 @@ char	*argv[];
 		for( f = 0; f < n_fields; f++ )
 			free( fields[ f ] );
 	}
+	fclose( tfp2 );
 
-	fclose( tfp );
-	unlink( tfnp );
+/*
+	unlink( tfnp1 );
+	unlink( tfnp2 );
+*/
 
 	if( ifp != stdin )
 		fclose( ifp );
