@@ -5,9 +5,9 @@
 
 extern	int	rm_lineno;
 
-void	dumpnode();
+void	RM_dumpnode();
 
-NODE_T	*node( sym, vp, left, right )
+NODE_T	*RM_node( sym, vp, left, right )
 int	sym;
 VALUE_T	*vp;
 NODE_T	*left;
@@ -18,7 +18,7 @@ NODE_T	*right;
 
 	np = ( NODE_T * )malloc( sizeof( NODE_T ) );
 	if( np == NULL ){
-		sprintf( emsg, "node: can't allocate np for sym %d.", sym );
+		sprintf( emsg, "RM_node: can't allocate np for sym %d.", sym );
 		RM_errormsg( 1, emsg );
 	}
 	np->n_sym = sym;
@@ -54,7 +54,7 @@ NODE_T	*right;
 	return( np );
 }
 
-NODE_T	*updnode( np, vp, left, right )
+NODE_T	*RM_updnode( np, vp, left, right )
 NODE_T	*np;
 VALUE_T	*vp;
 NODE_T	*left;
@@ -68,20 +68,20 @@ NODE_T	*right;
 	return( np );
 }
 
-void	dumpexpr( fp, np, indent )
+void	RM_dumpexpr( fp, np, indent )
 FILE	*fp;
 NODE_T	*np;
 int	indent;
 {
 
 	if( np ){
-		dumpnode( fp, np, indent );
-		dumpexpr( fp, np->n_left, indent + 3 );
-		dumpexpr( fp, np->n_right, indent + 3 );
+		RM_dumpnode( fp, np, indent );
+		RM_dumpexpr( fp, np->n_left, indent + 3 );
+		RM_dumpexpr( fp, np->n_right, indent + 3 );
 	}
 }
 
-void	dumpnode( fp, np, indent )
+void	RM_dumpnode( fp, np, indent )
 FILE	*fp;
 NODE_T	*np;
 int	indent;
@@ -94,7 +94,7 @@ int	indent;
 		np->n_lineno, np->n_type, np->n_class );
 	switch( np->n_sym ){
 
-#include "dumpnode.h"
+#include "RM_dumpnode.h"
 
 	}
 }
