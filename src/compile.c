@@ -15,6 +15,7 @@ char	rm_dfname[ 256 ] = "--stdin--";
 int	rm_copt = 0;
 int	rm_dopt = 0;
 int	rm_hopt = 0;
+int	rm_vopt = 0;
 FILE	*rm_dbfp;
 int	rm_dtype = DT_FASTN;
 
@@ -132,11 +133,9 @@ char	*argv[];
 			rm_dopt = 1;
 		else if( !strcmp( argv[ ac ], "-h" ) )
 			rm_hopt = 1;
-		else if( !strcmp( argv[ ac ], "-v" ) ){
-			fprintf( stderr, "rnamot: %s\n", VERSION );
-			err = 1;
-			return( err );
-		}else if( !strcmp( argv[ ac ], "-descr" ) ){
+		else if( !strcmp( argv[ ac ], "-v" ) )
+			rm_vopt = 1;
+		else if( !strcmp( argv[ ac ], "-descr" ) ){
 			if( ac == argc - 1 ){
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
 				err = 1;
