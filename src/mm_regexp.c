@@ -408,6 +408,7 @@ static	int	mm_advance( char *lp, char *ep, int l_mm, int *n_mm )
 				( *n_mm )++;
 				if( *n_mm > l_mm )
 					return( 0 );
+				ep += 16;
 			}
 			break;
 

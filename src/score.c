@@ -189,8 +189,8 @@ void	RM_forincr( NODE_T * );
 void	RM_endfor( void );
 void	RM_while( NODE_T * );
 void	RM_endwhile( void );
-void	RM_break( void );
-void	RM_continue( void );
+void	RM_break( NODE_T * );
+void	RM_continue( NODE_T * );
 void	RM_accept( void );
 void	RM_reject( void );
 void	RM_mark( void );
@@ -377,6 +377,7 @@ void	RM_while( NODE_T *np )
 void	RM_endwhile( void )
 {
 
+	labtab[ loopstk[ loopstkp - 1 ] + 1 ] = l_prog;
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
 	addinst( NULL, OP_JMP, &v_lab );
@@ -384,19 +385,48 @@ void	RM_endwhile( void )
 	loopstkp--;
 }
 
-void	RM_break( void )
+void	RM_break( NODE_T *np )
 {
+	int	lev;
 
+	if( np == NULL )
+		lev = 1;
+	else{
+		lev = np->n_val.v_value.v_ival;
+		if( lev < 1 || lev > loopstkp ){
+			sprintf( emsg,
+				"continue level must be between 1 and %d.",
+				lev );
+			RM_errormsg( 1, emsg );
+		}
+	}
 	v_lab.v_type = T_INT;
+/*
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ] + 1;
+*/
+	v_lab.v_value.v_ival = loopstk[ loopstkp - lev ] + 2;
 	addinst( NULL, OP_JMP, &v_lab );
 }
 
-void	RM_continue( void )
+void	RM_continue( NODE_T *np )
 {
+	int	lev;
 
+	if( np == NULL )
+		lev = 1;
+	else{
+		lev = np->n_val.v_value.v_ival;
+		if( lev < 1 || lev > loopstkp ){
+			sprintf( emsg,
+				"continue level must be between 1 and %d.",
+				lev );
+			RM_errormsg( 1, emsg );
+		}
+	}
 	v_lab.v_type = T_INT;
-	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
+/*
+	v_lab.v_value.v_ival = loopstk[ loopstkp - lev ] + 1;
+*/
 	addinst( NULL, OP_JMP, &v_lab );
 }
 

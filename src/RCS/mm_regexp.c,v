@@ -1,9 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2001.05.26.20.53.44;	author macke;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2000.10.07.06.05.05;	author macke;	state Exp;
@@ -43,9 +48,10 @@ ranges \{n,m\}, where n!=m as well as \<\> and XCL(?)
 @
 
 
-1.6
+1.7
 log
-@converted headers from K&R to ANSI.
+@fixed bug that only permited only character class/reg exp.  Surprized
+nobody found it before!
 @
 text
 @#include <stdio.h>
@@ -458,6 +464,7 @@ static	int	mm_advance( char *lp, char *ep, int l_mm, int *n_mm )
 				( *n_mm )++;
 				if( *n_mm > l_mm )
 					return( 0 );
+				ep += 16;
 			}
 			break;
 
@@ -483,6 +490,15 @@ static	int	mm_advance( char *lp, char *ep, int l_mm, int *n_mm )
 	}
 	return( 0 );
 }
+@
+
+
+1.6
+log
+@converted headers from K&R to ANSI.
+@
+text
+@d411 1
 @
 
 

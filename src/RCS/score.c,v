@@ -1,9 +1,19 @@
-head	1.45;
+head	1.47;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.47
+date	2001.05.29.00.15.53;	author macke;	state Exp;
+branches;
+next	1.46;
+
+1.46
+date	2001.05.04.19.33.06;	author macke;	state Exp;
+branches;
+next	1.45;
 
 1.45
 date	2000.12.18.02.10.21;	author macke;	state Exp;
@@ -236,10 +246,12 @@ desc
 @
 
 
-1.45
+1.47
 log
-@added file info to each instruction (INST_T). Need as the source ofc
-the instructions can be in several files now.
+@fixed bug that had continue stmt skip to the test in for() loops
+instead of the increment.  Added code to permit break L, or continue L
+where L is an integer indicating the number of loops to break out of
+or continue.  Default is 1.  < 1 or > Nest level is an error.
 @
 text
 @#include <stdio.h>
@@ -433,8 +445,8 @@ void	RM_forincr( NODE_T * );
 void	RM_endfor( void );
 void	RM_while( NODE_T * );
 void	RM_endwhile( void );
-void	RM_break( void );
-void	RM_continue( void );
+void	RM_break( NODE_T * );
+void	RM_continue( NODE_T * );
 void	RM_accept( void );
 void	RM_reject( void );
 void	RM_mark( void );
@@ -621,6 +633,7 @@ void	RM_while( NODE_T *np )
 void	RM_endwhile( void )
 {
 
+	labtab[ loopstk[ loopstkp - 1 ] + 1 ] = l_prog;
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
 	addinst( NULL, OP_JMP, &v_lab );
@@ -628,19 +641,48 @@ void	RM_endwhile( void )
 	loopstkp--;
 }
 
-void	RM_break( void )
+void	RM_break( NODE_T *np )
 {
+	int	lev;
 
+	if( np == NULL )
+		lev = 1;
+	else{
+		lev = np->n_val.v_value.v_ival;
+		if( lev < 1 || lev > loopstkp ){
+			sprintf( emsg,
+				"continue level must be between 1 and %d.",
+				lev );
+			RM_errormsg( 1, emsg );
+		}
+	}
 	v_lab.v_type = T_INT;
+/*
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ] + 1;
+*/
+	v_lab.v_value.v_ival = loopstk[ loopstkp - lev ] + 2;
 	addinst( NULL, OP_JMP, &v_lab );
 }
 
-void	RM_continue( void )
+void	RM_continue( NODE_T *np )
 {
+	int	lev;
 
+	if( np == NULL )
+		lev = 1;
+	else{
+		lev = np->n_val.v_value.v_ival;
+		if( lev < 1 || lev > loopstkp ){
+			sprintf( emsg,
+				"continue level must be between 1 and %d.",
+				lev );
+			RM_errormsg( 1, emsg );
+		}
+	}
 	v_lab.v_type = T_INT;
-	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
+/*
+	v_lab.v_value.v_ival = loopstk[ loopstkp - lev ] + 1;
+*/
 	addinst( NULL, OP_JMP, &v_lab );
 }
 
@@ -679,7 +721,6 @@ void	RM_linkscore( void )
 {
 	int	i;
 	INST_T	*ip;
-	IDENT_T	*idp;
 	VALUE_T	v_svars;
 
 	for( ip = prog, i = 0; i < l_prog; i++, ip++ ){
@@ -1199,7 +1240,7 @@ static	void	do_scl( INST_T *ip )
 	char	*cp;
 	VALUE_T	*v_id;
 	int	i, stype, idx, pos, len;
-	int	idx2, pos2, len2;
+	int	idx2, pos2;
 	STREL_T	*stp, *stp2;
 	IDENT_T	*idp;
 	float	rval;
@@ -1307,7 +1348,6 @@ static	void	do_scl( INST_T *ip )
 			RM_errormsg( 1, emsg );
 		}
 		pos2--;
-		len2 = mem[ sp     ].v_value.v_ival;
 		if( setupefn( ip, idx, pos, idx2, pos2 ) ){
 			RM_initst();
 			rval = 0.01 * RM_efn( 0, rm_l_base, 1 );
@@ -3578,6 +3618,50 @@ static	void	tm_report( void )
 	if( cnt > 1 )
 		exit( 1 );
 }
+@
+
+
+1.46
+log
+@removed unused vars.
+@
+text
+@d192 2
+a193 2
+void	RM_break( void );
+void	RM_continue( void );
+d380 1
+d388 1
+a388 1
+void	RM_break( void )
+d390 1
+d392 11
+d404 1
+d406 2
+d411 1
+a411 1
+void	RM_continue( void )
+d413 1
+d415 15
+a429 2
+	v_lab.v_type = T_INT;
+	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
+@
+
+
+1.45
+log
+@added file info to each instruction (INST_T). Need as the source ofc
+the instructions can be in several files now.
+@
+text
+@a437 1
+	IDENT_T	*idp;
+d957 1
+a957 1
+	int	idx2, pos2, len2;
+a1064 1
+		len2 = mem[ sp     ].v_value.v_ival;
 @
 
 

@@ -72,6 +72,7 @@ typedef	struct	block_t {
 	int	b_start;
 	int	b_stop;
 	DETAIL_T	*b_details;
+	int	*b_basepair;
 } BLOCK_T;
 
 #define	B_UNDEF		(-1)
@@ -84,12 +85,16 @@ typedef	struct	block_t {
 static	BLOCK_T	block[ BLOCK_SIZE ];
 static	int	n_block;
 
+static	int	wc_only;
+
 static	int	getline( char [], FILE * );
 static	void	ungetline( char [] );
 static	DESCR_T	*getdescr();
 static	int	getname( char [], char [] );
-static	void	analyze_block( FILE *, int, BLOCK_T [] );
-static	void	analyze_group( FILE *, int, int, int, BLOCK_T [] );
+static	void	prune_block( FILE *, int, BLOCK_T [] );
+static	int	find_0_bulge( int, BLOCK_T [] );
+static	void	rm_0_bulge( int, BLOCK_T [] );
+static	void	rezip_group( FILE *, int, int, int, BLOCK_T [] );
 static	void	getdetails( BLOCK_T * );
 static	int	chkrel( BLOCK_T *, BLOCK_T * );
 static	int	wchlxrel( int, DETAIL_T *, DETAIL_T *, DETAIL_T *, DETAIL_T * );
@@ -160,11 +165,11 @@ main( int argc, char *argv[] )
 				continue;
 			}
 			if( strcmp( l_bname, bname ) ){
-				analyze_block( stdout, n_block, block );
+				prune_block( stdout, n_block, block );
 				n_block = 0;
 			}
 			if( n_block >= BLOCK_SIZE ){
-				analyze_block( stdout, n_block, block );
+				prune_block( stdout, n_block, block );
 				n_block = 0;
 			}
 			n_block = enter_block( fp, line, n_block, block );
@@ -176,7 +181,7 @@ main( int argc, char *argv[] )
 		}
 		strcpy( l_bname, bname );
 	}
-	analyze_block( stdout, n_block, block );
+	prune_block( stdout, n_block, block );
 
 CLEAN_UP : ;
 
@@ -217,7 +222,7 @@ static	DESCR_T	*getdescr( int n_fields, int dfield1, char *fields[],
 {
 	DESCR_T	*dp, *dp1, *descr;
 	char	*tp, *tp1;
-	int	d, d1, d2;
+	int	d, d1, d2, dt;
 	int	*stk;
 	int	stkp, n_els;
 
@@ -234,8 +239,12 @@ static	DESCR_T	*getdescr( int n_fields, int dfield1, char *fields[],
 	}
 	stkp = 0;
 
+	wc_only = 1;
 	for( dp = descr, d = 0; d < *n_descr; d++, dp++ ){
-		dp->d_type = getdtype( fields[ d+dfield1 ], n_dnames, dnames );
+		dt = dp->d_type =
+			getdtype( fields[ d+dfield1 ], n_dnames, dnames );
+		if( dt != DT_SS && dt != DT_H5 && dt != DT_H3 )
+			wc_only = 0;
 		for( d1 = 0; d1 < 4; d1++ )
 			dp->d_els[ d1 ] = UNDEF;
 	}
@@ -313,9 +322,9 @@ static	int	getname( char line[], char name[] )
 	return( 1 );
 }
 
-static void	analyze_block( FILE *fp, int n_block, BLOCK_T block[] )
+static void	prune_block( FILE *fp, int n_block, BLOCK_T block[] )
 {
-	int	lb, b, f_comp;
+	int	lb, b, bk, f_comp;
 	int	g;
 	int	start, stop;
 	BLOCK_T	*bp;
@@ -334,42 +343,57 @@ static void	analyze_block( FILE *fp, int n_block, BLOCK_T block[] )
 		stop = bp->b_stop;
 		for( g = 0, lb = b = 0; b < f_comp; b++, bp++ ){
 			if( bp->b_start < start || bp->b_stop > stop ){
-				analyze_group( fp, g, 0, b - lb, &block[ lb ] );
+				rezip_group( fp, g, 0, b - lb, &block[ lb ] );
 				start = bp->b_start;
 				stop = bp->b_stop;
 				lb = b;
 				g++;
 			}
 		}
-		analyze_group( fp, g, 0, b - lb, &block[ lb ] );
+		rezip_group( fp, g, 0, b - lb, &block[ lb ] );
 
 		bp = &block[ f_comp ];
 		start = bp->b_start;
 		stop = bp->b_stop;
 		for( g = 0, lb = b = f_comp; b < n_block; b++, bp++ ){
 			if( bp->b_start > start || bp->b_stop < stop ){
-				analyze_group( fp, g, 1, b - lb, &block[ lb ] );
+				rezip_group( fp, g, 1, b - lb, &block[ lb ] );
 				start = bp->b_start;
 				stop = bp->b_stop;
 				lb = b;
 				g++;
 			}
 		}
-		analyze_group( fp, g, 1, b - lb, &block[ lb ] );
+		rezip_group( fp, g, 1, b - lb, &block[ lb ] );
 	}
 
-	for( bp = block, b = 0; b < n_block; b++, bp++ ){
-		if( bp->b_keep ){
-			fputs( bp->b_def, fp );
-			fputs( bp->b_hit, fp );
+	for( bp = block, bk = 0, b = 0; b < n_block; b++, bp++ ){
+		if( !bp->b_keep ){
+			free( bp->b_def );
+			free( bp->b_hit );
+			free( bp->b_details );
+			continue;
 		}
+		block[ bk ] = block[ b ];
+		bk++;
+	}
+	n_block = bk;
+
+/*
+	if( n_block > 1 )
+		n_block = find_0_bulge( n_block, block );
+*/
+
+	for( bp = block, b = 0; b < n_block; b++, bp++ ){
+		fputs( bp->b_def, fp );
+		fputs( bp->b_hit, fp );
 		free( bp->b_def );
 		free( bp->b_hit );
 		free( bp->b_details );
 	}
 }
 
-static void	analyze_group( FILE *fp,
+static void	rezip_group( FILE *fp,
 	int g, int comp, int n_group, BLOCK_T block[] )
 { 
 	int	b, b1;
@@ -409,6 +433,181 @@ static void	analyze_group( FILE *fp,
 		}
 NEXT_b : ;
 	}
+}
+
+static	int	find_0_bulge( int n_block, BLOCK_T block[] )
+{
+	BLOCK_T	*bp;
+	int	s_comp, comp;
+	int	s_start, start;
+	int	s_stop, stop;
+	int	b, s_b, nb, bk;
+
+	if( !wc_only || n_block < 2 )
+		return( n_block );
+	
+	s_b = 0;
+	nb = 1;
+	bp = block;
+	s_comp = bp->b_comp;
+	s_start = bp->b_start;
+	s_stop = bp->b_stop;
+	for( b = 1; b < n_block; b++ ){
+		bp = &block[ b ];
+		comp = bp->b_comp;
+		start = bp->b_start;
+		stop = bp->b_stop;
+		if( s_comp != comp || s_start != start || s_stop != stop ){
+			if( nb >  1 )
+				rm_0_bulge( nb, &block[ s_b ] );
+			s_b = b;
+			nb = 1;
+			comp = bp->b_comp;
+			start = bp->b_start;
+			stop = bp->b_stop;
+		}else
+			nb++;
+	}
+	if( nb >  1 )
+		rm_0_bulge( nb, &block[ s_b ] );
+
+	for( bp = block, bk = 0, b = 0; b < n_block; b++, bp++ ){
+		if( !bp->b_keep ){
+			free( bp->b_def );
+			free( bp->b_hit );
+			free( bp->b_details );
+			continue;
+		}
+		block[ bk ] = block[ b ];
+		bk++;
+	}
+
+	return( bk );
+}
+
+static	void	rm_0_bulge( int n_block, BLOCK_T block[] )
+{
+	int	b, b1, nbp;
+	int	dt, d, d5, d3;
+	BLOCK_T	*bp, *bp1;
+	DETAIL_T	*de, *de5, *de3;
+	int	b0, b5, b3;
+	int	p;
+	int	comp, same;
+
+	bp = block;
+	comp = bp->b_comp;
+	if( !comp )
+		nbp = bp->b_details[ n_descr - 1 ].d_stop -
+			bp->b_details[ 0 ].d_start + 1;
+	else{
+		nbp = bp->b_details[ 0 ].d_stop -
+			bp->b_details[ n_descr - 1 ].d_start + 1;
+{
+	int	d;
+	for( d = 0; d < n_descr; d++ )
+		fprintf( stderr, "det[%2d]: %3d:%3d\n", d,
+		bp->b_details[d].d_start, bp->b_details[d].d_stop );
+}
+	}
+
+fprintf( stderr, "rm0: nbp = %d\n", nbp );
+
+	for( b = 0; b < n_block; b++, bp++ ){
+		bp->b_basepair = ( int * )malloc( nbp * sizeof( int ) );
+		if( bp->b_basepair == NULL ){
+			fprintf( stderr,
+				"rm_0_bulge: can't allocate b_basepair.\n" );
+			exit( 1 );
+		}
+		for( b0 = 0; b0 < nbp; b0++ )
+			bp->b_basepair[ b0 ] = UNDEF;
+	}
+
+	bp = block;
+	comp = bp->b_comp;
+	if( comp ){
+		b0 = bp->b_details[ 0 ].d_start - nbp + 1;
+	}else
+		b0 = bp->b_details[ 0 ].d_start;
+
+fprintf( stderr, "rm0: b0 = %d\n", b0 );
+
+	for( bp = block, b = 0; b < n_block; b++, bp++ ){
+		for( d = 0; d < n_descr; d++ ){
+			dt = descr[ d ].d_type;
+			switch( dt ){
+			case DT_SS :
+				break;
+			case DT_H5 :
+				d3 = descr[ d ].d_els[ 1 ];
+				de = &bp->b_details[ d ];
+				de3 = &bp->b_details[ d3 ];
+				if( !comp ){
+					for(b5=de->d_start;b5<=de->d_stop;b5++){
+						b3 = ( de3->d_stop - b0 ) - 
+							( b5 - de->d_start );
+fprintf( stderr, "h5s: b5 = %d, b3 = %d\n", b5, b3 );
+						bp->b_basepair[ b5 - b0 ] = b3;
+					}
+				}else{
+					for(b5=de->d_start;b5>=de->d_stop;b5--){
+						b3 = ( de3->d_stop - b0 ) + 
+							( b5 - de->d_start );
+fprintf( stderr, "h5c: b5 = %d, b3 = %d\n", b5, b3 );
+						bp->b_basepair[ b5 - b0 ] = b3;
+					}
+				}
+				break;
+			case DT_H3 :
+				d5 = descr[ d ].d_els[ 0 ];
+				de5 = &bp->b_details[ d5 ];
+				de = &bp->b_details[ d ];
+				if( !comp ){
+					for(b3=de->d_stop;b3>=de->d_start;b3--){
+						b5 = ( de5->d_start - b0 ) + 
+							( de->d_stop - b3 );
+fprintf( stderr, "h3s: b3 = %d, b5 = %d\n", b3, b5 );
+						bp->b_basepair[ b3 - b0 ] = b5;
+					}
+				}else{
+					for(b3=de->d_stop;b3<=de->d_start;b3++){
+						b5 = ( de5->d_start - b0 ) - 
+							( b3 - de->d_stop );
+fprintf( stderr, "h3c: b3 = %d, b5 = %d\n", b3, b5 );
+						bp->b_basepair[ b3 - b0 ] = b5;
+					}
+				}
+				break;
+			default :
+				fprintf( stderr,
+					"rm_0_bulge: dtype %d not supported.\n",
+					 dt );
+				exit( 1 );
+				break;
+			}
+		}
+	}
+
+	for( bp = block, b = 0; b < n_block - 1; b++, bp++ ){
+		for( bp1 = bp + 1, b1 = b + 1; b1 < n_block; b1++, bp1++ ){
+			for( same = 1, p = 0; p < nbp; p++ ){
+				if( bp->b_basepair[p] != bp1->b_basepair[p] ){
+fprintf( stderr, "rm0: b = %d, b1 = %d, p = %3d, diff:\n", b, b1, p );
+					same = 0;
+					break;
+				}
+			}
+			if( same ){
+				bp->b_keep = 0;
+				break;
+			}
+		}
+	}
+
+	for( bp = block, b = 0; b < n_block; b++, bp++ )
+		free( bp->b_basepair );
+
 }
 
 static void	getdetails( BLOCK_T *bp )
@@ -589,6 +788,7 @@ static int	enter_block( FILE *fp, char line[],
 	bp->b_hit = sp1;
 	bp->b_hlen = len;
 	bp->b_details = dp;
+	bp->b_basepair = NULL; 
 
 	for( scnt = 0, sp1 = &line[ len - 1 ]; sp1 >= line; sp1-- ){
 		if( *sp1 == ' ' )

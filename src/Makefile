@@ -75,6 +75,7 @@ clean:
 		rnamotif	\
 		rmprune		\
 		rmfmt		\
+		rm2ct		\
 		efn_drv		\
 		core		\
 		junk*

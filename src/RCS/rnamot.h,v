@@ -1,10 +1,24 @@
-head	1.77;
+head	1.80;
 access;
 symbols;
-locks
-	macke:1.77; strict;
+locks; strict;
 comment	@ * @;
 
+
+1.80
+date	2001.05.29.02.54.20;	author macke;	state Exp;
+branches;
+next	1.79;
+
+1.79
+date	2001.05.26.20.55.37;	author macke;	state Exp;
+branches;
+next	1.78;
+
+1.78
+date	2001.05.26.20.55.04;	author macke;	state Exp;
+branches;
+next	1.77;
 
 1.77
 date	2001.02.07.19.31.44;	author macke;	state Exp;
@@ -397,15 +411,15 @@ desc
 @
 
 
-1.77
+1.80
 log
-@removed DT_* support for genbank as only fastn files are supported.
+@updated the version date to 2001-may-28
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.4.2 2001-feb-07"
+#define	VERSION	"v1.5.1 2001-may-28"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ seq-file ... ]\n\n\
@@ -594,6 +608,40 @@ typedef	struct	incdir_t	{
 } INCDIR_T;
 
 #endif
+@
+
+
+1.79
+log
+@updated version to 1.5.1.  Fixed bug in mm_regexp.c that limited
+RE's to have a single character class!
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.5.1 2001-may-26"
+@
+
+
+1.78
+log
+@updated version to 1.5.0
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.5.0 2001-apr-23"
+@
+
+
+1.77
+log
+@removed DT_* support for genbank as only fastn files are supported.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.4.2 2001-feb-07"
 @
 
 

@@ -1,9 +1,14 @@
-head	1.34;
+head	1.35;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.35
+date	2001.05.29.00.17.07;	author macke;	state Exp;
+branches;
+next	1.34;
 
 1.34
 date	2000.12.09.22.04.03;	author macke;	state Exp;
@@ -181,9 +186,10 @@ desc
 @
 
 
-1.34
+1.35
 log
-@restore gram to no longer permit empty desriptor.
+@modified to permit break N; or continue N; where N is an integer indicating
+the number of loops to break from or continue.  Default is 1.
 @
 text
 @%{
@@ -371,15 +377,15 @@ auto_stmt	: auto_lval SYM_SEMICOLON
 				  RM_expr( 0, $1 );
 				  RM_clear();
 				} ;
-break_stmt	: SYM_BREAK SYM_SEMICOLON
-				{ RM_break(); } ;
+break_stmt	: SYM_BREAK loop_level SYM_SEMICOLON
+				{ RM_break( $2 ); } ;
 call_stmt	: fcall SYM_SEMICOLON
 				{ RM_expr( 0, $1 );
 				  RM_clear();
 				} ;
 cmpd_stmt	: SYM_LCURLY stmt_list SYM_RCURLY ;
-continue_stmt	: SYM_CONTINUE SYM_SEMICOLON
-				{ RM_continue(); } ;
+continue_stmt	: SYM_CONTINUE loop_level SYM_SEMICOLON
+				{ RM_continue( $2 ); } ;
 empty_stmt	: empty SYM_SEMICOLON ;
 for_stmt	: for_hdr stmt	{ RM_endfor(); } ;
 if_stmt		: if_hdr stmt	{ RM_endif(); }
@@ -391,6 +397,8 @@ reject_stmt	: SYM_REJECT SYM_SEMICOLON
 while_stmt	: SYM_WHILE SYM_LPAREN expr { RM_while( $3 ); }
 			SYM_RPAREN stmt
 				{ RM_endwhile(); } ;
+loop_level	: SYM_INT	{ $$ = RM_node( SYM_INT, &rm_tokval, 0, 0 ); }
+		| 		{ $$ = NULL; } ;
 if_hdr		: SYM_IF SYM_LPAREN expr { RM_if( $3 ); } SYM_RPAREN ;
 for_hdr		: SYM_FOR SYM_LPAREN for_ctrl SYM_RPAREN ;
 for_ctrl	: for_init	{ RM_forinit( $1 ); }
@@ -553,6 +561,23 @@ char	msg[];
 	fprintf( stderr, "yyerror: %s\n", msg );
 	return( 0 );
 }
+@
+
+
+1.34
+log
+@restore gram to no longer permit empty desriptor.
+@
+text
+@d186 2
+a187 2
+break_stmt	: SYM_BREAK SYM_SEMICOLON
+				{ RM_break(); } ;
+d193 2
+a194 2
+continue_stmt	: SYM_CONTINUE SYM_SEMICOLON
+				{ RM_continue(); } ;
+d206 2
 @
 
 

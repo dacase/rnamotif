@@ -183,15 +183,15 @@ auto_stmt	: auto_lval SYM_SEMICOLON
 				  RM_expr( 0, $1 );
 				  RM_clear();
 				} ;
-break_stmt	: SYM_BREAK SYM_SEMICOLON
-				{ RM_break(); } ;
+break_stmt	: SYM_BREAK loop_level SYM_SEMICOLON
+				{ RM_break( $2 ); } ;
 call_stmt	: fcall SYM_SEMICOLON
 				{ RM_expr( 0, $1 );
 				  RM_clear();
 				} ;
 cmpd_stmt	: SYM_LCURLY stmt_list SYM_RCURLY ;
-continue_stmt	: SYM_CONTINUE SYM_SEMICOLON
-				{ RM_continue(); } ;
+continue_stmt	: SYM_CONTINUE loop_level SYM_SEMICOLON
+				{ RM_continue( $2 ); } ;
 empty_stmt	: empty SYM_SEMICOLON ;
 for_stmt	: for_hdr stmt	{ RM_endfor(); } ;
 if_stmt		: if_hdr stmt	{ RM_endif(); }
@@ -203,6 +203,8 @@ reject_stmt	: SYM_REJECT SYM_SEMICOLON
 while_stmt	: SYM_WHILE SYM_LPAREN expr { RM_while( $3 ); }
 			SYM_RPAREN stmt
 				{ RM_endwhile(); } ;
+loop_level	: SYM_INT	{ $$ = RM_node( SYM_INT, &rm_tokval, 0, 0 ); }
+		| 		{ $$ = NULL; } ;
 if_hdr		: SYM_IF SYM_LPAREN expr { RM_if( $3 ); } SYM_RPAREN ;
 for_hdr		: SYM_FOR SYM_LPAREN for_ctrl SYM_RPAREN ;
 for_ctrl	: for_init	{ RM_forinit( $1 ); }

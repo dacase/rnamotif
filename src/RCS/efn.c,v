@@ -1,9 +1,14 @@
-head	1.15;
+head	1.16;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.16
+date	2001.05.04.19.29.07;	author macke;	state Exp;
+branches;
+next	1.15;
 
 1.15
 date	2001.03.29.17.40.24;	author macke;	state Exp;
@@ -87,13 +92,10 @@ enough to begin integration into rnamotif.
 @
 
 
-1.15
+1.16
 log
-@fixed bug in efn.c that had a '=' instead of a '==' in a while
-loop that resulted in the BP table being corrupted, producing a
-pknot, causing an infinite recursion! Ugh.  Occurred only for the
-1st hairpin and then only if the first hairpin did not cover the
-entire sequence.
+@removed unused arrays asin5[] and sint6[] which are only used
+in efn2() to compute 2x3 and 3x3 loops.
 @
 text
 @/*
@@ -137,7 +139,6 @@ extern	int	*rm_basepr;
 static	char	emsg[ 256 ];
 
 static	int	asint3[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ];
-static	int	asint5[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ][ 5 ][ 5 ];
 #define	MAX_IBHLOOP	30
 static	int	inter[ ( MAX_IBHLOOP + 1 ) ];
 static	int	bulge[ ( MAX_IBHLOOP + 1 ) ];
@@ -154,7 +155,6 @@ static	int	poppen[ POPPEN_SIZE + 1 ];
 
 static	int	sint2[ 6 ][ 6 ][ 5 ][ 5 ];
 static	int	sint4[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ][ 5 ];
-static	int	sint6[ 6 ][ 6 ][ 25 ][ 5 ][ 5 ][ 5 ][ 5 ];
 
 #define	MAXTLOOPS	100
 static	int	tloops[ MAXTLOOPS ][ 2 ];
@@ -1651,6 +1651,22 @@ static	int	pull( int *a, int *b, int *c )
 	stkp--;
 	return( 0 );
 }
+@
+
+
+1.15
+log
+@fixed bug in efn.c that had a '=' instead of a '==' in a while
+loop that resulted in the BP table being corrupted, producing a
+pknot, causing an infinite recursion! Ugh.  Occurred only for the
+1st hairpin and then only if the first hairpin did not cover the
+entire sequence.
+@
+text
+@a41 1
+static	int	asint5[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ][ 5 ][ 5 ];
+a57 1
+static	int	sint6[ 6 ][ 6 ][ 25 ][ 5 ][ 5 ][ 5 ][ 5 ];
 @
 
 
