@@ -79,8 +79,9 @@ static	char	emsg[ 256 ];
 
 NODE_T	*PR_close();
 
-static	IDENT_T	*enter_id();
+IDENT_T	*RM_enter_id();
 IDENT_T	*RM_find_id();
+
 static	void	eval();
 static	int	loadidval();
 static	void	storeexprval();
@@ -240,43 +241,43 @@ char	*argv[];
 	curpair[3] = "u:a";
 	n_curpair = 4;
 	np = PR_close();
-	enter_id( "wc", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+	RM_enter_id( "wc", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
 
 	curpair[0] = "g:u";
 	curpair[1] = "u:g";
 	n_curpair = 2;
 	np = PR_close();
-	enter_id( "gu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+	RM_enter_id( "gu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
 
 	curpair[0] = "a:u:u";
 	n_curpair = 1;
 	np = PR_close();
-	enter_id( "tr", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+	RM_enter_id( "tr", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
 
 	curpair[0] = "g:g:g:g";
 	n_curpair = 1;
 	np = PR_close();
-	enter_id( "qu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+	RM_enter_id( "qu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 1;
-	enter_id( "chk_both_strs", T_INT, C_VAR, S_GLOBAL, &val );
+	RM_enter_id( "chk_both_strs", T_INT, C_VAR, S_GLOBAL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 1;
-	enter_id( "iupac", T_INT, C_VAR, S_GLOBAL, &val );
+	RM_enter_id( "iupac", T_INT, C_VAR, S_GLOBAL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 3;
-	enter_id( "wc_minlen", T_INT, C_VAR, S_GLOBAL, &val );
+	RM_enter_id( "wc_minlen", T_INT, C_VAR, S_GLOBAL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 30;
-	enter_id( "wc_maxlen", T_INT, C_VAR, S_GLOBAL, &val );
+	RM_enter_id( "wc_maxlen", T_INT, C_VAR, S_GLOBAL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 6000;
-	enter_id( "windowsize", T_INT, C_VAR, S_GLOBAL, &val );
+	RM_enter_id( "windowsize", T_INT, C_VAR, S_GLOBAL, &val );
 
 	rm_lineno = 1;
 
@@ -432,32 +433,32 @@ int	stype;
 	n_local_ids = 0;
 	val.v_type = T_STRING;
 	val.v_value.v_pval = NULL;
-	ip = enter_id( "tag", T_STRING, C_VAR, S_STREL, &val );
+	ip = RM_enter_id( "tag", T_STRING, C_VAR, S_STREL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = UNDEF;
-	ip = enter_id( "minlen", T_INT, C_VAR, S_STREL, &val );
+	ip = RM_enter_id( "minlen", T_INT, C_VAR, S_STREL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = UNDEF;
-	ip = enter_id( "maxlen", T_INT, C_VAR, S_STREL, &val );
+	ip = RM_enter_id( "maxlen", T_INT, C_VAR, S_STREL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = UNDEF;
-	ip = enter_id( "len", T_INT, C_VAR, S_STREL, &val );
+	ip = RM_enter_id( "len", T_INT, C_VAR, S_STREL, &val );
 
 	val.v_type = T_STRING;
 	val.v_value.v_pval = NULL;
-	ip = enter_id( "seq", T_STRING, C_VAR, S_STREL, &val );
+	ip = RM_enter_id( "seq", T_STRING, C_VAR, S_STREL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = UNDEF;
-	ip = enter_id( "mismatch", T_INT, C_VAR, S_STREL, &val );
+	ip = RM_enter_id( "mismatch", T_INT, C_VAR, S_STREL, &val );
 
 	if( stype != SYM_SS ){ 
 		val.v_type = T_INT;
 		val.v_value.v_ival = UNDEF;
-		ip = enter_id( "mispair", T_INT, C_VAR, S_STREL, &val );
+		ip = RM_enter_id( "mispair", T_INT, C_VAR, S_STREL, &val );
 
 		switch( stype ){
 		case SYM_SS :
@@ -486,7 +487,7 @@ int	stype;
 		}
 		val.v_type = T_PAIR;
 		val.v_value.v_pval = NULL;
-		ip = enter_id( "pair", T_PAIR, C_VAR, S_STREL, &val );
+		ip = RM_enter_id( "pair", T_PAIR, C_VAR, S_STREL, &val );
 	}
 }
 
@@ -1315,7 +1316,7 @@ STREL_T	*egroup[];
 	return( err );
 }
 
-static	IDENT_T	*enter_id( name, type, class, scope, vp )
+IDENT_T	*RM_enter_id( name, type, class, scope, vp )
 char	name[];
 int	type;
 int	class;
@@ -1325,29 +1326,27 @@ VALUE_T	*vp;
 	char	*np;
 
 	if( scope == S_GLOBAL ){
-/*
-		if( rm_n_global_ids >= rm_s_global_ids ){
-*/
 		if( rm_n_global_ids >= RM_GLOBAL_IDS_SIZE ){
 			errormsg( 1, 
-				"enter_id: global symbol tab overflow." );
+				"RM_enter_id: global symbol tab overflow." );
 		}
 		ip = &rm_global_ids[ rm_n_global_ids ];
 		rm_n_global_ids++;
 	}else{
 		if( n_local_ids >= LOCAL_IDS_SIZE ){
-			errormsg( 1, "enter_id: local symbol tab overflow." );
+			errormsg( 1,
+				"RM_enter_id: local symbol tab overflow." );
 		}
 		ip = ( IDENT_T * )malloc( sizeof( IDENT_T ) );
 		if( ip == NULL ){
-			errormsg( 1, "enter_id: can't alloc local ip." );
+			errormsg( 1, "RM_enter_id: can't alloc local ip." );
 		}
 		local_ids[ n_local_ids ] = ip;
 		n_local_ids++;
 	}
 	np = ( char * )malloc( strlen( name ) + 1 );
 	if( np == NULL ){
-		errormsg( 1, "enter_id: can't alloc np for name." );
+		errormsg( 1, "RM_enter_id: can't alloc np for name." );
 	}
 	strcpy( np, name );
 	ip->i_name = np;
@@ -1356,24 +1355,26 @@ VALUE_T	*vp;
 	ip->i_scope = scope;
 	ip->i_val.v_type = type;
 	ip->i_val.v_value.v_pval = NULL;
-	if( type == T_INT ){
-		ip->i_val.v_value.v_ival = vp->v_value.v_ival;
-	}else if( type == T_STRING ){
-		if( vp->v_value.v_pval == NULL ) 
-			ip->i_val.v_value.v_pval = NULL;
-		else{
-			np = ( char * )
-				malloc(strlen(vp->v_value.v_pval)+1);
-			if( np == NULL ){
-				errormsg( 1,
-				"enter_id: can't alloc np for string val." );
+	if( vp != NULL ){
+		if( type == T_INT ){
+			ip->i_val.v_value.v_ival = vp->v_value.v_ival;
+		}else if( type == T_STRING ){
+			if( vp->v_value.v_pval == NULL ) 
+				ip->i_val.v_value.v_pval = NULL;
+			else{
+				np = ( char * )
+					malloc(strlen(vp->v_value.v_pval)+1);
+				if( np == NULL ){
+					errormsg( 1,
+				"RM_enter_id: can't alloc np for string val." );
+				}
+				strcpy( np, vp->v_value.v_pval );
+				ip->i_val.v_value.v_pval = np;
 			}
-			strcpy( np, vp->v_value.v_pval );
-			ip->i_val.v_value.v_pval = np;
+		}else if( type == T_PAIR ){
+			ip->i_val.v_value.v_pval = pairop( "copy", 
+				vp->v_value.v_pval, NULL );
 		}
-	}else if( type == T_PAIR ){
-		ip->i_val.v_value.v_pval = pairop( "copy", 
-			vp->v_value.v_pval, NULL );
 	}
 	return( ip );
 }
@@ -1446,7 +1447,7 @@ int	d_ok;
 			ip = RM_find_id( expr->n_val.v_value.v_pval );
 			if( ip == NULL ){
 				if( d_ok ){
-					ip=enter_id(expr->n_val.v_value.v_pval,
+					ip=RM_enter_id(expr->n_val.v_value.v_pval,
 						T_UNDEF, C_VAR, S_GLOBAL, NULL);
 				}else{
 					sprintf( emsg, "eval: unknown id '%s'.",
@@ -2234,11 +2235,11 @@ int	ptype;
 	n_local_ids = 0;
 	val.v_type = T_STRING;
 	val.v_value.v_pval = NULL;
-	ip = enter_id( "tag", T_STRING, C_VAR, S_SITE, &val );
+	ip = RM_enter_id( "tag", T_STRING, C_VAR, S_SITE, &val );
 
 	val.v_type = T_POS;
 	val.v_value.v_pval = NULL;
-	ip = enter_id( "pos", T_POS, C_VAR, S_SITE, &val );
+	ip = RM_enter_id( "pos", T_POS, C_VAR, S_SITE, &val );
 }
 
 void	POS_addval( expr )
