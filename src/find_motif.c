@@ -32,6 +32,9 @@ static	int	find_wchlx();
 static	int	find_pknot();
 static	int	match_helix();
 static	int	paired();
+static	int	chk_wchlx0();
+static	int	chk_motif();
+static	int	chk_wchlx();
 
 static	void	print_match();
 
@@ -236,8 +239,9 @@ SEARCH_T	*srp;
 			return( 0 );
 		}
 	}else{
-		print_match( stdout, fm_locus, fm_comp,
-			rm_n_descr, rm_descr );
+		if( chk_motif( rm_n_descr, rm_descr ) )
+			print_match( stdout, fm_locus, fm_comp,
+				rm_n_descr, rm_descr );
 	}
 
 		return( 1 );
@@ -269,6 +273,9 @@ SEARCH_T	*srp;
 	s3lim = sdollar - s3lim + 1;
 
 	if( match_helix( stp, szero, sdollar, s3lim, &h3, &hlen ) ){
+
+		if( !chk_wchlx0( srp, szero, h3 ) )
+			return( 0 );
 
 		stp->s_matchoff = szero;
 		stp->s_matchlen = hlen;
@@ -383,6 +390,105 @@ int	b3;
 	return( rv );
 }
 
+static	int	chk_wchlx0( srp, s5, s3 )
+SEARCH_T	*srp;
+int	s5;
+int	s3;
+{
+	STREL_T	*stp;
+	int	b5, b3;
+
+	if( srp->s_backup != NULL )
+		return( 1 );
+	if( s5 == 0 )
+		return( 1 );
+	if( s3 == fm_slen - 1 )
+		return( 1 );
+	b5 = fm_sbuf[ s5 - 1 ];
+	b3 = fm_sbuf[ s3 + 1 ];
+	stp = srp->s_descr;
+	return( !paired( stp, b5, b3 ) );
+}
+
+static	int	chk_motif( n_descr, descr )
+int	n_descr;
+STREL_T	descr[];
+{
+	int	d;
+	STREL_T	*stp;
+
+	for( stp = descr, d = 0; d < n_descr; d++, stp++ ){
+		switch( stp->s_type ){
+
+		case SYM_H5 :
+			if( !chk_wchlx( stp, n_descr, descr ) )
+				return( 0 );
+			break;
+
+		case SYM_P5 :
+			break;
+		case SYM_T1 :
+			break;
+		case SYM_Q1 :
+			break;
+
+		default :	
+			break;
+		}
+	}
+	return( 1 );
+}
+
+static	int	chk_wchlx( stp, n_descr,descr )
+STREL_T	*stp;
+int	n_descr;
+STREL_T	descr[];
+{
+	STREL_T	*stp3, *stpd5, *stpd3;
+	int	h5_5, h5_3;
+	int	h3_5, h3_3;
+	int	h5, h3, b5, b3;
+	int	d5, d3;
+
+	h5_5 = stp->s_matchoff;
+	h5_3 = h5_5 + stp->s_matchlen - 1;
+
+	stp3 = stp->s_mates[ 0 ];
+	h3_5 = stp3->s_matchoff;
+	h3_3 = h3_5 + stp3->s_matchlen - 1;
+
+	if( h5_5 > 0 ){
+		if( h3_3 < fm_slen - 1 ){
+			h5 = h5_5 - 1;
+			h3 = h3_3 + 1;
+			d5 = fm_window[ h5 ];
+			d3 = fm_window[ h3 ];
+			stpd5 = &descr[ d5 ];
+			stpd3 = &descr[ d3 ];
+			if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
+				b5 = fm_sbuf[ h5 ];
+				b3 = fm_sbuf[ h3 ];
+				if( paired( stp, b5, b3 ) )
+					return( 0 );
+			}
+		}
+	}
+
+	h5 = h5_3 + 1;
+	h3 = h3_5 - 1;
+	d5 = fm_window[ h5 ];
+	d3 = fm_window[ h3 ];
+	stpd5 = &descr[ d5 ];
+	stpd3 = &descr[ d3 ];
+	if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
+		b5 = fm_sbuf[ h5 ];
+		b3 = fm_sbuf[ h3 ];
+		if( paired( stp, b5, b3 ) )
+			return( 0 );
+	}
+	return( 1 );
+}
+
 static	void	print_match( fp, locus, comp, n_descr, descr )
 FILE	*fp;
 char	locus[];
@@ -390,12 +496,15 @@ int	comp;
 int	n_descr;
 STREL_T	descr[];
 {
-	int	d;
+	int	d, len;
 	STREL_T	*stp;
+
+	for( stp = descr, len = 0, d = 0; d < n_descr; d++, stp++ )
+		len += stp->s_matchlen;
 
 	fprintf( fp, "%-12s %d", locus, comp );
 	stp = descr; 
-	fprintf( fp, " %4d %.*s", stp->s_matchoff + 1,
+	fprintf( fp, " %4d %4d %.*s", stp->s_matchoff + 1, len,
 		stp->s_matchlen, &fm_sbuf[ stp->s_matchoff ] );
 
 	for( ++stp, d = 1; d < n_descr; d++, stp++ ){
