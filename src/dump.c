@@ -262,25 +262,23 @@ STREL_T	*stp;
 		fprintf( fp, "(None)" );
 	fprintf( fp, "\n" );
 
-	if( stp->s_type != SYM_SS ){
-		fprintf( fp, "\tmates    = [ " );
-		for( i = 0; i < stp->s_n_mates; i++ ){
-			stp1 = stp->s_mates[ i ];
-			fprintf( fp, "%d", stp1->s_index );
-			if( i < stp->s_n_mates - 1 )
-				fprintf( fp, ", " );
-		}
-		fprintf( fp, " ]\n" );
-		fprintf( fp, "\tscopes   = [ " );
-		for( i = 0; i < stp->s_n_scopes; i++ ){
-			stp1 = stp->s_scopes[ i ];
-			fprintf( fp, "%d", stp1->s_index );
-			if( i < stp->s_n_scopes - 1 )
-				fprintf( fp, ", " );
-		}
-		fprintf( fp, " ]\n" );
-		fprintf( fp, "\tscope    = %d\n", stp->s_scope + 1 );
+	fprintf( fp, "\tmates    = [ " );
+	for( i = 0; i < stp->s_n_mates; i++ ){
+		stp1 = stp->s_mates[ i ];
+		fprintf( fp, "%d", stp1->s_index );
+		if( i < stp->s_n_mates - 1 )
+			fprintf( fp, ", " );
 	}
+	fprintf( fp, " ]\n" );
+	fprintf( fp, "\tscopes   = [ " );
+	for( i = 0; i < stp->s_n_scopes; i++ ){
+		stp1 = stp->s_scopes[ i ];
+		fprintf( fp, "%d", stp1->s_index );
+		if( i < stp->s_n_scopes - 1 )
+			fprintf( fp, ", " );
+	}
+	fprintf( fp, " ]\n" );
+	fprintf( fp, "\tscope    = %d\n", stp->s_scope + 1 );
 
 	fprintf( fp, "\tlen      = " );
 	if( stp->s_minlen == UNDEF )
@@ -339,17 +337,18 @@ STREL_T	*stp;
 	else
 		fprintf( fp, "%d\n", stp->s_mismatch );
 
-	if( stp->s_type != SYM_SS ){
-		fprintf( fp, "\tmispair  = " );
-		if( stp->s_mispair == UNDEF )
-			fprintf( fp, "UNDEF\n" );
-		else
-			fprintf( fp, "%d\n", stp->s_mispair );
+	fprintf( fp, "\tmispair  = " );
+	if( stp->s_mispair == UNDEF )
+		fprintf( fp, "UNDEF\n" );
+	else
+		fprintf( fp, "%d\n", stp->s_mispair );
 
-		fprintf( fp, "\tpair     = " );
+	fprintf( fp, "\tpair     = " );
+	if( stp->s_pairset != NULL )
 		RM_dump_pairset( fp, stp->s_pairset );
-		fprintf( fp, "\n" );
-	}
+	else
+		fprintf( fp, "(None)" );
+	fprintf( fp, "\n" );
 
 	fprintf( fp, "}\n" );
 }
