@@ -1,6 +1,11 @@
+2.3.3	2002-nov-28
+	added new score builtin substr() which operates on strings.
+	replaced all calls to tempnan() with mkstemp().
+	moved the long case elements in do_scl() into their own funcs.
+
 2.3.2	2002-nov-24
-	Increase line buffer size in mrnamotif.c:rn_run() so as to not split any long
-	results.
+	Increase line buffer size in mrnamotif.c:rn_run() so as to not split
+	any long results.
 
 	Fixed off by 1 error in the job count logic in mrnamotif.c
 
