@@ -50,8 +50,8 @@ pair_part	: SYM_PAIR pairdef_list
 		| ;
 pairdef_list	: pairdef
 		| pairdef pairdef_list ;
-pairdef		: SYM_IDENT SYM_EQUAL pairspec ;
-pairspec	: SYM_LCURLY pair_list SYM_RCURLY ;
+pairdef		: SYM_IDENT SYM_EQUAL pairval ;
+pairval		: SYM_LCURLY pair_list SYM_RCURLY ;
 pair_list	: pair
 		| pair SYM_COMMA pair_list ;
 pair		: SYM_STRING ;
@@ -61,9 +61,20 @@ parm_part	: SYM_PARM keyval_list
 keyval_list	: keyval 
 		| keyval keyval_list ;
 keyval		: SYM_IDENT SYM_EQUAL val ;
-val		: SYM_IDENT
-		| SYM_INT
-		| SYM_STRING ;
+val		: ident
+		| intval
+		| lastval
+		| strval
+		| rngval
+		| pairval ;
+
+intval		: SYM_INT	{ SE_saveval( &rmval ); } ;
+lastval		: SYM_DOLLAR 	{ rmval.v_sym = SYM_DOLLAR;
+				  SE_saveval( &rmval ); } ;
+strval		: SYM_STRING 	{ SE_saveval( &rmval ); } ;
+ident		: SYM_IDENT 	{ SE_saveval( &rmval ); } ;
+rngval		: intval SYM_MINUS intval
+		| lastval SYM_MINUS intval ;
 
 descr_part	: SYM_DESCR strel_list ;
 strel_list	: strel
@@ -84,29 +95,26 @@ strtype		: SYM_SS	{ SE_new( SYM_SS ); }
 		| SYM_Q4	{ SE_new( SYM_Q4 ); } ;
 strtag		: SYM_PERIOD SYM_IDENT
 				{ SE_addtag( &rmval ); }
-		| SYM_PERIOD SYM_INT
-				{ SE_addtag( &rmval ); }
 		| ;
 strparm_list	: strparm
 		| strparm SYM_COMMA strparm_list ;
-strparm		: strsvparm
-		| strivparm
+strparm		: strivparm	{ SE_addlen(); }
+		| strsvparm	{ SE_addseq(); }
 		| strkvparm ;
-strsvparm	: SYM_STRING ;
-strivparm	: SYM_INT
-		| SYM_DOLLAR
-		| SYM_INT SYM_MINUS SYM_INT
-		| SYM_DOLLAR SYM_MINUS SYM_INT ;
-strkvparm	: SYM_MISPAIR SYM_EQUAL SYM_INT
-		| SYM_MISMATCH SYM_EQUAL SYM_INT
-		| SYM_PAIR SYM_EQUAL SYM_IDENT
-		| SYM_PAIR SYM_EQUAL pairspec ;
+strsvparm	: strval ;
+strivparm	: intval
+		| lastval
+		| rngval ;
+strkvparm	: SYM_MISPAIR SYM_EQUAL intval
+		| SYM_MISMATCH SYM_EQUAL intval
+		| SYM_PAIR SYM_EQUAL ident
+		| SYM_PAIR SYM_EQUAL pairval ;
 
 site_part	: SYM_SITE site_list
 		| ;
 site_list	: site
 		| site site_list ;
-site		: siteaddr_list SYM_EQUAL pairspec ;
+site		: siteaddr_list SYM_EQUAL pairval ;
 siteaddr_list	: strel
 		| strel SYM_COLON siteaddr_list ;
 %%
