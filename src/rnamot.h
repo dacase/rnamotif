@@ -73,7 +73,7 @@ typedef	struct	pair_t	{
 typedef	struct	pairset_t	{
 	int	ps_n_pairs;
 	PAIR_T	*ps_pairs;
-	void	*ps_mat[ 3 ];	/* 1 for duplex, 2 for 3-plex, 3 for 4-plex */
+	void	*ps_mat[ 2 ];	/* 1 for duplex, 2 for 3-plex, 4-plex */
 } PAIRSET_T;
 
 typedef	struct	pairlist_t	{
