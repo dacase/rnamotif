@@ -1,7 +1,7 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.2.3 2000-mar-31"
+#define	VERSION	"v1.2.4 2000-apr-27"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] -descr descr-file [ -dtype dtype ] [ seq-file ]\n\n\
@@ -53,7 +53,7 @@ typedef	struct	value_t	{
 	int	v_type;
 	union	{
 		int	v_ival;
-		float	v_fval;
+		double	v_dval;
 		void	*v_pval;
 	} v_value;
 } VALUE_T;
@@ -162,9 +162,9 @@ typedef	struct	strel_t	{
 	char	*s_expbuf;
 	char	*s_e_expbuf;
 	int	s_mismatch;
-	float	s_matchfrac;
+	double	s_matchfrac;
 	int	s_mispair;
-	float	s_pairfrac;
+	double	s_pairfrac;
 	PAIRSET_T	*s_pairset;
 } STREL_T;
 

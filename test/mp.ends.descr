@@ -6,9 +6,9 @@ descr
 score
 	{
 	  SCORE = 0;
-	  if( !paired( h5( index=1, pos=1, len=1 ) ) )
+	  if( !paired( h5[1,1,1] ) )
 		SCORE = 100;
-	  if( !paired( h5( index=1, pos=length( h5( index=1 ) ), len=1 ) ) )
+	  if( !paired( h5[1,length( h5[1] ),1] ) )
 		SCORE += 1;
 	  if( SCORE < 100.0 )
 		REJECT;

@@ -1,9 +1,14 @@
-head	1.38;
+head	1.39;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.39
+date	2000.04.25.00.15.18;	author macke;	state Exp;
+branches;
+next	1.38;
 
 1.38
 date	2000.03.27.18.56.56;	author macke;	state Exp;
@@ -201,9 +206,9 @@ desc
 @
 
 
-1.38
+1.39
 log
-@changed all refs of T_PAIR to T_PAIRSET
+@changed float values to double.
 @
 text
 @#include <stdio.h>
@@ -360,7 +365,7 @@ IDENT_T	*ip;
 		fprintf( fp, "%d\n", ip->i_val.v_value.v_ival );
 		break;
 	case T_FLOAT :
-		fprintf( fp, "%f\n", ip->i_val.v_value.v_fval );
+		fprintf( fp, "%lg\n", ip->i_val.v_value.v_dval );
 		break;
 	case T_STRING :
 		fprintf( fp, "%s\n", ip->i_val.v_value.v_pval ?
@@ -676,7 +681,7 @@ STREL_T	*stp;
 	if( stp->s_matchfrac == UNDEF )
 		fprintf( fp, "UNDEF\n" );
 	else
-		fprintf( fp, "%5.3f\n", stp->s_matchfrac );
+		fprintf( fp, "%5.3lf\n", stp->s_matchfrac );
 
 	fprintf( fp, "\tmispair  = " );
 	if( stp->s_mispair == UNDEF )
@@ -687,7 +692,7 @@ STREL_T	*stp;
 	if( stp->s_pairfrac == UNDEF )
 		fprintf( fp, "UNDEF\n" );
 	else
-		fprintf( fp, "%5.3f\n", stp->s_pairfrac );
+		fprintf( fp, "%5.3lf\n", stp->s_pairfrac );
 
 	fprintf( fp, "\tpair     = " );
 	if( stp->s_pairset != NULL )
@@ -1024,6 +1029,23 @@ SEARCH_T	*searches[];
 		fprintf( fp, "\n" );
 	}
 }
+@
+
+
+1.38
+log
+@changed all refs of T_PAIR to T_PAIRSET
+@
+text
+@d155 1
+a155 1
+		fprintf( fp, "%f\n", ip->i_val.v_value.v_fval );
+d471 1
+a471 1
+		fprintf( fp, "%5.3f\n", stp->s_matchfrac );
+d482 1
+a482 1
+		fprintf( fp, "%5.3f\n", stp->s_pairfrac );
 @
 
 

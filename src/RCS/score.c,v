@@ -1,9 +1,24 @@
-head	1.23;
+head	1.26;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.26
+date	2000.04.27.21.18.42;	author macke;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	2000.04.27.19.55.13;	author macke;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	2000.04.25.00.23.11;	author macke;	state Exp;
+branches;
+next	1.23;
 
 1.23
 date	2000.03.28.19.13.50;	author macke;	state Exp;
@@ -126,13 +141,9 @@ desc
 @
 
 
-1.23
+1.26
 log
-@added (finally) the in-set (OP_INS) instruction which completes the
-initial specification of rnamotif!  Also added code that implemeneted
-the indexed stref's (h5[1,2,3], etc) which while not necessary make
-the descriptors shorter.
-!ls
+@removed unused vars in the fix_*_stref parts.
 @
 text
 @#include <stdio.h>
@@ -175,7 +186,7 @@ static	NODE_T	*loopincrstk[ 100 ];
 static	int	loopstkp = 0;
 
 static	char	*sc_sbuf;
-static	float	*sc_score;
+static	double	*sc_score;
 
 #define	OP_NOOP		0	/* No Op	 	*/
 #define	OP_ACPT		1	/* Accept the candidate	*/
@@ -313,11 +324,13 @@ static	int	is_syscall();
 static	void	fix_kw_stref();
 static	void	fix_ix_stref();
 static	NODE_T	*mk_call_strid();
+static	NODE_T	*mk_call_strid1();
 static	void	fix_call();
 static	void	do_fcl();
 static	void	do_scl();
 static	int	paired();
 static	int	strid();
+static	int	strid1();
 static	void	do_strf();
 static	void	do_lda();
 static	void	do_lod();
@@ -546,9 +559,9 @@ void	RM_linkscore()
 	v_svars.v_value.v_ival = rm_n_descr;
 	RM_enter_id( "NSE", T_INT, C_VAR, S_GLOBAL, 1, &v_svars );
 	v_svars.v_type = T_FLOAT;
-	v_svars.v_value.v_fval = 0.0;
+	v_svars.v_value.v_dval = 0.0;
 	idp = RM_enter_id( "SCORE", T_FLOAT, C_VAR, S_GLOBAL, 1, &v_svars );
-	sc_score = &idp->i_val.v_value.v_fval;
+	sc_score = &idp->i_val.v_value.v_dval;
 }
 
 void	RM_dumpscore( fp )
@@ -565,7 +578,7 @@ FILE	*fp;
 
 int	RM_score( sbuf, score )
 char	sbuf[];
-float	*score;
+double	*score;
 {
 	INST_T	*ip;
 	
@@ -587,6 +600,7 @@ float	*score;
 fprintf( stdout, "RM_run, pc = %4d, op = %s\n", pc, opnames[ ip->i_op ] );
 dumpstk( stdout, "before op" );
 */
+
 
 		pc++;
 		switch( ip->i_op ){
@@ -715,9 +729,11 @@ dumpstk( stdout, "before op" );
 			RM_errormsg( 1, emsg );
 			break;
 		}
+
 /*
 dumpstk( stdout, "after op " );
 */
+
 	}
 	*score = *sc_score;
 }
@@ -791,12 +807,14 @@ NODE_T	*np;
 static	void	fix_kw_stref( np )
 NODE_T	*np;
 {
+	int	sel;
+	NODE_T	*n_id, *n_index, *n_tag, *n_pos, *n_len;
 	NODE_T	*np1, *np2, *np3;
-	NODE_T	*n_index, *n_tag, *n_pos, *n_len;
 	char	*ip;
 	VALUE_T	v_expr;
 
-	n_index = n_tag = n_pos = n_len = NULL;
+	sel = np->n_left->n_sym;
+	n_id = n_index = n_tag = n_pos = n_len = NULL;
 	for( np1 = np->n_right; np1; np1 = np1->n_right ){
 		np2 = np1->n_left;
 		np3 = np2->n_left;
@@ -841,13 +859,19 @@ NODE_T	*np;
 	}
 
 	rm_emsg_lineno = np->n_lineno;
-	if( n_index == NULL && n_tag == NULL ){
+	if( n_index == NULL && n_tag == NULL ||
+		n_index != NULL && n_tag != NULL )
+	{
 		rm_emsg_lineno = np->n_lineno;
 		RM_errormsg( 1,
-			"fix_kw_stref: index = or tag = require for stref()." );
-	}
+		"fix_kw_stref: one of index= or tag= required for stref()." );
+	}else
+		n_id = n_index != NULL ? n_index : n_tag;
 
+/*
 	np1 = mk_call_strid( n_tag, n_index, np->n_left->n_sym );
+*/
+	np1 = mk_call_strid1( sel, n_id );
 
 	/* build the 3 parms to stref	*/
 	if( n_len == NULL ){
@@ -871,19 +895,17 @@ NODE_T	*np;
 static	void	fix_ix_stref( np )
 NODE_T	*np;
 {
+	int	sel;
+	NODE_T	*n_id, *n_pos, *n_len;
 	NODE_T	*np1, *np2, *np3;
-	NODE_T	*n_index, *n_tag, *n_pos, *n_len;
 	VALUE_T	v_expr;
 
-	n_index = n_tag = n_pos = n_len = NULL;
+	sel = np->n_left->n_sym;
+	n_id = n_pos = n_len = NULL;
 	np1 = np->n_right;
 	np2 = np1->n_left; 
 
-	if( np2->n_sym == SYM_INT )
-		n_index = np2;
-	else if( np2->n_sym == SYM_STRING )
-		n_tag = np2;
-
+	n_id = np2;
 	if( np1->n_right != NULL ){
 		np1 = np1->n_right;
 		n_pos = np1->n_left; 
@@ -893,14 +915,10 @@ NODE_T	*np;
 		}
 	}
 
-	rm_emsg_lineno = np->n_lineno;
-	if( n_index == NULL && n_tag == NULL ){
-		rm_emsg_lineno = np->n_lineno;
-		RM_errormsg( 1,
-			"fix_ix_stref: index = or tag = require for stref()." );
-	}
-
+/*
 	np1 = mk_call_strid( n_tag, n_index, np->n_left->n_sym );
+*/
+	np1 = mk_call_strid1( sel, n_id );
 
 	/* build the 3 parms to stref	*/
 	if( n_len == NULL ){
@@ -1050,6 +1068,27 @@ int	strel;
 	return( np1 );
 }
 
+static	NODE_T	*mk_call_strid1( strel, n_id )
+int	strel;
+NODE_T	*n_id;
+{
+	NODE_T	*np1, *np2, *np3;
+	VALUE_T	v_expr;
+
+	np2 = RM_node( SYM_LIST, 0, n_id, NULL );
+
+	v_expr.v_type = T_INT;
+	v_expr.v_value.v_ival = strel;
+	np3 = RM_node( SYM_INT, &v_expr, 0, 0 );
+	np2 = RM_node( SYM_LIST, 0, np3, np2 );
+
+	v_expr.v_type = T_STRING;
+	v_expr.v_value.v_pval = "STRID";
+	np3 = RM_node( SYM_IDENT, &v_expr, 0, 0 );
+	np1 = RM_node( SYM_CALL, 0, np3, np2 );
+	return( np1 );
+}
+
 static	void	fix_call( np )
 NODE_T	*np;
 {
@@ -1108,7 +1147,8 @@ INST_T	*ip;
 static	void	do_scl( ip )
 INST_T	*ip;
 {
-	char	*cp, *tag;
+	char	*cp;
+	VALUE_T	*v_id;
 	int	stype, idx, pos, len;
 	STREL_T	*stp;
 
@@ -1192,6 +1232,7 @@ INST_T	*ip;
 		break;
 
 	case SC_STRID :
+/*
 		tag = mem[ sp ].v_value.v_pval;
 		idx = mem[ sp - 1 ].v_value.v_ival;
 		stype = mem[ sp - 2 ].v_value.v_ival;
@@ -1200,6 +1241,13 @@ INST_T	*ip;
 		mp = mem[ mp ].v_value.v_ival;
 		mem[ sp ].v_type = T_INT;
 		mem[ sp ].v_value.v_ival = strid( stype, idx, tag );
+*/
+		v_id = &mem[ sp  ];
+		stype = mem[ sp - 1 ].v_value.v_ival;
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+		mem[ sp ].v_type = T_INT;
+		mem[ sp ].v_value.v_ival = strid1( stype, v_id );
 		break;
 
 
@@ -1357,6 +1405,69 @@ char	*tag;
 	return( idx );
 }
 
+static	int	strid1( stype, v_id )
+int	stype;
+VALUE_T	*v_id;
+{
+	int	s, idx;
+	STREL_T	*stp;
+	char	*tag, name1[ 20 ], name2[ 20 ];
+
+	if( v_id->v_type == T_INT ){
+		idx = v_id->v_value.v_ival;
+		if( idx < 1 || idx > rm_n_descr ){
+			rm_emsg_lineno = UNDEF;
+			sprintf( emsg,
+				"strid1: index (%d) out of range: 1 .. %d.",
+				idx, rm_n_descr );
+			RM_errormsg( 1, emsg );
+		}
+		idx--;
+		stp = &rm_descr[ idx ];
+		if( stype != SYM_SE ){
+			if( stp->s_type != stype ){
+				mk_stref_name( stype, name1 );
+				mk_stref_name( stp->s_type, name2 );
+				rm_emsg_lineno = UNDEF;
+				sprintf( emsg,
+			"strid: descr type mismatch: is %s should be %s.",
+					name1, name2 );
+				RM_errormsg( 1, emsg );
+			}
+		}
+	}else if( v_id->v_type == T_STRING ){
+		tag = v_id->v_value.v_pval;
+		stp = rm_descr;
+		for( idx = UNDEF, s = 0; s < rm_n_descr; s++, stp++ ){ 
+			if( stp->s_tag == NULL )
+				continue;
+			else if( !strcmp( stp->s_tag, tag ) ){
+				if( stp->s_type == stype ){
+					idx = s;
+					break;
+				}else if(stp->s_type==SYM_SS && stype==SYM_SE){ 
+					idx = s;
+					break;
+				}else{
+					mk_stref_name( stype, name1 );
+					mk_stref_name( stp->s_type, name2 );
+					rm_emsg_lineno = UNDEF;
+					sprintf( emsg,
+				"strid: ambiguous descr reference: %s vs %s.",
+						name1, name2 );
+					RM_errormsg( 1, emsg );
+				}
+			}
+		}
+		if( idx == UNDEF ){
+			rm_emsg_lineno = UNDEF;
+			sprintf( emsg, "strid: no such descr '%s'.", tag );
+			RM_errormsg( 1, emsg );
+		}
+	}
+	return( idx );
+}
+
 static	void	do_strf( ip )
 INST_T	*ip;
 {
@@ -1462,7 +1573,7 @@ INST_T	*ip;
 			break;
 		case T_FLOAT :
 			v_top->v_type = T_FLOAT;
-			v_top->v_value.v_fval = idp->i_val.v_value.v_fval;
+			v_top->v_value.v_dval = idp->i_val.v_value.v_dval;
 			break;
 		case T_STRING :
 			cp = ( char * )
@@ -1498,7 +1609,7 @@ INST_T	*ip;
 		break;
 	case T_FLOAT :
 		v_top->v_type = T_FLOAT;
-		v_top->v_value.v_fval = ip->i_val.v_value.v_fval;
+		v_top->v_value.v_dval = ip->i_val.v_value.v_dval;
 		break;
 	case T_STRING :
 		v_top->v_type = T_STRING;
@@ -1568,13 +1679,13 @@ INST_T	*ip;
 		idp->i_val.v_value.v_ival = v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_INT, T_FLOAT ) :
-		idp->i_val.v_value.v_ival = v_top->v_value.v_fval;
+		idp->i_val.v_value.v_ival = v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_FLOAT, T_INT ) :
-		idp->i_val.v_value.v_fval = v_top->v_value.v_ival;
+		idp->i_val.v_value.v_dval = v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
-		idp->i_val.v_value.v_fval = v_top->v_value.v_fval;
+		idp->i_val.v_value.v_dval = v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
 		cp = ( char * )malloc( strlen( v_top->v_value.v_pval ) + 1 );
@@ -1607,7 +1718,7 @@ INST_T	*ip;
 		rv = v_top->v_value.v_ival = v_top->v_value.v_ival != 0;
 		break;
 	case T_FLOAT :
-		rv = v_top->v_value.v_ival = v_top->v_value.v_fval != 0.0;
+		rv = v_top->v_value.v_ival = v_top->v_value.v_dval != 0.0;
 		break;
 	case T_STRING :
 		rv = v_top->v_value.v_ival =
@@ -1636,7 +1747,7 @@ INST_T	*ip;
 		rv = v_top->v_value.v_ival = v_top->v_value.v_ival != 0;
 		break;
 	case T_FLOAT :
-		rv = v_top->v_value.v_ival = v_top->v_value.v_fval != 0.0;
+		rv = v_top->v_value.v_ival = v_top->v_value.v_dval != 0.0;
 		break;
 	case T_STRING :
 		rv = v_top->v_value.v_ival =
@@ -1665,7 +1776,7 @@ INST_T	*ip;
 		v_top->v_value.v_ival = !( v_top->v_value.v_ival != 0 );
 		break;
 	case T_FLOAT :
-		v_top->v_value.v_ival = !( v_top->v_value.v_fval != 0.0 );
+		v_top->v_value.v_ival = !( v_top->v_value.v_dval != 0.0 );
 		break;
 	case T_STRING :
 		v_top->v_value.v_ival =
@@ -1813,15 +1924,15 @@ INST_T	*ip;
 		break;
 	case T_IJ( T_INT, T_FLOAT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_ival > v_top->v_value.v_fval;
+			v_tm1->v_value.v_ival > v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_FLOAT, T_INT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_fval > v_top->v_value.v_ival;
+			v_tm1->v_value.v_dval > v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_fval > v_top->v_value.v_fval;
+			v_tm1->v_value.v_dval > v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
 		s_tm1 = v_tm1->v_value.v_pval;
@@ -1858,15 +1969,15 @@ INST_T	*ip;
 		break;
 	case T_IJ( T_INT, T_FLOAT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_ival >= v_top->v_value.v_fval;
+			v_tm1->v_value.v_ival >= v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_FLOAT, T_INT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_fval >= v_top->v_value.v_ival;
+			v_tm1->v_value.v_dval >= v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_fval >= v_top->v_value.v_fval;
+			v_tm1->v_value.v_dval >= v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
 		s_tm1 = v_tm1->v_value.v_pval;
@@ -1904,15 +2015,15 @@ INST_T	*ip;
 		break;
 	case T_IJ( T_INT, T_FLOAT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_ival == v_top->v_value.v_fval;
+			v_tm1->v_value.v_ival == v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_FLOAT, T_INT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_fval == v_top->v_value.v_ival;
+			v_tm1->v_value.v_dval == v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_fval == v_top->v_value.v_fval;
+			v_tm1->v_value.v_dval == v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
 		s_tm1 = v_tm1->v_value.v_pval;
@@ -1949,15 +2060,15 @@ INST_T	*ip;
 		break;
 	case T_IJ( T_INT, T_FLOAT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_ival != v_top->v_value.v_fval;
+			v_tm1->v_value.v_ival != v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_FLOAT, T_INT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_fval != v_top->v_value.v_ival;
+			v_tm1->v_value.v_dval != v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_fval != v_top->v_value.v_fval;
+			v_tm1->v_value.v_dval != v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
 		s_tm1 = v_tm1->v_value.v_pval;
@@ -1994,15 +2105,15 @@ INST_T	*ip;
 		break;
 	case T_IJ( T_INT, T_FLOAT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_ival <= v_top->v_value.v_fval;
+			v_tm1->v_value.v_ival <= v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_FLOAT, T_INT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_fval <= v_top->v_value.v_ival;
+			v_tm1->v_value.v_dval <= v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_fval <= v_top->v_value.v_fval;
+			v_tm1->v_value.v_dval <= v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
 		s_tm1 = v_tm1->v_value.v_pval;
@@ -2039,15 +2150,15 @@ INST_T	*ip;
 		break;
 	case T_IJ( T_INT, T_FLOAT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_ival < v_top->v_value.v_fval;
+			v_tm1->v_value.v_ival < v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_FLOAT, T_INT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_fval < v_top->v_value.v_ival;
+			v_tm1->v_value.v_dval < v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
 		v_tm1->v_value.v_ival =
-			v_tm1->v_value.v_fval < v_top->v_value.v_fval;
+			v_tm1->v_value.v_dval < v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
 		s_tm1 = v_tm1->v_value.v_pval;
@@ -2080,13 +2191,13 @@ INST_T	*ip;
 		v_tm1->v_value.v_ival += v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_INT, T_FLOAT ) :
-		v_tm1->v_value.v_ival += v_top->v_value.v_fval;
+		v_tm1->v_value.v_ival += v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_FLOAT, T_INT ) :
-		v_tm1->v_value.v_fval += v_top->v_value.v_ival;
+		v_tm1->v_value.v_dval += v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
-		v_tm1->v_value.v_fval += v_top->v_value.v_fval;
+		v_tm1->v_value.v_dval += v_top->v_value.v_dval;
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -2112,13 +2223,13 @@ INST_T	*ip;
 		v_tm1->v_value.v_ival -= v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_INT, T_FLOAT ) :
-		v_tm1->v_value.v_ival -= v_top->v_value.v_fval;
+		v_tm1->v_value.v_ival -= v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_FLOAT, T_INT ) :
-		v_tm1->v_value.v_fval -= v_top->v_value.v_ival;
+		v_tm1->v_value.v_dval -= v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
-		v_tm1->v_value.v_fval -= v_top->v_value.v_fval;
+		v_tm1->v_value.v_dval -= v_top->v_value.v_dval;
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -2144,13 +2255,13 @@ INST_T	*ip;
 		v_tm1->v_value.v_ival *= v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_INT, T_FLOAT ) :
-		v_tm1->v_value.v_ival *= v_top->v_value.v_fval;
+		v_tm1->v_value.v_ival *= v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_FLOAT, T_INT ) :
-		v_tm1->v_value.v_fval *= v_top->v_value.v_ival;
+		v_tm1->v_value.v_dval *= v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
-		v_tm1->v_value.v_fval *= v_top->v_value.v_fval;
+		v_tm1->v_value.v_dval *= v_top->v_value.v_dval;
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -2176,13 +2287,13 @@ INST_T	*ip;
 		v_tm1->v_value.v_ival /= v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_INT, T_FLOAT ) :
-		v_tm1->v_value.v_ival /= v_top->v_value.v_fval;
+		v_tm1->v_value.v_ival /= v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_FLOAT, T_INT ) :
-		v_tm1->v_value.v_fval /= v_top->v_value.v_ival;
+		v_tm1->v_value.v_dval /= v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
-		v_tm1->v_value.v_fval /= v_top->v_value.v_fval;
+		v_tm1->v_value.v_dval /= v_top->v_value.v_dval;
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -2228,7 +2339,7 @@ INST_T	*ip;
 		v_top->v_value.v_ival = -v_top->v_value.v_ival;
 		break;
 	case T_FLOAT :
-		v_top->v_value.v_fval = -v_top->v_value.v_fval;
+		v_top->v_value.v_dval = -v_top->v_value.v_dval;
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -2638,7 +2749,7 @@ VALUE_T	*vp;
 			if( vp->v_type == T_INT )
 				ip->i_val.v_value.v_ival = vp->v_value.v_ival;
 			else if( vp->v_type == T_FLOAT )
-				ip->i_val.v_value.v_fval = vp->v_value.v_fval;
+				ip->i_val.v_value.v_dval = vp->v_value.v_dval;
 			else if( vp->v_type==T_STRING || vp->v_type==T_IDENT ){
 				sp = ( char * )malloc( 
 					strlen( vp->v_value.v_pval ) + 1 );
@@ -2738,7 +2849,7 @@ INST_T	*ip;
 	}else if( vp->v_type == T_INT ){
 		fprintf( fp, " %d", vp->v_value.v_ival );
 	}else if( vp->v_type == T_FLOAT ) 
-		fprintf( fp, " %f", vp->v_value.v_fval );
+		fprintf( fp, " %f", vp->v_value.v_dval );
 	else if( vp->v_type == T_STRING )
 		fprintf( fp, " \"%s\"", vp->v_value.v_pval );
 	else if( vp->v_type == T_POS )
@@ -2770,7 +2881,7 @@ char	msg[];
 			fprintf( fp, "I %6d", vp->v_value.v_ival );
 			break;
 		case T_FLOAT :
-			fprintf( fp, "F %8.3f", vp->v_value.v_fval );
+			fprintf( fp, "F %8.3lf", vp->v_value.v_dval );
 			break;
 		case T_STRING :
 			fprintf( fp, "S \"%s\"", vp->v_value.v_pval );
@@ -2791,6 +2902,242 @@ char	msg[];
 		fprintf( fp, "\n" );
 	}
 }
+@
+
+
+1.25
+log
+@made all strf's use scl STRID as this is required for
+indexing via se[i].
+pwd
+@
+text
+@a664 1
+	NODE_T	*np4;
+d751 1
+a751 1
+	NODE_T	*n_id, *n_index, *n_tag, *n_pos, *n_len;
+a752 1
+	NODE_T	*np4;
+d756 1
+a756 1
+	n_id = n_index = n_tag = n_pos = n_len = NULL;
+a759 4
+	if( np2->n_sym == SYM_INT )
+		n_index = np2;
+	else if( np2->n_sym == SYM_STRING )
+		n_tag = np2;
+a760 1
+
+a770 9
+	rm_emsg_lineno = np->n_lineno;
+	if( n_index == NULL && n_tag == NULL ){
+		rm_emsg_lineno = np->n_lineno;
+		RM_errormsg( 1,
+			"fix_ix_stref: index = or tag = require for stref()." );
+	}
+*/
+
+/*
+d1002 1
+a1002 1
+	char	*cp, *tag;
+@
+
+
+1.24
+log
+@changed all v_fvals to v_dvals.  Changed %8.3f to %8.3lf
+@
+text
+@d179 1
+d185 1
+d456 1
+d584 1
+d588 1
+d662 2
+d665 1
+a665 1
+	NODE_T	*n_index, *n_tag, *n_pos, *n_len;
+d669 2
+a670 1
+	n_index = n_tag = n_pos = n_len = NULL;
+d715 3
+a717 1
+	if( n_index == NULL && n_tag == NULL ){
+d720 3
+a722 2
+			"fix_kw_stref: index = or tag = require for stref()." );
+	}
+d724 1
+d726 2
+d751 2
+d754 1
+a754 1
+	NODE_T	*n_index, *n_tag, *n_pos, *n_len;
+d757 2
+a758 1
+	n_index = n_tag = n_pos = n_len = NULL;
+d766 1
+d777 1
+d784 1
+d786 1
+d788 2
+d939 21
+d1019 1
+d1103 1
+d1112 7
+d1271 63
+@
+
+
+1.23
+log
+@added (finally) the in-set (OP_INS) instruction which completes the
+initial specification of rnamotif!  Also added code that implemeneted
+the indexed stref's (h5[1,2,3], etc) which while not necessary make
+the descriptors shorter.
+!ls
+@
+text
+@d41 1
+a41 1
+static	float	*sc_score;
+d412 1
+a412 1
+	v_svars.v_value.v_fval = 0.0;
+d414 1
+a414 1
+	sc_score = &idp->i_val.v_value.v_fval;
+d431 1
+a431 1
+float	*score;
+d1328 1
+a1328 1
+			v_top->v_value.v_fval = idp->i_val.v_value.v_fval;
+d1364 1
+a1364 1
+		v_top->v_value.v_fval = ip->i_val.v_value.v_fval;
+d1434 1
+a1434 1
+		idp->i_val.v_value.v_ival = v_top->v_value.v_fval;
+d1437 1
+a1437 1
+		idp->i_val.v_value.v_fval = v_top->v_value.v_ival;
+d1440 1
+a1440 1
+		idp->i_val.v_value.v_fval = v_top->v_value.v_fval;
+d1473 1
+a1473 1
+		rv = v_top->v_value.v_ival = v_top->v_value.v_fval != 0.0;
+d1502 1
+a1502 1
+		rv = v_top->v_value.v_ival = v_top->v_value.v_fval != 0.0;
+d1531 1
+a1531 1
+		v_top->v_value.v_ival = !( v_top->v_value.v_fval != 0.0 );
+d1679 1
+a1679 1
+			v_tm1->v_value.v_ival > v_top->v_value.v_fval;
+d1683 1
+a1683 1
+			v_tm1->v_value.v_fval > v_top->v_value.v_ival;
+d1687 1
+a1687 1
+			v_tm1->v_value.v_fval > v_top->v_value.v_fval;
+d1724 1
+a1724 1
+			v_tm1->v_value.v_ival >= v_top->v_value.v_fval;
+d1728 1
+a1728 1
+			v_tm1->v_value.v_fval >= v_top->v_value.v_ival;
+d1732 1
+a1732 1
+			v_tm1->v_value.v_fval >= v_top->v_value.v_fval;
+d1770 1
+a1770 1
+			v_tm1->v_value.v_ival == v_top->v_value.v_fval;
+d1774 1
+a1774 1
+			v_tm1->v_value.v_fval == v_top->v_value.v_ival;
+d1778 1
+a1778 1
+			v_tm1->v_value.v_fval == v_top->v_value.v_fval;
+d1815 1
+a1815 1
+			v_tm1->v_value.v_ival != v_top->v_value.v_fval;
+d1819 1
+a1819 1
+			v_tm1->v_value.v_fval != v_top->v_value.v_ival;
+d1823 1
+a1823 1
+			v_tm1->v_value.v_fval != v_top->v_value.v_fval;
+d1860 1
+a1860 1
+			v_tm1->v_value.v_ival <= v_top->v_value.v_fval;
+d1864 1
+a1864 1
+			v_tm1->v_value.v_fval <= v_top->v_value.v_ival;
+d1868 1
+a1868 1
+			v_tm1->v_value.v_fval <= v_top->v_value.v_fval;
+d1905 1
+a1905 1
+			v_tm1->v_value.v_ival < v_top->v_value.v_fval;
+d1909 1
+a1909 1
+			v_tm1->v_value.v_fval < v_top->v_value.v_ival;
+d1913 1
+a1913 1
+			v_tm1->v_value.v_fval < v_top->v_value.v_fval;
+d1946 1
+a1946 1
+		v_tm1->v_value.v_ival += v_top->v_value.v_fval;
+d1949 1
+a1949 1
+		v_tm1->v_value.v_fval += v_top->v_value.v_ival;
+d1952 1
+a1952 1
+		v_tm1->v_value.v_fval += v_top->v_value.v_fval;
+d1978 1
+a1978 1
+		v_tm1->v_value.v_ival -= v_top->v_value.v_fval;
+d1981 1
+a1981 1
+		v_tm1->v_value.v_fval -= v_top->v_value.v_ival;
+d1984 1
+a1984 1
+		v_tm1->v_value.v_fval -= v_top->v_value.v_fval;
+d2010 1
+a2010 1
+		v_tm1->v_value.v_ival *= v_top->v_value.v_fval;
+d2013 1
+a2013 1
+		v_tm1->v_value.v_fval *= v_top->v_value.v_ival;
+d2016 1
+a2016 1
+		v_tm1->v_value.v_fval *= v_top->v_value.v_fval;
+d2042 1
+a2042 1
+		v_tm1->v_value.v_ival /= v_top->v_value.v_fval;
+d2045 1
+a2045 1
+		v_tm1->v_value.v_fval /= v_top->v_value.v_ival;
+d2048 1
+a2048 1
+		v_tm1->v_value.v_fval /= v_top->v_value.v_fval;
+d2094 1
+a2094 1
+		v_top->v_value.v_fval = -v_top->v_value.v_fval;
+d2504 1
+a2504 1
+				ip->i_val.v_value.v_fval = vp->v_value.v_fval;
+d2604 1
+a2604 1
+		fprintf( fp, " %f", vp->v_value.v_fval );
+d2636 1
+a2636 1
+			fprintf( fp, "F %8.3f", vp->v_value.v_fval );
 @
 
 

@@ -37,7 +37,7 @@ NODE_T	*right;
 	}else if( sym == SYM_FLOAT ){
 		np->n_class = C_LIT;
 		np->n_val.v_type = T_FLOAT;
-		np->n_val.v_value.v_fval = vp->v_value.v_fval;
+		np->n_val.v_value.v_dval = vp->v_value.v_dval;
 	}else if( sym == SYM_STRING ){
 		np->n_class = C_LIT;
 		np->n_val.v_type = T_STRING;

@@ -65,7 +65,7 @@ while		return( SYM_WHILE );
 		}
 ([0-9]+[eE][\+\-]?[0-9]+)|((([0-9]+\.[0-9]*)|(\.[0-9]+))([eE][\+\-]?[0-9]+)?) {
 		  rm_tokval.v_type = T_FLOAT;
-		  rm_tokval.v_value.v_fval = atof( yytext );
+		  rm_tokval.v_value.v_dval = atof( yytext );
 		  return( SYM_FLOAT );
 		}
 \"[^"\n]*	{ if( yytext[ yyleng - 1 ] == '\\' )

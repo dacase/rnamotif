@@ -1,9 +1,14 @@
-head	1.20;
+head	1.21;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.21
+date	2000.04.25.00.21.41;	author macke;	state Exp;
+branches;
+next	1.20;
 
 1.20
 date	2000.03.27.21.45.06;	author macke;	state Exp;
@@ -111,9 +116,9 @@ desc
 @
 
 
-1.20
+1.21
 log
-@change dumpnode format to use %8p vs %7p.
+@change float v_fval to v_dval
 @
 text
 @#include <stdio.h>
@@ -155,7 +160,7 @@ NODE_T	*right;
 	}else if( sym == SYM_FLOAT ){
 		np->n_class = C_LIT;
 		np->n_val.v_type = T_FLOAT;
-		np->n_val.v_value.v_fval = vp->v_value.v_fval;
+		np->n_val.v_value.v_dval = vp->v_value.v_dval;
 	}else if( sym == SYM_STRING ){
 		np->n_class = C_LIT;
 		np->n_val.v_type = T_STRING;
@@ -201,6 +206,17 @@ int	indent;
 
 	}
 }
+@
+
+
+1.20
+log
+@change dumpnode format to use %8p vs %7p.
+@
+text
+@d40 1
+a40 1
+		np->n_val.v_value.v_fval = vp->v_value.v_fval;
 @
 
 

@@ -9,8 +9,8 @@ awk '{	printf( "\tcase %s :\n", $2 )\
 		printf( " = %%d\\n\"" ) \
 		printf( ", np->n_val.v_value.v_ival" ) \
 	}else if( $2 == "SYM_FLOAT" ){ \
-		printf( " = %%e\\n\"" ) \
-		printf( ", np->n_val.v_value.v_fval" ) \
+		printf( " = %%lg\\n\"" ) \
+		printf( ", np->n_val.v_value.v_dval" ) \
 	}else if( $2 == "SYM_STRING" ){\
 		printf( " = \\\"%%s\\\"\\n\"" ) \
 		printf( ", np->n_val.v_value.v_pval" ) \

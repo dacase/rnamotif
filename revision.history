@@ -1,3 +1,18 @@
+1.2.4	2000-apr-27
+	Fixed bugs in pairfrac calc's that 1) created the mplim 1 less than
+	it was supposed to be and 2) had problems with float division in
+	which 1.*(hl-mpr)/hl is NOT pairfrac even thought mathematically it
+	is.  Fixed 1 with addition of .5 before assignment to int mplim and
+	fixed 2 by checking for < pairfrac - EPS (1e-6)
+
+	Redid score section to permit indexing over all descriptors:
+
+		for( i = 1; i <= NSE; i++ )
+			SCORE += mispairs( ss[i] );
+
+	Although the original implementation didn't permit things like
+	h5['name',p,l], based on a comment from Ranga, put it in. 
+
 1.2.3	2000-mar-31
 	Fixed bug in fastn.c that failed to convert u's in the input to t's.
 

@@ -486,7 +486,7 @@ int	stype;
 	ip = RM_enter_id( "mismatch", T_INT, C_VAR, S_STREL, 0, &val );
 
 	val.v_type = T_FLOAT;
-	val.v_value.v_fval = 1.0;
+	val.v_value.v_dval = 1.0;
 	ip = RM_enter_id( "matchfrac", T_FLOAT, C_VAR, S_STREL, 0, &val );
 
 	if( stype != SYM_SS ){ 
@@ -495,7 +495,7 @@ int	stype;
 		ip = RM_enter_id( "mispair", T_INT, C_VAR, S_STREL, 0, &val );
 
 		val.v_type = T_FLOAT;
-		val.v_value.v_fval = UNDEF;
+		val.v_value.v_dval = UNDEF;
 		ip = RM_enter_id( "pairfrac",
 			T_FLOAT, C_VAR, S_STREL, 0, &val );
 
@@ -590,31 +590,31 @@ void	SE_close()
 		}else if( !strcmp( ip->i_name, "mismatch" ) ){
 			stp->s_mismatch = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "matchfrac" ) ){
-			if( ip->i_val.v_value.v_fval < 0. ||
-				ip->i_val.v_value.v_fval > 1. ){
+			if( ip->i_val.v_value.v_dval < 0. ||
+				ip->i_val.v_value.v_dval > 1. ){
 				rm_emsg_lineno = stp->s_lineno;
 				RM_errormsg( 0,
 				"matchfrac must be >= 0 and <= 1." );
 			}else
-				stp->s_matchfrac = ip->i_val.v_value.v_fval;
+				stp->s_matchfrac = ip->i_val.v_value.v_dval;
 		}else if( !strcmp( ip->i_name, "mispair" ) ){
 			s_mispair = ip->i_val.v_value.v_ival != UNDEF;
 			stp->s_mispair = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "pairfrac" ) ){
-			s_pairfrac = ip->i_val.v_value.v_fval != UNDEF;
+			s_pairfrac = ip->i_val.v_value.v_dval != UNDEF;
 			if( s_pairfrac ){
 				if( s_mispair ){
 					rm_emsg_lineno = stp->s_lineno;
 					RM_errormsg( 0,
 				"pairfrac= can't be used with mispair=." );
-				}else if( ip->i_val.v_value.v_fval < 0. ||
-					ip->i_val.v_value.v_fval > 1. ){
+				}else if( ip->i_val.v_value.v_dval < 0. ||
+					ip->i_val.v_value.v_dval > 1. ){
 					rm_emsg_lineno = stp->s_lineno;
 					RM_errormsg( 0,
 					"pairfrac must be >= 0 and <= 1." );
 				}
 			}
-			stp->s_pairfrac = ip->i_val.v_value.v_fval;
+			stp->s_pairfrac = ip->i_val.v_value.v_dval;
 		}else if( !strcmp( ip->i_name, "pair" ) ){
 			stp->s_pairset = ip->i_val.v_value.v_pval;
 		}else if( !strcmp( ip->i_name, "ends" ) ){
@@ -1621,7 +1621,7 @@ VALUE_T	*vp;
 		if( type == T_INT ){
 			ip->i_val.v_value.v_ival = vp->v_value.v_ival;
 		}else if( type == T_FLOAT ){
-			ip->i_val.v_value.v_fval = vp->v_value.v_fval;
+			ip->i_val.v_value.v_dval = vp->v_value.v_dval;
 		}else if( type == T_STRING ){
 			if( vp->v_value.v_pval == NULL ) 
 				ip->i_val.v_value.v_pval = NULL;
@@ -1721,8 +1721,8 @@ int	d_ok;
 
 		case SYM_FLOAT :
 			valstk[ n_valstk ].v_type = T_FLOAT;
-			valstk[ n_valstk ].v_value.v_fval =
-				expr->n_val.v_value.v_fval;
+			valstk[ n_valstk ].v_value.v_dval =
+				expr->n_val.v_value.v_dval;
 			n_valstk++;
 			break;
 
@@ -1787,15 +1787,15 @@ int	d_ok;
 				break;
 			case T_IJ( T_INT, T_FLOAT ) :
 				valstk[ n_valstk - 2 ].v_value.v_ival +=
-					valstk[ n_valstk - 1 ].v_value.v_fval;
+					valstk[ n_valstk - 1 ].v_value.v_dval;
 				break;
 			case T_IJ( T_FLOAT, T_INT ) :
-				valstk[ n_valstk - 2 ].v_value.v_fval +=
+				valstk[ n_valstk - 2 ].v_value.v_dval +=
 					valstk[ n_valstk - 1 ].v_value.v_ival;
 				break;
 			case T_IJ( T_FLOAT, T_FLOAT ) :
-				valstk[ n_valstk - 2 ].v_value.v_fval +=
-					valstk[ n_valstk - 1 ].v_value.v_fval;
+				valstk[ n_valstk - 2 ].v_value.v_dval +=
+					valstk[ n_valstk - 1 ].v_value.v_dval;
 				break;
 			case T_IJ( T_STRING, T_STRING ) :
 				l_sp = valstk[ n_valstk - 2 ].v_value.v_pval;
@@ -1838,15 +1838,15 @@ int	d_ok;
 				break;
 			case T_IJ( T_INT, T_FLOAT ) :
 				valstk[ n_valstk - 2 ].v_value.v_ival -=
-					valstk[ n_valstk - 1 ].v_value.v_fval;
+					valstk[ n_valstk - 1 ].v_value.v_dval;
 				break;
 			case T_IJ( T_FLOAT, T_INT ) :
-				valstk[ n_valstk - 2 ].v_value.v_fval -=
+				valstk[ n_valstk - 2 ].v_value.v_dval -=
 					valstk[ n_valstk - 1 ].v_value.v_ival;
 				break;
 			case T_IJ( T_FLOAT, T_FLOAT ) :
-				valstk[ n_valstk - 2 ].v_value.v_fval -=
-					valstk[ n_valstk - 1 ].v_value.v_fval;
+				valstk[ n_valstk - 2 ].v_value.v_dval -=
+					valstk[ n_valstk - 1 ].v_value.v_dval;
 				break;
 			case T_IJ( T_PAIRSET, T_PAIRSET ) :
 				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
@@ -1884,10 +1884,10 @@ int	d_ok;
 				break;
 			case T_IJ( T_INT, T_FLOAT ) :
 				valstk[n_valstk-1].v_value.v_ival =
-					valstk[n_valstk-1].v_value.v_fval;
+					valstk[n_valstk-1].v_value.v_dval;
 				break;
 			case T_IJ( T_FLOAT, T_INT ) :
-				valstk[n_valstk-1].v_value.v_fval =
+				valstk[n_valstk-1].v_value.v_dval =
 					valstk[n_valstk-1].v_value.v_ival;
 				break;
 			case T_IJ( T_FLOAT, T_FLOAT ) :
@@ -1923,15 +1923,15 @@ int	d_ok;
 				break;
 			case T_IJ( T_INT, T_FLOAT ) :
 				valstk[ n_valstk - 2 ].v_value.v_ival +=
-					valstk[ n_valstk - 1 ].v_value.v_fval;
+					valstk[ n_valstk - 1 ].v_value.v_dval;
 				break;
 			case T_IJ( T_FLOAT, T_INT ) :
-				valstk[ n_valstk - 2 ].v_value.v_fval +=
+				valstk[ n_valstk - 2 ].v_value.v_dval +=
 					valstk[ n_valstk - 1 ].v_value.v_ival;
 				break;
 			case T_IJ( T_FLOAT, T_FLOAT ) :
-				valstk[ n_valstk - 2 ].v_value.v_fval +=
-					valstk[ n_valstk - 1 ].v_value.v_fval;
+				valstk[ n_valstk - 2 ].v_value.v_dval +=
+					valstk[ n_valstk - 1 ].v_value.v_dval;
 				break;
 			case T_IJ( T_STRING, T_STRING ) :
 				l_sp = valstk[ n_valstk - 2 ].v_value.v_pval;
@@ -1974,15 +1974,15 @@ int	d_ok;
 				break;
 			case T_IJ( T_INT, T_FLOAT ) :
 				valstk[ n_valstk - 2 ].v_value.v_ival -=
-					valstk[ n_valstk - 1 ].v_value.v_fval;
+					valstk[ n_valstk - 1 ].v_value.v_dval;
 				break;
 			case T_IJ( T_FLOAT, T_INT ) :
-				valstk[ n_valstk - 2 ].v_value.v_fval -=
+				valstk[ n_valstk - 2 ].v_value.v_dval -=
 					valstk[ n_valstk - 1 ].v_value.v_ival;
 				break;
 			case T_IJ( T_FLOAT, T_FLOAT ) :
-				valstk[ n_valstk - 2 ].v_value.v_fval -=
-					valstk[ n_valstk - 1 ].v_value.v_fval;
+				valstk[ n_valstk - 2 ].v_value.v_dval -=
+					valstk[ n_valstk - 1 ].v_value.v_dval;
 				break;
 			case T_IJ( T_PAIRSET, T_PAIRSET ) :
 				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
@@ -2074,7 +2074,7 @@ VALUE_T	*vp;
 	}else if( type == T_FLOAT ){
 		ip->i_type = T_FLOAT;
 		ip->i_val.v_type = T_FLOAT;
-		ip->i_val.v_value.v_fval = vp->v_value.v_fval;
+		ip->i_val.v_value.v_dval = vp->v_value.v_dval;
 	}else if( type == T_STRING ){
 		ip->i_type = T_STRING;
 		sp = ( char * )malloc( strlen( vp->v_value.v_pval ) + 1 );

@@ -152,7 +152,7 @@ IDENT_T	*ip;
 		fprintf( fp, "%d\n", ip->i_val.v_value.v_ival );
 		break;
 	case T_FLOAT :
-		fprintf( fp, "%f\n", ip->i_val.v_value.v_fval );
+		fprintf( fp, "%lg\n", ip->i_val.v_value.v_dval );
 		break;
 	case T_STRING :
 		fprintf( fp, "%s\n", ip->i_val.v_value.v_pval ?
@@ -468,7 +468,7 @@ STREL_T	*stp;
 	if( stp->s_matchfrac == UNDEF )
 		fprintf( fp, "UNDEF\n" );
 	else
-		fprintf( fp, "%5.3f\n", stp->s_matchfrac );
+		fprintf( fp, "%5.3lf\n", stp->s_matchfrac );
 
 	fprintf( fp, "\tmispair  = " );
 	if( stp->s_mispair == UNDEF )
@@ -479,7 +479,7 @@ STREL_T	*stp;
 	if( stp->s_pairfrac == UNDEF )
 		fprintf( fp, "UNDEF\n" );
 	else
-		fprintf( fp, "%5.3f\n", stp->s_pairfrac );
+		fprintf( fp, "%5.3lf\n", stp->s_pairfrac );
 
 	fprintf( fp, "\tpair     = " );
 	if( stp->s_pairset != NULL )

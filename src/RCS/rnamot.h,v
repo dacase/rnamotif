@@ -1,9 +1,19 @@
-head	1.54;
+head	1.56;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.56
+date	2000.04.27.19.54.29;	author macke;	state Exp;
+branches;
+next	1.55;
+
+1.55
+date	2000.04.24.17.25.09;	author macke;	state Exp;
+branches;
+next	1.54;
 
 1.54
 date	2000.03.31.14.45.03;	author macke;	state Exp;
@@ -281,15 +291,15 @@ desc
 @
 
 
-1.54
+1.56
 log
-@update version to 1.2.3 to indicate that u's in the data are converted to t's.
+@updated version to 1.2.4
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.2.3 2000-mar-31"
+#define	VERSION	"v1.2.4 2000-apr-27"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] -descr descr-file [ -dtype dtype ] [ seq-file ]\n\n\
@@ -341,7 +351,7 @@ typedef	struct	value_t	{
 	int	v_type;
 	union	{
 		int	v_ival;
-		float	v_fval;
+		double	v_dval;
 		void	*v_pval;
 	} v_value;
 } VALUE_T;
@@ -450,9 +460,9 @@ typedef	struct	strel_t	{
 	char	*s_expbuf;
 	char	*s_e_expbuf;
 	int	s_mismatch;
-	float	s_matchfrac;
+	double	s_matchfrac;
 	int	s_mispair;
-	float	s_pairfrac;
+	double	s_pairfrac;
 	PAIRSET_T	*s_pairset;
 } STREL_T;
 
@@ -465,6 +475,34 @@ typedef	struct	search_t	{
 } SEARCH_T;
 
 #endif
+@
+
+
+1.55
+log
+@changed `float v_fval' to `double v_dval' (VALUE_T)
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.2.3 2000-mar-31"
+@
+
+
+1.54
+log
+@update version to 1.2.3 to indicate that u's in the data are converted to t's.
+@
+text
+@d56 1
+a56 1
+		float	v_fval;
+d165 1
+a165 1
+	float	s_matchfrac;
+d167 1
+a167 1
+	float	s_pairfrac;
 @
 
 

@@ -5,15 +5,14 @@ descr
 
 score
 	{ gcnt = 0;
-	  len = length( h5( index = 1 ) );
-#	  len = length( h5[1] );
+	  len = length( h5[1] );
 	  for( i = 1; i <= len; i++ ){
-		b = h5( index = 1, pos = i, len = 1 );
-#		b = h5[1,i,1];
+		b = h5[1,i,1];
 		if( b == "g" || b == "c" )
 			gcnt++;
 	  }
 	# require 80% GC in the stem!
-	  if( 1.0 * gcnt / len < .8 )
+	  SCORE = 1.0 * gcnt / len;
+	  if( SCORE < .8 )
 		REJECT;
 	}

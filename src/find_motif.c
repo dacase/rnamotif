@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include "rnamot.h"
 #include "y.tab.h"
 
 #define	MIN(a,b)	((a)<(b)?(a):(b))
 #define	MAX(a,b)	((a)>(b)?(a):(b))
 #define	ODD(i)		((i)&0x1)
+#define	EPS		1e-6
 
 extern	int	rm_emsg_lineno;
 extern	STREL_T	rm_descr[];
@@ -26,7 +28,7 @@ static	char	*fm_sdef;
 static	int	fm_comp;
 static	int	fm_slen;
 static	char	*fm_sbuf;
-static	float	fm_score;
+static	double	fm_score;
 static	int	*fm_winbuf;	/* windowsize + 2, 1 before, 1 after	*/
 static	int	*fm_window;	/* fm_winbuf[1]				*/
 static	int	fm_windowsize;
@@ -48,6 +50,7 @@ static	int	find_triplex();
 static	int	find_4plex();
 static	int	find_4plex_inner();
 static	int	match_wchlx0();
+static	int	match_wchlx1();
 static	int	match_wchlx();
 static	int	match_phlx();
 static	int	match_triplex();
@@ -924,6 +927,7 @@ int	n_mpr[];
 	int	mplim; 
 	int	pfrac;
 
+	nh = 0;
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
 	if( RM_paired( stp->s_pairset, b5, b3 ) ){
@@ -942,7 +946,128 @@ int	n_mpr[];
 		mplim = stp->s_mispair;
 		pfrac = 0;
 	}else if( stp->s_pairfrac < 1.0 ){
-		mplim = (1.-stp->s_pairfrac)*MIN(stp->s_maxlen, fm_windowsize);
+		mplim = (1.-stp->s_pairfrac) *
+			MIN(stp->s_maxlen, fm_windowsize) + 0.5;
+		pfrac = 1;
+	}else{
+		mplim = 0;
+		pfrac = 0;
+	}
+
+	if( hl >= stp->s_minlen ){
+		if( !l_bpr && ( stp->s_attr & SA_3PAIRED ) )
+			goto SKIP;
+
+		if( pfrac ){
+			if( 1.*( hl - mpr )/hl < stp->s_pairfrac - EPS )
+				goto SKIP;
+		}
+
+		if( stp->s_seq != NULL ){
+			if( !chk_seq( stp, &fm_sbuf[ s5 ], hl ) )
+				goto SKIP;
+		}
+
+		if( stp3->s_seq != NULL ){
+			if( chk_seq(stp3, &fm_sbuf[s3-hl+1], hl ) ){
+				h3[ nh ] = s3;
+				hlen[ nh ] = hl;
+				n_mpr[ nh ] = mpr;
+				nh++;
+			}
+		}else{
+			h3[ nh ] = s3;
+			hlen[ nh ] = hl;
+			n_mpr[ nh ] = mpr;
+			nh++;
+		}
+	}
+SKIP : ;
+
+	for( ; s3 - hl + 1 >= s3lim; ){
+
+		if( hl >= stp->s_maxlen )
+			break;
+
+		b5 = fm_sbuf[ s5 + hl ];
+		b3 = fm_sbuf[ s3 - hl ];
+		if( RM_paired( stp->s_pairset, b5, b3 ) )
+			l_bpr = 1;
+		else{
+			mpr++;
+			if( mpr > mplim )
+				break;
+			l_bpr = 0;
+		}
+		hl++;
+		if( hl >= stp->s_minlen ){
+			if( !l_bpr && ( stp->s_attr & SA_3PAIRED ) )
+				continue;
+
+			if( pfrac ){	
+				if( ( 1.*hl-mpr )/hl < stp->s_pairfrac-EPS )
+					continue;
+			}
+
+			if( stp->s_seq != NULL ){
+				if( !chk_seq( stp, &fm_sbuf[ s5 ], hl ) )
+					continue;
+			}
+
+			if( stp3->s_seq != NULL ){
+				if( chk_seq(stp3, &fm_sbuf[s3-hl+1], hl ) ){
+					h3[ nh ] = s3;
+					hlen[ nh ] = hl;
+					n_mpr[ nh ] = mpr;
+					nh++;
+				}
+			}else{
+				h3[ nh ] = s3;
+				hlen[ nh ] = hl;
+				n_mpr[ nh ] = mpr;
+				nh++;
+			}
+		}
+	}
+
+	return( nh );
+}
+
+static	int	match_wchlx1( stp, stp3, s5, s3, s3lim, h3, hlen, n_mpr )
+STREL_T	*stp;
+STREL_T	*stp3;
+int	s5;
+int	s3;
+int	s3lim;
+int	h3[];
+int	hlen[];
+int	n_mpr[];
+{
+	int	nh, hl, mpr, l_bpr;
+	int	b5, b3;
+	int	mplim; 
+	int	pfrac;
+
+	b5 = fm_sbuf[ s5 ];
+	b3 = fm_sbuf[ s3 ];
+	if( RM_paired( stp->s_pairset, b5, b3 ) ){
+		hl = 1;
+		mpr = 0;
+		l_bpr = 1;
+	}else if( !( stp->s_attr & SA_5PAIRED ) ){
+		hl = 1;
+		mpr = 1;
+		l_bpr = 0;
+	}else{
+		return( 0 );
+	}
+
+	if( stp->s_mispair > 0 ){
+		mplim = stp->s_mispair;
+		pfrac = 0;
+	}else if( stp->s_pairfrac < 1.0 ){
+		mplim = (1.-stp->s_pairfrac) *
+			MIN(stp->s_maxlen, fm_windowsize) + 0.5;
 		pfrac = 1;
 	}else{
 		mplim = 0;
@@ -951,7 +1076,6 @@ int	n_mpr[];
 
 	for( nh = 0; s3 - hl + 1 >= s3lim; ){
 		if( hl >= stp->s_minlen ){
-
 			if( !l_bpr && ( stp->s_attr & SA_3PAIRED ) )
 				goto SKIP;
 
@@ -991,8 +1115,9 @@ SKIP : ;
 			l_bpr = 0;
 		}
 		hl++;
+		if( hl >= stp->s_maxlen )
+			break;
 	}
-
 	return( nh );
 }
 
@@ -1016,7 +1141,8 @@ int	*n_mpr;
 	if( stp->s_mispair > 0 )
 		mplim = stp->s_mispair;
 	else if( stp->s_pairfrac < 1.0 ){
-		mplim = (1.-stp->s_pairfrac)*MIN(stp->s_maxlen, fm_windowsize);
+		mplim = (1.-stp->s_pairfrac) * 
+			MIN(stp->s_maxlen, fm_windowsize) + 0.5;
 		pfrac = 1;
 	}
 
@@ -1054,7 +1180,7 @@ int	*n_mpr;
 		if( *hlen < stp->s_minlen || *hlen > stp->s_maxlen )
 			return( 0 );
 		if( pfrac ){
-			if( 1.*(*hlen-*n_mpr)/(*hlen) < stp->s_pairfrac )
+			if( 1.*(*hlen-*n_mpr)/(*hlen) < stp->s_pairfrac-EPS )
 				return( 0 );
 		}
 
@@ -1088,7 +1214,7 @@ int	*n_mpr;
 	if( stp->s_mispair > 0 )
 		mplim = stp->s_mispair;
 	else if( stp->s_pairfrac < 1.0 )
-		mplim = (1.-stp->s_pairfrac)*tlen;
+		mplim = (1.-stp->s_pairfrac)*tlen + 0.5;
 	
 	b1 = fm_sbuf[ s1 ];
 	b2 = fm_sbuf[ s2 ];
@@ -1146,7 +1272,7 @@ int	*n_mpr;
 	if( stp1->s_mispair > 0 )
 		mplim = stp1->s_mispair;
 	else if( stp1->s_pairfrac < 1.0 )
-		mplim = (1.-stp1->s_pairfrac)*qlen;
+		mplim = (1.-stp1->s_pairfrac)*qlen + 0.5;
 
 	b1 = fm_sbuf[ s1 + qlen - 1 ];
 	b2 = fm_sbuf[ s2 ];
@@ -1698,7 +1824,7 @@ STREL_T	descr[];
 			fprintf( fp, " %s", name );
 			if( stp->s_tag != NULL ){
 				mk_cstr( stp->s_tag, cstr );
-				fprintf( fp, "(tag=\"%s\")", cstr );
+				fprintf( fp, "(tag='%s')", cstr );
 			}
 		}
 		fprintf( fp, "\n" );
@@ -1714,7 +1840,7 @@ STREL_T	descr[];
 
 	if( fm_dtype == DT_FASTN )
 		fprintf( fp, ">%s %s\n", sid, fm_sdef );
-	fprintf( fp, "%-12s %8.3f %d", sid, fm_score, comp );
+	fprintf( fp, "%-12s %8.3lf %d", sid, fm_score, comp );
 	fprintf( fp, " %7d %4d", offset, len );
 
 	for( d = 0; d < n_descr; d++, stp++ ){
