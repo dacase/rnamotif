@@ -30,7 +30,7 @@ char	sbuf[];
 	char	prefix[ 100 ];
 	int	tminlen, tmaxlen;
 	
-	find_limits( 0, 0, descr );
+	find_limits( 0, descr );
 	fprintf( stderr,
 	"descr minl  maxl  mngl  mxgl  mnil  mxil start  stop  descr\n" );
 	strcpy( prefix, "+" );
@@ -221,8 +221,7 @@ char	name[];
 	}
 }
 
-static	void	find_limits( lev, fd, descr )
-int	lev;
+static	void	find_limits( fd, descr )
 int	fd;
 STREL_T	descr[];
 {
@@ -231,12 +230,12 @@ STREL_T	descr[];
 
 	for( d = fd; ; d = nd ){
 		stp = &descr[ d ];
-		find_1_limit( lev, stp, descr );
+		find_1_limit( stp, descr );
 		for( s = 1; s < stp->s_n_scopes; s++ ){
 			stp1 = stp->s_scopes[ s - 1 ];
 			stp2 = stp->s_scopes[ s ];
-			find_limits( lev+2, stp1->s_index+1, descr );
-			find_1_limit( lev+1, stp2, descr );
+			find_limits( stp1->s_index+1, descr );
+			find_1_limit( stp2, descr );
 		}
 		stp1 = stp->s_next;
 		if( stp1 == NULL )
@@ -246,8 +245,7 @@ STREL_T	descr[];
 	} 
 }
 
-static	void	find_1_limit( lev, stp, descr )
-int	lev;
+static	void	find_1_limit( stp, descr )
 STREL_T	*stp;
 STREL_T	descr[];
 {
