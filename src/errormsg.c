@@ -1,14 +1,16 @@
 #include <stdio.h>
 
-extern	char	rmfname[];
-extern	int	rmemsglineno;
+extern	int	rm_error;
+extern	char	rm_fname[];
+extern	int	rm_emsg_lineno;
 
 void	errormsg( fatal, msg )
 int	fatal;
 char	msg[];
 {
 
-	fprintf( stderr, "%s:%d %s\n", rmfname, rmemsglineno, msg );
+	rm_error = 1;
+	fprintf( stderr, "%s:%d %s\n", rm_fname, rm_emsg_lineno, msg );
 	if( fatal )
 		exit( 1 );
 }
