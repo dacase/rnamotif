@@ -4,6 +4,12 @@
 #include "rnamot.h"
 #include "y.tab.h"
 
+VALUE_T	rmval;
+int	rmlineno = 1;
+int	rmemsglineno;
+char	rmfname[ 256 ] = "--stdin--";
+static	char	emsg[ 256 ];
+
 #define	VALSTKSIZE	20
 static	VALUE_T	valstk[ VALSTKSIZE ];
 static	int	n_valstk;
@@ -44,10 +50,9 @@ int	stype;
 
 	n_valstk = 0;
 	if( n_descr == DESCRSIZE ){
-		fprintf( stderr,
-		"SE_new: FATAL: descr array size(%d) exceeded.\n",
+		sprintf( emsg, "SE_new: : descr array size(%d) exceeded.\n",
 			DESCRSIZE );
-		exit( 1 );
+		errormsg( 1, emsg );
 	}
 	stp = &descr[ n_descr ];
 	n_descr++;
@@ -142,7 +147,7 @@ int	d_site;
 	int	i;
 
 	if( d_descr ){
-		fprintf( stderr, "DESCR: %3d structure elements.\n", n_descr );
+		fprintf( fp, "DESCR: %3d structure elements.\n", n_descr );
 		for( stp = descr, i = 0; i < n_descr; i++, stp++ )
 			SE_dump_descr( fp, stp );
 	}
@@ -233,32 +238,25 @@ VALUE_T	*vp;
 
 	if( scope == S_GLOBAL ){
 		if( n_global_ids >= GLOBAL_IDS_SIZE ){
-			fprintf( stderr,
-			"enter_id: FATAL: global symbol tab overflow.\n" );
-			exit( 1 );
+			errormsg( 1, 
+				"enter_id: global symbol tab overflow.\n" );
 		}
 		ip = &global_ids[ n_global_ids ];
 		n_global_ids++;
 	}else{
 		if( n_local_ids >= LOCAL_IDS_SIZE ){
-			fprintf( stderr,
-			"enter_id: FATAL: local symbol tab overflow.\n" );
-			exit( 1 );
+			errormsg( 1, "enter_id: local symbol tab overflow.\n" );
 		}
 		ip = ( IDENT_T * )malloc( sizeof( IDENT_T ) );
 		if( ip == NULL ){
-			fprintf( stderr,
-				"enter_id: FATAL: can't alloc local ip.\n" );
-			exit( 1 );
+			errormsg( 1, "enter_id: can't alloc local ip.\n" );
 		}
 		local_ids[ n_local_ids ] = ip;
 		n_local_ids++;
 	}
 	np = ( char * )malloc( strlen( name ) + 1 );
 	if( np == NULL ){
-		fprintf( stderr,
-			"enter_id: FATAL: can't alloc np for name.\n" );
-		exit( 1 );
+		errormsg( 1, "enter_id: can't alloc np for name.\n" );
 	}
 	strcpy( np, name );
 	ip->i_name = np;
@@ -275,9 +273,8 @@ VALUE_T	*vp;
 			np = ( char * )
 				malloc(strlen(vp->v_value.v_pval)+1);
 			if( np == NULL ){
-				fprintf( stderr,
-			"enter_id: FATAL: can't alloc np for string val.\n" );
-				exit( 1 );
+				errormsg( 1,
+				"enter_id: can't alloc np for string val.\n" );
 			}
 			strcpy( np, vp->v_value.v_pval );
 			ip->i_val.v_value.v_pval = np;
@@ -315,6 +312,7 @@ NODE_T	*expr;
 	if( expr ){
 		eval( expr->n_left );
 		eval( expr->n_right );
+		rmemsglineno - expr->n_lineno;
 		switch( expr->n_sym ){
 		case SYM_INT :
 			valstk[ n_valstk ].v_type = T_INT;
@@ -326,9 +324,8 @@ NODE_T	*expr;
 			sp = ( char * )
 				malloc(strlen( expr->n_val.v_value.v_pval )+1);
 			if( sp == NULL ){
-				fprintf( stderr,
-			"eval: FATAL: can't allocate sp for string.\n" );
-				exit( 1 );
+				errormsg( 1,
+				"eval: can't allocate sp for string.\n" );
 			}
 			strcpy( sp, expr->n_val.v_value.v_pval );
 			valstk[ n_valstk ].v_type = T_STRING;
@@ -338,10 +335,9 @@ NODE_T	*expr;
 		case SYM_IDENT :
 			ip = find_id( expr->n_val.v_value.v_pval );
 			if( ip == NULL ){
-				fprintf( stderr,
-					"eval: FATAL: unknown id '%s'.\n",
+				sprintf( emsg, "eval: unknown id '%s'.\n",
 					expr->n_val.v_value.v_pval );
-				exit( 1 );
+				errormsg( 1, emsg );
 			}
 			valstk[ n_valstk ].v_type = T_IDENT;
 			valstk[ n_valstk ].v_value.v_pval = ip;
@@ -355,9 +351,7 @@ NODE_T	*expr;
 			if( r_type == T_IDENT )
 				r_type = loadidval( &valstk[ n_valstk - 1 ] );
 			if( l_type != r_type ){
-				fprintf( stderr,
-					"eval: FATAL: type mismatch '+'\n" );
-				exit( 1 );
+				errormsg( 1, "eval: type mismatch '+'\n" );
 			}
 			if( l_type == T_INT ){
 				valstk[ n_valstk - 2 ].v_value.v_ival +=
@@ -368,9 +362,8 @@ NODE_T	*expr;
 				sp = ( char * )malloc( strlen( l_sp ) +
 					strlen( r_sp ) + 1 );
 				if( sp == NULL ){
-					fprintf( stderr,
-				"eval: FATAL: can't alloc sp for str +.\n" );
-					exit( 1 );
+					errormsg( 1,
+					"eval: can't alloc sp for str +.\n" );
 				}
 				strcpy( sp, l_sp );
 				strcat( sp, r_sp );
@@ -387,17 +380,14 @@ NODE_T	*expr;
 			if( r_type == T_IDENT )
 				r_type = loadidval( &valstk[ n_valstk - 1 ] );
 			if( l_type != r_type ){
-				fprintf( stderr,
-					"eval: FATAL: type mismatch '-'\n" );
-				exit( 1 );
+				errormsg( 1, "eval: type mismatch '-'\n" );
 			}
 			if( l_type == T_INT ){
 				valstk[ n_valstk - 2 ].v_value.v_ival -=
 					valstk[ n_valstk - 1 ].v_value.v_ival;
 			}else if( l_type == T_STRING ){
-				fprintf( stderr,
-			"eval: FATAL: op '-' not defined for strings.\n" );
-				exit( 1 );
+				errormsg( 1,
+				"eval: '-' not defined for strings.\n" );
 			}else if( l_type == T_PAIR ){
 			}
 			n_valstk--;
@@ -409,8 +399,7 @@ NODE_T	*expr;
 			if( r_type == T_IDENT )
 				r_type = loadidval( &valstk[ n_valstk - 1 ] );
 			if( l_type != r_type ){
-				fprintf( stderr,
-					"eval: FATAL: type mismatch '='\n" );
+				errormsg( 1, "eval: type mismatch '='\n" );
 				exit( 1 );
 			}
 			storeexprval( ip, &valstk[ n_valstk-1 ] );
@@ -423,9 +412,7 @@ NODE_T	*expr;
 			if( r_type == T_IDENT )
 				r_type = loadidval( &valstk[ n_valstk - 1 ] );
 			if( l_type != r_type ){
-				fprintf( stderr,
-					"eval: FATAL: type mismatch '+='\n" );
-				exit( 1 );
+				errormsg( 1, "eval: type mismatch '+='\n" );
 			}
 			if( l_type == T_INT ){
 				valstk[ n_valstk - 2 ].v_value.v_ival +=
@@ -436,9 +423,8 @@ NODE_T	*expr;
 				sp = ( char * )malloc( strlen( l_sp ) +
 					strlen( r_sp ) + 1 );
 				if( sp == NULL ){
-					fprintf( stderr,
-				"eval: FATAL: can't alloc sp for str +.\n" );
-					exit( 1 );
+					errormsg( 1,
+					"eval: can't alloc sp for str +.\n" );
 				}
 				strcpy( sp, l_sp );
 				strcat( sp, r_sp );
@@ -455,17 +441,14 @@ NODE_T	*expr;
 			if( r_type == T_IDENT )
 				r_type = loadidval( &valstk[ n_valstk - 1 ] );
 			if( l_type != r_type ){
-				fprintf( stderr,
-					"eval: FATAL: type mismatch '-='\n" );
-				exit( 1 );
+				errormsg( 1, "eval: type mismatch '-='\n" );
 			}
 			if( l_type == T_INT ){
 				valstk[ n_valstk - 2 ].v_value.v_ival -=
 					valstk[ n_valstk - 1 ].v_value.v_ival;
 			}else if( l_type == T_STRING ){
-				fprintf( stderr,
-			"eval: FATAL: op '-' not defined for strings.\n" );
-				exit( 1 );
+				errormsg( 1,
+				"eval: '-' not defined for strings.\n" );
 			}else if( l_type == T_PAIR ){
 			}
 			storeexprval( ip, &valstk[ n_valstk - 2 ] );
@@ -486,25 +469,23 @@ VALUE_T	*vp;
 	type = ip->i_type;
 	if( type == T_INT ){
 		if( ip->i_val.v_value.v_ival == UNDEF ){
-			fprintf( stderr,
-			"loadidval: FATAL: id '%s' has int value UNDEF.\n",
+			sprintf( emsg,
+				"loadidval: id '%s' has int value UNDEF.\n",
 				ip->i_name );
-			exit( 1 );
+			errormsg( 1, emsg );
 		}
 		vp->v_type = T_INT;
 		vp->v_value.v_ival = ip->i_val.v_value.v_ival;
 	}else if( type == T_STRING ){
 		if( ip->i_val.v_value.v_pval == NULL ){
-			fprintf( stderr,
-			"loadidval: FATAL: id '%s' has string value NULL.\n",
+			sprintf( emsg,
+				"loadidval: id '%s' has string value NULL.\n",
 				ip->i_name );
-			exit( 1 );
+			errormsg( 1, emsg );
 		}
 		sp = ( char * )malloc( strlen( ip->i_val.v_value.v_pval ) + 1 );
 		if( sp == NULL ){
-			fprintf( stderr,
-				"loadidval: FATAL: can't allocate sp.\n" );
-			exit( 1 );
+			errormsg( 1, "loadidval: can't allocate sp.\n" );
 		}
 		vp->v_type = T_STRING;
 		strcpy( sp, ip->i_val.v_value.v_pval );
@@ -530,9 +511,7 @@ VALUE_T	*vp;
 		ip->i_type = T_STRING;
 		sp = ( char * )malloc( strlen( vp->v_value.v_pval ) + 1 );
 		if( sp == NULL ){
-			fprintf( stderr,
-				"storeexprval: FATAL: can't allocate sp.\n" );
-			exit( 1 );
+			errormsg( 1, "storeexprval: can't allocate sp.\n" );
 		}
 		strcpy( sp, vp->v_value.v_pval ); 
 		ip->i_val.v_value.v_pval = sp;
