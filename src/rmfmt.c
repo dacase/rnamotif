@@ -85,10 +85,8 @@ char	*argv[];
 	}
 	fclose( tfp2 );
 
-/*
 	unlink( tfnp1 );
 	unlink( tfnp2 );
-*/
 
 	if( ifp != stdin )
 		fclose( ifp );
