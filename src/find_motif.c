@@ -12,6 +12,7 @@ extern	int	rm_n_descr;
 extern	int	rm_dminlen;
 extern	int	rm_dmaxlen;
 extern	int	rm_b2bc[];
+extern	int	rm_comp;
 
 extern	SEARCH_T	**rm_searches;
 
@@ -238,7 +239,7 @@ SEARCH_T	*srp;
 		}
 	}else{
 		if( chk_motif( rm_n_descr, rm_descr ) )
-			print_match( stdout, fm_locus, fm_comp,
+			print_match( stdout, fm_locus, rm_comp,
 				rm_n_descr, rm_descr );
 	}
 
@@ -628,7 +629,7 @@ STREL_T	descr[];
 	fprintf( fp, "%-12s %d", locus, comp );
 	stp = descr; 
 	set_mbuf( stp->s_matchoff, stp->s_matchlen, mbuf );
-	fprintf( fp, " %4d %4d %s", stp->s_matchoff + 1, len, mbuf );
+	fprintf( fp, " %7d %4d %s", stp->s_matchoff + 1, len, mbuf );
 
 	for( ++stp, d = 1; d < n_descr; d++, stp++ ){
 		if( stp->s_matchlen > 0 ){
