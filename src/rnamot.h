@@ -124,10 +124,15 @@ typedef	struct	site_t	{
 	PAIRSET_T	*s_pairset;
 } SITE_T;
 
+#define	SA_PROPER	001
+#define	SA_5PAIRED	002
+#define	SA_3PAIRED	004
+#define	SA_N_ATTR	3
+
 typedef	struct	strel_t	{
 	int	s_checked;	/* used during linking		*/
 	int	s_type;
-	int	s_proper;	/* false = pseudoknot		*/
+	int	s_attr;		/* holds set of SA_*		*/
 	char	s_index;	/* index into descr array	*/
 	int	s_lineno;
 	int	s_searchno;	/* index into searches[]	*/
