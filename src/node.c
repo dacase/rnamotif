@@ -57,14 +57,14 @@ int	indent;
 	fprintf( fp, "%7d: lf = %7d rt = %7d tp,cl = %2d,%2d ",
 		np, np->n_left, np->n_right, np->n_type, np->n_class );
 	switch( np->n_sym ){
-	case SYM_PARM :
-		fprintf( fp, "SYM_PARM\n" );
+	case SYM_PARMS :
+		fprintf( fp, "SYM_PARMS\n" );
 		break;
 	case SYM_DESCR :
 		fprintf( fp, "SYM_DESCR\n" );
 		break;
-	case SYM_SITE :
-		fprintf( fp, "SYM_SITE\n" );
+	case SYM_SITES :
+		fprintf( fp, "SYM_SITES\n" );
 		break;
 	case SYM_H5 :
 		fprintf( fp, "SYM_H5\n" );
