@@ -14,7 +14,11 @@
 	((s)==SYM_PLUS_ASSIGN||(s)==SYM_MINUS_ASSIGN||\
 	 (s)==SYM_PERCENT_ASSIGN||(s)==SYM_SLASH_ASSIGN||(s)==SYM_STAR_ASSIGN)
 
+#define	T_IJ(i,j)	((i)*N_TYPE+(j))
+
 extern	int	rm_lineno;
+IDENT_T	*RM_find_id();
+IDENT_T	*RM_enter_id();
 
 #define	LABTAB_SIZE	1000
 static	int	labtab[ LABTAB_SIZE ];
@@ -59,10 +63,10 @@ static	int	loopstkp = 0;
 #define	OP_NEG		27	/* Negate		*/
 #define	OP_PRST		28	/* Make a pairset	*/
 #define	OP_BPR		29	/* Make a pair		*/
-#define	OP_INCP		30	/* use then incr (i++)	*/
-#define	OP_PINC		31	/* incr then use (++i)	*/
-#define	OP_DECP		32	/* use then decr (i--)	*/
-#define	OP_PDEC		33	/* decr then use (--i)	*/
+#define	OP_I_PP		30	/* use then incr (i++)	*/
+#define	OP_PP_I		31	/* incr then use (++i)	*/
+#define	OP_I_MM		32	/* use then decr (i--)	*/
+#define	OP_MM_I		33	/* decr then use (--i)	*/
 #define	OP_FJP		34	/* False Jump		*/
 #define	OP_JMP		35	/* Jump			*/
 #define	N_OP		36
@@ -169,14 +173,15 @@ static	void	do_mod();
 static	void	do_neg();
 static	void	do_prst();
 static	void	do_bpr();
-static	void	do_incp();
-static	void	do_pinc();
-static	void	do_decp();
-static	void	do_pdec();
+static	void	do_i_pp();
+static	void	do_pp_i();
+static	void	do_i_mm();
+static	void	do_mm_i();
 
 static	void	mk_stref_name();
 static	void	addinst();
 static	void	dumpinst();
+static	void	dumpstk();
 
 void	SC_action( np )
 NODE_T	*np;
@@ -357,7 +362,6 @@ NODE_T	*np;
 			v_expr.v_type = T_INT;
 			v_expr.v_value.v_ival = np->n_left->n_sym;
 			addinst( OP_STRF, &v_expr );
-			mk_stref_name( np->n_left->n_sym, name );
 		}else if( np->n_sym == SYM_LCURLY ){
 			addinst( OP_MRK, NULL );
 		}
@@ -452,7 +456,7 @@ int	l_andor;
 		break;
 	case SYM_DOLLAR :
 		v_node.v_type = T_POS;
-		v_node.v_value.v_pval = "$";
+		v_node.v_value.v_pval = NULL;
 		addinst( OP_LDC, &v_node );
 		break;
 
@@ -550,16 +554,16 @@ int	l_andor;
 
 	case SYM_MINUS_MINUS :
 		if( np->n_left ){
-			addinst( OP_DECP, NULL );
+			addinst( OP_I_MM, NULL );
 		}else{
-			addinst( OP_PDEC, NULL );
+			addinst( OP_MM_I, NULL );
 		}
 		break;
 	case SYM_PLUS_PLUS :
 		if( np->n_left ){
-			addinst( OP_INCP, NULL );
+			addinst( OP_I_PP, NULL );
 		}else{
-			addinst( OP_PINC, NULL );
+			addinst( OP_PP_I, NULL );
 		}
 		break;
 
@@ -593,6 +597,9 @@ void	SC_link()
 		if( ip->i_op == OP_FJP || ip->i_op == OP_JMP ){
 			ip->i_val.v_value.v_ival =
 				labtab[ ip->i_val.v_value.v_ival ];
+		}else if( ip->i_op == OP_IOR || ip->i_op == OP_AND ){
+			ip->i_val.v_value.v_ival =
+				labtab[ ip->i_val.v_value.v_ival ];
 		}
 	}
 }
@@ -613,6 +620,9 @@ int	SC_run()
 {
 	INST_T	*ip;
 	
+	if( l_prog <= 0 )
+		return( 1 );
+
 	sp = mp = -1;
 	for( pc = 0; ; ){
 		if( pc < 0 || pc >= l_prog ){
@@ -621,6 +631,10 @@ int	SC_run()
 			exit( 1 );
 		}
 		ip = &prog[ pc ];
+
+fprintf( stdout, "SC_run, pc = %4d, op = %s\n", pc, opnames[ ip->i_op ] );
+dumpstk( stdout, "before op" );
+
 		pc++;
 		switch( ip->i_op ){
 		case OP_NOOP :
@@ -648,10 +662,10 @@ int	SC_run()
 			break;
 
 		case OP_LDA :
-			do_lda();
+			do_lda( ip );
 			break;
 		case OP_LOD :
-			do_lod();
+			do_lod( ip );
 			break;
 		case OP_LDC :
 			do_ldc();
@@ -721,21 +735,21 @@ int	SC_run()
 			do_bpr();
 			break;
 
-		case OP_INCP :
-			do_incp();
+		case OP_I_PP :
+			do_i_pp();
 			break;
-		case OP_PINC :
-			do_pinc();
+		case OP_PP_I :
+			do_pp_i();
 			break;
-		case OP_DECP :
-			do_decp();
+		case OP_I_MM :
+			do_i_mm();
 			break;
-		case OP_PDEC :
-			do_pdec();
+		case OP_MM_I :
+			do_mm_i();
 			break;
 
 		case OP_FJP :
-			if( mem[ sp ].v_value.v_ival )
+			if( !mem[ sp ].v_value.v_ival )
 				pc = ip->i_val.v_value.v_ival; 
 			sp = mp;
 			break;
@@ -747,6 +761,7 @@ int	SC_run()
 			exit( 1 );
 			break;
 		}
+dumpstk( stdout, "after op" );
 	}
 }
 
@@ -762,41 +777,257 @@ INST_T	*ip;
 
 }
 
-static	void	do_lda()
+static	void	do_lda( ip )
+INST_T	*ip;
 {
+	VALUE_T	*v_top;
+	IDENT_T	*idp;
 
+	sp++;
+	v_top = &mem[ sp ];
+	idp = RM_find_id( ip->i_val.v_value.v_pval );
+	if( idp == NULL ){
+		idp = RM_enter_id( ip->i_val.v_value.v_pval, T_UNDEF, C_VAR,
+			S_GLOBAL, 1, NULL );
+		v_top->v_type = T_UNDEF;
+		v_top->v_value.v_pval = idp;
+	}else if( !idp->i_reinit ){
+		fprintf( stderr, "do_lda: variable '%s' is readonly.\n", 
+			idp->i_name );
+		exit( 1 );
+	}else{
+		v_top->v_type = idp->i_type;
+		v_top->v_value.v_pval = idp;
+	}
 }
 
-static	void	do_lod()
+static	void	do_lod( ip )
+INST_T	*ip;
 {
+	VALUE_T	*v_top;
+	IDENT_T	*idp;
+	char	*cp;
 
+	sp++;
+	v_top = &mem[ sp ];
+	idp = RM_find_id( ip->i_val.v_value.v_pval );
+	if( idp == NULL ){
+		fprintf( stderr, "do_lod: variable '%s' is undefined.\n",
+			idp->i_name );
+		exit( 1 );
+	}else{
+		switch( idp->i_type ){
+		case T_UNDEF :
+			fprintf( stderr,
+				"do_lod: variable '%s' is undefined.\n",
+				idp->i_name );
+			exit( 1 );
+			break;
+		case T_INT :
+			v_top->v_type = T_INT;
+			v_top->v_value.v_ival = idp->i_val.v_value.v_ival;
+			break;
+		case T_FLOAT :
+			v_top->v_type = T_FLOAT;
+			v_top->v_value.v_fval = idp->i_val.v_value.v_fval;
+			break;
+		case T_STRING :
+			cp = ( char * )
+				malloc( strlen(idp->i_val.v_value.v_pval) + 1 );
+			if( cp == NULL ){
+				fprintf( stderr,
+					"do_lod: can't allocate cp.\n" );
+				exit( 1 );
+			}
+			strcpy( cp, idp->i_val.v_value.v_pval );
+			v_top->v_type = T_STRING;
+			v_top->v_value.v_pval = cp;
+			break;
+		case T_PAIR :
+			break;
+		case T_POS :
+			break;
+		case T_IDENT :
+			break;
+		}
+	}
 }
 
-static	void	do_ldc()
+static	void	do_ldc( ip )
+INST_T	*ip;
 {
+	VALUE_T	*v_top;
+	char	*cp;
 
+	sp++;
+	v_top = &mem[ sp ];
+	switch( ip->i_val.v_type ){
+	case T_INT :
+		v_top->v_type = T_INT;
+		v_top->v_value.v_ival = ip->i_val.v_value.v_ival;
+		break;
+	case T_FLOAT :
+		v_top->v_type = T_FLOAT;
+		v_top->v_value.v_fval = ip->i_val.v_value.v_fval;
+		break;
+	case T_STRING :
+		v_top->v_type = T_STRING;
+		cp = ( char * )malloc( strlen( ip->i_val.v_value.v_pval ) + 1 );
+		if( cp == NULL ){
+			fprintf( stderr, "do_ldc: can't allocate cp.\n" );
+			exit( 1 );
+		}
+		strcpy( cp, ip->i_val.v_value.v_pval );
+		v_top->v_value.v_pval = cp;
+		break;
+	case	T_POS :
+		v_top->v_type = T_POS;
+		v_top->v_value.v_pval = NULL;
+		break;
+	default :
+		fprintf( stderr, "do_ldc: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
 }
 
 static	void	do_sto()
 {
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
+	IDENT_T	*idp;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	idp = v_tm1->v_value.v_pval;
+	
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_UNDEF, T_INT ):
+		v_tm1->v_type = T_INT;
+		idp->i_type = T_INT;
+		idp->i_val.v_type = T_INT;
+		idp->i_val.v_value.v_ival = v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_UNDEF, T_FLOAT ):
+		v_tm1->v_type = T_FLOAT;
+		idp->i_type = T_INT;
+		idp->i_val.v_type = T_INT;
+		idp->i_val.v_value.v_ival = v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_UNDEF, T_STRING ):
+		break;
+	case T_IJ( T_UNDEF, T_PAIR ):
+		break;
+	case T_IJ( T_INT, T_INT ) :
+		idp->i_val.v_value.v_ival = v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_INT, T_FLOAT ) :
+		idp->i_val.v_value.v_ival = v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_INT, T_POS ) :
+		break;
+	case T_IJ( T_FLOAT, T_INT ) :
+		idp->i_val.v_value.v_fval = v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_FLOAT, T_FLOAT ) :
+		idp->i_val.v_value.v_fval = v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_STRING, T_STRING ) :
+		break;
+	case T_IJ( T_PAIR, T_PAIR ) :
+		break;
+	default :
+		fprintf( stderr, "do_sto: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
 }
 
 static	void	do_and( ip )
 INST_T	*ip;
 {
+	VALUE_T	*v_top;
+	int	t_top, rv;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+
+	switch( t_top ){
+	case T_INT :
+		rv = v_top->v_value.v_ival = v_top->v_value.v_ival != 0;
+		break;
+	case T_FLOAT :
+		rv = v_top->v_value.v_ival = v_top->v_value.v_fval != 0.0;
+		break;
+	case T_STRING :
+		rv = v_top->v_value.v_ival =
+			*( char * )v_top->v_value.v_pval != '\0';
+		break;
+	default :
+		fprintf( stderr, "do_and: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
+	if( !rv )
+		pc = ip->i_val.v_value.v_ival;
 }
 
 static	void	do_ior( ip )
 INST_T	*ip;
 {
+	VALUE_T	*v_top;
+	int	t_top, rv;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+
+	switch( t_top ){
+	case T_INT :
+		rv = v_top->v_value.v_ival = v_top->v_value.v_ival != 0;
+		break;
+	case T_FLOAT :
+		rv = v_top->v_value.v_ival = v_top->v_value.v_fval != 0.0;
+		break;
+	case T_STRING :
+		rv = v_top->v_value.v_ival =
+			*( char * )v_top->v_value.v_pval != '\0';
+		break;
+	default :
+		fprintf( stderr, "do_ior: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
+	if( rv )
+		pc = ip->i_val.v_value.v_ival;
 }
 
 static	void	do_not()
 {
+	VALUE_T	*v_top;
+	int	t_top;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+
+	switch( t_top ){
+	case T_INT :
+		v_top->v_value.v_ival = !( v_top->v_value.v_ival == 0 );
+		break;
+	case T_FLOAT :
+		v_top->v_value.v_ival = !( v_top->v_value.v_fval == 0.0 );
+		break;
+	case T_STRING :
+		v_top->v_value.v_ival =
+			!( *( char * )v_top->v_value.v_pval == '\0' );
+		break;
+	default :
+		fprintf( stderr, "do_not: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
 }
 
 static	void	do_mat()
@@ -811,32 +1042,236 @@ static	void	do_ins()
 
 static	void	do_gtr()
 {
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_INT, T_INT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_ival > v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_INT, T_FLOAT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_ival > v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_FLOAT, T_INT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_fval > v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_FLOAT, T_FLOAT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_fval > v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_STRING, T_STRING ) :
+		v_tm1->v_value.v_ival =
+			strcmp(v_tm1->v_value.v_pval,v_top->v_value.v_pval) > 0;
+		break;
+	default :
+		fprintf( stderr, "do_gtr: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
 }
 
 static	void	do_geq()
 {
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_INT, T_INT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_ival >= v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_INT, T_FLOAT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_ival >= v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_FLOAT, T_INT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_fval >= v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_FLOAT, T_FLOAT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_fval >= v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_STRING, T_STRING ) :
+		v_tm1->v_value.v_ival =
+			strcmp(v_tm1->v_value.v_pval,v_top->v_value.v_pval)>=0;
+		break;
+	default :
+		fprintf( stderr, "do_geq: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
 }
 
 static	void	do_equ()
 {
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_INT, T_INT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_ival == v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_INT, T_FLOAT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_ival == v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_FLOAT, T_INT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_fval == v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_FLOAT, T_FLOAT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_fval == v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_STRING, T_STRING ) :
+		v_tm1->v_value.v_ival =
+			strcmp(v_tm1->v_value.v_pval,v_top->v_value.v_pval)==0;
+		break;
+	default :
+		fprintf( stderr, "do_equ: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
 }
 
 static	void	do_neq()
 {
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_INT, T_INT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_ival != v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_INT, T_FLOAT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_ival != v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_FLOAT, T_INT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_fval != v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_FLOAT, T_FLOAT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_fval != v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_STRING, T_STRING ) :
+		v_tm1->v_value.v_ival =
+			strcmp(v_tm1->v_value.v_pval,v_top->v_value.v_pval)!=0;
+		break;
+	default :
+		fprintf( stderr, "do_neq: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
 }
 
 static	void	do_leq()
 {
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_INT, T_INT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_ival <= v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_INT, T_FLOAT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_ival <= v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_FLOAT, T_INT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_fval <= v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_FLOAT, T_FLOAT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_fval <= v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_STRING, T_STRING ) :
+		v_tm1->v_value.v_ival =
+			strcmp(v_tm1->v_value.v_pval,v_top->v_value.v_pval)<=0;
+		break;
+	default :
+		fprintf( stderr, "do_leq: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
 }
 
 static	void	do_les()
 {
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_INT, T_INT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_ival < v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_INT, T_FLOAT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_ival < v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_FLOAT, T_INT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_fval < v_top->v_value.v_ival;
+		break;
+	case T_IJ( T_FLOAT, T_FLOAT ) :
+		v_tm1->v_value.v_ival =
+			v_tm1->v_value.v_fval < v_top->v_value.v_fval;
+		break;
+	case T_IJ( T_STRING, T_STRING ) :
+		v_tm1->v_value.v_ival =
+			strcmp(v_tm1->v_value.v_pval,v_top->v_value.v_pval) < 0;
+		break;
+	default :
+		fprintf( stderr, "do_les: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
 }
 
 static	void	do_add()
@@ -850,26 +1285,26 @@ static	void	do_add()
 	v_tm1 = &mem[ sp ];
 	t_tm1 = v_tm1->v_type;
 	
-	switch( t_tm1 * N_TYPE + t_top ){
-	case T_INT * N_TYPE + T_INT :
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_INT, T_INT ) :
 		v_tm1->v_value.v_ival += v_top->v_value.v_ival;
 		break;
-	case T_INT * N_TYPE + T_FLOAT :
+	case T_IJ( T_INT, T_FLOAT ) :
 		v_tm1->v_value.v_ival += v_top->v_value.v_fval;
 		break;
-	case T_FLOAT * N_TYPE + T_INT :
+	case T_IJ( T_INT, T_POS ) :
+		break;
+	case T_IJ( T_FLOAT, T_INT ) :
 		v_tm1->v_value.v_fval += v_top->v_value.v_ival;
 		break;
-	case T_FLOAT * N_TYPE + T_FLOAT :
+	case T_IJ( T_FLOAT, T_FLOAT ) :
 		v_tm1->v_value.v_fval += v_top->v_value.v_fval;
 		break;
-	case T_STRING * N_TYPE + T_STRING :
+	case T_IJ( T_STRING, T_STRING ) :
 		break;
-	case T_PAIR * N_TYPE + T_PAIR :
+	case T_IJ( T_PAIR, T_PAIR ) :
 		break;
-	case T_INT * N_TYPE + T_POS :
-		break;
-	case T_POS * N_TYPE + T_INT :
+	case T_IJ( T_POS, T_INT ) :
 		break;
 	default :
 		fprintf( stderr, "do_add: type mismatch.\n" );
@@ -889,24 +1324,24 @@ static	void	do_sub()
 	v_tm1 = &mem[ sp ];
 	t_tm1 = v_tm1->v_type;
 	
-	switch( t_tm1 * N_TYPE + t_top ){
-	case T_INT * N_TYPE + T_INT :
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_INT, T_INT ) :
 		v_tm1->v_value.v_ival -= v_top->v_value.v_ival;
 		break;
-	case T_INT * N_TYPE + T_FLOAT :
+	case T_IJ( T_INT, T_FLOAT ) :
 		v_tm1->v_value.v_ival -= v_top->v_value.v_fval;
 		break;
-	case T_FLOAT * N_TYPE + T_INT :
+	case T_IJ( T_INT, T_POS ) :
+		break;
+	case T_IJ( T_FLOAT, T_INT ) :
 		v_tm1->v_value.v_fval -= v_top->v_value.v_ival;
 		break;
-	case T_FLOAT * N_TYPE + T_FLOAT :
+	case T_IJ( T_FLOAT, T_FLOAT ) :
 		v_tm1->v_value.v_fval -= v_top->v_value.v_fval;
 		break;
-	case T_PAIR * N_TYPE + T_PAIR :
+	case T_IJ( T_PAIR, T_PAIR ) :
 		break;
-	case T_INT * N_TYPE + T_POS :
-		break;
-	case T_POS * N_TYPE + T_INT :
+	case T_IJ( T_POS, T_INT ) :
 		break;
 	default :
 		fprintf( stderr, "do_sub: type mismatch.\n" );
@@ -926,17 +1361,17 @@ static	void	do_mul()
 	v_tm1 = &mem[ sp ];
 	t_tm1 = v_tm1->v_type;
 	
-	switch( t_tm1 * N_TYPE + t_top ){
-	case T_INT * N_TYPE + T_INT :
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_INT, T_INT ) :
 		v_tm1->v_value.v_ival *= v_top->v_value.v_ival;
 		break;
-	case T_INT * N_TYPE + T_FLOAT :
+	case T_IJ( T_INT, T_FLOAT ) :
 		v_tm1->v_value.v_ival *= v_top->v_value.v_fval;
 		break;
-	case T_FLOAT * N_TYPE + T_INT :
+	case T_IJ( T_FLOAT, T_INT ) :
 		v_tm1->v_value.v_fval *= v_top->v_value.v_ival;
 		break;
-	case T_FLOAT * N_TYPE + T_FLOAT :
+	case T_IJ( T_FLOAT, T_FLOAT ) :
 		v_tm1->v_value.v_fval *= v_top->v_value.v_fval;
 		break;
 	default :
@@ -957,17 +1392,17 @@ static	void	do_div()
 	v_tm1 = &mem[ sp ];
 	t_tm1 = v_tm1->v_type;
 	
-	switch( t_tm1 * N_TYPE + t_top ){
-	case T_INT * N_TYPE + T_INT :
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_INT, T_INT ) :
 		v_tm1->v_value.v_ival /= v_top->v_value.v_ival;
 		break;
-	case T_INT * N_TYPE + T_FLOAT :
+	case T_IJ( T_INT, T_FLOAT ) :
 		v_tm1->v_value.v_ival /= v_top->v_value.v_fval;
 		break;
-	case T_FLOAT * N_TYPE + T_INT :
+	case T_IJ( T_FLOAT, T_INT ) :
 		v_tm1->v_value.v_fval /= v_top->v_value.v_ival;
 		break;
-	case T_FLOAT * N_TYPE + T_FLOAT :
+	case T_IJ( T_FLOAT, T_FLOAT ) :
 		v_tm1->v_value.v_fval /= v_top->v_value.v_fval;
 		break;
 	default :
@@ -988,8 +1423,8 @@ static	void	do_mod()
 	v_tm1 = &mem[ sp ];
 	t_tm1 = v_tm1->v_type;
 	
-	switch( t_tm1 * N_TYPE + t_top ){
-	case T_INT * N_TYPE + T_INT :
+	switch( T_IJ( t_tm1, t_top ) ){
+	case T_IJ( T_INT, T_INT ) :
 		v_tm1->v_value.v_ival %= v_top->v_value.v_ival;
 		break;
 	default :
@@ -1031,24 +1466,108 @@ static	void	do_bpr()
 
 }
 
-static	void	do_incp()
+static	void	do_i_pp()
 {
+	VALUE_T	*v_top;
+	int	t_top;
+	IDENT_T	*ip;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	ip = v_top->v_value.v_pval;
+	
+	switch( t_top ){
+	case T_UNDEF :
+		fprintf( stderr, "do_i_pp: variable '%s' is undefined.\n",
+			ip->i_name );
+		exit( 1 );
+		break;
+	case T_INT :
+		v_top->v_value.v_ival = ( ip->i_val.v_value.v_ival )++;
+		break;
+	default :
+		fprintf( stderr, "do_i_pp: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
 }
 
-static	void	do_pinc()
+static	void	do_pp_i()
 {
+	VALUE_T	*v_top;
+	int	t_top;
+	IDENT_T	*ip;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	ip = v_top->v_value.v_pval;
+	
+	switch( t_top ){
+	case T_UNDEF :
+		fprintf( stderr, "do_pp_i: variable '%s' is undefined.\n",
+			ip->i_name );
+		exit( 1 );
+		break;
+	case T_INT :
+		v_top->v_value.v_ival = ++( ip->i_val.v_value.v_ival );
+		break;
+	default :
+		fprintf( stderr, "do_pp_i: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
 }
 
-static	void	do_decp()
+static	void	do_i_mm()
 {
+	VALUE_T	*v_top;
+	int	t_top;
+	IDENT_T	*ip;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	ip = v_top->v_value.v_pval;
+	
+	switch( t_top ){
+	case T_UNDEF :
+		fprintf( stderr, "do_i_mm: variable '%s' is undefined.\n",
+			ip->i_name );
+		exit( 1 );
+		break;
+	case T_INT :
+		v_top->v_value.v_ival = ( ip->i_val.v_value.v_ival )--;
+		break;
+	default :
+		fprintf( stderr, "do_i_mm: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
 }
 
-static	void	do_pdec()
+static	void	do_mm_i()
 {
+	VALUE_T	*v_top;
+	int	t_top;
+	IDENT_T	*ip;
 
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	ip = v_top->v_value.v_pval;
+	
+	switch( t_top ){
+	case T_UNDEF :
+		fprintf( stderr, "do_mm_i: variable '%s' is undefined.\n",
+			ip->i_name );
+		exit( 1 );
+		break;
+	case T_INT :
+		v_top->v_value.v_ival = --( ip->i_val.v_value.v_ival );
+		break;
+	default :
+		fprintf( stderr, "do_mm_i: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
 }
 
 static	void	mk_stref_name( sym, name )
@@ -1096,6 +1615,10 @@ char	name[];
 		break;
 	case SYM_Q4 :
 		strcpy( name, "q4" );
+		break;
+
+	default :
+		strcpy( name, "" );
 		break;
 	}
 }
@@ -1205,10 +1728,10 @@ INST_T	*ip;
 	case OP_BPR :
 		break;
 
-	case OP_INCP :
-	case OP_PINC :
-	case OP_DECP :
-	case OP_PDEC :
+	case OP_I_PP :
+	case OP_PP_I :
+	case OP_I_MM :
+	case OP_MM_I :
 		break;
 
 	case OP_FJP :
@@ -1216,18 +1739,63 @@ INST_T	*ip;
 		break;
 	}
 	vp = &ip->i_val;
-	if( vp->v_type == T_INT ){
-		if( ip->i_op != OP_STRF )
-			fprintf( fp, " %d", vp->v_value.v_ival );
-		else{
-			mk_stref_name( vp->v_value.v_ival, name );
-			fprintf( fp, " %s", name );
-		}
+	if( ip->i_op == OP_STRF ){
+		mk_stref_name( vp->v_value.v_ival, name );
+		if( *name != '\0' )
+			fprintf( fp, " opn (%s)", name );
+		else
+			fprintf( fp, " exec" );
+	}else if( ip->i_op == OP_LDA ){
+		fprintf( fp, " %s", vp->v_value.v_pval );
+	}else if( vp->v_type == T_INT ){
+		fprintf( fp, " %d", vp->v_value.v_ival );
 	}else if( vp->v_type == T_FLOAT ) 
 		fprintf( fp, " %f", vp->v_value.v_fval );
 	else if( vp->v_type == T_STRING )
 		fprintf( fp, " \"%s\"", vp->v_value.v_pval );
+	else if( vp->v_type == T_POS )
+		fprintf( fp, " $" );
 	else if( vp->v_type == T_IDENT )
 		fprintf( fp, " %s", vp->v_value.v_pval );
 	fprintf( fp, "\n" );
+}
+
+static	void	dumpstk( fp, msg )
+FILE	*fp;
+char	msg[];
+{
+	int	i;
+	VALUE_T	*vp;
+
+	fprintf( fp, "%s\n", msg );
+	for( vp = mem, i = 0; i <= sp; i++, vp++ ){
+		fprintf( fp, "mem[%4d]: ", i );
+		switch( vp->v_type ){
+		case T_UNDEF :
+			fprintf( fp, "U " );
+			break;
+		case T_INT :
+			fprintf( fp, "I %d", vp->v_value.v_ival );
+			break;
+		case T_FLOAT :
+			fprintf( fp, "F %f", vp->v_value.v_fval );
+			break;
+		case T_STRING :
+			fprintf( fp, "S \"%s\"", vp->v_value.v_pval );
+			break;
+		case T_PAIR :
+			fprintf( fp, "Pr" );
+			break;
+		case T_POS :
+			fprintf( fp, "Ps" );
+			break;
+		case T_IDENT :
+			fprintf( fp, "Id" );
+			break;
+		default :
+			fprintf( fp, "? " );
+			break;
+		}
+		fprintf( fp, "\n" );
+	}
 }
