@@ -314,7 +314,7 @@ STREL_T	*stp;
 	else if( stp->s_minilen == UNBOUNDED )
 		fprintf( fp, "UNBOUNDED" );
 	else
-		fprintf( fp, "%d", stp->s_minglen );
+		fprintf( fp, "%d", stp->s_minilen );
 	fprintf( fp, ":" );
 	if( stp->s_maxilen == UNDEF )
 		fprintf( fp, "UNDEF" );
