@@ -1,3 +1,7 @@
+2.1.2	2002-mar-08
+	Fixed bug in strict2attr() that used the same attribute for both 3
+	and 5 strictness.
+
 2.1.1	2002-feb-15
 	Extended control over strict helix checking to individual ends of
 	individual helices.
