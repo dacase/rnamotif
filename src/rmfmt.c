@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define	U_MSG_S	"usage: %s [ -l ] [ rm-output-file ]\n"
+
 #define	MAXFIELDS	200
 #define	FIELD1		4
 #define	MAXW		20
@@ -19,13 +21,16 @@ main( argc, argv )
 int	argc;
 char	*argv[];
 {
+	char	*ifname;
 	FILE	*ifp, *tfp1, *tfp2;
 	char	*tfnp1, *tfnp2;
 	char	cmd[ 256 ];
 	char	line[ 10000 ];
-	int	field1, f, fw, fs;
-	int	scored;
+	char	*sp, *vbp;
+	int	ac, field1, f, fw, fs;
+	int	lopt, scored;
 
+/*
 	if( argc == 1 )
 		ifp = stdin;
 	else if( argc > 2 ){
@@ -34,6 +39,28 @@ char	*argv[];
 	}else if( ( ifp = fopen( argv[ 1 ], "r" ) ) == NULL ){
 		fprintf( stderr, "%s: can't open rm-output-file '%s'\n",
 			argv[ 0 ], argv[ 1 ] );
+		exit( 1 );
+	}
+*/
+	lopt = 0;
+	ifname = NULL;
+	for( ac = 1; ac < argc; ac++ ){
+		if( !strcmp( argv[ ac ], "-l" ) )
+			lopt = 1;
+		else if( *argv[ ac ] == '-' ){
+			fprintf( stderr, U_MSG_S, argv[ 0 ] );
+			exit( 1 );
+		}else if( ifname != NULL ){
+			fprintf( stderr, U_MSG_S, argv[ 0 ] );
+			exit( 1 );
+		}else
+			ifname = argv[ ac ];
+	}
+	if( ifname == NULL ){
+		ifp = stdin;
+	}else if( ( ifp = fopen( ifname, "r" ) ) == NULL ){
+		fprintf( stderr, "%s: can't read rm-output-file '%s'\n",
+			argv[ 0 ], ifname );
 		exit( 1 );
 	}
 
@@ -79,7 +106,18 @@ char	*argv[];
 			for( f = 0; f < t_fields; f++ )
 				maxw[ f ] = 0;
 		}
-		for( f = 0; f < field1; f++ ){
+		if( lopt ){
+			for( vbp = NULL, sp = fields[ 0 ]; *sp; sp++ ){
+				if( *sp == '|' )
+					vbp = sp;
+			}
+			if( vbp != NULL )
+				strcpy( fields[ 0 ], &vbp[ 1 ] );
+		}
+		fw = strlen( fields[ 0 ] );
+		if( fw > maxw[ 0 ] )
+			maxw[ 0 ] = fw;
+		for( f = 1; f < field1; f++ ){
 			fw = strlen( fields[ f ] );
 			if( fw > maxw[ f ] )
 				maxw[ f ] = fw;
