@@ -29,7 +29,7 @@ char	locus[];
 int	slen;
 char	sbuf[];
 {
-	int	i, s_zero, s_dollar;
+	int	i, w_winsize, s_zero, s_dollar;
 	IDENT_T	*ip;
 	
 	if( fm_window == NULL ){
@@ -55,17 +55,19 @@ fprintf( stderr, "fmd: locus = %s, slen = %d\n", locus, slen );
 	fm_slen = slen;
 	fm_sbuf = sbuf;
 
-	for( s_zero = 0; s_zero < slen - fm_windowsize; s_zero++ ){
-		s_dollar = s_zero + fm_windowsize - 1;
-fprintf( stderr, "srch.1: %4d:%4d\n", s_zero, s_dollar );
+	w_winsize = rm_dmaxlen < fm_windowsize ? rm_dmaxlen : fm_windowsize;
+
+	for( s_zero = 0; s_zero < slen - w_winsize; s_zero++ ){
+		s_dollar = s_zero + w_winsize - 1;
+fprintf( stderr, "srch.1: 0, %4d:%4d, %4d\n", s_zero, s_dollar, slen - 1 );
 /*
 		find_motif( 0, descr, i, i + rm_dmaxlen - 1 );
 */
 	}
 
 	s_dollar = slen - 1;
-	for( i = 0; i <= slen - rm_dminlen; i++, s_zero++ ){
-fprintf( stderr, "srch.2: %4d:%4d\n", s_zero, s_dollar );
+	for( ; s_zero <= slen - rm_dminlen; s_zero++ ){
+fprintf( stderr, "srch.2: 0, %4d:%4d, %4d\n", s_zero, s_dollar, slen - 1);
 /*
 		find_motif( 0, descr, i, i + rm_dmaxlen - 1 );
 */
