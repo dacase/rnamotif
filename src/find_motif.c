@@ -687,9 +687,8 @@ int	*hlen;
 {
 	int	s, s3_5plim;
 	int	b5, b3;
-	int	mpr, l_pr;
-	int	mpcnt[ 100 ];
-	int	i_lpb;
+	int	mplim, mpr, l_pr;
+	int	i_lpb, pfrac;
 
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
@@ -697,23 +696,56 @@ int	*hlen;
 	if( !paired( stp->s_pairset, b5, b3 ) )
 		return( 0 );
 
-	*h3 = s3;
-	mpcnt[ 0 ] = 0;
-	i_lpb = 0;
-	l_pr = 1;
-	mpr = 0;
+	*h3 = s3;	/* index of 5' base of h3	*/
+	i_lpb = 0;	/* index of last paired base	*/
+	l_pr = 1;	/* last position is paired	*/
+	mpr = 0;	/* number of mispairs		*/
+	mplim = 0;	/* max. number of mispairs	*/
+	pfrac = 0;	/* check against pfrac		*/ 
+
+	if( stp->s_mispair > 0 ){
+		mplim = stp->s_mispair;
+	}else if( stp->s_pairfrac < 1.0 ){
+		mplim = (1.-stp->s_pairfrac)*MIN(stp->s_maxlen, fm_windowsize);
+		pfrac = 1;
+	}
+/*
 	for( *hlen = 1, s = s3 - 1; s >= s3lim; s-- ){
 		b5 = fm_sbuf[ s5 + *hlen ];
 		b3 = fm_sbuf[ s3 - *hlen ];
 		if( paired( stp->s_pairset, b5, b3 ) ){
 			l_pr = 1;
 			i_lpb = *hlen;
-			mpcnt[ *hlen ] = mpr;
 		}else{
 			l_pr = 0;
 			mpr++;
-			mpcnt[ *hlen ] = mpr;
-			if( mpr > stp->s_mispair ){
+			if( mpr > mplim ){
+				if( *hlen < stp->s_minlen )
+					return( 0 );
+				else
+					break;
+			}
+		}
+		( *hlen )++;
+	}
+*/
+	for( *hlen = 1, s = s3 - 1; s >= s3lim; s-- ){
+		b5 = fm_sbuf[ s5 + *hlen ];
+		b3 = fm_sbuf[ s3 - *hlen ];
+		if( paired( stp->s_pairset, b5, b3 ) ){
+			if( pfrac ){
+				if(1.*(*hlen-mpr)/(*hlen) >= stp->s_pairfrac){
+					l_pr = 1;
+					i_lpb = *hlen;
+				}
+			}else{
+				l_pr = 1;
+				i_lpb = *hlen;
+			}
+		}else{
+			l_pr = 0;
+			mpr++;
+			if( mpr > mplim ){
 				if( *hlen < stp->s_minlen )
 					return( 0 );
 				else
@@ -749,11 +781,19 @@ int	s5lo;
 int	*hlen;
 {
 	int	s, s1;
-	int	b50, b5, b3;
-	int	mpr, l_pr;
+	int	b5, b3;
+	int	mplim, mpr, l_pr;
+	int	pfrac;
 
-	b50 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
+	mplim = 0;
+	pfrac = 0;
+	if( stp->s_mispair > 0 )
+		mplim = stp->s_mispair;
+	else if( stp->s_pairfrac < 1.0 ){
+		mplim = (1.-stp->s_pairfrac)*MIN(stp->s_maxlen, fm_windowsize);
+		pfrac = 1;
+	}
 
 	for( s = s5hi; s >= s5lo; s-- ){
 		b5 = fm_sbuf[ s ];
@@ -767,20 +807,26 @@ int	*hlen;
 			b3 = fm_sbuf[ s3 - *hlen ];
 			if( paired( stp->s_pairset, b5, b3 ) ){
 				l_pr = 1;
-				( *hlen )++;
 			}else{
 				l_pr = 0;
 				mpr++;
+/*
 				if( mpr > stp->s_mispair ){
+*/
+				if( mpr > mplim ){
 					return( 0 );
 				}
-				( *hlen )++;
 			}
+			( *hlen )++;
 		}
 		if( !l_pr )	/* must end on a pair	*/
 			return( 0 );
 		if( *hlen < stp->s_minlen || *hlen > stp->s_maxlen )
 			return( 0 );
+		if( pfrac ){
+			if( 1.*(*hlen-mpr)/(*hlen) < stp->s_pairfrac )
+				return( 0 );
+		}
 
 		if( stp->s_seq != NULL ){
 			if( !chk_seq( stp, &fm_sbuf[ s5 ], *hlen ) )
@@ -805,11 +851,17 @@ int	tlen;
 {
 	int	t;
 	int	b1, b2, b3;
-	int	mpr, l_pr;
+	int	mplim, mpr, l_pr;
 
 	b1 = fm_sbuf[ s1 ];
 	b2 = fm_sbuf[ s2 ];
 	b3 = fm_sbuf[ s3 - tlen + 1 ];
+	mplim = 0;
+	if( stp->s_mispair > 0 )
+		mplim = stp->s_mispair;
+	else if( stp->s_pairfrac < 1.0 )
+		mplim = (1.-stp->s_pairfrac)*tlen;
+	
 
 	if( !triple( stp->s_pairset, b1, b2, b3 ) )
 		return( 0 );
@@ -823,7 +875,10 @@ int	tlen;
 		if( !triple( stp->s_pairset, b1, b2, b3 ) ){
 			l_pr = 0;
 			mpr++;
+/*
 			if( mpr > stp->s_mispair )
+*/
+			if( mpr > mplim )
 				return( 0 );
 		}else
 			l_pr = 1;
@@ -851,12 +906,17 @@ int	qlen;
 {
 	int	q;
 	int	b1, b2, b3, b4;
-	int	mpr, l_pr;
+	int	mplim, mpr, l_pr;
 
 	b1 = fm_sbuf[ s1 + qlen - 1 ];
 	b2 = fm_sbuf[ s2 ];
 	b3 = fm_sbuf[ s3 ];
 	b4 = fm_sbuf[ s4 - qlen + 1 ];
+	mplim = 0;
+	if( stp1->s_mispair > 0 )
+		mplim = stp1->s_mispair;
+	else if( stp1->s_pairfrac < 1.0 )
+		mplim = (1.-stp1->s_pairfrac)*qlen;
 
 	if( !quad( stp1->s_pairset, b1, b2, b3, b4 ) )
 		return( 0 );
@@ -871,7 +931,10 @@ int	qlen;
 		if( !quad( stp1->s_pairset, b1, b2, b3, b4 ) ){
 			l_pr = 0;
 			mpr++;
+/*
 			if( mpr > stp1->s_mispair )
+*/
+			if( mpr > mplim )
 				return( 0 );
 		}else
 			l_pr = 1;
