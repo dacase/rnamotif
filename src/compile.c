@@ -285,6 +285,7 @@ int	stype;
 	stp->s_proper = 0;
 	stp->s_index = rm_n_descr - 1;
 	stp->s_lineno = rm_lineno;
+	stp->s_searchno = UNDEF;
 	stp->s_tag = NULL;
 	stp->s_next = NULL;
 	stp->s_prev = NULL;
@@ -2303,8 +2304,11 @@ STREL_T	descr[];
 				errormsg( 1, emsg );
 			}
 			srp->s_descr = stp;
-			srp->s_next = NULL;
+			stp->s_searchno = rm_n_searches;
+			srp->s_forward = NULL;
 			srp->s_backup = NULL;
+			srp->s_zero = UNDEF;
+			srp->s_dollar = UNDEF;
 			rm_searches[ rm_n_searches ] = srp;
 			rm_n_searches++;
 			break;
@@ -2318,7 +2322,8 @@ STREL_T	descr[];
 					errormsg( 1, emsg );
 				}
 				srp->s_descr = stp;
-				srp->s_next = NULL;
+				stp->s_searchno = rm_n_searches;
+				srp->s_forward = NULL;
 				srp->s_backup = NULL;
 				rm_searches[ rm_n_searches ] = srp;
 				rm_n_searches++;
@@ -2334,7 +2339,8 @@ STREL_T	descr[];
 					errormsg( 1, emsg );
 				}
 				srp->s_descr = stp;
-				srp->s_next = NULL;
+				stp->s_searchno = rm_n_searches;
+				srp->s_forward = NULL;
 				srp->s_backup = NULL;
 				rm_searches[ rm_n_searches ] = srp;
 				rm_n_searches++;
@@ -2350,7 +2356,8 @@ STREL_T	descr[];
 					errormsg( 1, emsg );
 				}
 				srp->s_descr = stp1;
-				srp->s_next = NULL;
+				stp->s_searchno = rm_n_searches;
+				srp->s_forward = NULL;
 				srp->s_backup = NULL;
 				rm_searches[ rm_n_searches ] = srp;
 				rm_n_searches++;
@@ -2415,7 +2422,7 @@ SEARCH_T	*searches[];
 	STREL_T	*stp;
 
 	for( s = 0; s < n_searches - 1; s++ )
-		searches[ s ]->s_next = searches[ s + 1 ]->s_descr;
+		searches[ s ]->s_forward = searches[ s + 1 ]->s_descr;
 	for( s = 1; s < n_searches; s++ ){
 		stp = searches[ s ]->s_descr;
 		if( stp->s_prev != NULL )
