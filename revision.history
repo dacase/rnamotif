@@ -1,3 +1,16 @@
+2.4.0	2003-feb-25
+	Improved the MPI driver so that -v, -s work without other options;
+	-c works so that no search is done; -v, -s, -c do not require data.
+	Also added 2 options -pre Cmd, -post Cmd that will insert Cmd 
+	before/after the worker rnamotif cmd allowing pre/post processing
+	in the search.  -pre gets both the -fmt X values and the file
+	name.  The Cmds must be in your path.
+
+	Moved all prototypes of visible rnamotif functions to rnamot.h.
+	Fixed grammar to use a union on the parse stack to hold either
+	an int (simple values) or a parse tree.  Should be ready for 
+	64 bit addressing now!
+
 2.3.4	2003-jan-20
 	Added code to allow the user to set the size of the maximum input
 	sequence length via the -N size option.  Still defaults to 30000000.
