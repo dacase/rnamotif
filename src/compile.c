@@ -462,7 +462,7 @@ void	SE_close()
 				}
 				stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
 				compile( stp->s_seq,
-					stp->s_expbuf, stp->s_e_expbuf, '0' );
+					stp->s_expbuf, stp->s_e_expbuf, '\0' );
 			}else
 				stp->s_seq = NULL;
 		}else if( !strcmp( ip->i_name, "mismatch" ) ){
