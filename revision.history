@@ -1,3 +1,27 @@
+2.3.1	2002-oct-07
+	Simplified mrnamotif.  Use MPI_Bcast() instead of MPI_Send() to
+	set up the searches.  Mapping of search db into actual files is now
+	done via the FMmark_active().
+
+2.3.0	2002-sep-26
+	mrnamotif now actually running faster than serial.  A bug in 
+	RM_getags(): atof() undeclared, resulted in optimization being
+	off for the parallel version, but on for the serial version.
+
+2.2.3	2002-sep-13
+	First parallel version: mrnamotif and MPI driver that will run
+	serrial rnamotif on a set of n/w hosts.  Supports both local and
+	distributed file systems.
+
+2.2.2	2002-aug-17
+	Added to insure that efn()/efn2() are not used on pknots or on 
+	out of bounds bp's that may be involved to do trying to compute
+	the energy of partial structures.
+
+	Resolved inconsistant declaration of rm_wdfname from char [] to
+	char *.  This was causing a very mysterious core dump in the 
+	efn_drv.c program.
+
 2.2.1	2002-aug-11
 	Added code sent by Martin Larose <larosem@IRO.UMontreal.CA> to rm2ct
 	allowing it to product either relaxed .ct files (-t rnamotif, default)
