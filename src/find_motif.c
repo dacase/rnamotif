@@ -312,8 +312,10 @@ SEARCH_T	*srp;
 	rv = 0;
 	if( match_wchlx( stp, stp3, szero, sdollar, s3lim, &h3, &hlen ) ){
 
+/*
 		if( !chk_wchlx0( srp, szero, h3 ) )
 			return( 0 );
+*/
 
 		i_len = h3 - szero - 2 * hlen + 1;
 		if( i_len > i_maxl )
