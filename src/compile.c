@@ -34,6 +34,8 @@ void	SE_dump_descr();
 static	void	enter_id();
 static	IDENT_T	*find_id();
 static	void	eval();
+static	int	loadidval();
+static	void	storeexprval();
 
 void	SE_open( stype )
 int	stype;
@@ -106,7 +108,27 @@ NODE_T	*expr;
 
 void	SE_close()
 {
+	int	i;
+	IDENT_T	*ip;
 
+	for( i = 0; i < n_local_ids; i++ ){
+		ip = local_ids[ i ];
+		if( !strcmp( ip->i_name, "tag" ) ){
+			stp->s_tag = ip->i_val.v_value.v_pval;
+		}else if( !strcmp( ip->i_name, "minlen" ) ){
+			stp->s_minlen = ip->i_val.v_value.v_ival;
+		}else if( !strcmp( ip->i_name, "maxlen" ) ){
+			stp->s_maxlen = ip->i_val.v_value.v_ival;
+		}else if( !strcmp( ip->i_name, "seq" ) ){
+			stp->s_seq = ip->i_val.v_value.v_pval;
+		}else if( !strcmp( ip->i_name, "mismatch" ) ){
+			stp->s_mismatch = ip->i_val.v_value.v_ival;
+		}else if( !strcmp( ip->i_name, "mispair" ) ){
+			stp->s_mispair = ip->i_val.v_value.v_ival;
+		}else if( !strcmp( ip->i_name, "pair" ) ){
+			stp->s_pairdata = NULL;
+		}
+	}
 }
 
 void	SE_dump( fp, d_pair, d_parm, d_descr, d_site )
@@ -175,6 +197,9 @@ STREL_T	*stp;
 	}
 	fprintf( fp, "\n" );
 
+	fprintf( fp, "\ttag  = '%s'\n",
+		stp->s_tag ? stp->s_tag : "(No tag)" );
+
 	fprintf( fp, "\tlen  = " );
 	if( stp->s_minlen == LASTVAL )
 		fprintf( fp, "LASTVAL" );
@@ -187,11 +212,13 @@ STREL_T	*stp;
 		fprintf( fp, "%d", stp->s_maxlen );
 	fprintf( fp, "\n" );
 
-	fprintf( fp, "\ttag  = %s\n",
-		stp->s_tag ? stp->s_tag : "(No tag)" );
-
-	fprintf( fp, "\tseq  = %s\n",
+	fprintf( fp, "\tseq  = '%s'\n",
 		stp->s_seq ? stp->s_seq : "(No seq)" );
+
+	fprintf( fp, "\tmismatch = %d\n", stp->s_mismatch );
+
+	fprintf( fp, "\tmispair = %d\n", stp->s_mispair );
+
 	fprintf( fp, "}\n" );
 }
 
@@ -282,7 +309,7 @@ static	void	eval( expr )
 NODE_T	*expr;
 {
 	char	*sp;
-	IDENT_T	*ip;
+	IDENT_T	*ip, *ip1;
 	int	l_type, r_type;
 
 	if( expr ){
@@ -316,13 +343,17 @@ NODE_T	*expr;
 					expr->n_val.v_value.v_pval );
 				exit( 1 );
 			}
-			valstk[ n_valstk ].v_type = ip->i_type;
+			valstk[ n_valstk ].v_type = T_IDENT;
 			valstk[ n_valstk ].v_value.v_pval = ip;
 			n_valstk++;
 			break;
 		case SYM_PLUS :
 			l_type = valstk[ n_valstk - 2 ].v_type;
+			if( l_type == T_IDENT )
+				l_type = loadidval( &valstk[ n_valstk - 2 ] );
 			r_type = valstk[ n_valstk - 1 ].v_type;
+			if( r_type == T_IDENT )
+				r_type = loadidval( &valstk[ n_valstk - 1 ] );
 			if( l_type != r_type ){
 				fprintf( stderr,
 					"eval: FATAL: type mismatch '+'\n" );
@@ -338,7 +369,11 @@ NODE_T	*expr;
 			break;
 		case SYM_MINUS :
 			l_type = valstk[ n_valstk - 2 ].v_type;
+			if( l_type == T_IDENT )
+				l_type = loadidval( &valstk[ n_valstk - 2 ] );
 			r_type = valstk[ n_valstk - 1 ].v_type;
+			if( r_type == T_IDENT )
+				r_type = loadidval( &valstk[ n_valstk - 1 ] );
 			if( l_type != r_type ){
 				fprintf( stderr,
 					"eval: FATAL: type mismatch '-'\n" );
@@ -353,11 +388,79 @@ NODE_T	*expr;
 			n_valstk--;
 			break;
 		case SYM_ASSIGN :
+			ip = valstk[ n_valstk - 2 ].v_value.v_pval;
+			l_type = ip->i_type;
+			r_type = valstk[ n_valstk - 1 ].v_type;
+			if( r_type == T_IDENT )
+				r_type = loadidval( &valstk[ n_valstk ] );
+			if( l_type != r_type ){
+				fprintf( stderr,
+					"eval: FATAL: type mismatch '='\n" );
+				exit( 1 );
+			}
+			storeexprval( ip, &valstk[ n_valstk-1 ] );
+			n_valstk -= 2;
 			break;
 		case SYM_PLUS_ASSIGN :
+			n_valstk -= 2;
 			break;
 		case SYM_MINUS_ASSIGN :
+			n_valstk -= 2;
 			break;
 		}
+	}
+}
+
+static	int	loadidval( vp )
+VALUE_T	*vp;
+{
+	int	type;
+	IDENT_T	*ip;
+	char	*sp;
+
+	ip = vp->v_value.v_pval;
+	type = ip->i_type;
+	if( type == T_INT ){
+		vp->v_type = T_INT;
+		vp->v_value.v_ival = ip->i_val.v_value.v_ival;
+	}else if( type == T_STRING ){
+		vp->v_type = T_STRING;
+		sp = ( char * )malloc( strlen( ip->i_val.v_value.v_pval ) + 1 );
+		if( sp == NULL ){
+			fprintf( stderr,
+				"loadidval: FATAL: can't allocate sp.\n" );
+			exit( 1 );
+		}
+		strcpy( sp, ip->i_val.v_value.v_pval );
+		vp->v_value.v_pval = sp;
+	}else if( type == T_PAIR ){
+		vp->v_type = T_PAIR;
+	}
+	return( type );
+}
+
+static	void	storeexprval( ip, vp )
+IDENT_T	*ip;
+VALUE_T	*vp;
+{
+	int	type;
+	char	*sp;
+
+	type = vp->v_type;
+	if( type == T_INT ){
+		ip->i_type = T_INT;
+		ip->i_val.v_value.v_ival = vp->v_value.v_ival;
+	}else if( type == T_STRING ){
+		ip->i_type = T_STRING;
+		sp = ( char * )malloc( strlen( vp->v_value.v_pval ) + 1 );
+		if( sp == NULL ){
+			fprintf( stderr,
+				"storeexprval: FATAL: can't allocate sp.\n" );
+			exit( 1 );
+		}
+		strcpy( sp, vp->v_value.v_pval ); 
+		ip->i_val.v_value.v_pval = sp;
+	}else if( type == T_PAIR ){
+		ip->i_type = T_PAIR;
 	}
 }
