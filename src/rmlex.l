@@ -65,9 +65,9 @@ q4		return( SYM_Q4 );
 		  }
 		}
 
-=		return( SYM_EQUAL );
-\+=		return( SYM_PLUS_EQUAL );
-\-=		return( SYM_MINUS_EQUAL );
+=		return( SYM_ASSIGN );
+\+=		return( SYM_PLUS_ASSIGN );
+\-=		return( SYM_MINUS_ASSIGN );
 \+		return( SYM_PLUS );
 \-		return( SYM_MINUS );
 \$		return( SYM_DOLLAR );
