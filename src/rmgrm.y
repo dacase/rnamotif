@@ -95,7 +95,7 @@ descr_part	: SYM_DESCR { rm_context = CTX_DESCR; } se_list ;
 site_part	: SYM_SITES { rm_context = CTX_SITES; } site_list
 		| ;
 score_part	: SYM_SCORE { rm_context = CTX_SCORE; } rule_list
-				{ SC_accept(); }
+				{ RM_accept(); }
 		| ;
 
 pd_list		: pdef
@@ -137,8 +137,8 @@ site		: pairing SYM_IN expr
 
 rule_list	: rule
 		| rule rule_list ;
-rule		: expr 		{ SC_action( $1 ); }
-			action	{ SC_endaction(); } ;
+rule		: expr 		{ RM_action( $1 ); }
+			action	{ RM_endaction(); } ;
 		| action ;
 action		: SYM_LCURLY stmt_list SYM_RCURLY ;
 stmt_list	: stmt
@@ -156,44 +156,44 @@ stmt		: accept_stmt
 		| reject_stmt
 		| while_stmt ;
 accept_stmt	: SYM_ACCEPT SYM_SEMICOLON
-				{ SC_accept(); } ;
+				{ RM_accept(); } ;
 asgn_stmt	: asgn SYM_SEMICOLON
-				{ SC_mark();
-				  SC_expr( 0, $1 );
-				  SC_clear();
+				{ RM_mark();
+				  RM_expr( 0, $1 );
+				  RM_clear();
 				} ;
 auto_stmt	: auto_lval SYM_SEMICOLON
-				{ SC_mark();
-				  SC_expr( 0, $1 );
-				  SC_clear();
+				{ RM_mark();
+				  RM_expr( 0, $1 );
+				  RM_clear();
 				} ;
 break_stmt	: SYM_BREAK SYM_SEMICOLON
-				{ SC_break(); } ;
+				{ RM_break(); } ;
 call_stmt	: fcall SYM_SEMICOLON
-				{ SC_expr( 0, $1 );
-				  SC_clear();
+				{ RM_expr( 0, $1 );
+				  RM_clear();
 				} ;
 cmpd_stmt	: SYM_LCURLY stmt_list SYM_RCURLY ;
 continue_stmt	: SYM_CONTINUE SYM_SEMICOLON
-				{ SC_continue(); } ;
+				{ RM_continue(); } ;
 empty_stmt	: empty SYM_SEMICOLON ;
-for_stmt	: for_hdr stmt	{ SC_endfor(); } ;
-if_stmt		: if_hdr stmt	{ SC_endif(); }
+for_stmt	: for_hdr stmt	{ RM_endfor(); } ;
+if_stmt		: if_hdr stmt	{ RM_endif(); }
 		| if_hdr stmt SYM_ELSE
-				{ SC_else(); } stmt
-				{ SC_endelse(); } ;
+				{ RM_else(); } stmt
+				{ RM_endelse(); } ;
 reject_stmt	: SYM_REJECT SYM_SEMICOLON
-				{ SC_reject(); } ;
-while_stmt	: SYM_WHILE SYM_LPAREN expr { SC_while( $3 ); }
+				{ RM_reject(); } ;
+while_stmt	: SYM_WHILE SYM_LPAREN expr { RM_while( $3 ); }
 			SYM_RPAREN stmt
-				{ SC_endwhile(); } ;
-if_hdr		: SYM_IF SYM_LPAREN expr { SC_if( $3 ); } SYM_RPAREN ;
+				{ RM_endwhile(); } ;
+if_hdr		: SYM_IF SYM_LPAREN expr { RM_if( $3 ); } SYM_RPAREN ;
 for_hdr		: SYM_FOR SYM_LPAREN for_ctrl SYM_RPAREN ;
-for_ctrl	: for_init	{ SC_forinit( $1 ); }
+for_ctrl	: for_init	{ RM_forinit( $1 ); }
 			 SYM_SEMICOLON for_test
-				{ SC_fortest( $4 ); }
+				{ RM_fortest( $4 ); }
 			SYM_SEMICOLON for_incr
-				{ SC_forincr( $7 ); } ;
+				{ RM_forincr( $7 ); } ;
 for_init	: asgn		{ $$ = $1; }
 		| auto_lval	{ $$ = $1; }
 		| empty 	{ $$ = $1; } ;
