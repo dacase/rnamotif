@@ -336,6 +336,24 @@ STREL_T	*stp;
 		fprintf( fp, "%d", stp->s_maxilen );
 	fprintf( fp, "\n" );
 
+	fprintf( fp, "\tstart    = " );
+	if( stp->s_start.a_offset = UNDEF )
+		fprintf( fp, "UNDEF" );
+	else if( stp->s_start.a_l2r )
+		fprintf( fp, "$%d", stp->s_start.a_offset );
+	else
+		fprintf( fp, "$-%d", stp->s_start.a_offset );
+	fprintf( fp, "\n" );
+
+	fprintf( fp, "\tstop     = " );
+	if( stp->s_stop.a_offset = UNDEF )
+		fprintf( fp, "UNDEF" );
+	else if( stp->s_stop.a_l2r )
+		fprintf( fp, "%d", stp->s_stop.a_offset );
+	else
+		fprintf( fp, "$-%d", stp->s_stop.a_offset );
+	fprintf( fp, "\n" );
+
 	fprintf( fp, "\tseq      = '%s'\n",
 		stp->s_seq ? stp->s_seq : "(No seq)" );
 
@@ -416,8 +434,9 @@ POS_T	*posp;
 	fprintf( fp, "\t\ttag      = '%s'\n",
 		posp->p_tag ? posp->p_tag : "(No tag)" );
 	fprintf( fp, "\t\tdindex   = %d\n", posp->p_dindex );
-	fprintf( fp, "\t\tl2r      = %s\n", posp->p_l2r ? "TRUE" : "FALSE" );
-	fprintf( fp, "\t\toffset   = %d\n", posp->p_offset );
+	fprintf( fp, "\t\tl2r      = %s\n",
+		posp->p_addr.a_l2r ? "TRUE" : "FALSE" );
+	fprintf( fp, "\t\toffset   = %d\n", posp->p_addr.a_offset );
 	fprintf( fp, "\t}\n" );
 }
 
