@@ -1,7 +1,7 @@
 
    The "rnamotif" program searchs input sequences for portions that match
 a given descriptor or "motif".  Matching sequences can also be ranked by
-various scoring functions.  See doc/rnamot.ps for documentation.
+various scoring functions.  See doc/rnamot.pdf for documentation.
 
 ==============================================================================
 
@@ -12,13 +12,18 @@ various scoring functions.  See doc/rnamot.ps for documentation.
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 1, or (at your option) any later
    version. The GNU General Public License should be in a file called
-   COPYING.GNU; if not, write to the Free Software Foundation, Inc.,
-   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+   COPYING.GNU; if not, write to the Free Software Foundation, Inc., 59 Temple
+   Place, Suite 330, Boston, MA  02111-1307  USA
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+   Public License for more details.
+
+   We thank Dave Ecker and Ranga Sampath for encouragement, and ISIS
+   Pharmaceuticals for financial support; Robin Gutell and Daniel Gautheret for
+   suggestions; Vickie Tsui for serving as a beta tester, and for many helpful
+   comments and suggestions.
 
 ==============================================================================
 
@@ -155,7 +160,6 @@ descr
 
    it finds 11 possible hairpins:
 
-        Sol   Off Ln
 	 1	1 14 aaaa   aacccc   tttt
 	 2	1 15 aaaaa  acccc   ttttt
 	 3	1 16 aaaaa  acccct  ttttt	4
@@ -171,7 +175,6 @@ descr
    Many of these hairpins are merely subsets of the base pairs of the others.
    rmprune removes these 'unzipped' subsets, leaving 5 unique pairings:
 
-        Sol   Off Ln
 	 1	1 14 aaaa   aacccc   tttt
 	 2	1 15 aaaaa  acccc   ttttt	contains 5
 	 4	1 16 aaaaaa cccc   tttttt	contains 3,6,7,8

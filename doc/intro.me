@@ -7,7 +7,7 @@
 \fBRNAMOTIF Users' Manual\fR
 
 .ps 12
-\fB(Version 1.4.3)\fR
+\fB(Version 1.5.0, April 2001)\fR
 
 Thomas C. Macke and David A. Case
 
@@ -38,13 +38,18 @@ D. Gautheret, F. Major and R. Cedergren.  Pattern searching/alignment with
 RNA primary and secondary structures: an effective descriptor for tRNA.
 \fICABIOS\fB 6,\fR 325-311 (1990).
 .ip [3]
+A. Laferrière, D. Gautheret, and R. Cedergren.
+An RNA pattern matching program with enhanced performance and portability.
+\fICABIOS\fB 10,\fR 211-212 (1994).
+.ip [4]
 S.R. Eddy.  RNABOB: a program to search for RNA secondary structure motifs
 in sequence databases.  Unpublished.
 .hl
 .pp
-We thank Dave Ecker and Ranga Sampath for encouragement and support; Robin
+We thank Dave Ecker and Ranga Sampath for encouragement, and ISIS
+Pharmaceuticals for financial support; Robin
 Gutell and Daniel Gautheret for suggestions;
-Vickie Tsui for serving as a beta tester, and more many helpful
+Vickie Tsui for serving as a beta tester, and for many helpful
 comments and suggestions.
 .bp
 \ 
@@ -144,7 +149,14 @@ yeates profiles 1999
 .[
 godzik sequence profile 2000
 .]
-The analogue for RNA was pioneered by Daniel Gautheret, whose \fIrnamot\fR
+The analogue for RNA was pioneered by Gautheret \fIet al.\fR,
+.[
+gautheret 1990
+.]
+.[
+gautheret 1994
+.]
+whose \fIrnamot\fR
 program was an inspiration for the development of \fIrnamotif\fR.  The
 current code extends Gautheret's original work by providing for profiles
 that specify pseudoknots, and base triplexes and quadruplexes, by

@@ -73,6 +73,15 @@ effective descriptor for tRNA.
 %P 325-331
 %D 1990
 
+%A A. Laferrière
+%A D. Gautheret
+%A R. Cedergren
+%T An RNA pattern matching program with enhanced performance and portability
+%J CABIOS
+%V 10
+%P 211-212
+%D 1994
+
 %A S.R. Eddy
 %T RNABOB: a program to search for RNA secondary structures motifs in sequency
 databases
