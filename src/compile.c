@@ -143,6 +143,15 @@ char	*argv[];
 			strcpy( rm_fname, fnp );
 	}
 
+	for( i = 0; i < rm_s_b2bc; i++ )
+		rm_b2bc[ i ] = BCODE_N;
+	rm_b2bc[ 'a' ] = BCODE_A; rm_b2bc[ 'A' ] = BCODE_A;
+	rm_b2bc[ 'c' ] = BCODE_C; rm_b2bc[ 'C' ] = BCODE_C;
+	rm_b2bc[ 'g' ] = BCODE_G; rm_b2bc[ 'G' ] = BCODE_G;
+	rm_b2bc[ 't' ] = BCODE_T; rm_b2bc[ 'T' ] = BCODE_T;
+	rm_b2bc[ 'u' ] = BCODE_T; rm_b2bc[ 'U' ] = BCODE_T;
+	rm_b2bc[ 'n' ] = BCODE_N; rm_b2bc[ 'N' ] = BCODE_N;
+
 	rm_lineno = 0;
 	curpair[0] = "a:u";
 	curpair[1] = "c:g";
@@ -171,15 +180,6 @@ char	*argv[];
 	ip = find_id( "qu" );
 	np = PR_close();
 	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
-
-	for( i = 0; i < rm_s_b2bc; i++ )
-		rm_b2bc[ i ] = UNDEF;
-	rm_b2bc[ 'a' ] = BCODE_A; rm_b2bc[ 'A' ] = BCODE_A;
-	rm_b2bc[ 'c' ] = BCODE_C; rm_b2bc[ 'C' ] = BCODE_C;
-	rm_b2bc[ 'g' ] = BCODE_G; rm_b2bc[ 'G' ] = BCODE_G;
-	rm_b2bc[ 't' ] = BCODE_T; rm_b2bc[ 'T' ] = BCODE_T;
-	rm_b2bc[ 'u' ] = BCODE_T; rm_b2bc[ 'U' ] = BCODE_T;
-	rm_b2bc[ 'n' ] = BCODE_N; rm_b2bc[ 'N' ] = BCODE_N;
 
 	rm_lineno = 1;
 }
@@ -1602,7 +1602,7 @@ PAIRSET_T	*ps2;
 		n_ps->ps_pairs = n_pp;
 		for( i = 0; i < n_ps->ps_n_pairs; i++ )
 			n_ps->ps_pairs[ i ] = ps1->ps_pairs[ i ];
-		n_ps->ps_mat = NULL;
+		n_ps->ps_mat = mk_bmatp( n_ps );
 		return( n_ps );
 	}else if( !strcmp( op, "add" ) ){
 		ppi = ps1->ps_pairs;
@@ -1642,7 +1642,7 @@ PAIRSET_T	*ps2;
 			}
 			ADDED : ;
 		}
-		n_ps->ps_mat = NULL;
+		n_ps->ps_mat = mk_bmatp( n_ps );
 		return( n_ps );
 	}else if( !strcmp( op, "sub" ) ){
 		ppi = ps1->ps_pairs;
@@ -1687,7 +1687,7 @@ PAIRSET_T	*ps2;
 			}
 		}
 		n_ps->ps_n_pairs = j;
-		n_ps->ps_mat = NULL;
+		n_ps->ps_mat = mk_bmatp( n_ps );
 		return( n_ps );
 	}else if( !strcmp( op, "equal" ) ){
 		if( ps1->ps_n_pairs != ps2->ps_n_pairs )
