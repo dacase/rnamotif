@@ -49,6 +49,11 @@ q4		return( SYM_Q4 );
 		  rm_tokval.v_value.v_ival = atoi( yytext );
 		  return( SYM_INT );
 		}
+([0-9]+[eE][\+\-]?[0-9]+)|((([0-9]+\.[0-9]*)|(\.[0-9]+))([eE][\+\-]?[0-9]+)?) {
+		  rm_tokval.v_type = T_FLOAT;
+		  rm_tokval.v_value.v_fval = atof( yytext );
+		  return( SYM_FLOAT );
+		}
 \"[^"\n]*	{ if( yytext[ yyleng - 1 ] == '\\' )
 			yymore();
 		  else{
