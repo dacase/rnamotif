@@ -60,6 +60,9 @@ static	POS_T	*posp;
 
 extern	SITE_T	*rm_sites;
 
+extern	int	rm_b2bc[];
+extern	int	rm_s_b2bc;
+
 extern	SEARCH_T	**rm_searches;
 extern	int	rm_n_searches;
 
@@ -71,6 +74,7 @@ static	void	eval();
 static	int	loadidval();
 static	void	storeexprval();
 static	PAIRSET_T	*pairop();
+static	void	*mk_bmatp();
 static	POS_T	*posop();
 
 static	int	seqlen();
@@ -103,7 +107,7 @@ int	RM_init( argc, argv )
 int	argc;
 char	*argv[];
 {
-	int	ac, err;
+	int	ac, i, err;
 	IDENT_T	*ip;
 	NODE_T	*np;
 	char	*fnp;
@@ -167,6 +171,15 @@ char	*argv[];
 	ip = find_id( "qu" );
 	np = PR_close();
 	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
+
+	for( i = 0; i < rm_s_b2bc; i++ )
+		rm_b2bc[ i ] = UNDEF;
+	rm_b2bc[ 'a' ] = BCODE_A; rm_b2bc[ 'A' ] = BCODE_A;
+	rm_b2bc[ 'c' ] = BCODE_C; rm_b2bc[ 'C' ] = BCODE_C;
+	rm_b2bc[ 'g' ] = BCODE_G; rm_b2bc[ 'G' ] = BCODE_G;
+	rm_b2bc[ 't' ] = BCODE_T; rm_b2bc[ 'T' ] = BCODE_T;
+	rm_b2bc[ 'u' ] = BCODE_T; rm_b2bc[ 'U' ] = BCODE_T;
+	rm_b2bc[ 'n' ] = BCODE_N; rm_b2bc[ 'N' ] = BCODE_N;
 
 	rm_lineno = 1;
 }
@@ -247,6 +260,7 @@ NODE_T	*PR_close()
 			errormsg( 0, "PR_close: pair-string has 2-4 bases." );
 		}
 	}
+	ps->ps_mat = NULL;
 	ps = pairop( "check", ps, NULL );
 
 	np = ( NODE_T * )malloc( sizeof( NODE_T ) );
@@ -1517,6 +1531,7 @@ PAIRSET_T	*ps2;
 	int	i, j, c, b, nb, sz, diff, fnd;
 	PAIRSET_T	*n_ps;
 	PAIR_T	*n_pp, *pp, *ppi, *ppj;
+	void	*bmatp;
 
 	if( !strcmp( op, "check" ) ){
 		if( ps1 == NULL ){
@@ -1570,6 +1585,7 @@ PAIRSET_T	*ps2;
 			}
 		}
 		ps1->ps_n_pairs = j;
+		ps1->ps_mat = mk_bmatp( ps1 );
 		return( ps1 );
 	}else if( !strcmp( op, "copy" ) ){
 		if( ps1 == NULL )
@@ -1586,6 +1602,7 @@ PAIRSET_T	*ps2;
 		n_ps->ps_pairs = n_pp;
 		for( i = 0; i < n_ps->ps_n_pairs; i++ )
 			n_ps->ps_pairs[ i ] = ps1->ps_pairs[ i ];
+		n_ps->ps_mat = NULL;
 		return( n_ps );
 	}else if( !strcmp( op, "add" ) ){
 		ppi = ps1->ps_pairs;
@@ -1625,6 +1642,7 @@ PAIRSET_T	*ps2;
 			}
 			ADDED : ;
 		}
+		n_ps->ps_mat = NULL;
 		return( n_ps );
 	}else if( !strcmp( op, "sub" ) ){
 		ppi = ps1->ps_pairs;
@@ -1669,6 +1687,7 @@ PAIRSET_T	*ps2;
 			}
 		}
 		n_ps->ps_n_pairs = j;
+		n_ps->ps_mat = NULL;
 		return( n_ps );
 	}else if( !strcmp( op, "equal" ) ){
 		if( ps1->ps_n_pairs != ps2->ps_n_pairs )
@@ -1698,6 +1717,59 @@ PAIRSET_T	*ps2;
 		errormsg( 1, emsg );
 		return( NULL );
 	}
+}
+
+static	void*	mk_bmatp( ps )
+PAIRSET_T	*ps;
+{
+	PAIR_T	*pp;
+	int	i, nb;
+	int	bi1, bi2, bi3, bi4;
+	void	*bmatp;
+	BP_MAT_T	*bpmatp;
+	BT_MAT_T	*btmatp;
+	BQ_MAT_T	*bqmatp;
+
+	pp = &ps->ps_pairs[ 0 ];
+	nb = pp->p_n_bases;
+	if( nb == 2 ){
+		bmatp = bpmatp = ( BP_MAT_T * )malloc( sizeof( BP_MAT_T ) );
+		if( bpmatp == NULL )
+			errormsg( 1, "pairop: check: can't alloc bpmatp." );
+		memset( bmatp, 0, sizeof( BP_MAT_T ) );
+		for( i = 0; i < ps->ps_n_pairs; i++ ){
+			pp = &ps->ps_pairs[ i ];
+			bi1 = rm_b2bc[ pp->p_bases[ 0 ] ];
+			bi2 = rm_b2bc[ pp->p_bases[ 1 ] ];
+			(*bpmatp)[bi1][bi2] = 1;
+		}
+	}else if( nb == 3 ){
+		bmatp = btmatp = ( BT_MAT_T * )malloc( sizeof( BT_MAT_T ) );
+		if( btmatp == NULL )
+			errormsg( 1, "pairop: check: can't alloc btmatp." );
+		memset( bmatp, 0, sizeof( BT_MAT_T ) );
+		for( i = 0; i < ps->ps_n_pairs; i++ ){
+			pp = &ps->ps_pairs[ i ];
+			bi1 = rm_b2bc[ pp->p_bases[ 0 ] ];
+			bi2 = rm_b2bc[ pp->p_bases[ 1 ] ];
+			bi3 = rm_b2bc[ pp->p_bases[ 2 ] ];
+			(*btmatp)[bi1][bi2][bi3] = 1;
+		}
+	}else if( nb == 4 ){
+		bmatp = bqmatp = ( BQ_MAT_T * )malloc( sizeof( BQ_MAT_T ) );
+		if( bqmatp == NULL )
+			errormsg( 1, "pairop: check: can't alloc bqmatp." );
+		memset( bmatp, 0, sizeof( BQ_MAT_T ) );
+		for( i = 0; i < ps->ps_n_pairs; i++ ){
+			pp = &ps->ps_pairs[ i ];
+			bi1 = rm_b2bc[ pp->p_bases[ 0 ] ];
+			bi2 = rm_b2bc[ pp->p_bases[ 1 ] ];
+			bi3 = rm_b2bc[ pp->p_bases[ 2 ] ];
+			bi4 = rm_b2bc[ pp->p_bases[ 3 ] ];
+			(*bqmatp)[bi1][bi2][bi3][bi4] = 1;
+		}
+	}
+	return( bmatp );
 }
 
 static	POS_T	*posop( op, ptr, r_pos )
