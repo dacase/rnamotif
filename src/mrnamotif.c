@@ -23,7 +23,7 @@
 #define	MT_QUIT		6	/* sent from 0 -> 1,np-1	*/
 #define	MT_ERROR	7	/* sent from 1,np-1 -> 0	*/
 
-static	int	my_rank, n_proc, n_aproc;
+static	int	my_rank, n_proc, n_wproc;
 static	char	hostname[ 256 ];
 static	char	xhostname[ 256 ];
 
@@ -114,7 +114,8 @@ main( int argc, char *argv[] )
 		fprintf( stderr, "%s: n_proc must be > 1\n", xhostname );
 		err = 1;
 		goto CLEAN_UP;
-	}
+	}else
+		n_wproc = n_proc - 1;
 
 	if( all_init() ){
 		err = 1;
@@ -127,6 +128,9 @@ main( int argc, char *argv[] )
 			goto CLEAN_UP;
 		}
 		s_sbuf = s_rncmd + s_xdescr;
+
+fprintf( stderr, "%s: n_jobs = %d\n", xhostname, n_jobs );
+
 	}
 
 	MPI_Bcast( &s_sbuf, 1, MPI_INT, 0, MPI_COMM_WORLD );
@@ -692,7 +696,7 @@ fprintf( stderr, "%s: READY: %s_%d: rcnt = %d\n",
 				actjobs[ s ] = UNDEF;
 			}
 
-			if( rcnt > n_aproc + n_jobs ){
+			if( rcnt >= n_wproc + n_jobs ){
 				rval = 1;
 				break;
 			}
