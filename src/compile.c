@@ -39,6 +39,11 @@ extern	int	rm_n_descr;
 static	STREL_T	*stp;
 static	PAIRSET_T	*def_pairset = NULL;
 
+extern	POS_T	rm_pos[];
+extern	int	rm_s_pos;
+extern	int	rm_n_pos;
+static	POS_T	*posp;
+
 NODE_T	*PR_close();
 
 static	IDENT_T	*enter_id();
@@ -47,6 +52,7 @@ static	void	eval();
 static	int	loadidval();
 static	void	storeexprval();
 static	PAIRSET_T	*pairop();
+static	POS_T	*posop();
 
 static	void	seqlen();
 static	int	link_tags();
@@ -195,7 +201,7 @@ int	stype;
 	n_valstk = 0;
 	if( rm_n_descr == rm_s_descr ){
 		rm_emsg_lineno = rm_lineno;
-		sprintf( emsg, "SE_new: : descr array size(%d) exceeded.",
+		sprintf( emsg, "SE_new: descr array size(%d) exceeded.",
 			rm_s_descr );
 		errormsg( 1, emsg );
 	}
@@ -216,6 +222,7 @@ int	stype;
 	stp->s_mispair = 0;
 	stp->s_pairset = NULL;
 	stp->s_sites = NULL;
+	stp->s_n_sites = 0;
 	
 	n_local_ids = 0;
 	val.v_type = T_STRING;
@@ -612,9 +619,8 @@ VALUE_T	*vp;
 	ip->i_class = class;
 	ip->i_scope = scope;
 	ip->i_val.v_type = type;
-	if( type == T_UNDEF )
-		ip->i_val.v_value.v_pval = NULL;
-	else if( type == T_INT ){
+	ip->i_val.v_value.v_pval = NULL;
+	if( type == T_INT ){
 		ip->i_val.v_value.v_ival = vp->v_value.v_ival;
 	}else if( type == T_STRING ){
 		if( vp->v_value.v_pval == NULL ) 
@@ -663,6 +669,7 @@ int	d_ok;
 	int	l_type, r_type;
 	VALUE_T	*vp;
 	PAIRSET_T	*n_ps, *l_ps, *r_ps;
+	POS_T	*l_pos, *r_pos, *n_pos;
 
 	if( expr ){
 		eval( expr->n_left, d_ok );
@@ -689,6 +696,12 @@ int	d_ok;
 			break;
 		case SYM_LCURLY :
 			valstk[ n_valstk ].v_type = T_PAIR;
+			valstk[ n_valstk ].v_value.v_pval = 
+				expr->n_val.v_value.v_pval;
+			n_valstk++;
+			break;
+		case SYM_DOLLAR :
+			valstk[ n_valstk ].v_type = T_POS;
 			valstk[ n_valstk ].v_value.v_pval = 
 				expr->n_val.v_value.v_pval;
 			n_valstk++;
@@ -750,7 +763,12 @@ int	d_ok;
 			if( r_type == T_IDENT )
 				r_type = loadidval( &valstk[ n_valstk - 1 ] );
 			if( l_type != r_type ){
-				errormsg( 1, "eval: type mismatch '-'." );
+				if( l_type == T_POS && r_type == T_INT ){
+					posop("cvt", &valstk[n_valstk-1], NULL);
+				}else{
+					errormsg( 1,
+						"eval: type mismatch '-'." );
+				}
 			}
 			if( l_type == T_INT ){
 				valstk[ n_valstk - 2 ].v_value.v_ival -=
@@ -763,6 +781,11 @@ int	d_ok;
 				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
 				n_ps = pairop( "sub", l_ps, r_ps );
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
+			}else if( l_type == T_POS ){
+				l_pos = valstk[ n_valstk - 2 ].v_value.v_pval;
+				r_pos = valstk[ n_valstk - 1 ].v_value.v_pval;
+				n_pos = posop( "sub", l_pos, r_pos );
+				valstk[ n_valstk - 2 ].v_value.v_pval = n_pos;
 			}
 			n_valstk--;
 			break;
@@ -775,8 +798,12 @@ int	d_ok;
 			if( l_type == T_UNDEF )
 				ip->i_type = r_type;
 			else if( l_type != r_type ){
-				errormsg( 1, "eval: type mismatch '='." );
-				exit( 1 );
+				if( l_type == T_POS && r_type == T_INT ){
+					posop("cvt", &valstk[n_valstk-1], NULL);
+				}else{
+					errormsg( 1,
+						"eval: type mismatch '='." );
+				}
 			}
 			storeexprval( ip, &valstk[ n_valstk-1 ] );
 			n_valstk -= 2;
@@ -919,6 +946,10 @@ VALUE_T	*vp;
 	}else if( type == T_PAIR ){
 		ip->i_type = T_PAIR;
 		ip->i_val.v_type = T_PAIR;
+		ip->i_val.v_value.v_pval = vp->v_value.v_pval;
+	}else if( type == T_POS ){
+		ip->i_type = T_POS;
+		ip->i_val.v_type = T_POS;
 		ip->i_val.v_value.v_pval = vp->v_value.v_pval;
 	}
 }
@@ -1091,6 +1122,55 @@ PAIRSET_T	*ps2;
 	}
 }
 
+static	POS_T	*posop( op, ptr, r_pos )
+char	op[];
+void	*ptr;
+POS_T	*r_pos;
+{
+	VALUE_T	*vp;
+	POS_T	*n_pos, *l_pos;
+
+	if( !strcmp( op, "cvt" ) ){
+		vp = ( VALUE_T * )ptr;
+		if( vp->v_value.v_ival < 0 ){
+			errormsg( 1,
+		"posop: cvt: only ints > 0 can be convert to positions." );
+		}
+		n_pos = ( POS_T * )malloc( sizeof( POS_T ) );
+		if( n_pos == NULL ){
+			errormsg( 1, "posop: cvt: can't alloc n_pos." );
+		}
+		n_pos->p_type = SYM_DOLLAR;
+		n_pos->p_lineno = rm_emsg_lineno;
+		n_pos->p_tag = NULL;
+		n_pos->p_l2r = 1;
+		n_pos->p_offset = vp->v_value.v_ival;
+		vp->v_type = T_POS;
+		vp->v_value.v_pval = n_pos;
+		return( n_pos );
+	}else if( !strcmp( op, "sub" ) ){
+		l_pos = ( POS_T * )ptr;
+		if( l_pos->p_l2r || !r_pos->p_l2r ){
+			errormsg( 1,
+"posop: sub: expr must have the form '% - expr'; expr is int. valued > 0." );
+		}
+		n_pos = ( POS_T * )malloc( sizeof( POS_T ) );
+		if( n_pos == NULL ){
+			errormsg( 1, "posop: sub: can't alloc n_pos." );
+		}
+		n_pos->p_type = SYM_DOLLAR;
+		n_pos->p_lineno = rm_emsg_lineno;
+		n_pos->p_tag = NULL;
+		n_pos->p_l2r = 0;
+		n_pos->p_offset = l_pos->p_offset + r_pos->p_offset;
+		return( n_pos );
+	}else{
+		sprintf( emsg, "posop: unknown op '%s'.", op );
+		errormsg( 1, emsg );
+		return( NULL );
+	}
+}
+
 static	void	seqlen( seq, minlen, maxlen )
 char	seq[];
 int	*minlen;
@@ -1099,4 +1179,69 @@ int	*maxlen;
 
 	*minlen = strlen( seq );
 	*maxlen = strlen( seq );
+}
+
+void	POS_open( ptype )
+int	ptype;
+{
+	VALUE_T	val;
+	IDENT_T	*ip;
+
+	n_valstk = 0;
+	if( rm_n_pos == rm_s_pos ){
+		rm_emsg_lineno = rm_lineno;
+		sprintf( emsg, "POS_open: pos array size(%d) exceeded." );
+		errormsg( 1, emsg );
+	}
+	posp = &rm_pos[ rm_n_pos ];
+	rm_n_pos++;
+	posp->p_type = ptype;
+	posp->p_lineno = rm_lineno;
+	posp->p_tag = NULL;
+	posp->p_l2r = 1;	/* 1 = 1..$; 0 = $..1	*/
+	posp->p_offset = 0;
+
+	n_local_ids = 0;
+	val.v_type = T_STRING;
+	val.v_value.v_pval = NULL;
+	ip = enter_id( "tag", T_STRING, C_VAR, S_SITE, &val );
+
+	val.v_type = T_POS;
+	val.v_value.v_pval = NULL;
+	ip = enter_id( "pos", T_POS, C_VAR, S_SITE, &val );
+}
+
+void	POS_addval( expr )
+NODE_T	*expr;
+{
+
+}
+
+void	POS_close()
+{
+	int	i;
+	IDENT_T	*ip;
+	POS_T	*i_pos;
+
+	for( i = 0; i < n_local_ids; i++ ){
+		ip = local_ids[ i ];
+		if( !strcmp( ip->i_name, "tag" ) ){
+			posp->p_tag = ip->i_val.v_value.v_pval;
+		}else if( !strcmp( ip->i_name, "pos" ) ){
+			i_pos = ip->i_val.v_value.v_pval;
+			posp->p_l2r = i_pos->p_l2r;
+			posp->p_offset = i_pos->p_offset;
+		}
+	}
+}
+
+void	SI_close()
+{
+	int	i;
+	POS_T	*posp;
+
+	fprintf( stderr, "SITE: %d positions.\n", rm_n_pos );
+	for( posp = rm_pos, i = 0; i < rm_n_pos; i++, posp++ )
+		RM_dump_pos( stderr, posp );
+	rm_n_pos = 0;
 }
