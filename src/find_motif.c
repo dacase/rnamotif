@@ -675,7 +675,7 @@ int	*hlen;
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
 
-	if( !paired( stp, b5, b3 ) )
+	if( !paired( stp->s_pairset, b5, b3 ) )
 		return( 0 );
 
 	*h3 = s3;
@@ -686,7 +686,7 @@ int	*hlen;
 
 		b5 = fm_sbuf[ s5 + *hlen ];
 		b3 = fm_sbuf[ s3 - *hlen ];
-		if( paired( stp, b5, b3 ) ){
+		if( paired( stp->s_pairset, b5, b3 ) ){
 			bpcnt++;
 		}else{
 			mpr++;
@@ -735,7 +735,7 @@ int	*hlen;
 
 	for( s = s5hi; s >= s5lo; s-- ){
 		b5 = fm_sbuf[ s ];
-		if( !paired( stp, b5, b3 ) )
+		if( !paired( stp->s_pairset, b5, b3 ) )
 			continue;
 		bpcnt = 1;
 		*hlen = 1;
@@ -743,7 +743,7 @@ int	*hlen;
 		for( s1 = s - 1; s1 >= s5; s1--, (*hlen)++ ){
 			b5 = fm_sbuf[ s1 ];
 			b3 = fm_sbuf[ s3 - bpcnt ];
-			if( paired( stp, b5, b3 ) ){
+			if( paired( stp->s_pairset, b5, b3 ) ){
 				bpcnt++;
 			}else{
 				mpr++;
@@ -787,7 +787,7 @@ int	tlen;
 	b2 = fm_sbuf[ s2 ];
 	b3 = fm_sbuf[ s3 - tlen + 1 ];
 
-	if( !triple( stp, b1, b2, b3 ) )
+	if( !triple( stp->s_pairset, b1, b2, b3 ) )
 		return( 0 );
 
 	bpcnt = 1;
@@ -796,7 +796,7 @@ int	tlen;
 		b1 = fm_sbuf[ s1 + t ];
 		b2 = fm_sbuf[ s2 - t ];
 		b3 = fm_sbuf[ s3 - tlen + 1 + t ];
-		if( !triple( stp, b1, b2, b3 ) ){
+		if( !triple( stp->s_pairset, b1, b2, b3 ) ){
 			mpr++;
 			if( mpr > stp->s_mispair )
 				return( 0 );
@@ -831,7 +831,7 @@ int	qlen;
 	b3 = fm_sbuf[ s3 ];
 	b4 = fm_sbuf[ s4 - qlen + 1 ];
 
-	if( !quad( stp1, b1, b2, b3, b4 ) )
+	if( !quad( stp1->s_pairset, b1, b2, b3, b4 ) )
 		return( 0 );
 
 	bpcnt = 1;
@@ -841,7 +841,7 @@ int	qlen;
 		b2 = fm_sbuf[ s2 + q ];
 		b3 = fm_sbuf[ s3 - q ];
 		b4 = fm_sbuf[ s4 - qlen + 1 + q ];
-		if( !quad( stp1, b1, b2, b3, b4 ) ){
+		if( !quad( stp1->s_pairset, b1, b2, b3, b4 ) ){
 			mpr++;
 			if( mpr > stp1->s_mispair )
 				return( 0 );
@@ -865,8 +865,8 @@ int	qlen;
 	return( 1 );
 }
 
-static	int	paired( stp, b5, b3 )
-STREL_T	*stp;
+static	int	paired( ps, b5, b3 )
+PAIRSET_T	*ps;
 int	b5;
 int	b3;
 {
@@ -874,15 +874,18 @@ int	b3;
 	int	b5i, b3i;
 	int	rv;
 	
+/*
 	bpmatp = stp->s_pairset->ps_mat[ 0 ];
+*/
+	bpmatp = ps->ps_mat[ 0 ];
 	b5i = rm_b2bc[ b5 ];
 	b3i = rm_b2bc[ b3 ];
 	rv = (*bpmatp)[b5i][b3i];
 	return( rv );
 }
 
-static	int	triple( stp, b1, b2, b3 )
-STREL_T	*stp;
+static	int	triple( ps, b1, b2, b3 )
+PAIRSET_T	*ps;
 int	b1;
 int	b2;
 int	b3;
@@ -891,7 +894,10 @@ int	b3;
 	int	b1i, b2i, b3i;
 	int	rv;
 	
+/*
 	btmatp = stp->s_pairset->ps_mat[ 1 ];
+*/
+	btmatp = ps->ps_mat[ 0 ];
 	b1i = rm_b2bc[ b1 ];
 	b2i = rm_b2bc[ b2 ];
 	b3i = rm_b2bc[ b3 ];
@@ -899,8 +905,8 @@ int	b3;
 	return( rv );
 }
 
-static	int	quad( stp, b1, b2, b3, b4 )
-STREL_T	*stp;
+static	int	quad( ps, b1, b2, b3, b4 )
+PAIRSET_T	*ps;
 int	b1;
 int	b2;
 int	b3;
@@ -910,7 +916,10 @@ int	b4;
 	int	b1i, b2i, b3i, b4i;
 	int	rv;
 	
+/*
 	bqmatp = stp->s_pairset->ps_mat[ 1 ];
+*/
+	bqmatp = ps->ps_mat[ 0 ];
 	b1i = rm_b2bc[ b1 ];
 	b2i = rm_b2bc[ b2 ];
 	b3i = rm_b2bc[ b3 ];
@@ -1004,7 +1013,7 @@ int	s3;
 	b5 = fm_sbuf[ s5 - 1 ];
 	b3 = fm_sbuf[ s3 + 1 ];
 	stp = srp->s_descr;
-	return( !paired( stp, b5, b3 ) );
+	return( !paired( stp->s_pairset, b5, b3 ) );
 }
 
 static	int	chk_motif( n_descr, descr, sites )
@@ -1075,7 +1084,7 @@ STREL_T	descr[];
 			if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
 				b5 = fm_sbuf[ h5 ];
 				b3 = fm_sbuf[ h3 ];
-				if( paired( stp, b5, b3 ) )
+				if( paired( stp->s_pairset, b5, b3 ) )
 					return( 0 );
 			}
 		}
@@ -1090,7 +1099,7 @@ STREL_T	descr[];
 	if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
 		b5 = fm_sbuf[ h5 ];
 		b3 = fm_sbuf[ h3 ];
-		if( paired( stp, b5, b3 ) )
+		if( paired( stp->s_pairset, b5, b3 ) )
 			return( 0 );
 	}
 
@@ -1125,7 +1134,7 @@ STREL_T	descr[];
 		if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
 			b5 = fm_sbuf[ h5 ];
 			b3 = fm_sbuf[ h3 ];
-			if( paired( stp, b5, b3 ) )
+			if( paired( stp->s_pairset, b5, b3 ) )
 				return( 0 );
 		}
 	}
@@ -1140,7 +1149,7 @@ STREL_T	descr[];
 		if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
 			b5 = fm_sbuf[ h5 ];
 			b3 = fm_sbuf[ h3 ];
-			if( paired( stp, b5, b3 ) )
+			if( paired( stp->s_pairset, b5, b3 ) )
 				return( 0 );
 		}
 	}
@@ -1187,7 +1196,7 @@ STREL_T	descr[];
 			b1 = fm_sbuf[ d1 ];
 			b2 = fm_sbuf[ d2 ];
 			b3 = fm_sbuf[ d3 ];
-			if( triple( stp, b1, b2, b3 ) )
+			if( triple( stp->s_pairset, b1, b2, b3 ) )
 				return( 0 );
 		}
 	}
@@ -1207,7 +1216,7 @@ STREL_T	descr[];
 			b1 = fm_sbuf[ d1 ];
 			b2 = fm_sbuf[ d2 ];
 			b3 = fm_sbuf[ d3 ];
-			if( triple( stp, b1, b2, b3 ) )
+			if( triple( stp->s_pairset, b1, b2, b3 ) )
 				return( 0 );
 		}
 	}
@@ -1263,7 +1272,7 @@ STREL_T	descr[];
 				b2 = fm_sbuf[ d2 ];
 				b3 = fm_sbuf[ d3 ];
 				b4 = fm_sbuf[ d4 ];
-				if( quad( stp, b1, b2, b3, b4 ) )
+				if( quad( stp->s_pairset, b1, b2, b3, b4 ) )
 					return( 0 );
 			}
 		}
@@ -1287,7 +1296,7 @@ STREL_T	descr[];
 		b2 = fm_sbuf[ d2 ];
 		b3 = fm_sbuf[ d3 ];
 		b4 = fm_sbuf[ d4 ];
-		if( quad( stp, b1, b2, b3, b4 ) )
+		if( quad( stp->s_pairset, b1, b2, b3, b4 ) )
 			return( 0 );
 	}
 
@@ -1321,8 +1330,6 @@ SITE_T	*sip;
 	int	b[ 4 ];
 	int	rv;
 
-fprintf( stderr, "c1s: site has %d pos\n", sip->s_n_pos );
-
 	for( pp = sip->s_pos, p = 0; p < sip->s_n_pos; p++, pp++ ){
 		stp = &descr[ pp->p_dindex ];
 		ap = &pp->p_addr;
@@ -1339,26 +1346,14 @@ fprintf( stderr, "c1s: site has %d pos\n", sip->s_n_pos );
 			s[ p ] = stp->s_matchoff+stp->s_matchlen-ap->a_offset-1;
 			b[ p ] = fm_sbuf[ s[ p ] ];
 		}
-
-fprintf( stderr, "c1s: pos[ %2d] = %4d:%d:%4d, o,l, s = %4d, %4d, %4d, '%c'\n",
-	p, pp->p_dindex, ap->a_l2r, ap->a_offset,
-	stp->s_matchoff, stp->s_matchlen, s[ p ], b[ p ] );
-
 	}
 
-fprintf( stderr, "c1s: pairset  = " );
-RM_dump_pairmat( stderr, stp->s_pairset );
-fprintf( stderr, "\n" );
-
 	if( sip->s_n_pos == 2 ){
-		rv = paired( stp, b[ 0 ], b[ 1 ] );
-fprintf( stderr, "c1s.2: rv = %d\n", rv );
+		rv = paired( sip->s_pairset, b[ 0 ], b[ 1 ] );
 	}else if( sip->s_n_pos == 3 ){
-		rv = triple( stp, b[ 0 ], b[ 1 ], b[ 2 ] );
-fprintf( stderr, "c1s.3: rv = %d\n", rv );
+		rv = triple( sip->s_pairset, b[ 0 ], b[ 1 ], b[ 2 ] );
 	}else if( sip->s_n_pos == 4 ){
-		rv = quad( stp, b[ 0 ], b[ 1 ], b[ 2 ], b[ 4 ] );
-fprintf( stderr, "c1s.4: rv = %d\n", rv );
+		rv = quad( sip->s_pairset, b[ 0 ], b[ 1 ], b[ 2 ], b[ 4 ] );
 	}
 	return( rv );
 }
