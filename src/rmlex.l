@@ -39,7 +39,7 @@ q4		return( SYM_Q4 );
 		  }
 		  strcpy( sp, yytext );
 		  rmval.v_type = T_STRING;
-		  rmval.v_value.v_cval = sp;
+		  rmval.v_value.v_pval = sp;
 		  return( SYM_IDENT );
 		}
 [0-9]+		{ rmval.v_type = T_INT;
@@ -60,7 +60,7 @@ q4		return( SYM_Q4 );
 			strncpy( sp, &yytext[1], yyleng - 2 );
 			sp[ yyleng - 2 ] = '\0';
 			rmval.v_type = T_STRING;
-			rmval.v_value.v_cval = sp;
+			rmval.v_value.v_pval = sp;
 			return( SYM_STRING );
 		  }
 		}
