@@ -21,7 +21,7 @@ IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ] = {
 	{ "overlap", T_INT, C_VAR, S_GLOBAL, { T_INT, 0 } },
 	{ "wc_minlen", T_INT, C_VAR, S_GLOBAL, { T_INT, 3 } },
 	{ "wc_maxlen", T_INT, C_VAR, S_GLOBAL, { T_INT, 30 } },
- /*9*/	{ "maxlen", T_INT, C_VAR, S_GLOBAL, { T_INT, 6000 } }
+ /*9*/	{ "windowsize", T_INT, C_VAR, S_GLOBAL, { T_INT, 6000 } }
 };
 int	rm_s_global_ids = RM_GLOBAL_IDS_SIZE;
 int	rm_n_global_ids = 9;
