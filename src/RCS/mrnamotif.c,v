@@ -1,9 +1,14 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.11.25.04.49.29;	author macke;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2002.11.20.02.20.56;	author macke;	state Exp;
@@ -46,11 +51,10 @@ desc
 @
 
 
-1.7
+1.8
 log
-@made the result buffer 10K instead of 256 so as to avoid splitting
-a result.
-fixed off by 1 error in the job count .
+@incorrect termination condition on rank==0 process.  Forget
+to set n_wproc, the #worker CPUs so the the boss quit early
 @
 text
 @#include <stdio.h>
@@ -78,7 +82,7 @@ text
 #define	MT_QUIT		6	/* sent from 0 -> 1,np-1	*/
 #define	MT_ERROR	7	/* sent from 1,np-1 -> 0	*/
 
-static	int	my_rank, n_proc, n_aproc;
+static	int	my_rank, n_proc, n_wproc;
 static	char	hostname[ 256 ];
 static	char	xhostname[ 256 ];
 
@@ -169,7 +173,8 @@ main( int argc, char *argv[] )
 		fprintf( stderr, "%s: n_proc must be > 1\n", xhostname );
 		err = 1;
 		goto CLEAN_UP;
-	}
+	}else
+		n_wproc = n_proc - 1;
 
 	if( all_init() ){
 		err = 1;
@@ -182,6 +187,9 @@ main( int argc, char *argv[] )
 			goto CLEAN_UP;
 		}
 		s_sbuf = s_rncmd + s_xdescr;
+
+fprintf( stderr, "%s: n_jobs = %d\n", xhostname, n_jobs );
+
 	}
 
 	MPI_Bcast( &s_sbuf, 1, MPI_INT, 0, MPI_COMM_WORLD );
@@ -747,7 +755,7 @@ fprintf( stderr, "%s: READY: %s_%d: rcnt = %d\n",
 				actjobs[ s ] = UNDEF;
 			}
 
-			if( rcnt > n_aproc + n_jobs ){
+			if( rcnt >= n_wproc + n_jobs ){
 				rval = 1;
 				break;
 			}
@@ -1025,6 +1033,26 @@ static	void	dumpjqs( FILE *fp, char *msg )
 		}
 	}
 }
+@
+
+
+1.7
+log
+@made the result buffer 10K instead of 256 so as to avoid splitting
+a result.
+fixed off by 1 error in the job count .
+@
+text
+@d26 1
+a26 1
+static	int	my_rank, n_proc, n_aproc;
+d117 2
+a118 1
+	}
+d131 3
+d699 1
+a699 1
+			if( rcnt > n_aproc + n_jobs ){
 @
 
 

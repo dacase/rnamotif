@@ -43,7 +43,11 @@ main( int argc, char *argv[] )
 {
 	char	*ifname, *tfdir;
 	FILE	*ifp, *tfp1, *tfp2;
+/*
 	char	*tfnp1, *tfnp2;
+*/
+	char	tfnp1[ 256 ], tfnp2[ 256 ];
+	int	tfd1, tfd2;
 	char	cmd[ 256 ];
 	char	*sp, *vbp, *l_vbp;
 	int	ac, f, fw, fs, of1, df1;
@@ -94,9 +98,20 @@ main( int argc, char *argv[] )
 			argv[ 0 ], ifname );
 		exit( 1 );
 	}
+	if( tfdir == NULL )
+		tfdir = P_tmpdir;
 
+/*
 	tfnp1 = tempnam( tfdir, "raw" );
 	if( ( tfp1 = fopen( tfnp1, "w+" ) ) == NULL ){
+		fprintf( stderr, "%s: can't open temp-file '%s'\n",
+			argv[ 0 ], tfnp1 );
+		exit( 1 );
+	}
+*/
+	sprintf( tfnp1, "%s/raw_XXXXXX", tfdir );
+	tfd1 = mkstemp( tfnp1 );
+	if( ( tfp1 = fdopen( tfd1, "w+" ) ) == NULL ){
 		fprintf( stderr, "%s: can't open temp-file '%s'\n",
 			argv[ 0 ], tfnp1 );
 		exit( 1 );
@@ -236,7 +251,11 @@ main( int argc, char *argv[] )
 		if( sbuf.st_size > smax )
 			scored = sort = 0;
 
+/*
 		tfnp2 = tempnam( tfdir, "srt" );
+*/
+		sprintf( tfnp2, "%s/srt_XXXXXX", tfdir );
+		tfd2 = mkstemp( tfnp2 );
 		if( scored ){
 			sprintf( cmd,
 			"sort +1rn -2 +0 -1 +2n -3 +3n -4 +4n -5 %s > %s\n",
@@ -252,7 +271,15 @@ main( int argc, char *argv[] )
 			sprintf( cmd, "cp %s %s\n", tfnp1, tfnp2 );
 		system( cmd );
 
+/*
 		if( ( tfp2 = fopen( tfnp2, "r" ) ) == NULL ){
+			fprintf( stderr,
+				"%s: can't open sorted temp-file '%s'\n",
+				argv[ 0 ], tfnp2 );
+			exit( 1 );
+		}
+*/
+		if( ( tfp2 = fdopen( tfd2, "r" ) ) == NULL ){
 			fprintf( stderr,
 				"%s: can't open sorted temp-file '%s'\n",
 				argv[ 0 ], tfnp2 );

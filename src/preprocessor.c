@@ -53,8 +53,14 @@ char	*RM_preprocessor( void )
 			rm_args->a_dfname );
 		return( NULL );
 	}
+/*
 	if( rm_args->a_xdfname == NULL )
 		rm_args->a_xdfname = tempnam( NULL, "rmxd" );
+*/
+	if( rm_args->a_xdfname == NULL ){
+		rm_args->a_xdfname = strdup( "rmxd_XXXXXX" );
+		mkstemp( rm_args->a_xdfname );
+	}
 	if( ( ofp = fopen( rm_args->a_xdfname, "w" ) ) == NULL ){
 		fprintf( stderr,
 			"RM_preprocessor: can't write temp file '%s'.\n",

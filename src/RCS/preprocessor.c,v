@@ -1,9 +1,19 @@
-head	1.7;
+head	1.9;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.9
+date	2002.11.29.00.36.26;	author macke;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	2002.11.29.00.32.14;	author macke;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2002.08.14.03.57.06;	author macke;	state Exp;
@@ -48,9 +58,9 @@ word `descr'
 @
 
 
-1.7
+1.9
 log
-@moved all cmd line args to ARGS_T *rm_args;
+@removed unused var ofd, to which mkstemp() assigned the result.
 @
 text
 @#include <stdio.h>
@@ -108,8 +118,14 @@ char	*RM_preprocessor( void )
 			rm_args->a_dfname );
 		return( NULL );
 	}
+/*
 	if( rm_args->a_xdfname == NULL )
 		rm_args->a_xdfname = tempnam( NULL, "rmxd" );
+*/
+	if( rm_args->a_xdfname == NULL ){
+		rm_args->a_xdfname = strdup( "rmxd_XXXXXX" );
+		mkstemp( rm_args->a_xdfname );
+	}
 	if( ( ofp = fopen( rm_args->a_xdfname, "w" ) ) == NULL ){
 		fprintf( stderr,
 			"RM_preprocessor: can't write temp file '%s'.\n",
@@ -336,6 +352,30 @@ static	char	*isdescr( char line[] )
 	}
 	return( dp );
 }
+@
+
+
+1.8
+log
+@replaced call to tempnam() with mkstemp().
+@
+text
+@a44 1
+	int	ofd;
+d62 1
+a62 1
+		ofd = mkstemp( rm_args->a_xdfname );
+@
+
+
+1.7
+log
+@moved all cmd line args to ARGS_T *rm_args;
+@
+text
+@d45 1
+d57 1
+d60 5
 @
 
 
