@@ -181,6 +181,7 @@ static	void	fix_call();
 static	void	do_fcl();
 static	void	do_scl();
 static	int	paired();
+static	int	strid();
 static	void	do_strf();
 static	void	do_lda();
 static	void	do_lod();
@@ -394,6 +395,7 @@ void	RM_linkscore()
 {
 	int	i;
 	INST_T	*ip;
+	VALUE_T	v_NSE;
 
 	for( ip = prog, i = 0; i < l_prog; i++, ip++ ){
 		if( ip->i_op == OP_FJP || ip->i_op == OP_JMP ){
@@ -404,6 +406,9 @@ void	RM_linkscore()
 				labtab[ ip->i_val.v_value.v_ival ];
 		}
 	}
+	v_NSE.v_type = T_INT;
+	v_NSE.v_value.v_ival = rm_n_descr;
+	RM_enter_id( "NSE", T_INT, C_VAR, S_GLOBAL, 1, &v_NSE );
 }
 
 void	RM_dumpscore( fp )
@@ -910,8 +915,8 @@ INST_T	*ip;
 static	void	do_scl( ip )
 INST_T	*ip;
 {
-	char	*cp;
-	int	idx, pos, len;
+	char	*cp, *tag;
+	int	stype, idx, pos, len;
 	STREL_T	*stp;
 
 	switch( ip->i_val.v_value.v_ival ){
@@ -994,7 +999,16 @@ INST_T	*ip;
 		break;
 
 	case SC_STRID :
+		tag = mem[ sp ].v_value.v_pval;
+		idx = mem[ sp - 1 ].v_value.v_ival;
+		stype = mem[ sp - 2 ].v_value.v_ival;
+		sp -= 2;
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+		mem[ sp ].v_type = T_INT;
+		mem[ sp ].v_value.v_ival = strid( stype, idx, tag );
 		break;
+
 
 	default :
 		rm_emsg_lineno = UNDEF;
@@ -1077,6 +1091,76 @@ int	len;
 		RM_errormsg( 1, "paired() does not accept descr type 'ss'." );
 		break;
 	}
+}
+
+static	int	strid( stype, idx, tag )
+int	stype;
+int	idx;
+char	*tag;
+{
+	int	s, t_idx;
+	STREL_T	*stp;
+	char	name1[ 20 ], name2[ 20 ];
+
+	if( *tag == '\0' ){
+		if( idx < 1 || idx > rm_n_descr ){
+			rm_emsg_lineno = UNDEF;
+			sprintf( emsg,
+				"strid: index (%d) out of range: 1 .. %d.",
+				idx, rm_n_descr );
+			RM_errormsg( 1, emsg );
+		}
+		idx--;
+		stp = &rm_descr[ idx ];
+		if( stype != SYM_SE ){
+			if( stp->s_type != stype ){
+				mk_stref_name( stype, name1 );
+				mk_stref_name( stp->s_type, name2 );
+				rm_emsg_lineno = UNDEF;
+				sprintf( emsg,
+			"strid: descr type mismatch: is %s should be %s.",
+					name1, name2 );
+				RM_errormsg( 1, emsg );
+			}
+		}
+	}else{
+		stp = rm_descr;
+		for( t_idx = UNDEF, s = 0; s < rm_n_descr; s++, stp++ ){ 
+			if( stp->s_tag == NULL )
+				continue;
+			else if( !strcmp( stp->s_tag, tag ) ){
+				if( stp->s_type == stype ){
+					t_idx = s;
+					break;
+				}else if(stp->s_type==SYM_SS && stype==SYM_SE){ 
+					t_idx = s;
+					break;
+				}else{
+					mk_stref_name( stype, name1 );
+					mk_stref_name( stp->s_type, name2 );
+					rm_emsg_lineno = UNDEF;
+					sprintf( emsg,
+				"strid: ambiguous descr reference: %s vs %s.",
+						name1, name2 );
+					RM_errormsg( 1, emsg );
+				}
+			}
+		}
+		if( t_idx == UNDEF ){
+			rm_emsg_lineno = UNDEF;
+			sprintf( emsg, "strid: no such descr '%s'.", tag );
+			RM_errormsg( 1, emsg );
+		}else if( idx != UNDEF ){
+			if( t_idx != idx ){
+				rm_emsg_lineno = UNDEF;
+				sprintf( emsg, 
+				"strid: tag '%s' and index %d conflict.",
+					tag, idx );
+				RM_errormsg( 1, emsg );
+			}
+		}
+	}
+	return( idx );
 }
 
 static	void	do_strf( ip )
@@ -1982,6 +2066,10 @@ char	name[];
 {
 
 	switch( sym ){
+	case SYM_SE :
+		strcpy( name, "se" );
+		break;
+
 	case SYM_SS :
 		strcpy( name, "ss" );
 		break;
@@ -2024,7 +2112,7 @@ char	name[];
 		break;
 
 	default :
-		strcpy( name, "" );
+		sprintf( name, " ?%d? ", sym );
 		break;
 	}
 }
