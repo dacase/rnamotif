@@ -286,7 +286,7 @@ STREL_T	*stp;
 			fprintf( fp, ", " );
 	}
 	fprintf( fp, " ]\n" );
-	fprintf( fp, "\tscope    = %d\n", stp->s_scope + 1 );
+	fprintf( fp, "\tscope    = %d\n", stp->s_scope );
 
 	fprintf( fp, "\tlen      = " );
 	if( stp->s_minlen == UNDEF )
