@@ -21,19 +21,8 @@ static	VALUE_T	valstk[ VALSTKSIZE ];
 static	int	n_valstk;
 
 #define	RM_GLOBAL_IDS_SIZE	50
-IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ] = {
-	{ "wc", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
-	{ "gu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
-	{ "tr", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
-	{ "qu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
- /*5*/	{ "database", T_STRING, C_VAR, S_GLOBAL, { T_STRING, "RNA" } },
-	{ "overlap", T_INT, C_VAR, S_GLOBAL, { T_INT, 0 } },
-	{ "wc_minlen", T_INT, C_VAR, S_GLOBAL, { T_INT, 3 } },
-	{ "wc_maxlen", T_INT, C_VAR, S_GLOBAL, { T_INT, 30 } },
- /*9*/	{ "windowsize", T_INT, C_VAR, S_GLOBAL, { T_INT, 6000 } }
-};
-int	rm_s_global_ids = RM_GLOBAL_IDS_SIZE;
-int	rm_n_global_ids = 9;
+IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ];
+int	rm_n_global_ids = 0;
 
 #define	LOCAL_IDS_SIZE	20
 static	IDENT_T	*local_ids[ LOCAL_IDS_SIZE ];
@@ -124,6 +113,7 @@ char	*argv[];
 	IDENT_T	*ip;
 	NODE_T	*np;
 	char	*fnp;
+	VALUE_T	val;
 
 	for( err = 0, fnp = NULL, ac = 1; ac < argc; ac++ ){
 		if( !strcmp( argv[ ac ], "-c" ) )
@@ -171,28 +161,40 @@ char	*argv[];
 	curpair[2] = "g:c";
 	curpair[3] = "u:a";
 	n_curpair = 4;
-	ip = find_id( "wc" );
 	np = PR_close();
-	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
+	enter_id( "wc", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
 
 	curpair[0] = "g:u";
 	curpair[1] = "u:g";
 	n_curpair = 2;
-	ip = find_id( "gu" );
 	np = PR_close();
-	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
+	enter_id( "gu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
 
 	curpair[0] = "a:u:u";
 	n_curpair = 1;
-	ip = find_id( "tr" );
 	np = PR_close();
-	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
+	enter_id( "tr", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
 
 	curpair[0] = "g:g:g:g";
 	n_curpair = 1;
-	ip = find_id( "qu" );
 	np = PR_close();
-	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
+	enter_id( "qu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+
+	val.v_type = T_STRING;
+	val.v_value.v_pval = "RNA";
+	enter_id( "database", T_STRING, C_VAR, S_GLOBAL, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 3;
+	enter_id( "wc_minlen", T_INT, C_VAR, S_GLOBAL, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 30;
+	enter_id( "wc_maxlen", T_INT, C_VAR, S_GLOBAL, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 6000;
+	enter_id( "windowsize", T_INT, C_VAR, S_GLOBAL, &val );
 
 	rm_lineno = 1;
 }
@@ -1193,7 +1195,10 @@ VALUE_T	*vp;
 	char	*np;
 
 	if( scope == S_GLOBAL ){
+/*
 		if( rm_n_global_ids >= rm_s_global_ids ){
+*/
+		if( rm_n_global_ids >= RM_GLOBAL_IDS_SIZE ){
 			errormsg( 1, 
 				"enter_id: global symbol tab overflow." );
 		}
