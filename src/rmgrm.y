@@ -61,6 +61,7 @@ static	NODE_T	*np;
 %token	SYM_MINUS
 %token	SYM_MINUS_ASSIGN
 %token	SYM_MINUS_MINUS
+%token	SYM_NEGATE
 %token	SYM_NOT
 %token	SYM_NOT_EQUAL
 %token	SYM_OR
@@ -91,22 +92,22 @@ static	NODE_T	*np;
 %%
 program		: parm_part descr_part site_part ;
 
-parm_part	: SYM_PARMS { context = CTX_PARMS; } assign_list
+parm_part	: SYM_PARMS { context = CTX_PARMS; } pdef_list
 		| ;
-assign_list	: assign
-		| assign_list assign;
+pdef_list	: assign
+		| pdef_list assign;
 assign		: ident assign_op expr
-				{ $$ = updnode( $2, 0, $1, $3 );
+				{ $$ = node( $2, 0, $1, $3 );
 				  if( context == CTX_PARMS )
 					PARM_add( $$ );
 				  else if( context == CTX_DESCR ||
 					context == CTX_SITES )
 					SE_addval( $$ ); } ;
-assign_op	: SYM_ASSIGN	{ $$ = node( SYM_ASSIGN, 0, 0, 0 ); }
+assign_op	: SYM_ASSIGN	{ $$ = SYM_ASSIGN; }
 		| SYM_PLUS_ASSIGN
-				{ $$ = node( SYM_PLUS_ASSIGN, 0, 0, 0 ); }
+				{ $$ = SYM_PLUS_ASSIGN; }
 		| SYM_MINUS_ASSIGN
-				{ $$ = node( SYM_MINUS_ASSIGN, 0, 0, 0 ); } ;
+				{ $$ = SYM_MINUS_ASSIGN; } ;
 expr		: val 		{ $$ = $1; }
 		| expr add_op val
 				{ $$ = node( $2, 0, $1, $3 ); } ;
@@ -136,7 +137,8 @@ strel		: strhdr	{ if( context == CTX_DESCR )
 					SE_close();
 				  else if( context == CTX_SITES )
 					POS_close( 0 ); }
-		| strhdr SYM_LPAREN strparm_list SYM_RPAREN
+		| stref ;
+stref		: strhdr SYM_LPAREN strparm_list SYM_RPAREN ;
 				{ if( context == CTX_DESCR )
 					SE_close();
 				  else if( context == CTX_SITES )
@@ -166,8 +168,8 @@ site_list	: site
 		| site_list site ;
 site		: siteaddr_list SYM_IN pairval
 				{ SI_close( $3 ); } ;
-siteaddr_list	: strel
-		| siteaddr_list SYM_COLON strel ;
+siteaddr_list	: stref
+		| siteaddr_list SYM_COLON stref ;
 %%
 
 #include "lex.yy.c"
