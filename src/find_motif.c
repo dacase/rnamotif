@@ -361,18 +361,18 @@ SEARCH_T	*srp;
 		for( s2 = s2_zero; s2 <= s20_lim; s2++ ){
 			if(match_helix(stp1,s2,sdollar,s23_lim,&h23,&h2len)){
 
-				i1_len = s2 - szero - h1len + 1;
+				i1_len = s2 - szero - h1len;
 				if( i1_len > i1_maxl ){
 					unmark_helix(stp,szero,stp2,h13,h1len);
 					return( 0 );
 				}
-				i2_len = h13 - s2 - h1len - h2len + 1;
+				i2_len = h13 - h1len - ( s2 + h2len ) + 1;
 				if( i2_len > i2_maxl ){
 					unmark_helix(stp,szero,stp2,h13,h1len);
 					return( 0 );
 				}
-				i3_len = h23 - h13 - h2len + 1;
-				if( i3_len > i2_maxl ){
+				i3_len = h23 - h13 - h2len;
+				if( i3_len > i3_maxl ){
 					unmark_helix(stp,szero,stp2,h13,h1len);
 					return( 0 );
 				}
