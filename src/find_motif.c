@@ -190,7 +190,7 @@ SEARCH_T	*srp;
 		rv = find_ss( srp );
 		break;
 	case SYM_H5 :
-		if( stp->s_proper ){
+		if( stp->s_attr & SA_PROPER ){
 			rv = find_wchlx( srp );
 		}else{
 			rv = find_pknot( srp );
