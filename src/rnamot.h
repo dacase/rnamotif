@@ -15,13 +15,16 @@
 #define	C_VAR		2
 #define	C_EXPR		3
 
+#define	S_UNDEF		0
+#define	S_GLOBAL	1
+#define	S_LOCAL		2
+
 typedef	struct	value_t	{
 	int	v_type;
 	union	{
 		int	v_ival;
 		float	v_fval;
-		char	*v_cval;
-		char	*v_pval;
+		void	*v_pval;
 	} v_value;
 } VALUE_T;
 
@@ -29,6 +32,7 @@ typedef	struct	ident_t	{
 	char	*i_name;
 	int	i_type;
 	int	i_class;
+	int	i_scope;
 	VALUE_T	i_val;
 } IDENT_T;
 
