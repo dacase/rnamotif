@@ -1,0 +1,79 @@
+%A E. Rivas
+%A S. Eddy
+%T A Dynamic Programming Algorithm for RNA Structure Prediction Including
+Pseudoknots
+%J J. Mol. Biol.                   
+%V 285
+%P 2053-2068
+%D 1999
+
+%A M. Zuker
+%T Calculating nucleic acid secondary structure
+%J Curr. Opin. Struct. Biol.
+%V 10
+%P 303-310
+%D 2000
+
+%A C. Dodge
+%A R. Schneider
+%A C. Sander
+%T The HSSP database of protein structure-sequence alignments and family
+profiles.
+%J Nucl. Acids Res.                         
+%V 26
+%P 313-315
+%D 1998
+
+%A E. Sonnhammer
+%A S. Eddy
+%A R. Durbin
+%T Pfam: multiple sequence alignments and HMM-profiles of protein domains.
+%J Nucl. Acids Res.                         
+%V 26
+%P 320-322
+%D 1998
+
+%A A. Panchenko
+%A A. Marchler-Bauer
+%A S. Bryant
+%T Combination of Threading Potentials and Sequence Profiles Improves Fold
+Recognition
+%J J. Mol. Biol.                   
+%V 296
+%P 1319-1332
+%D 2000
+
+%A L. Rychlewski
+%A L. Jaroszewski
+%A A. Godzik
+%T Comparison of sequence profiles. Strategies for structural predictions
+using sequence information
+%J Prot. Sci.                                
+%V 9
+%P 232-241
+%D 2000
+
+%A M. Pellegrini
+%A E.M. Marcotte
+%A T.O. Yeates
+%T Assigning protein functions by comparative genome analysis: Protein
+phylogenetic profiles
+%J Proc. Natl. Acad. Sci. USA 
+%V 96
+%P 4285-4288
+%D 1999
+
+%A D. Gautheret
+%A F. Major
+%A R. Cedergren
+%T Pattern searching/alignment with RNA primary and secondary structures: an
+effective descriptor for tRNA.
+%J CABIOS
+%V 6
+%P 325-331
+%D 1990
+
+%A S.R. Eddy
+%T RNABOB: a program to search for RNA secondary structures motifs in sequency
+databases
+%O Unpublished.

@@ -1,0 +1,26 @@
+#!/usr/bin/perl -p
+
+#  Fix up the pdf bookmarks 
+
+#  include dummy def. of pdfmark in prologue:
+
+s?%%EndProlog?/pdfmark where {pop} {userdict /pdfmark /cleartomark load put} ifelse\n%%EndProlog? if /%%EndProlog/; 
+
+#  Fix up the counts to nest the bookmarks; someday I will have a program do
+#  this!
+
+if( m?/Dest /s1 ? ){ s?/Count -1 ?/Count -2 ?; next; }
+if( m?/Dest /s2 ? ){ s?/Count -1 ?/Count -6 ?; next; }
+if( m?/Dest /s3 ? ){ s?/Count -1 ?/Count -4 ?; next; }
+if( m?/Dest /s4 ? ){ s?/Count -1 ?/Count -4 ?; next; }
+
+if( m?/Dest /s1_2 ? ){ s?/Count -1 ?/Count -5 ?; next; }
+if( m?/Dest /s2_1 ? ){ s?/Count -1 ?/Count -4 ?; next; }
+if( m?/Dest /s2_2 ? ){ s?/Count -1 ?/Count -3 ?; next; }
+if( m?/Dest /s2_4 ? ){ s?/Count -1 ?/Count -3 ?; next; }
+if( m?/Dest /s3_4 ? ){ s?/Count -1 ?/Count -4 ?; next; }
+if( m?/Dest /s4_1 ? ){ s?/Count -1 ?/Count -3 ?; next; }
+if( m?/Dest /s4_2 ? ){ s?/Count -1 ?/Count -2 ?; next; }
+if( m?/Dest /s4_4 ? ){ s?/Count -1 ?/Count -3 ?; next; }
+
+s?/Count -1 ??;

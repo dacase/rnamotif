@@ -1,0 +1,163 @@
+.he '\fR\n(mo/\n(dy/\n(y2'Descriptor summary'%'
+.bp
+.sh 1 "\f(CBrnamotif\fB descriptor summary."
+.pp
+This section gives a brief reference guide to the elements of an
+\fIrnamotif\fR descriptor.
+.lp
+.TS
+center allbox;
+c s s
+cw(.5i) cw(1.5i) cw(3.5i) .
+\f(CBrnamotif\fB Types\fR
+Type	Examples	Notes
+_
+.T&
+l lf(C) l .
+integer	1 2 300
+real	.3 1.3 5. 2e5 3E-3	Period (.) or \fCe\fR/\fCE\fR required.
+sequence	"gnra"	T{
+.nf
+A \fIDNA\fR sequence:
+.in +.25i
+Upper case \(-> lower case
+\fCu\fR \(-> \fCt\fR
+Letters are IUPAC codes
+.in
+.fi
+T}
+string	'h1'	T{
+.nf
+A literal character string:
+.in +.25i
+Characters are exactly as typed
+.in
+.fi
+T}
+pairset	{ "g:u", "u:g" }	T{
+.nf
+The set of allowed \*(lqpairs\*(rq in a helix:
+.in +.25i
+Each sequence must contain 2-4 letters separated colons.
+Each sequence must contain the same number of letters.
+Upper case \(-> lower case.
+\fCu\fR \(-> \fCt\fR.
+Letters must be \fCa\fR, \fCc\fR, \fCg\fR, \fCt\fR.
+.in
+.fi
+T}
+.TE
+.pp
+.TS
+center box;
+c s s 
+cw(.5i) | cw(1.5i) | cw(3.5i) .
+\f(CBrnamotif\fB Structural Elements\fR
+_
+Symbol	Structure Type	Notes
+=
+.T&
+lf(C) | l | l .
+ss	Single Strand	.
+_
+h5	W/C Duplex 5'
+h3	W/C Duplex 3'
+_
+p5	Parallel Duplex 5'
+p3	Paralle  Duplex 3'
+_
+t1	Triplex 5'
+t2	Triplex -middle
+t3	Triplex 3'
+_
+q1	Quad-plex 5'
+q2	Quad-plex 3'
+q3	Quad-plex 5'
+q4	Quad-plex 3'
+.TE
+.pp
+.TS
+center allbox;
+c s s
+cw(.75i) cw(1.25i) cw(3.5i) .
+\f(CBrnamotif\fB Structural Element Parameters\fR
+Parameter	Type	Notes
+_
+.T&
+lf(C) l l .
+tag	string	All
+minlen	integer	All
+maxlen	integer	All
+len	integer	All
+seq	sequence	All
+mismatch	integer	All
+matchfrac	real	All
+mispair	integer	All but \fCss\fR
+pairfrac	real	All but \fCss\fR
+ends	string	All but \fCss\fR
+pair	pairset	All but \fCss\fR
+.TE
+.pp
+.TS
+center allbox ;
+c s s
+cw(.75i) cw(1.25i) cw(3.5i) .
+\f(CBrnamotif\fB Default Pairing Rules\fR
+Helix	Variable	Default Value
+_
+.T&
+l lf(C) lf(C) 
+^ lf(C) lf(C)
+l lf(C) lf(C) .
+Duplex	wc	{ "a:u", "c:g", "g:c", "u:a" }
+	gu	{ "g:u", "g:u" }
+Triplex	tr	{ "a:u:u" }
+Quadruplex	qu	{ "g:g:g:g" }
+.TE
+.pp
+.TS
+center allbox ;
+c s s s 
+cf(B) cf(B) cf(B) cf(B) .
+\f(CBrnamotif score\fB Operator Summary
+Operator	Prec.	Associates	Meaning
+_
+.T&
+lf(C) l l l .
+( )	8	No.	Index a descriptor, change evaluation order
+[ ]	8	No.	Index a descriptor
+++ --	7	No.	Increment, decrement
+- \fR(Unary)\fC	6	?	Negate
+!	6	?	Not
+:	6	L to R	Form base pair
+* / %	5	L to R	Multiplication, division, modulus
++	4	L to R	Addition
+- \fR(Binary)\fC	4	L to R	Subtraction
+== !=	3	No.	Comparison (Any type)
+< <= >= >	3	No.	Comparison (Numeric, string only)
+=~ !~	3	No.	Regular expression match
+in	3	No.	Pair in pairset
+&&	2	No.	And
+||	1	No.	Or
+\&=	0	No.	Assignment
++= -= *= /= %=	0	No.	Reflexive Assignement
+.TE
+.pp
+.TS
+center allbox ;
+c s s s
+c c c c .
+IUPAC Codes
+Letter	Meaning	Letter	Meaning
+_
+.T&
+lf(C) lf(C) lf(C) lf(C).
+a	a	n	acgt
+b	cgt	r	ag
+c	c	s	cg
+d	agt	t	t
+g	g	u	t
+h	act	v	acg
+k	gt	w	at
+m	ac	y	ct
+.TE

@@ -1,0 +1,104 @@
+.\"  general page formats:
+.po 1.2i
+.ll 6.3i
+.nr pp 11
+.nr sp 12
+.ls 1
+.sc
+.EQ
+delim ``
+.EN
+.\"  listing macro:
+.de (l
+.br
+.ls 1
+.sp
+.ps -1
+.ft C
+.in +0.5i
+.nf
+..
+.de )l
+.br
+.ls
+.ps
+.sp
+.ft R
+.in -0.5i
+.fi
+..
+.\"  refer stuff
+.so refer.me
+.R1
+join-authors " and " ", " ", and "
+abbreviate-label-ranges
+database refs.db
+no-default-database
+sort-adjacent-labels
+move-punctuation
+bracket-label " [" ] ,
+.R2
+.\"  indexing macro
+.de ix
+.tm \\$1:\\n%
+..
+.\"  modify header macros to output table of contents entries
+.nr 1S 0 1
+.nr 2S 0 1
+.nr 3S 0 1
+.nr 4S 0 1
+.nr 5S 0 1
+.nr 6S 0 1
+.am sh
+.ta .3i .6i .9i 1.2i 1.5i 1.8i
+.if \\$1=1 \{\
+.nr 2S 0 1
+.nr 3S 0 1
+.nr 4S 0 1
+.nr 5S 0 1
+.nr 6S 0 1
+.(x
+\f3\\n+(1S. \f3\\$2\f1
+.)x
+\X'ps: exec [ /Dest /s\\n(1S /DEST pdfmark [ /Title (\\$2) /Count -1 /Dest /s\\n(1S /OUT pdfmark'
+\}
+.if \\$1=2 \{\
+.nr 3S 0 1
+.nr 4S 0 1
+.nr 5S 0 1
+.nr 6S 0 1
+.(x
+\f1\h'1.5'\\n(1S.\\n+(2S. \f1\\$2
+.)x
+\X'ps: exec [ /Dest /s\\n(1S_\\n(2S /DEST pdfmark [ /Title (\\$2) /Count -1 /Dest /s\\n(1S_\\n(2S /OUT pdfmark'
+\}
+.if \\$1=3 \{\
+.nr 4S 0 1
+.nr 5S 0 1
+.nr 6S 0 1
+.(x
+\f1\h'3'\\n(1S.\\n(2S.\\n+(3S. \f1\\$2
+.)x
+\X'ps: exec [ /Dest /s\\n(1S_\\n(2S_\\n(3S /DEST pdfmark [ /Title (\\$2) /Dest /s\\n(1S_\\n(2S_\\n(3S /OUT pdfmark'
+\}
+.if \\$1=4 \{\
+.nr 5S 0 1 
+.nr 6S 0 1
+.(x
+\f1\h'4.5'\\n(1S.\\n(2S.\\n(3S.\\n+(4S. \f1\\$2
+.)x
+\}
+.if \\$1=5 \{\
+.nr 6S 0 1
+.(x
+\f1\h'6'\\n(1S.\\n(2S.\\n+(3S.\\n(4S.\\n+(5S. \f1\\$2
+.)x
+\}
+.if \\$1=6 \{\
+.(x
+\f1\h'7.5'\\n(1S.\\n(2S.\\n+(3S.\\n(4S.\\n(5S.\\n+(6S. \f1\\$2
+.)x
+\}
+..
+.\"  get PSPIC macro:
+.mso tmac.pspic

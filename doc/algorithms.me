@@ -1,8 +1,5 @@
-.ll 6.5i
-.fo '\f(CBrnamotif\fP Algorithm'%'\*(td'
-.EQ
-delim ``
-.EN
+.he '\fR\n(mo/\n(dy/\n(y2'Algorithms'%'
+.bp
 .sh 1 "Algorithm."
 .pp
 \fCrnamotif\fR is a program that searches nucleic acid sequence databases for
@@ -78,7 +75,7 @@ preprocessor that peforms both file inclusion and interpolation of command line
 definitions.  Unlike the \fCrnamotif\fR language itself which is free format,
 file inclusion is line oriented.  File inclusion is indicated via the
 preprocessor directive
-.(b
+.(l
 .ft C
 # include \fIfile-name\fC
 .ft R
@@ -130,7 +127,7 @@ secondary structure are used throughout \fCrnamotif\fR.
 Consider the following grammar.  This grammar is extremely simple, yet it can
 generate a large number of nucleic acid secondary structures.  It consists of
 one rule with three parts.
-.(b
+.(l
 .ft C
 \fIS\fC		:  \fIS\fC h5 \fIS\fC h3 \fIS\fC
 		|  ss
@@ -149,7 +146,7 @@ a single stranded stretch (shown as \fCss\fR), or nothing at all.  In the
 example below, the rule is used four times to create a simple hairpin.  In the
 first and third applications, the third part of the rule (\fIS\fC ->\fR ) is
 used so that this structure begins and ends with a helix. 
-.(b
+.(l
 .ft C
 \fIS\fC		-> \c
 \kx\l'\w"\fIS\fC"u\(ul'\h'|\nx'\fIS\fC \c
@@ -166,7 +163,7 @@ h3 \fIS\fC
 There are two ways to apply this rule to create more complex structures.  If
 the second application is to the trailing (or leading) \fIS\fR, the result is
 two consecutive hairpins:
-.(b
+.(l
 .ft C
 \fIS\fC		-> \fIS\fC h5 \fIS\fC h3 \c
 \kx\l'\w"\fIS\fC"u\(ul'\h'|\nx'\fIS\fC
@@ -174,7 +171,7 @@ two consecutive hairpins:
 .ft R
 .)b
 The more interesting case is when the rule is applied to the interior \fIS\fR:
-.(b
+.(l
 .ft C
 \fIS\fC		-> \fIS\fC h5 \c
 \kx\l'\w"\fIS\fC"u\(ul'\h'|\nx'\fIS\fC          \|\|\c
@@ -186,7 +183,7 @@ which creates an \fIinterior\fR loop, (the outer \fCh5\fR ... \fCh3\fR)
 containing a hairpin.  Repeated application of this rule easily creates more
 complicated structures.  In the next example, the rule is used four times to
 create a tRNA cloverleaf.
-.(b
+.(l
 .ft C
 \fIS\fC		-> \fIS\fC h5 \c
 \kx\l'\w"\fIS\fC"u\(ul'\h'|\nx'\fIS\fC                              \c
@@ -208,7 +205,7 @@ Finally, this basic rule can be extended to create other types of helices. Here
 is an extension to create  parallel duplexes, triplexes and quadruplexes,
 although in the case of the 3- and 4- strand helices, the rule does not define
 the strand order.
-.(b
+.(l
 .ft C
 \fIS\fC		:  \fIS\fC h5 \fIS\fC h3 \fIS\fC
 		|  \fIS\fC p5 \fIS\fC p3 \fIS\fC
@@ -228,7 +225,7 @@ in which no helix is completely contained in any other helix of the pseudoknot.
 The canonical pseudoknot consists of two helices, whose nesting is shown below.
 The two helices are clearly connected, but neither is contained inside the
 other.
-.(b
+.(l
 .ft C
 		h5 \fIS\fC h5 \fIS\fC h3 \fIS\fC h3
 		^    ^    ^    ^
@@ -257,7 +254,7 @@ these types of structures would require action at two \fIS\fR regions, one for
 the 5'-part and one for the 3'-part.  Of course, we could extend the basic
 rule to generate canonical pseudoknots directly, and one such extension is
 shown below.
-.(b
+.(l
 .ft C
 \fIS\fC		:  \fIS\fC h5 \fIS\fC h3 \fIS\fC
 		|  \fIS\fC pk5 \fIS\fC pj5 \fIS\fC pk3 \fIS\fC pj3 \fIS\fC
@@ -277,7 +274,7 @@ sequence of \fCh5\fR/\fCh3\fR symbols, but in correctly linking them.  This is
 because many sequences of these symbols are ambiguous \(em the various
 \fCh5\fR/\fCh3\fR elements can be paired up in several different ways.  The
 symbols below illustrate this.
-.(b
+.(l
 .ft C
 		h5 \fIS\fC h5 \fIS\fC h3 \fIS\fC h3
 .ft R

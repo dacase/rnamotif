@@ -1,0 +1,310 @@
+.he ''\fR\n(mo/\n(dy/\n(y2''
+\ 
+.sp
+.ps 24
+.nf
+.ce 100
+\fBRNAMOTIF Users' Manual\fR
+
+.ps 12
+\fB(Version ?.?.?)\fR
+
+Thomas C. Macke and David A. Case
+
+\fIDepartment of Molecular Biology
+The Scripps Research Institute
+La Jolla, CA 92037\fR
+.ce 0
+.fi
+.sp 2
+.hl
+.pp
+This source code is copyright (C) 2001, by Thomas C. Macke,
+Department Molecular Biology, The Scripps Research Institute, La Jolla,
+California 92037.
+The Users' Manual is copyright (C) 2001, by Thomas C. Macke and David A.
+Case, same address.
+.pp
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 1, or (at your option) any later
+version. The GNU General Public License should be in a file called
+COPYING; if not, write to the Free Software Foundation, Inc.,
+59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+.pp
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+.hl
+.pp
+The \fIrnamotif\fR program [1] searches a database for RNA sequences that match
+a "motif" describing secondary structure interactions.  A match means that
+the given sequence is capable of adopting the given secondary structure, but
+is not intended to be predictive.  Matches can be ranked by applying scoring
+rules that may provide finer distinctions than just matching to a profile.
+The \fIrnamotif\fR program is a (significant) extension of earlier programs
+\fIrnamot\fR and \fIrnabob\fR [2,3].
+.lp
+The basic literature references are:
+.ip [1]
+T.C. Macke, ..... \fI(manuscript in preparation)\fR.
+.ip [2]
+D. Gautheret, F. Major and R. Cedrgren.  Pattern searching/alignment with
+RNA primary and secondary structures: an effective descriptor for tRNA.
+\fICABIOS\fB 6,\fR 325-311 (1990).
+.ip [3]
+S.R. Eddy.  RNABOB: a program to search for RNA secondary structure motifs
+in sequence databases.  Unpublished.
+.hl
+.pp
+We thank Vickie Tsui for serving as a beta tester, and more many helpful
+comments and suggestions.  (add thanks for inspiration, etc.)
+
+.he '\fR\n(mo/\n(dy/\n(y2'Overview'%'
+.bp
+.sh 1 "Short overview"
+.sh 2 "Introduction"
+.pp
+The art and science of drawing connections between sequence and structure
+tends to be much different for RNA than for proteins.  There are several
+reasons for this.  First, the presence of a twenty-letter "alphabet" for
+protein sequences means that frequency counts or simple pattern matching can
+often be a useful strategy for identifying secondary structure or searching
+for similarities among sequences; these strategies are much less useful
+with the four-letter alphabet of nucleic acids.  Second, there are many more
+proteins than RNA fragments whose structure has been been determined, so
+that much more is known about sequence-structure relations.  Even at the
+secondary structure level, it is most often the case that hydrogen bond
+patterns have to be inferred from analysis of sequence variation (and
+co-variation) among related members of some family, rather then being
+directly visible in crystal or NMR structures, which is often the case in
+proteins.
+.pp
+Nevertheless, interest in identifying structural similarities in RNA from
+sequence is strong, and there are an increasing number of cases where enough
+is known to make at least secondary structure identification a plausible
+goal.  The approach taken here involves encoding secondary structure
+patterns into a "profile" or "motif", and searching through genome databases
+to find sequences that have the capability of adopting the given secondary
+structure pattern.  These patterns can as simple as arrangements of
+Watson-Crick paired "stems" (interspersed with single-stranded regions whose
+interactions are not specified).  They can also be more complex,
+through use of extensions to the canonical Watson-Crick pairing rules,
+imposition of particular sequence restrictions (such as asking for a "uucg"
+tetraloop), or through specification of higher-order interactions involving
+base triples or quadruples.
+.pp
+It is important to remember that sequences
+matching a particular profile only have the \fIpossibility\fR of forming the
+given structure; \fIrnamotif\fR is not a structure prediction method.  It
+can fish sequences out of databases that can be fed to "folding" algorithms
+such as \fImfold\fR
+.[
+zuker 2000
+.]
+or \fIpknots\fR
+.[
+eddy pseudoknot
+.]
+to see if the proposed structure is low in energy (based on empirical
+base-pairing energies) relative to alternative folds; this can often be a
+useful to further prune profile matches.  The "scoring section" of
+\fIrnamotif\fR provides an interface to describe other models for ranking
+hits that can be based on empirical knowledge or just intuition.
+Fundamentally, \fIrnamotif\fR is a tool for investigating hypotheses: it
+provides a precise language for defining secondary structure motifs, a
+search engine to find matching sequences, and framework for ranking the
+returned sequences by a variety of empirical or energetic criteria.
+.pp
+The use of profiles to describe non-trivial sequence patterns has been
+an important component of amino acid sequence analysis for some time.
+.[
+dodge sander sequence profile
+.]
+.[
+eddy durbin pfam 1998
+.]
+.[
+bryant sequence profiles
+.]
+.[
+yeates profiles 1999
+.]
+.[
+godzik sequence profile 2000
+.]
+The analogue for RNA was pioneered by Daniel Gautheret, whose \fIrnamot\fR
+program was an inspiration for the development of \fIrnamotif\fR.  The
+current code extends Gautheret's original work by providing for profiles
+that specify pseudoknots, and base triplexes and quadruplexes, by
+improvements in the pruning and presentation of results, and by the
+incorporation of "scoring rules" that go beyond the simple "yes/no" results
+from profile screening.  The next two chapters give a tutorial introduction
+to the program; this is followed by a fairly detailed description of the
+algorithms used, and a final, reference chapter summarizing in tables the
+input expected by the code.
+
+.sh 2 "Quick overview on installing and running the program"
+
+.sh 3 "Installation"
+.ip (a)
+Edit the "config.h" file in this directory to suit your local 
+environment.  This may require no change on many machines, but
+you may need to locate the C-compiler, lex or yacc, and set compiler
+flags.
+.ip (b)
+Now "make" will make the executables, leaving them in the src
+directory.  There is no "install" target, but (after you run the
+test suite) you can manually move "rnamotif", "rmfmt", "rm2ct" and 
+"rmprune" to someplace in your PATH if you wish.
+.ip (c)
+Set the environment variable EFNDATA to point to the efndata
+subdirectory under this one.  Then "make test" will run some test
+calculations and report results.  (Warning: running the tests
+may take some time.)
+.lp
+More details are given in the README file in the distribution.
+Please send comments and questions to Tom Macke \fI<macke@scripps.edu>.\fR
+
+.sh 3 "rnamotif"
+.pp
+\fIrnamotif\fR is run from the command line.  It takes two arguments: a descriptor
+that specifies the secondary structure to look for, and a file of fastn data to
+search for sequences that can adopt that secondary structure.  The output is
+written to stdout. The command
+.(l
+rnamotif -descr test.descr test.fastn
+.)l
+searches the fastn file 'test.fastn' for sequences that can fold up into the
+secondary structures specified in the descriptor file \fItest.descr\fR.  If no fastn
+file is given, rnamotif uses \fIstdin\fR.  Note that in the above example, the
+files have suffixes .descr and .fastn; however, these suffixes are only a
+convention, as they can have any names.
+.pp
+The full form of the rnamotif command is shown below:
+.(l
+rnamotif [ options ] descr [ seq-file ... ]
+
+options:
+	-c			Compile only, no search
+	-d			Dump internal data structures
+	-h			Dump the strucure hierarchy
+	-s			Show builtin variables
+	-v			Print Version Infomation
+	-Dvar=expr		Set the value of var to expr
+	-Idir			Add include source directory, dir
+	-xdfname file-name	Preprocessor output file
+	-help			Print this message
+
+descr:	Use one:
+	-descr descr-file	May have includes; use cmd-line defs
+	-xdescr xdescr-file	May not have includes; ignore cmd-line defs
+.)l
+.sh 3 "rmprune"
+.pp
+Many descriptors, such as a variable length stem that contains a variable
+length loop, have several solutions that differ only in that the stem has
+had bases on one or the other or both ends "unzipped".  \fIrmprune\fR takes the
+output of \fIrnamotif\fR and removes unzipped solutions, leaving only that
+solution with the longest possible stem.
+As an example consider this descriptor:
+.(l
+descr
+	h5( minlen=4, maxlen=6 ) ss( minlen=4, maxlen=6 ) h3
+.)l
+This descriptor specifies a simple hairpin where the stem must be 4-6
+base pairs and the loop 4-6 bases.  When rnamotif searches the sequence
+.(l
+aaaaaacccctttttt
+.)l
+it finds eleven possible hairpins:
+.(l
+        Sol   Off Ln
+	 1	1 14 aaaa   aacccc   tttt
+	 2	1 15 aaaaa  acccc   ttttt
+	 3	1 16 aaaaa  acccct  ttttt	4
+	 4	1 16 aaaaaa cccc   tttttt	
+	 5	2 13 aaaa   acccc    tttt
+	 6	2 14 aaaa   acccct   tttt
+	 7	2 14 aaaaa  cccc    ttttt
+	 8	2 15 aaaaa  cccct   ttttt
+	 9	3 12 aaaa   cccc     tttt
+	10	3 13 aaaa   cccct    tttt
+	11	3 14 aaaa   cccctt   tttt
+.)l
+Many of these hairpins are merely subsets of the base pairs of the others.
+\fIrmprune\fR removes these "unzipped" subsets, leaving five unique pairings:
+.(l
+        Sol   Off Ln
+	 1	1 14 aaaa   aacccc   tttt
+	 2	1 15 aaaaa  acccc   ttttt	contains 5
+	 4	1 16 aaaaaa cccc   tttttt	contains 3,6,7,8
+	 8 	2 15 aaaaa  cccct   ttttt	contains 10
+	11	3 14 aaaa   cccctt   tttt
+.)l
+.pp
+\fIrmprune\fR is run from the command line and takes an optional argument,
+a file containing the output of an rnamotif search.  If this file is
+not given, it reads from stdin, allowing it to be placed in a pipeline
+following rnamotif:
+.(l
+	rnamotif -descr hp.descr test.fastn | rmprune
+.)l
+.sh 3 "rmfmt"
+.pp
+\fIrmfmt\fR is used to format rnamotif output.  Two formats are supported.
+The first is a viewing option that removes the fastn definition line from
+the rnamotif output.  At the same time sequences that correspond to long
+fields in the descriptor (ie > 20 bases) are condensed, showing only the
+1st 3 and last 3 bases surroungind the total length of the string in parens.
+For example the string 'acgtacgtacgtacgtacgtacgt' (len=24) would be
+replaced by 'acg...(24)...cgt'.  The strings are also aligned so that
+strings that represent ss, h5, p5, t1, t3, q1 and q3 elements are left
+justified and those that correspond to h3, p3, t2, q2 and q4 fields are
+right justified.   The name of each solution is also simplified, using
+only the LOCUS name from the fastn definition line.  Finally, if at all
+possible the rnamotif solutions are sorted into descending order based on
+the value of the score column (#2) placing the best (or worst) solutions at
+the top.  This format option is specified by the -l option.
+.pp
+The second format option is to convert the rnamotif output into a fastn
+format alignemnt.  Justification is as in -l, but the fill characater is
+the dash (-).  Fields are separated by a vertical bar (|).  Aligned output
+is not sorted and the fastn definition lines are retained.  This format
+option is specified by the -a option.
+The full rmfmt command is show below:
+.(l
+rmfmt [ -a ] [ -l ] [ -smax N ] [ -td dir ] [ rm-output-file ]
+.)l
+The -smax option sets an upper bound on the size of the file of the output
+to sort, as this can be impractical for very large output.  The default
+sort limit is 30MB.  The -td option allows the user to specify the temp
+directory that rmfmt places its work files in.  These files are needed
+because the alignment can not be computed until all solutions have been
+seen.  The default temp directory is system dependent and is either /tmp
+or /var/tmp.
+.pp
+As indicated by the command line, -a and -l can be used together in which
+case the file is formatted with dashes, unsorted and the names of the
+sequences are reduced to the last name in the bar separated name section
+of the fastn definition line.
+
+.sh 3 "rm2ct"
+.pp
+This program converts the rnamotif output to a ct-format structure file,
+which can used by various programs to create a graphical representation of
+the sequence and its 2d structure.
+The rm2ct command takes a single optional argument, the name of the file
+containing the rnamotif output to convert.  The output is written to stdout.
+If no argument is given, rm2ct reads from stdin, allowing it to stand in a
+pipe:
+.(l
+	rnamotif -descr hp.descr test.fastn | rm2ct
+.)l
+.pp
+The ct-format can only represent duplexes, for this reason rm2ct exits with
+an error message if its input contains triples or quads.  However, all
+dumplexes, including parallel duplexes and pseudoknots are converted,
+although not it is likely that many ct-format plotting programs can not
+handle such structures.
