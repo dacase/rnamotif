@@ -239,6 +239,14 @@ STREL_T	*stp;
 	fprintf( fp, "\ttag      = '%s'\n",
 		stp->s_tag ? stp->s_tag : "(No tag)" );
 
+	fprintf( fp, "\tin       = " );
+	if( stp->s_in ){
+		stp1 = stp->s_in;
+		fprintf( fp, "%d", stp1->s_index + 1 );
+	}else
+		fprintf( fp, "(None)" );
+	fprintf( fp, "\n" );
+
 	if( stp->s_type != SYM_SS ){
 		fprintf( fp, "\tmates    = [ " );
 		for( i = 0; i < stp->s_n_mates; i++ ){
