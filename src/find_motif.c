@@ -21,6 +21,7 @@ static	int	fm_windowsize;
 static	char	*fm_chk_seq;
 
 static	int	find_motif();
+static	int	find_1_motif();
 static	int	find_ss();
 static	int	find_wchlx();
 static	int	find_pknot();
@@ -78,24 +79,28 @@ fprintf( stderr, "fmd   : locus = %s, slen = %d\n", locus, slen );
 	for( szero = 0; szero < l_szero; szero++ ){
 		f_sdollar = szero + w_winsize - 1;
 		l_sdollar = szero + rm_dminlen - 1;
-fprintf( stderr, "fmd.1 : szero = %4d, sdollar = %4d:%4d\n",
-	szero, f_sdollar, l_sdollar );
-		sdollar = szero + w_winsize - 1;
-		srp->s_zero = szero;
-		srp->s_dollar = sdollar;
-		find_motif( srp );
+		for( sdollar = f_sdollar; sdollar >= l_sdollar; sdollar-- ){
+/*
+fprintf( stderr, "fm.1  : szero = %4d, sdollar = %4d\n", szero, sdollar );
+*/
+			srp->s_zero = szero;
+			srp->s_dollar = sdollar;
+			find_1_motif( srp );
+		}
 	}
 
 	l_szero = slen - rm_dminlen;
 	f_sdollar = slen - 1;
-	sdollar = slen - 1;
 	for( ; szero <= l_szero; szero++ ){
 		l_sdollar = szero + rm_dminlen - 1;
-fprintf( stderr, "fmd.2 : szero = %4d, sdollar = %4d:%4d\n",
-	szero, f_sdollar, l_sdollar );
-		srp->s_zero = szero;
-		srp->s_dollar = sdollar;
-		find_motif( srp );
+		for( sdollar = f_sdollar; sdollar >= l_sdollar; sdollar-- ){
+/*
+fprintf( stderr, "fm.2  : szero = %4d, sdollar = %4d\n", szero, sdollar );
+*/
+			srp->s_zero = szero;
+			srp->s_dollar = sdollar;
+			find_1_motif( srp );
+		}
 	}
 
 	return( 0 );
@@ -104,12 +109,20 @@ fprintf( stderr, "fmd.2 : szero = %4d, sdollar = %4d:%4d\n",
 static	int	find_motif( srp )
 SEARCH_T	*srp;
 {
+
+}
+
+static	int	find_1_motif( srp )
+SEARCH_T	*srp;
+{
 	STREL_T	*stp;
 
 	stp = srp->s_descr;
 
-fprintf( stderr, "fm    : descr = %2d, str = 0, %4d:%4d, %4d\n",
+/*
+fprintf( stderr, "fm1   : descr = %2d, str = 0, %4d:%4d, %4d\n",
 	stp->s_index, srp->s_zero, srp->s_dollar, fm_slen - 1 );
+*/
 
 	switch( stp->s_type ){
 	case SYM_SS :
@@ -179,18 +192,29 @@ SEARCH_T	*srp;
 	slen = sdollar - szero + 1;
 	stp = srp->s_descr;
 
+/*
 fprintf( stderr, "fwchlx: descr = %2d, str = 0, %4d:%4d, %4d\n",
 	stp->s_index, szero, sdollar, fm_slen - 1 );
+*/
 
 	h_minl = stp->s_minlen;
 	h_maxl = stp->s_maxlen;
 	i_minl = stp->s_minilen;
 
+/*
 	s3lim = ( i_minl + 2 * h_minl );
 	s3lim = szero + s3lim - 1;
+*/
+	s3lim = sdollar - szero + 1;
+	s3lim = ( s3lim - i_minl ) / 2;
+	s3lim = MIN( s3lim, h_maxl );
+	s3lim = sdollar - s3lim + 1;
 
-	for( s = sdollar; s >= s3lim; s-- ){
-		if( match_helix( stp, szero, s, s3lim, &h3, &hlen ) ){
+/*
+fprintf( stderr, "fwchlx: s3lim = %4d\n", s3lim );
+*/
+
+	if( match_helix( stp, szero, sdollar, s3lim, &h3, &hlen ) ){
 
 fprintf( stderr, "fwchlx: %4d %.*s %4d %.*s\n",
 	szero+1, hlen, &fm_sbuf[ szero ],
@@ -199,7 +223,6 @@ fprintf( stderr, "fwchlx: %4d %.*s %4d %.*s\n",
 fprintf( stderr, "fwchlx: inner = %4d %4d; next = %4d, %4d\n",
 	szero + hlen + 1, h3 - hlen + 1, h3 + 1, sdollar );
 
-		}
 	}
 }
 
@@ -225,20 +248,28 @@ int	*hlen;
 	int	b5, b3;
 	int	bpcnt, mpr;
 
+/*
+fprintf( stderr, "mhlx  : s5 = %4d, s3 = %4d, s3lim = %4d\n", s5, s3, s3lim ); 
+*/
+
 	stp3 = stp->s_scopes[ 1 ];
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
 	if( !paired( stp, b5, b3 ) )
 		return( 0 );
 
-	*h3 = s3;
-	s3_5plim = s3lim - stp->s_minlen + 1;
-	s3_5plim = MAX( s3_5plim, s3 - stp->s_maxlen + 1 );
+/*
+fprintf( stderr, "mhlx.1: s5 = %4d, s3 = %4d, h.start\n", s5, s3 );
+*/
 
+	*h3 = s3;
 	bpcnt = 1;
 	*hlen = 1;
 	mpr = 0;
-	for( bpcnt = 1, *hlen = 1, s = s3 - 1; s >= s3_5plim; s--, (*hlen)++ ){
+	for( bpcnt = 1, *hlen = 1, s = s3 - 1; s >= s3lim; s--, (*hlen)++ ){
+/*
+fprintf( stderr, "mhlx.2: s = %4d\n", s );
+*/
 		b5 = fm_sbuf[ s5 + *hlen ];
 		b3 = fm_sbuf[ s3 - *hlen ];
 		if( paired( stp, b5, b3 ) ){
