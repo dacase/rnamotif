@@ -259,6 +259,15 @@ STREL_T	*stp;
 				fprintf( fp, ", " );
 		}
 		fprintf( fp, " ]\n" );
+		fprintf( fp, "\tscopes   = [ " );
+		for( i = 0; i < stp->s_n_scopes; i++ ){
+			stp1 = stp->s_scopes[ i ];
+			fprintf( fp, "%d", stp1->s_index + 1 );
+			if( i < stp->s_n_scopes - 1 )
+				fprintf( fp, ", " );
+		}
+		fprintf( fp, " ]\n" );
+		fprintf( fp, "\tscope    = %d\n", stp->s_scope + 1 );
 	}
 
 	fprintf( fp, "\tlen      = " );
