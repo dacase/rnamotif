@@ -16,7 +16,7 @@ pk1:
 	@../src/rnamotif -descr $@.descr gbrna.111.0.fastn | ../src/rmfmt -l > $@.test
 	@-diff $@.chk $@.test && echo "  PASSED" \
 		|| echo "   FAILED (possibly; see if diffs above look OK)"
-#	@-rm -f $@.test
+	@-rm -f $@.test
 
 qu+tr:
 	@echo =====================================================
