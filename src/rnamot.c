@@ -4,55 +4,21 @@
 
 #include "dbase.h"
 
-int	rm_error;
-VALUE_T	rm_tokval;
-int	rm_lineno;
-int	rm_emsg_lineno;
-char	rm_fname[ 256 ] = "--stdin--";
-int	rm_copt = 0;
-int	rm_dopt = 0;
-int	rm_hopt = 0;	/* dump hierarchy	*/
+extern	int	rm_error;
+extern	char	rm_fname[];
+extern	int	rm_copt;
+extern	int	rm_dopt;
+extern	int	rm_hopt;
 
-#define	RM_GLOBAL_IDS_SIZE	50
-IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ] = {
-	{ "wc", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
-	{ "gu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
-	{ "tr", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
-	{ "qu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
- /*5*/	{ "database", T_STRING, C_VAR, S_GLOBAL, { T_STRING, "RNA" } },
-	{ "overlap", T_INT, C_VAR, S_GLOBAL, { T_INT, 0 } },
-	{ "wc_minlen", T_INT, C_VAR, S_GLOBAL, { T_INT, 3 } },
-	{ "wc_maxlen", T_INT, C_VAR, S_GLOBAL, { T_INT, 30 } },
- /*9*/	{ "windowsize", T_INT, C_VAR, S_GLOBAL, { T_INT, 6000 } }
-};
-int	rm_s_global_ids = RM_GLOBAL_IDS_SIZE;
-int	rm_n_global_ids = 9;
+extern	STREL_T	rm_descr[];
+extern	int	rm_n_descr;
+extern	int	rm_dminlen;	/* min. len. of entire motif	*/
+extern	int	rm_dmaxlen;	/* max. len. of entire motif	*/
 
-#define	RM_DESCR_SIZE 100
-STREL_T	rm_descr[ RM_DESCR_SIZE ];
-int	rm_s_descr = RM_DESCR_SIZE;
-int	rm_n_descr;
-int	rm_dminlen;	/* min. len. of entire motif	*/
-int	rm_dmaxlen;	/* max. len. of entire motif	*/
+extern	SITE_T	*rm_sites;
 
-#define	RM_POS_SIZE	10
-POS_T	rm_pos[ RM_POS_SIZE ];
-int	rm_s_pos = RM_POS_SIZE;
-int	rm_n_pos;
-
-SITE_T	*rm_sites = NULL;
-
-#define	RM_S_B2C	256	
-int	rm_b2bc[ RM_S_B2C ];
-int	rm_s_b2bc = RM_S_B2C;
-char	rm_bc2b[ N_BCODES ] = { 'a', 'c', 'g', 't', 'n' };
-
-SEARCH_T	**rm_searches;
-int		rm_n_searches;
-
-extern	int	yydebug;
-
-char	*getenv();
+extern	SEARCH_T	**rm_searches;
+extern	int		rm_n_searches;
 
 #define	SBUFSIZE	2000000
 static	char	sbuf[ SBUFSIZE ];
