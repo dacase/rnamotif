@@ -18,27 +18,23 @@ extern	char	rm_bc2b[];
 extern	SEARCH_T	**rm_searches;
 extern	int	rm_n_searches;
 
-void	RM_dump_id();
-void	RM_dump_pairset();
-void	RM_dump_pair();
-void	RM_dump_pairmat();
-void	RM_dump_descr();
-void	RM_dump_sites();
-void	RM_strel_name();
+void	RM_dump_id( FILE *, IDENT_T *, int );
+void	RM_dump_pairset( FILE *, PAIRSET_T * );
+void	RM_dump_pair( FILE *, PAIR_T * );
+void	RM_dump_pairmat( FILE *, PAIRSET_T * );
+void	RM_dump_descr( FILE *, STREL_T * );
+void	RM_dump_pos( FILE *, int, POS_T * );
+void	RM_dump_sites( FILE * );
+void	RM_strel_name( STREL_T *, char [] );
 
-static	char	*attr2str();
-static	void	print_hierarchy();
-static	void	print_1_element();
-static	void	mk_prefix();
-static	void	print_searches();
-static	void	print_mat();
+static	char	*attr2str( int );
+static	void	print_hierarchy( FILE *, int, char [], int, STREL_T [] );
+static	void	print_1_element( FILE *, char [], STREL_T * );
+static	void	mk_prefix( STREL_T *, char [], char [] );
+static	void	print_searches( FILE *, int, SEARCH_T *[] );
 
-void	RM_dump( fp, d_parms, d_descr, d_sites, d_hierarchy )
-FILE	*fp;
-int	d_parms;
-int	d_descr;
-int	d_sites;
-int	d_hierarchy;
+void	RM_dump( FILE *fp,
+	int d_parms, int d_descr, int d_sites, int d_hierarchy )
 {
 	int	i;
 	IDENT_T	*ip;
@@ -70,10 +66,7 @@ int	d_hierarchy;
 	}
 }
 
-void	RM_dump_id( fp, ip, fmt )
-FILE	*fp;
-IDENT_T	*ip;
-int	fmt;
+void	RM_dump_id( FILE *fp, IDENT_T *ip, int fmt )
 {
 	PAIRSET_T	*ps;
 
@@ -181,9 +174,7 @@ int	fmt;
 		fprintf( fp, "}\n" );
 }
 
-void	RM_dump_pairset( fp, ps )
-FILE	*fp;
-PAIRSET_T	*ps;
+void	RM_dump_pairset( FILE *fp, PAIRSET_T *ps )
 {
 	PAIR_T	*pp;
 	int	i;
@@ -199,9 +190,7 @@ PAIRSET_T	*ps;
 	fprintf( fp, " }" );
 }
 
-void	RM_dump_pair( fp, pp )
-FILE	*fp;
-PAIR_T	*pp;
+void	RM_dump_pair( FILE *fp, PAIR_T *pp )
 {
 	int	b;
 
@@ -214,9 +203,7 @@ PAIR_T	*pp;
 	fprintf( fp, "\"" );
 }
 
-void	RM_dump_pairmat( fp, ps )
-FILE	*fp;
-PAIRSET_T	*ps;
+void	RM_dump_pairmat( FILE *fp, PAIRSET_T *ps )
 {
 	PAIR_T	*pp;
 	int	nb, np;
@@ -284,9 +271,7 @@ PAIRSET_T	*ps;
 	fprintf( fp, " }\n" );
 }
 
-void	RM_dump_descr( fp, stp )
-FILE	*fp;
-STREL_T	*stp;
+void	RM_dump_descr( FILE *fp, STREL_T *stp )
 {
 	int	i;
 	STREL_T	*stp1;
@@ -498,10 +483,7 @@ STREL_T	*stp;
 	fprintf( fp, "}\n" );
 }
 
-void	RM_dump_pos( fp, p, posp )
-FILE	*fp;
-int	p;
-POS_T	*posp;
+void	RM_dump_pos( FILE *fp, int p, POS_T *posp )
 {
 
 	fprintf( fp, "\tpos[%2d] = {\n", p + 1 );
@@ -559,8 +541,7 @@ POS_T	*posp;
 	fprintf( fp, "\t}\n" );
 }
 
-void	RM_dump_sites( fp )
-FILE	*fp;
+void	RM_dump_sites( FILE *fp )
 {
 	int	i, j, n_sites;
 	SITE_T	*sp;
@@ -581,9 +562,7 @@ FILE	*fp;
 	}
 }
 
-void	RM_strel_name( stp, name )
-STREL_T	*stp;
-char	name[];
+void	RM_strel_name( STREL_T *stp, char name[] )
 {
 
 	switch( stp->s_type ){
@@ -630,8 +609,7 @@ char	name[];
 	}
 }
 
-static	char	*attr2str( attr )
-int	attr;
+static	char	*attr2str( int attr )
 {
 	int	i, acnt;
 	static	char	astr[ 256 ];
@@ -662,12 +640,8 @@ int	attr;
 	return( strcat( astr, " }" ) );
 }
 
-static	void	print_hierarchy( fp, lev, prefix, fd, descr )
-FILE	*fp;
-int	lev;
-char	prefix[];
-int	fd;
-STREL_T	descr[];
+static	void	print_hierarchy( FILE *fp, int lev, char prefix[],
+	int fd, STREL_T descr[] )
 {
 	int	d, nd, s;
 	STREL_T	*stp, *stp1, *stp2;
@@ -694,10 +668,7 @@ STREL_T	descr[];
 	} 
 }
 
-static	void	print_1_element( fp, prefix, stp )
-FILE	*fp;
-char	prefix[];
-STREL_T	*stp;
+static	void	print_1_element( FILE *fp, char prefix[], STREL_T *stp )
 {
 	char	name[ 20 ], tstr[ 20 ];
 	char	*bp, buf[ 200 ];
@@ -767,10 +738,7 @@ STREL_T	*stp;
 	fputs( buf, fp );
 }
 
-static	void	mk_prefix( stp, prefix, prefix1 )
-STREL_T	*stp;
-char	prefix[];
-char	prefix1[];
+static	void	mk_prefix( STREL_T *stp, char prefix[], char prefix1[] )
 {
 	char	*pp;
 	int	plen;
@@ -795,10 +763,7 @@ char	prefix1[];
 	strcat( prefix1, "  +" );
 }
 
-static	void	print_searches( fp, n_searches, searches )
-FILE	*fp;
-int	n_searches;
-SEARCH_T	*searches[];
+static	void	print_searches( FILE *fp, int n_searches, SEARCH_T *searches[] )
 {
 	int	s;
 	STREL_T	*stp, *stp1;

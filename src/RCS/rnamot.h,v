@@ -1,9 +1,24 @@
-head	1.61;
+head	1.64;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.64
+date	2000.10.11.22.19.27;	author macke;	state Exp;
+branches;
+next	1.63;
+
+1.63
+date	2000.10.05.06.12.30;	author macke;	state Exp;
+branches;
+next	1.62;
+
+1.62
+date	2000.09.26.23.25.09;	author macke;	state Exp;
+branches;
+next	1.61;
 
 1.61
 date	2000.09.11.04.08.35;	author macke;	state Exp;
@@ -316,15 +331,15 @@ desc
 @
 
 
-1.61
+1.64
 log
-@adjusted date on 1.2.99 to 2000-sep-10.
+@updated version to 1.3.1
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.2.99 2000-sep-10"
+#define	VERSION	"v1.3.1 2000-oct-11"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] -descr descr-file [ -dtype dtype ] [ seq-file ]\n\n\
@@ -504,6 +519,39 @@ typedef	struct	search_t	{
 } SEARCH_T;
 
 #endif
+@
+
+
+1.63
+log
+@updated version to 1.3.0a
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.3.0a 2000-oct-04"
+@
+
+
+1.62
+log
+@updated to 1.3.0
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.3.0 2000-sep-26"
+@
+
+
+1.61
+log
+@adjusted date on 1.2.99 to 2000-sep-10.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.2.99 2000-sep-10"
 @
 
 

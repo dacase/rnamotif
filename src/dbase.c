@@ -31,8 +31,7 @@ static	GB_FEATURE_T	gbftab[ GBFTAB_SIZE ];
 #define	GBQTAB_SIZE	10000
 static	GB_QUALIFIER_T	gbqtab[ GBQTAB_SIZE ];
  
-DBASE_T	*DB_open( dbname )
-char	dbname[];
+DBASE_T	*DB_open( char dbname[] )
 {
 	GB_FMAP_T	*fmp;
 	int	i;
@@ -153,19 +152,14 @@ CLEAN_UP : ;
 	return( dbp );
 }
 
-DBASE_T	*DB_next( dbp )
-DBASE_T	*dbp;
+DBASE_T	*DB_next( DBASE_T *dbp )
 {
 
 	dbp->d_current++;
 	return( dbp->d_current <= dbp->d_last ? dbp : NULL );
 }
 
-int	DB_getseq( dbp, locus, s_sbuf, sbuf )
-DBASE_T	*dbp;
-char	locus[];
-int	s_sbuf;
-char	sbuf[];
+int	DB_getseq( DBASE_T *dbp, char locus[], int s_sbuf, char sbuf[] )
 {
 	int	rval, iref;
 	int	slen;

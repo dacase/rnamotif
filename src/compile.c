@@ -89,56 +89,50 @@ extern	int	circf;		/* RE ^ kludge	*/
 
 static	char	emsg[ 256 ];
 
-NODE_T	*PR_close();
+NODE_T	*PR_close( void );
 
-IDENT_T	*RM_enter_id();
-IDENT_T	*RM_find_id();
+IDENT_T	*RM_enter_id( char [], int, int, int, int, VALUE_T * );
+IDENT_T	*RM_find_id( char [] );
 
-char	*RM_str2seq();
+char	*RM_str2seq( char [] );
 
-static	int	ends2attr();
-static	void	eval();
-static	int	loadidval();
-static	void	storeexprval();
-static	PAIRSET_T	*pairop();
-static	void	*mk_bmatp();
-static	void	*mk_rbmatp();
-static	POS_T	*posop();
+static	int	ends2attr( char [] );
+static	void	eval( NODE_T *, int );
+static	int	loadidval( VALUE_T *vp );
+static	void	storeexprval( IDENT_T *, VALUE_T * );
+static	PAIRSET_T	*pairop( char [], PAIRSET_T *, PAIRSET_T * );
+static	void	*mk_bmatp( PAIRSET_T * );
+static	void	*mk_rbmatp( PAIRSET_T * );
+static	POS_T	*posop( char [], void *, POS_T * );
+static	int	seqlen( char [], int *, int *, int *, int * );
+static	int	link_tags( int, STREL_T [] );
+static	void	chk_tagorder( int, STREL_T *[] );
+static	void	mk_links( int, STREL_T *[] );
+static	void	duptags_error( int, int, STREL_T *[] );
+static	int	chk_proper_nesting( STREL_T *, STREL_T *, STREL_T [] );
+static	void	find_pknots0( STREL_T *, int, STREL_T [] );
+static	void	find_pknots1( STREL_T *, int, STREL_T [] );
+static	void	find_pknots( STREL_T *, int, STREL_T [] );
+static	int	chk_strel_parms( int, STREL_T [] );
+static	int	chk_1_strel_parms( STREL_T * );
+static	int	chk_len_seq( int, STREL_T *[] );
+static	int	chk_len_seq1( int, STREL_T *[] );
+static	int	chk_site( SITE_T * );
+static	STREL_T	*set_scopes( int, int, STREL_T [] );
+static	void	find_gi_len( int, STREL_T [], int *, int * );
+static	void	find_limits( int, STREL_T [] );
+static	void	find_1_limit( STREL_T *, STREL_T [] );
+static	void	find_start( STREL_T *, STREL_T [] );
+static	void	find_stop( STREL_T *, STREL_T [] );
+static	int	closes_unbnd( STREL_T *, STREL_T [] );
+static	int	min_prefixlen( STREL_T *, STREL_T [] );
+static	int	max_prefixlen( STREL_T *, STREL_T [] );
+static	int	min_suffixlen( STREL_T *, STREL_T [] );
+static	void	find_search_order( int, STREL_T [] );
+static	void	set_search_order_links( int, SEARCH_T *[]);
+static	int	pk_cmp( STREL_T **, STREL_T ** );
 
-static	int	seqlen();
-static	int	link_tags();
-static	void	chk_tagorder();
-static	void	mk_links();
-static	void	duptags_error();
-static	int	chk_proper_nesting();
-static	void	find_pknots0();
-static	void	find_pknots1();
-static	void	find_pknots();
-static	int	chk_strel_parms();
-static	int	chk_1_strel_parms();
-static	int	chk_len_seq();
-static	int	chk_len_seq1();
-static	int	chk_site();
-static	STREL_T	*set_scopes();
-static	void	find_gi_len();
-static	void	find_limits();
-static	void	find_search_order();
-static	void	set_search_order_links();
-
-static	void	find_limits();
-static	void	find_1_limit();
-static	void	find_start();
-static	void	find_stop();
-static	int	closes_unbnd();
-static	int	min_prefixlen();
-static	int	max_prefixlen();
-static	int	min_suffixlen();
-
-static	int	pk_cmp();
-
-int	RM_init( argc, argv )
-int	argc;
-char	*argv[];
+int	RM_init( int argc, char *argv[] )
 {
 	int	ac, i, err;
 	NODE_T	*np;
@@ -339,22 +333,20 @@ char	*argv[];
 	return( 0 );
 }
 
-void	PARM_add( expr )
-NODE_T	*expr;
+void	PARM_add( NODE_T *expr )
 {
 
 	n_valstk = 0;
 	eval( expr, 1 );
 }
 
-void	PR_open()
+void	PR_open( void )
 {
 
 	n_curpair = 0;
 }
 
-void	PR_add( np )
-NODE_T	*np;
+void	PR_add( NODE_T *np )
 {
 
 	if( n_curpair >= CURPAIR_SIZE )
@@ -363,7 +355,7 @@ NODE_T	*np;
 	n_curpair++;
 }
 
-NODE_T	*PR_close()
+NODE_T	*PR_close( void )
 {
 	int	i, b, needbase;
 	PAIR_T	*pp;
@@ -435,8 +427,7 @@ NODE_T	*PR_close()
 	return( np );
 }
 
-void	SE_open( stype )
-int	stype;
+void	SE_open( int stype )
 {
 	VALUE_T	val;
 	IDENT_T	*ip;
@@ -579,15 +570,14 @@ int	stype;
 	}
 }
 
-void	SE_addval( expr )
-NODE_T	*expr;
+void	SE_addval( NODE_T *expr )
 {
 
 	n_valstk = 0;
 	eval( expr, 0 );
 }
 
-void	SE_close()
+void	SE_close( void )
 {
 	int	i, s_minlen, s_maxlen, s_len, s_mispair, s_pairfrac;
 	IDENT_T	*ip;
@@ -663,9 +653,7 @@ void	SE_close()
 	n_local_ids = 0;
 }
 
-int	SE_link( n_descr, descr )
-int	n_descr;
-STREL_T	descr[];
+int	SE_link( int n_descr, STREL_T descr[] )
 {
 	SITE_T	*sip;
 	int	err;
@@ -703,9 +691,7 @@ STREL_T	descr[];
 	return( err );
 }
 
-static	int	link_tags( n_descr, descr )
-int	n_descr;
-STREL_T	descr[];
+static	int	link_tags( int n_descr, STREL_T descr[] )
 {
 	int	i, j;
 	STREL_T	*stp, *stp1, *stp2, *stp3;
@@ -866,9 +852,7 @@ STREL_T	descr[];
 	return( rm_error );
 }
 
-static	void	chk_tagorder( n_tags, tags )
-int	n_tags;
-STREL_T	*tags[];
+static	void	chk_tagorder( int n_tags, STREL_T *tags[] )
 {
 	int	t1, t2, t3, t4;
 
@@ -958,9 +942,7 @@ STREL_T	*tags[];
 	}
 }
 
-static	void	mk_links( n_tags, tags )
-int	n_tags;
-STREL_T	*tags[];
+static	void	mk_links( int n_tags, STREL_T *tags[] )
 {
 	int	i, j, k;
 	STREL_T	**stpm;
@@ -987,10 +969,7 @@ STREL_T	*tags[];
 	}
 }
 
-static	void	duptags_error( need, n_tags, tags )
-int	need;
-int	n_tags;
-STREL_T	*tags[];
+static	void	duptags_error( int need, int n_tags, STREL_T *tags[] )
 {
 	int	i;
 
@@ -1001,10 +980,8 @@ STREL_T	*tags[];
 	}
 }
 
-static	int	chk_proper_nesting( stp0, stp1, descr )
-STREL_T	*stp0;
-STREL_T	*stp1;
-STREL_T	descr[];
+static	int	chk_proper_nesting( STREL_T *stp0, STREL_T *stp1,
+	STREL_T descr[] )
 {
 	int	i, i0, i1, j;
 	STREL_T	*stp, *stpj;
@@ -1022,10 +999,7 @@ STREL_T	descr[];
 	return( 1 );
 }
 
-static	void	find_pknots0( stp, n_descr, descr )
-STREL_T	*stp;
-int	n_descr;
-STREL_T	descr[];
+static	void	find_pknots0( STREL_T *stp, int n_descr, STREL_T descr[] )
 {
 	int	i, j, k;
 	int	pk, h5, h3;
@@ -1107,10 +1081,7 @@ STREL_T	descr[];
 	}
 }
 
-static	void	find_pknots1( stp, n_descr, descr )
-STREL_T	*stp;
-int	n_descr;
-STREL_T	descr[];
+static	void	find_pknots1( STREL_T *stp, int n_descr, STREL_T descr[] )
 {
 	int	i, j;
 	STREL_T	*stp1, *stp2, *stp3;
@@ -1180,10 +1151,8 @@ STREL_T	descr[];
 		pknot[ i ]->s_scope = i;
 	}
 }
-static	void	find_pknots( stp, n_descr, descr )
-STREL_T	*stp;
-int	n_descr;
-STREL_T	descr[];
+
+static	void	find_pknots( STREL_T *stp, int n_descr, STREL_T descr[] )
 {
 	int	fd, fd0, fd1;
 	int	ld, ld1;
@@ -1296,9 +1265,7 @@ STREL_T	descr[];
 	}
 }
 
-static	int	chk_strel_parms( n_descr, descr )
-int	n_descr;
-STREL_T	descr[];
+static	int	chk_strel_parms( int n_descr, STREL_T descr[] )
 {
 	int	i;
 	STREL_T	*stp;
@@ -1312,8 +1279,7 @@ STREL_T	descr[];
 	return( err );
 }
 
-static	int	chk_1_strel_parms( stp )
-STREL_T	*stp;
+static	int	chk_1_strel_parms( STREL_T *stp )
 {
 	int	err, pfrac;
 	int	stype;
@@ -1445,9 +1411,7 @@ STREL_T	*stp;
 	return( err );
 }
 
-static	int	chk_len_seq( n_egroup, egroup )
-int	n_egroup;
-STREL_T	*egroup[];
+static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 {
 	int	err;
 	int	exact, exact1, inexact, mmok;
@@ -1616,9 +1580,7 @@ STREL_T	*egroup[];
 	return( err );
 }
 
-static	int	chk_len_seq1( n_egroup, egroup )
-int	n_egroup;
-STREL_T	*egroup[];
+static	int	chk_len_seq1( int n_egroup, STREL_T *egroup[] )
 {
 	int	err, mmok;
 	int	i, size;
@@ -1721,7 +1683,6 @@ STREL_T	*egroup[];
 		else if( x_maxl == i_maxl )
 			maxl = x_maxl;
 		else{
-fprintf( stderr, "e+i: %d, %d\n", x_maxl, i_maxl );
 			err = 1;
 			rm_emsg_lineno = stp0->s_lineno;
 			RM_errormsg( 0,
@@ -1752,12 +1713,8 @@ fprintf( stderr, "e+i: %d, %d\n", x_maxl, i_maxl );
 	return( err );
 }
 
-IDENT_T	*RM_enter_id( name, type, class, scope, reinit, vp )
-char	name[];
-int	type;
-int	class;
-int	reinit;
-VALUE_T	*vp;
+IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
+	VALUE_T *vp )
 {
 	IDENT_T	*ip;
 	char	*np;
@@ -1819,8 +1776,7 @@ VALUE_T	*vp;
 	return( ip );
 }
 
-IDENT_T	*RM_find_id( name )
-char	name[];
+IDENT_T	*RM_find_id( char name[] )
 {
 	int	i;
 	IDENT_T	*ip;
@@ -1837,8 +1793,7 @@ char	name[];
 	return( NULL );
 }
 
-static	int	ends2attr( str )
-char	str[];
+static	int	ends2attr( char str[] )
 {
 	int	slen;
 	char	l_str[ 10 ], *sp, *lp;
@@ -1849,7 +1804,7 @@ char	str[];
 	if( slen != 2 ){
 		rm_emsg_lineno = rm_lineno;
 		RM_errormsg( 0,
-			"ends2attr: end values are \"pp\", \"mp\", \"pm\" & \"mm\"." );
+		"ends2attr: end values are \"pp\", \"mp\", \"pm\" & \"mm\"." );
 		return( 0 );
 	}
 	for( lp = l_str, sp = str; *sp; sp++ ){
@@ -1867,14 +1822,12 @@ char	str[];
 	else{
 		rm_emsg_lineno = rm_lineno;
 		RM_errormsg( 0,
-			"ends2attr: end values are \"pp\", \"mp\", \"pm\" & \"mm\"." );
+		"ends2attr: end values are \"pp\", \"mp\", \"pm\" & \"mm\"." );
 		return( 0 );
 	}
 }
 
-static	void	eval( expr, d_ok )
-NODE_T	*expr;
-int	d_ok;
+static	void	eval( NODE_T *expr, int d_ok )
 {
 	char	*sp, *l_sp, *r_sp;
 	IDENT_T	*ip;
@@ -2183,8 +2136,7 @@ int	d_ok;
 	}
 }
 
-static	int	loadidval( vp )
-VALUE_T	*vp;
+static	int	loadidval( VALUE_T *vp )
 {
 	int	type;
 	IDENT_T	*ip;
@@ -2235,9 +2187,7 @@ VALUE_T	*vp;
 	return( type );
 }
 
-static	void	storeexprval( ip, vp )
-IDENT_T	*ip;
-VALUE_T	*vp;
+static	void	storeexprval( IDENT_T *ip, VALUE_T *vp )
 {
 	int	type;
 	char	*sp;
@@ -2271,10 +2221,7 @@ VALUE_T	*vp;
 	}
 }
 
-static	PAIRSET_T	*pairop( op, ps1, ps2 )
-char	op[];
-PAIRSET_T	*ps1;
-PAIRSET_T	*ps2;
+static	PAIRSET_T	*pairop( char op[], PAIRSET_T *ps1, PAIRSET_T *ps2 )
 {
 	int	i, j, c, b, nb, sz, diff, fnd;
 	PAIRSET_T	*n_ps;
@@ -2490,8 +2437,7 @@ PAIRSET_T	*ps2;
 	}
 }
 
-static	void*	mk_bmatp( ps )
-PAIRSET_T	*ps;
+static	void*	mk_bmatp( PAIRSET_T *ps )
 {
 	PAIR_T	*pp;
 	int	i, nb;
@@ -2543,8 +2489,7 @@ PAIRSET_T	*ps;
 	return( bmatp );
 }
 
-static	void*	mk_rbmatp( ps )
-PAIRSET_T	*ps;
+static	void*	mk_rbmatp( PAIRSET_T *ps )
 {
 	PAIR_T	*pp;
 	int	nb;
@@ -2587,10 +2532,7 @@ PAIRSET_T	*ps;
 	return( bmatp );
 }
 
-static	POS_T	*posop( op, ptr, r_pos )
-char	op[];
-void	*ptr;
-POS_T	*r_pos;
+static	POS_T	*posop( char op[], void *ptr, POS_T *r_pos )
 {
 	VALUE_T	*vp;
 	POS_T	*n_pos, *l_pos;
@@ -2637,8 +2579,7 @@ POS_T	*r_pos;
 	}
 }
 
-char	*RM_str2seq( str )
-char	str[];
+char	*RM_str2seq( char str[] )
 {
 	char	*s1, *s2, *s3, *sp;
 	int	iupac, c;
@@ -2672,12 +2613,8 @@ char	str[];
 	return( sp );
 }
 
-static	int	seqlen( seq, minlen, maxlen, exact, kclos )
-char	seq[];
-int	*minlen;
-int	*maxlen;
-int	*exact;
-int	*kclos;
+static	int	seqlen( char seq[],
+	int *minlen, int *maxlen, int *exact, int *kclos )
 {
 	char	*sp;
 	int	rbr;
@@ -2783,8 +2720,7 @@ int	*kclos;
 	return( 1 );
 }
 
-void	POS_open( ptype )
-int	ptype;
+void	POS_open( int ptype )
 {
 	VALUE_T	val;
 
@@ -2819,13 +2755,12 @@ int	ptype;
 	RM_enter_id( "pos", T_POS, C_VAR, S_SITE, 0, &val );
 }
 
-void	POS_addval( expr )
-NODE_T	*expr;
+void	POS_addval( NODE_T *expr )
 {
 
 }
 
-void	POS_close()
+void	POS_close( void )
 {
 	int	i;
 	IDENT_T	*ip;
@@ -2844,8 +2779,7 @@ void	POS_close()
 	n_local_ids = 0;
 }
 
-void	SI_close( expr )
-NODE_T	*expr;
+void	SI_close( NODE_T *expr )
 {
 	int	i;
 	POS_T	*posp;
@@ -2881,8 +2815,7 @@ NODE_T	*expr;
 	rm_n_pos = 0;
 }
 
-static	int	chk_site( sip )
-SITE_T	*sip;
+static	int	chk_site( SITE_T *sip )
 {
 	int	err;
 	int	i, j;
@@ -2945,10 +2878,7 @@ SITE_T	*sip;
 	return( err );
 }
 
-static	STREL_T	*set_scopes( fd, ld, descr )
-int	fd;
-int	ld;
-STREL_T	descr[];
+static	STREL_T	*set_scopes( int fd, int ld, STREL_T descr[] )
 {
 	int	d, nd, s;
 	int	fd1, ld1;
@@ -2992,11 +2922,8 @@ STREL_T	descr[];
 	return( &descr[ fd ] );
 }
 
-static	void	find_gi_len( fd, descr, tminlen, tmaxlen )
-int	fd;
-STREL_T	descr[];
-int	*tminlen;
-int	*tmaxlen;
+static	void	find_gi_len( int fd, STREL_T descr[],
+	int *tminlen, int *tmaxlen )
 {
 	int	d, d1, nd;
 	int	gminlen, gmaxlen;
@@ -3054,9 +2981,7 @@ int	*tmaxlen;
 	} 
 }
 
-static	void	find_limits( fd, descr )
-int	fd;
-STREL_T	descr[];
+static	void	find_limits( int fd, STREL_T descr[] )
 {
 	int	d, nd, s;
 	STREL_T	*stp, *stp1, *stp2;
@@ -3079,18 +3004,14 @@ STREL_T	descr[];
 	} 
 }
 
-static	void	find_1_limit( stp, descr )
-STREL_T	*stp;
-STREL_T	descr[];
+static	void	find_1_limit( STREL_T *stp, STREL_T descr[] )
 {
 
 	find_start( stp, descr );
 	find_stop( stp, descr );
 }
 
-static	void	find_start( stp, descr )
-STREL_T	*stp;
-STREL_T	descr[];
+static	void	find_start( STREL_T *stp, STREL_T descr[] )
 {
 
 	if( stp->s_scope == UNDEF ){	/* ss	*/
@@ -3118,9 +3039,7 @@ STREL_T	descr[];
 	}
 }
 
-static	void	find_stop( stp, descr )
-STREL_T	*stp;
-STREL_T	descr[];
+static	void	find_stop( STREL_T *stp, STREL_T descr[] )
 {
 
 	if( RM_R2L( stp->s_type ) ){
@@ -3136,9 +3055,7 @@ STREL_T	descr[];
 	}
 }
 
-static	int	closes_unbnd( stp, descr )
-STREL_T	*stp;
-STREL_T	descr[];
+static	int	closes_unbnd( STREL_T *stp, STREL_T descr[] )
 {
 
 	if( stp->s_maxlen == UNBOUNDED )
@@ -3148,9 +3065,7 @@ STREL_T	descr[];
 	return( 0 );
 }
 
-static	int	min_prefixlen( stp, descr )
-STREL_T	*stp;
-STREL_T	descr[];
+static	int	min_prefixlen( STREL_T *stp, STREL_T descr[] )
 {
 	STREL_T	*stp0, *stp1;
 	int	s, plen;
@@ -3165,9 +3080,7 @@ STREL_T	descr[];
 	return( plen );
 }
 
-static	int	max_prefixlen( stp, descr )
-STREL_T	*stp;
-STREL_T	descr[];
+static	int	max_prefixlen( STREL_T *stp, STREL_T descr[] )
 {
 	STREL_T	*stp0, *stp1;
 	int	s, plen;
@@ -3185,9 +3098,7 @@ STREL_T	descr[];
 	return( plen );
 }
 
-static	int	min_suffixlen( stp, descr )
-STREL_T	*stp;
-STREL_T	descr[];
+static	int	min_suffixlen( STREL_T *stp, STREL_T descr[] )
 {
 	STREL_T	*stp0, *stp1, *stpn;
 	int	s, slen;
@@ -3214,9 +3125,7 @@ STREL_T	descr[];
 	return( slen );
 }
 
-static	void	find_search_order( fd, descr )
-int	fd;
-STREL_T	descr[];
+static	void	find_search_order( int fd, STREL_T descr[] )
 {
 	int	d, nd, s;
 	STREL_T	*stp, *stp1, *stp2;
@@ -3407,9 +3316,7 @@ STREL_T	descr[];
 	}
 }
 
-static	void	set_search_order_links( n_searches, searches )
-int	n_searches;
-SEARCH_T	*searches[];
+static	void	set_search_order_links( int n_searches, SEARCH_T *searches[] )
 {
 	int	s;
 	STREL_T	*stp, *stp1;
@@ -3434,9 +3341,7 @@ SEARCH_T	*searches[];
 	}
 }
 
-static	int	pk_cmp( d1, d2 )
-STREL_T	**d1;
-STREL_T	**d2;
+static	int	pk_cmp( STREL_T **d1, STREL_T **d2 )
 {
 
 	return( ( *d1 )->s_index - ( *d2 )->s_index );

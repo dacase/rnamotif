@@ -1,9 +1,14 @@
-head	1.49;
+head	1.50;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.50
+date	2000.10.07.06.09.38;	author macke;	state Exp;
+branches;
+next	1.49;
 
 1.49
 date	2000.09.11.04.05.37;	author macke;	state Exp;
@@ -256,10 +261,9 @@ desc
 @
 
 
-1.49
+1.50
 log
-@new option rm_sopt (-s) which prints out the symbol table in
-short form.  Used to get the name of the global parameters.
+@convert headers from K&R to ANSI
 @
 text
 @#include <stdio.h>
@@ -303,11 +307,9 @@ typedef	void	DBASE_T;
 DBASE_T	*dbp, *GB_opendb();
 #endif
 
-static	void	mk_rcmp();
+static	void	mk_rcmp( int, char [], char [] );
 
-main( argc, argv )
-int	argc;
-char	*argv[];
+main( int argc, char *argv[] )
 {
 	IDENT_T	*ip;
 	int	done = 0;
@@ -400,10 +402,7 @@ char	*argv[];
 	exit( 0 );
 }
 
-static	void	mk_rcmp( slen, sbuf, csbuf )
-int	slen;
-char	sbuf[];
-char	csbuf[];
+static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
 {
 	static	int	init = 0;
 	static	char	wc_cmp[ 128 ];
@@ -425,6 +424,29 @@ char	csbuf[];
 	for( sp = sbuf, cp = &csbuf[ slen - 1 ], i = 0; i < slen; i++ )
 		*cp-- = wc_cmp[ *sp++ ];
 }
+@
+
+
+1.49
+log
+@new option rm_sopt (-s) which prints out the symbol table in
+short form.  Used to get the name of the global parameters.
+@
+text
+@d42 1
+a42 1
+static	void	mk_rcmp();
+d44 1
+a44 3
+main( argc, argv )
+int	argc;
+char	*argv[];
+d137 1
+a137 4
+static	void	mk_rcmp( slen, sbuf, csbuf )
+int	slen;
+char	sbuf[];
+char	csbuf[];
 @
 
 

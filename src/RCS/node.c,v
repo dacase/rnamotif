@@ -1,9 +1,14 @@
-head	1.21;
+head	1.22;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.22
+date	2000.10.07.06.07.08;	author macke;	state Exp;
+branches;
+next	1.21;
 
 1.21
 date	2000.04.25.00.21.41;	author macke;	state Exp;
@@ -116,9 +121,9 @@ desc
 @
 
 
-1.21
+1.22
 log
-@change float v_fval to v_dval
+@converted K&R to ANSI.
 @
 text
 @#include <stdio.h>
@@ -128,13 +133,9 @@ text
 
 extern	int	rm_lineno;
 
-void	RM_dumpnode();
+void	RM_dumpnode( FILE *, NODE_T *, int );
 
-NODE_T	*RM_node( sym, vp, left, right )
-int	sym;
-VALUE_T	*vp;
-NODE_T	*left;
-NODE_T	*right;
+NODE_T	*RM_node( int sym, VALUE_T *vp, NODE_T *left, NODE_T *right )
 {
 	NODE_T	*np;
 	char	emsg[ 256 ];
@@ -177,10 +178,7 @@ NODE_T	*right;
 	return( np );
 }
 
-void	RM_dumpexpr( fp, np, indent )
-FILE	*fp;
-NODE_T	*np;
-int	indent;
+void	RM_dumpexpr( FILE *fp, NODE_T *np, int indent )
 {
 
 	if( np ){
@@ -190,10 +188,7 @@ int	indent;
 	}
 }
 
-void	RM_dumpnode( fp, np, indent )
-FILE	*fp;
-NODE_T	*np;
-int	indent;
+void	RM_dumpnode( FILE *fp, NODE_T *np, int indent )
 {
 
 	fprintf( fp, "%*s",indent, "" );
@@ -206,6 +201,36 @@ int	indent;
 
 	}
 }
+@
+
+
+1.21
+log
+@change float v_fval to v_dval
+@
+text
+@d8 1
+a8 1
+void	RM_dumpnode();
+d10 1
+a10 5
+NODE_T	*RM_node( sym, vp, left, right )
+int	sym;
+VALUE_T	*vp;
+NODE_T	*left;
+NODE_T	*right;
+d53 1
+a53 4
+void	RM_dumpexpr( fp, np, indent )
+FILE	*fp;
+NODE_T	*np;
+int	indent;
+d63 1
+a63 4
+void	RM_dumpnode( fp, np, indent )
+FILE	*fp;
+NODE_T	*np;
+int	indent;
 @
 
 

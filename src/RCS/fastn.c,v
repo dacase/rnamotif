@@ -1,9 +1,14 @@
-head	1.8;
+head	1.9;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.9
+date	2000.10.07.05.20.25;	author macke;	state Exp;
+branches;
+next	1.8;
 
 1.8
 date	2000.03.31.14.46.59;	author macke;	state Exp;
@@ -51,24 +56,19 @@ desc
 @
 
 
-1.8
+1.9
 log
-@convert u's in the input to lower case.
+@converted all headers from K&R to ANSI.
 @
 text
 @#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 
-static	int	skipbl2nl();
+static	int	skipbl2nl( FILE * );
 
-int	FN_fgetseq( fp, sid, s_sdef, sdef, s_sbuf, sbuf )
-FILE	*fp;
-char	sid[];
-int	s_sdef;
-char	sdef[];
-int	s_sbuf;
-char	sbuf[];
+int	FN_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
+	int s_sbuf, char sbuf[] )
 {
 	char	*dp, *sp;
 	int	c, cnt;
@@ -152,8 +152,7 @@ char	sbuf[];
 	return( sp - sbuf );
 }
 
-static	int	skipbl2nl( fp )
-FILE	*fp;
+static	int	skipbl2nl( FILE *fp )
 {
 	int	c;
 
@@ -162,6 +161,30 @@ FILE	*fp;
 			break;
 	return( c );
 }
+@
+
+
+1.8
+log
+@convert u's in the input to lower case.
+@
+text
+@d5 1
+a5 1
+static	int	skipbl2nl();
+d7 2
+a8 7
+int	FN_fgetseq( fp, sid, s_sdef, sdef, s_sbuf, sbuf )
+FILE	*fp;
+char	sid[];
+int	s_sdef;
+char	sdef[];
+int	s_sbuf;
+char	sbuf[];
+d92 1
+a92 2
+static	int	skipbl2nl( fp )
+FILE	*fp;
 @
 
 

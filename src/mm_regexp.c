@@ -24,17 +24,13 @@ static	char	bittab[] = { 1, 2, 4, 8, 16, 32, 64, 128 };
 extern	char	*loc1, *loc2;
 extern	int	circf;
 
-void	mm_seqlen();
-void	mm_dumppat();
-int	mm_step();
-static	int	mm_advance();
+void	mm_seqlen( char [], int *, int *, int *, int * );
+void	mm_seqlen1( STREL_T *, int *, int *, int * );
+void	mm_dumppat( FILE *, char [], char * );
+int	mm_step( char *, char *, int, int * );
+static	int	mm_advance( char *, char *, int, int * );
 
-void	mm_seqlen( expbuf, minl, maxl, exact, mmok )
-char	expbuf[];
-int	*minl;
-int	*maxl;
-int	*exact;
-int	*mmok;
+void	mm_seqlen( char expbuf[], int *minl, int *maxl, int *exact, int *mmok )
 {
 	char	*ep;
 
@@ -131,11 +127,7 @@ int	*mmok;
 		}
 	}
 }
-void	mm_seqlen1( stp, minl, maxl, mmok )
-STREL_T	*stp;
-int	*minl;
-int	*maxl;
-int	*mmok;
+void	mm_seqlen1( STREL_T *stp, int *minl, int *maxl, int *mmok )
 {
 	char	*ep;
 	int	dol, star;
@@ -246,10 +238,7 @@ int	*mmok;
 		*maxl = rng == UNDEF ? *minl : *minl + rng;
 }
 
-void	mm_dumppat( fp, expbuf, e_expbuf )
-FILE	*fp;
-char	expbuf[];
-char	*e_expbuf;
+void	mm_dumppat( FILE * fp, char expbuf[], char *e_expbuf )
 {
 	char	*ep;
 	int	i;
@@ -328,11 +317,7 @@ char	*e_expbuf;
 	printf( " %s\n", "<eof>" );
 }
 
-int	mm_step( p1, p2, l_mm, n_mm )
-char	*p1;
-char	*p2;
-int	l_mm;
-int	*n_mm;
+int	mm_step( char *p1, char *p2, int l_mm, int *n_mm )
 {
 
 	loc1 = p1;
@@ -348,11 +333,7 @@ int	*n_mm;
 	return( 0 );
 }
 
-static	int	mm_advance( lp, ep, l_mm, n_mm )
-char	*lp;
-char	*ep;
-int	l_mm;
-int	*n_mm;
+static	int	mm_advance( char *lp, char *ep, int l_mm, int *n_mm )
 {
 	int	neg, low;
 	int	c;

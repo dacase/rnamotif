@@ -1,9 +1,14 @@
-head	1.40;
+head	1.41;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.41
+date	2000.10.07.04.57.52;	author macke;	state Exp;
+branches;
+next	1.40;
 
 1.40
 date	2000.09.10.20.40.40;	author macke;	state Exp;
@@ -211,11 +216,9 @@ desc
 @
 
 
-1.40
+1.41
 log
-@added fmt option to RM_dump_id(). Comes in as the value of d_parms.  If
-1 (as usual), get the old format, If 2 get a an abbreviated format that
-is useful for seeing what exists!
+@converted all headers from K&R to ANSI.
 @
 text
 @#include <stdio.h>
@@ -238,27 +241,23 @@ extern	char	rm_bc2b[];
 extern	SEARCH_T	**rm_searches;
 extern	int	rm_n_searches;
 
-void	RM_dump_id();
-void	RM_dump_pairset();
-void	RM_dump_pair();
-void	RM_dump_pairmat();
-void	RM_dump_descr();
-void	RM_dump_sites();
-void	RM_strel_name();
+void	RM_dump_id( FILE *, IDENT_T *, int );
+void	RM_dump_pairset( FILE *, PAIRSET_T * );
+void	RM_dump_pair( FILE *, PAIR_T * );
+void	RM_dump_pairmat( FILE *, PAIRSET_T * );
+void	RM_dump_descr( FILE *, STREL_T * );
+void	RM_dump_pos( FILE *, int, POS_T * );
+void	RM_dump_sites( FILE * );
+void	RM_strel_name( STREL_T *, char [] );
 
-static	char	*attr2str();
-static	void	print_hierarchy();
-static	void	print_1_element();
-static	void	mk_prefix();
-static	void	print_searches();
-static	void	print_mat();
+static	char	*attr2str( int );
+static	void	print_hierarchy( FILE *, int, char [], int, STREL_T [] );
+static	void	print_1_element( FILE *, char [], STREL_T * );
+static	void	mk_prefix( STREL_T *, char [], char [] );
+static	void	print_searches( FILE *, int, SEARCH_T *[] );
 
-void	RM_dump( fp, d_parms, d_descr, d_sites, d_hierarchy )
-FILE	*fp;
-int	d_parms;
-int	d_descr;
-int	d_sites;
-int	d_hierarchy;
+void	RM_dump( FILE *fp,
+	int d_parms, int d_descr, int d_sites, int d_hierarchy )
 {
 	int	i;
 	IDENT_T	*ip;
@@ -290,10 +289,7 @@ int	d_hierarchy;
 	}
 }
 
-void	RM_dump_id( fp, ip, fmt )
-FILE	*fp;
-IDENT_T	*ip;
-int	fmt;
+void	RM_dump_id( FILE *fp, IDENT_T *ip, int fmt )
 {
 	PAIRSET_T	*ps;
 
@@ -401,9 +397,7 @@ int	fmt;
 		fprintf( fp, "}\n" );
 }
 
-void	RM_dump_pairset( fp, ps )
-FILE	*fp;
-PAIRSET_T	*ps;
+void	RM_dump_pairset( FILE *fp, PAIRSET_T *ps )
 {
 	PAIR_T	*pp;
 	int	i;
@@ -419,9 +413,7 @@ PAIRSET_T	*ps;
 	fprintf( fp, " }" );
 }
 
-void	RM_dump_pair( fp, pp )
-FILE	*fp;
-PAIR_T	*pp;
+void	RM_dump_pair( FILE *fp, PAIR_T *pp )
 {
 	int	b;
 
@@ -434,9 +426,7 @@ PAIR_T	*pp;
 	fprintf( fp, "\"" );
 }
 
-void	RM_dump_pairmat( fp, ps )
-FILE	*fp;
-PAIRSET_T	*ps;
+void	RM_dump_pairmat( FILE *fp, PAIRSET_T *ps )
 {
 	PAIR_T	*pp;
 	int	nb, np;
@@ -504,9 +494,7 @@ PAIRSET_T	*ps;
 	fprintf( fp, " }\n" );
 }
 
-void	RM_dump_descr( fp, stp )
-FILE	*fp;
-STREL_T	*stp;
+void	RM_dump_descr( FILE *fp, STREL_T *stp )
 {
 	int	i;
 	STREL_T	*stp1;
@@ -718,10 +706,7 @@ STREL_T	*stp;
 	fprintf( fp, "}\n" );
 }
 
-void	RM_dump_pos( fp, p, posp )
-FILE	*fp;
-int	p;
-POS_T	*posp;
+void	RM_dump_pos( FILE *fp, int p, POS_T *posp )
 {
 
 	fprintf( fp, "\tpos[%2d] = {\n", p + 1 );
@@ -779,8 +764,7 @@ POS_T	*posp;
 	fprintf( fp, "\t}\n" );
 }
 
-void	RM_dump_sites( fp )
-FILE	*fp;
+void	RM_dump_sites( FILE *fp )
 {
 	int	i, j, n_sites;
 	SITE_T	*sp;
@@ -801,9 +785,7 @@ FILE	*fp;
 	}
 }
 
-void	RM_strel_name( stp, name )
-STREL_T	*stp;
-char	name[];
+void	RM_strel_name( STREL_T *stp, char name[] )
 {
 
 	switch( stp->s_type ){
@@ -850,8 +832,7 @@ char	name[];
 	}
 }
 
-static	char	*attr2str( attr )
-int	attr;
+static	char	*attr2str( int attr )
 {
 	int	i, acnt;
 	static	char	astr[ 256 ];
@@ -882,12 +863,8 @@ int	attr;
 	return( strcat( astr, " }" ) );
 }
 
-static	void	print_hierarchy( fp, lev, prefix, fd, descr )
-FILE	*fp;
-int	lev;
-char	prefix[];
-int	fd;
-STREL_T	descr[];
+static	void	print_hierarchy( FILE *fp, int lev, char prefix[],
+	int fd, STREL_T descr[] )
 {
 	int	d, nd, s;
 	STREL_T	*stp, *stp1, *stp2;
@@ -914,10 +891,7 @@ STREL_T	descr[];
 	} 
 }
 
-static	void	print_1_element( fp, prefix, stp )
-FILE	*fp;
-char	prefix[];
-STREL_T	*stp;
+static	void	print_1_element( FILE *fp, char prefix[], STREL_T *stp )
 {
 	char	name[ 20 ], tstr[ 20 ];
 	char	*bp, buf[ 200 ];
@@ -987,10 +961,7 @@ STREL_T	*stp;
 	fputs( buf, fp );
 }
 
-static	void	mk_prefix( stp, prefix, prefix1 )
-STREL_T	*stp;
-char	prefix[];
-char	prefix1[];
+static	void	mk_prefix( STREL_T *stp, char prefix[], char prefix1[] )
 {
 	char	*pp;
 	int	plen;
@@ -1015,10 +986,7 @@ char	prefix1[];
 	strcat( prefix1, "  +" );
 }
 
-static	void	print_searches( fp, n_searches, searches )
-FILE	*fp;
-int	n_searches;
-SEARCH_T	*searches[];
+static	void	print_searches( FILE *fp, int n_searches, SEARCH_T *searches[] )
 {
 	int	s;
 	STREL_T	*stp, *stp1;
@@ -1043,6 +1011,110 @@ SEARCH_T	*searches[];
 		fprintf( fp, "\n" );
 	}
 }
+@
+
+
+1.40
+log
+@added fmt option to RM_dump_id(). Comes in as the value of d_parms.  If
+1 (as usual), get the old format, If 2 get a an abbreviated format that
+is useful for seeing what exists!
+@
+text
+@d21 17
+a37 21
+void	RM_dump_id();
+void	RM_dump_pairset();
+void	RM_dump_pair();
+void	RM_dump_pairmat();
+void	RM_dump_descr();
+void	RM_dump_sites();
+void	RM_strel_name();
+
+static	char	*attr2str();
+static	void	print_hierarchy();
+static	void	print_1_element();
+static	void	mk_prefix();
+static	void	print_searches();
+static	void	print_mat();
+
+void	RM_dump( fp, d_parms, d_descr, d_sites, d_hierarchy )
+FILE	*fp;
+int	d_parms;
+int	d_descr;
+int	d_sites;
+int	d_hierarchy;
+d69 1
+a69 4
+void	RM_dump_id( fp, ip, fmt )
+FILE	*fp;
+IDENT_T	*ip;
+int	fmt;
+d177 1
+a177 3
+void	RM_dump_pairset( fp, ps )
+FILE	*fp;
+PAIRSET_T	*ps;
+d193 1
+a193 3
+void	RM_dump_pair( fp, pp )
+FILE	*fp;
+PAIR_T	*pp;
+d206 1
+a206 3
+void	RM_dump_pairmat( fp, ps )
+FILE	*fp;
+PAIRSET_T	*ps;
+d274 1
+a274 3
+void	RM_dump_descr( fp, stp )
+FILE	*fp;
+STREL_T	*stp;
+d486 1
+a486 4
+void	RM_dump_pos( fp, p, posp )
+FILE	*fp;
+int	p;
+POS_T	*posp;
+d544 1
+a544 2
+void	RM_dump_sites( fp )
+FILE	*fp;
+d565 1
+a565 3
+void	RM_strel_name( stp, name )
+STREL_T	*stp;
+char	name[];
+d612 1
+a612 2
+static	char	*attr2str( attr )
+int	attr;
+d643 2
+a644 6
+static	void	print_hierarchy( fp, lev, prefix, fd, descr )
+FILE	*fp;
+int	lev;
+char	prefix[];
+int	fd;
+STREL_T	descr[];
+d671 1
+a671 4
+static	void	print_1_element( fp, prefix, stp )
+FILE	*fp;
+char	prefix[];
+STREL_T	*stp;
+d741 1
+a741 4
+static	void	mk_prefix( stp, prefix, prefix1 )
+STREL_T	*stp;
+char	prefix[];
+char	prefix1[];
+d766 1
+a766 4
+static	void	print_searches( fp, n_searches, searches )
+FILE	*fp;
+int	n_searches;
+SEARCH_T	*searches[];
 @
 
 

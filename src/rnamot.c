@@ -39,11 +39,9 @@ typedef	void	DBASE_T;
 DBASE_T	*dbp, *GB_opendb();
 #endif
 
-static	void	mk_rcmp();
+static	void	mk_rcmp( int, char [], char [] );
 
-main( argc, argv )
-int	argc;
-char	*argv[];
+main( int argc, char *argv[] )
 {
 	IDENT_T	*ip;
 	int	done = 0;
@@ -136,10 +134,7 @@ char	*argv[];
 	exit( 0 );
 }
 
-static	void	mk_rcmp( slen, sbuf, csbuf )
-int	slen;
-char	sbuf[];
-char	csbuf[];
+static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
 {
 	static	int	init = 0;
 	static	char	wc_cmp[ 128 ];

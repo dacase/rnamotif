@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2000.10.07.04.47.59;	author macke;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	99.05.24.21.21.26;	author macke;	state Exp;
@@ -32,9 +37,9 @@ scheme.
 @
 
 
-1.4
+1.5
 log
-@extended to be able to use custom iref/ihits files.
+@converted headers from K&R to ANSI.
 @
 text
 @#include <stdio.h>
@@ -70,8 +75,7 @@ static	GB_FEATURE_T	gbftab[ GBFTAB_SIZE ];
 #define	GBQTAB_SIZE	10000
 static	GB_QUALIFIER_T	gbqtab[ GBQTAB_SIZE ];
  
-DBASE_T	*DB_open( dbname )
-char	dbname[];
+DBASE_T	*DB_open( char dbname[] )
 {
 	GB_FMAP_T	*fmp;
 	int	i;
@@ -192,19 +196,14 @@ CLEAN_UP : ;
 	return( dbp );
 }
 
-DBASE_T	*DB_next( dbp )
-DBASE_T	*dbp;
+DBASE_T	*DB_next( DBASE_T *dbp )
 {
 
 	dbp->d_current++;
 	return( dbp->d_current <= dbp->d_last ? dbp : NULL );
 }
 
-int	DB_getseq( dbp, locus, s_sbuf, sbuf )
-DBASE_T	*dbp;
-char	locus[];
-int	s_sbuf;
-char	sbuf[];
+int	DB_getseq( DBASE_T *dbp, char locus[], int s_sbuf, char sbuf[] )
 {
 	int	rval, iref;
 	int	slen;
@@ -241,6 +240,29 @@ char	sbuf[];
 	}
 	return( sp - sbuf );
 }
+@
+
+
+1.4
+log
+@extended to be able to use custom iref/ihits files.
+@
+text
+@d34 1
+a34 2
+DBASE_T	*DB_open( dbname )
+char	dbname[];
+d155 1
+a155 2
+DBASE_T	*DB_next( dbp )
+DBASE_T	*dbp;
+d162 1
+a162 5
+int	DB_getseq( dbp, locus, s_sbuf, sbuf )
+DBASE_T	*dbp;
+char	locus[];
+int	s_sbuf;
+char	sbuf[];
 @
 
 

@@ -1,9 +1,14 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.6
+date	2000.10.07.05.18.40;	author macke;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	99.10.03.18.58.10;	author macke;	state Exp;
@@ -36,9 +41,9 @@ desc
 @
 
 
-1.5
+1.6
 log
-@changed name from errormsg to RM_errormsg()
+@converted header from K&R to ANSI.
 @
 text
 @#include <stdio.h>
@@ -47,9 +52,7 @@ extern	int	rm_error;
 extern	char	rm_dfname[];
 extern	int	rm_emsg_lineno;
 
-void	RM_errormsg( fatal, msg )
-int	fatal;
-char	msg[];
+void	RM_errormsg( int fatal, char msg[] )
 {
 
 	rm_error = 1;
@@ -57,6 +60,19 @@ char	msg[];
 	if( fatal )
 		exit( 1 );
 }
+@
+
+
+1.5
+log
+@changed name from errormsg to RM_errormsg()
+@
+text
+@d7 1
+a7 3
+void	RM_errormsg( fatal, msg )
+int	fatal;
+char	msg[];
 @
 
 

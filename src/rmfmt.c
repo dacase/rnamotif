@@ -19,13 +19,11 @@ static	int	*maxw;
 #define	FMT_LEFT	0
 #define	FMT_RIGHT	1
 static	int	*fmt;
-static	int	*getfmt();
-static	int	fcmprs();
-static	void	align();
+static	int	*getfmt( int, int, char *[] );
+static	int	fcmprs( int, char [] );
+static	void	align( FILE *, int, char [], char [] );
 
-main( argc, argv )
-int	argc;
-char	*argv[];
+main( int argc, char *argv[] )
 {
 	char	*ifname;
 	FILE	*ifp, *tfp1, *tfp2;
@@ -208,10 +206,7 @@ char	*argv[];
 	exit( 0 );
 }
 
-static	int	*getfmt( n_fields, field1, fields )
-int	n_fields;
-int	field1;
-char	*fields[];
+static	int	*getfmt( int n_fields, int field1, char *fields[] )
 {
 	int	f;
 	int	*fmt;
@@ -236,9 +231,7 @@ char	*fields[];
 	return( fmt );
 }
 
-static	int	fcmprs( flen, field )
-int	flen;
-char	field[];
+static	int	fcmprs( int flen, char field[] )
 {
 	char	tmp[ 10000 ];
 
@@ -251,11 +244,7 @@ char	field[];
 		return( flen );
 }
 
-static	void	align( fp, lopt, dline, line )
-FILE	*fp;
-int	lopt;
-char	dline[];
-char	line[];
+static	void	align( FILE *fp, int lopt, char dline[], char line[] )
 {
 	char	*def;
 	char	name[ 256 ], ver[ 10 ];

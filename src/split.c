@@ -1,10 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-int	split( str, fields, fsep )
-char	str[];
-char	*fields[];
-char	*fsep;
+int	split( char str[], char *fields[], char *fsep )
 {
 	int	nf, flen, white;
 	char	*sp, *fp, *efp, *nfp;

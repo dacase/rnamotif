@@ -1,9 +1,14 @@
-head	1.11;
+head	1.12;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.12
+date	2000.10.07.03.48.26;	author macke;	state Exp;
+branches;
+next	1.11;
 
 1.11
 date	2000.06.12.17.43.09;	author macke;	state Exp;
@@ -66,11 +71,9 @@ desc
 @
 
 
-1.11
+1.12
 log
-@extended to allow -l & -a together which results in a much smaller
-name for the aligned seqs.  Still, there will be some that are too
-big for ae2, but (*sigh*)
+@changed all headers to ANSI from K&R.
 @
 text
 @#include <stdio.h>
@@ -94,13 +97,11 @@ static	int	*maxw;
 #define	FMT_LEFT	0
 #define	FMT_RIGHT	1
 static	int	*fmt;
-static	int	*getfmt();
-static	int	fcmprs();
-static	void	align();
+static	int	*getfmt( int, int, char *[] );
+static	int	fcmprs( int, char [] );
+static	void	align( FILE *, int, char [], char [] );
 
-main( argc, argv )
-int	argc;
-char	*argv[];
+main( int argc, char *argv[] )
 {
 	char	*ifname;
 	FILE	*ifp, *tfp1, *tfp2;
@@ -283,10 +284,7 @@ char	*argv[];
 	exit( 0 );
 }
 
-static	int	*getfmt( n_fields, field1, fields )
-int	n_fields;
-int	field1;
-char	*fields[];
+static	int	*getfmt( int n_fields, int field1, char *fields[] )
 {
 	int	f;
 	int	*fmt;
@@ -311,9 +309,7 @@ char	*fields[];
 	return( fmt );
 }
 
-static	int	fcmprs( flen, field )
-int	flen;
-char	field[];
+static	int	fcmprs( int flen, char field[] )
 {
 	char	tmp[ 10000 ];
 
@@ -326,11 +322,7 @@ char	field[];
 		return( flen );
 }
 
-static	void	align( fp, lopt, dline, line )
-FILE	*fp;
-int	lopt;
-char	dline[];
-char	line[];
+static	void	align( FILE *fp, int lopt, char dline[], char line[] )
 {
 	char	*def;
 	char	name[ 256 ], ver[ 10 ];
@@ -398,6 +390,43 @@ char	line[];
 	for( f = 0; f < n_fields; f++ )
 		free( fields[ f ] );
 }
+@
+
+
+1.11
+log
+@extended to allow -l & -a together which results in a much smaller
+name for the aligned seqs.  Still, there will be some that are too
+big for ae2, but (*sigh*)
+@
+text
+@d22 5
+a26 7
+static	int	*getfmt();
+static	int	fcmprs();
+static	void	align();
+
+main( argc, argv )
+int	argc;
+char	*argv[];
+d209 1
+a209 4
+static	int	*getfmt( n_fields, field1, fields )
+int	n_fields;
+int	field1;
+char	*fields[];
+d234 1
+a234 3
+static	int	fcmprs( flen, field )
+int	flen;
+char	field[];
+d247 1
+a247 5
+static	void	align( fp, lopt, dline, line )
+FILE	*fp;
+int	lopt;
+char	dline[];
+char	line[];
 @
 
 

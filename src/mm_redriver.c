@@ -10,13 +10,11 @@ char	expbuf[ EXPBUF_SIZE ];
 extern	char	*loc1, *loc2;
 extern	int	circf;
 
-void	seqlen();
-void	mm_dumppat();
-int	mm_step();
+void	seqlen( char [], int *, int *, int *, int * );
+void	mm_dumppat( FILE *, char [], char * );
+int	mm_step( char [], char [], int );
 
-main( argc, argv )
-int	argc;
-char	*argv[];
+main( int argc, char *argv[] )
 {
 	int	ac, i, j, mm;
 	int	minl, maxl, exact, mmok;

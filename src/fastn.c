@@ -2,15 +2,10 @@
 #include <ctype.h>
 #include <string.h>
 
-static	int	skipbl2nl();
+static	int	skipbl2nl( FILE * );
 
-int	FN_fgetseq( fp, sid, s_sdef, sdef, s_sbuf, sbuf )
-FILE	*fp;
-char	sid[];
-int	s_sdef;
-char	sdef[];
-int	s_sbuf;
-char	sbuf[];
+int	FN_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
+	int s_sbuf, char sbuf[] )
 {
 	char	*dp, *sp;
 	int	c, cnt;
@@ -94,8 +89,7 @@ char	sbuf[];
 	return( sp - sbuf );
 }
 
-static	int	skipbl2nl( fp )
-FILE	*fp;
+static	int	skipbl2nl( FILE *fp )
 {
 	int	c;
 

@@ -161,82 +161,98 @@ static	VALUE_T	mem[ MEM_SIZE ];
 static	int	pc;		/* program counter	*/
 static	int	mp;		/* mark pointer		*/ 
 static	int	sp;		/* stack pointer	*/
+#define	ESTK_SIZE	20
+static	int	estk[ ESTK_SIZE ];
+static	int	esp;		/* element stack pointer*/
 
 static	char	emsg[ 256 ];
 
-void	RM_if();
-void	RM_else();
-void	RM_endelse();
-void	RM_endif();
-void	RM_forinit();
-void	RM_fortest();
-void	RM_forincr();
-void	RM_endfor();
-void	RM_while();
-void	RM_endwhile();
-void	RM_break();
-void	RM_continue();
-void	RM_accept();
-void	RM_reject();
-void	RM_mark();
-void	RM_clear();
-void	RM_expr();
-void	RM_linkscore();
-void	RM_dumpscore();
-int	RM_score();
+void	RM_action( NODE_T * );
+void	RM_endaction( void );
+void	RM_if( NODE_T * );
+void	RM_else( void );
+void	RM_endelse( void );
+void	RM_endif( void );
+void	RM_forinit( NODE_T * );
+void	RM_fortest( NODE_T * );
+void	RM_forincr( NODE_T * );
+void	RM_endfor( void );
+void	RM_while( NODE_T * );
+void	RM_endwhile( void );
+void	RM_break( void );
+void	RM_continue( void );
+void	RM_accept( void );
+void	RM_reject( void );
+void	RM_mark( void );
+void	RM_clear( void );
+void	RM_expr( int, NODE_T * );
+void	RM_linkscore( void );
+void	RM_dumpscore( FILE * );
+int	RM_score( int, int, char [], double * );
 
-static	void	fixexpr();
-static	void	genexpr();
-static	int	is_syscall();
-static	void	fix_kw_stref();
-static	void	fix_ix_stref();
-static	NODE_T	*mk_call_strid();
-static	NODE_T	*mk_call_strid1();
-static	void	fix_call();
-static	void	do_fcl();
-static	void	do_scl();
-static	int	paired();
-static	int	strid();
-static	int	strid1();
-static	void	do_strf();
-static	void	do_lda();
-static	void	do_lod();
-static	void	do_ldc();
-static	void	do_sto();
-static	void	do_and();
-static	void	do_ior();
-static	void	do_not();
-static	void	do_mat();
-static	void	do_ins();
-static	void	do_gtr();
-static	void	do_geq();
-static	void	do_equ();
-static	void	do_neq();
-static	void	do_leq();
-static	void	do_les();
-static	void	do_add();
-static	void	do_sub();
-static	void	do_mul();
-static	void	do_div();
-static	void	do_mod();
-static	void	do_neg();
-static	void	do_i_pp();
-static	void	do_pp_i();
-static	void	do_i_mm();
-static	void	do_mm_i();
+static	void	fixexpr( NODE_T * );
+static	void	genexpr( int, NODE_T * );
+static	int	is_syscall( NODE_T * );
+static	void	fix_kw_stref( NODE_T * );
+static	void	fix_ix_stref( NODE_T * );
+static	NODE_T	*mk_call_strid( int, NODE_T * );
+static	void	fix_call( NODE_T * );
+static	void	do_fcl( INST_T * );
+static	void	do_scl( INST_T * );
+static	int	paired( STREL_T *, int, int );
+static	int	strid( int, VALUE_T * );
+static	void	do_strf( INST_T * );
+static	void	do_lda( INST_T * );
+static	void	do_lod( INST_T * );
+static	void	do_ldc( INST_T * );
+static	void	do_sto( INST_T * );
+static	void	do_and( INST_T * );
+static	void	do_ior( INST_T * );
+static	void	do_not( INST_T * );
+static	void	do_mat( INST_T * );
+static	void	do_ins( INST_T * );
+static	void	do_gtr( INST_T * );
+static	void	do_geq( INST_T * );
+static	void	do_equ( INST_T * );
+static	void	do_neq( INST_T * );
+static	void	do_leq( INST_T * );
+static	void	do_les( INST_T * );
+static	void	do_add( INST_T * );
+static	void	do_sub( INST_T * );
+static	void	do_mul( INST_T * );
+static	void	do_div( INST_T * );
+static	void	do_mod( INST_T * );
+static	void	do_neg( INST_T * );
+static	void	do_i_pp( INST_T * );
+static	void	do_pp_i( INST_T * );
+static	void	do_i_mm( INST_T * );
+static	void	do_mm_i( INST_T * );
 
-static	int	setupefn();
-static	int	setbp();
-static	void	mk_stref_name();
-static	void	addnode();
-static	void	addinst();
-static	void	dumpinst();
-static	void	dumpstk();
+static	int	setupefn( INST_T *, int, int, int, int );
+static	int	setbp( STREL_T *, int, int, int, int, int [] );
+static	void	mk_stref_name( int, char []);
+static	void	addnode( int, NODE_T *, int );
+static	void	addinst( int, int, VALUE_T * );
+static	void	dumpinst( FILE *, int, INST_T * );
+static	void	dumpstk( FILE *, char [] );
 
 char	*getenv();
 
-void	RM_action( np )
-NODE_T	*np;
+#define	TM_MEM_SIZE	1000
+typedef	struct	tm_mem_t	{
+	int	t_freed;
+	char	*t_id;
+	int	t_pc;
+	void	*t_addr;
+} TM_MEM_T;
+static	TM_MEM_T	tm_mem[ TM_MEM_SIZE ];
+static	int	tm_n_mem;
+
+static	char	*tm_malloc( int, char [] );
+static	void	tm_free( void * );
+static	void	tm_report( void );
+
+void	RM_action( NODE_T *np )
 {
 
 	RM_mark();
@@ -248,14 +264,13 @@ NODE_T	*np;
 	addinst( np->n_lineno, OP_FJP, &v_lab );
 }
 
-void	RM_endaction()
+void	RM_endaction( void )
 {
 
 	labtab[ actlab ] = l_prog;
 }
 
-void	RM_if( np )
-NODE_T	*np;
+void	RM_if( NODE_T *np )
 {
 
 	RM_mark();
@@ -268,7 +283,7 @@ NODE_T	*np;
 	addinst( np->n_lineno, OP_FJP, &v_lab );
 }
 
-void	RM_else()
+void	RM_else( void )
 {
 
 	v_lab.v_type = T_INT;
@@ -277,22 +292,21 @@ void	RM_else()
 	labtab[ ifstk[ ifstkp - 1 ] ] = l_prog;
 }
 
-void	RM_endelse()
+void	RM_endelse( void )
 {
 
 	labtab[ ifstk[ ifstkp - 1 ] + 1 ] = l_prog;
 	ifstkp--;
 }
 
-void	RM_endif()
+void	RM_endif( void )
 {
 
 	labtab[ ifstk[ ifstkp - 1 ] ] = l_prog;
 	ifstkp--;
 }
 
-void	RM_forinit( np )
-NODE_T	*np;
+void	RM_forinit( NODE_T *np )
 {
 
 	loopstk[ loopstkp ] = nextlab;
@@ -303,8 +317,7 @@ NODE_T	*np;
 	RM_clear();
 }
 
-void	RM_fortest( np )
-NODE_T	*np;
+void	RM_fortest( NODE_T *np )
 {
 
 	labtab[ loopstk[ loopstkp - 1 ] ] = l_prog;
@@ -315,14 +328,13 @@ NODE_T	*np;
 	addinst( np->n_lineno, OP_FJP, &v_lab );
 }
 
-void	RM_forincr( np )
-NODE_T	*np;
+void	RM_forincr( NODE_T *np )
 {
 
 	loopincrstk[ loopstkp - 1 ] = np;
 }
 
-void	RM_endfor()
+void	RM_endfor( void )
 {
 
 	labtab[ loopstk[ loopstkp - 1 ] + 1 ] = l_prog;
@@ -336,8 +348,7 @@ void	RM_endfor()
 	loopstkp--;
 }
 
-void	RM_while( np )
-NODE_T	*np;
+void	RM_while( NODE_T *np )
 {
 
 	loopstk[ loopstkp ] = nextlab;
@@ -351,7 +362,7 @@ NODE_T	*np;
 	addinst( np->n_lineno, OP_FJP, &v_lab );
 }
 
-void	RM_endwhile()
+void	RM_endwhile( void )
 {
 
 	v_lab.v_type = T_INT;
@@ -361,7 +372,7 @@ void	RM_endwhile()
 	loopstkp--;
 }
 
-void	RM_break()
+void	RM_break( void )
 {
 
 	v_lab.v_type = T_INT;
@@ -369,7 +380,7 @@ void	RM_break()
 	addinst( UNDEF, OP_JMP, &v_lab );
 }
 
-void	RM_continue()
+void	RM_continue( void )
 {
 
 	v_lab.v_type = T_INT;
@@ -377,40 +388,38 @@ void	RM_continue()
 	addinst( UNDEF, OP_JMP, &v_lab );
 }
 
-void	RM_accept()
+void	RM_accept( void )
 {
 
 	addinst( UNDEF, OP_ACPT, NULL );
 }
 
-void	RM_reject()
+void	RM_reject( void )
 {
 
 	addinst( UNDEF, OP_RJCT, NULL );
 }
 
-void	RM_mark()
+void	RM_mark( void )
 {
 
 	addinst( UNDEF, OP_MRK, NULL );
 }
 
-void	RM_clear()
+void	RM_clear( void )
 {
 
 	addinst( UNDEF, OP_CLS, 0 );
 }
 
-void	RM_expr( lval, np )
-int	lval;
-NODE_T	*np;
+void	RM_expr( int lval, NODE_T *np )
 {
 
 	fixexpr( np );
 	genexpr( lval, np );
 }
 
-void	RM_linkscore()
+void	RM_linkscore( void )
 {
 	int	i;
 	INST_T	*ip;
@@ -435,8 +444,7 @@ void	RM_linkscore()
 	sc_score = &idp->i_val.v_value.v_dval;
 }
 
-void	RM_dumpscore( fp )
-FILE	*fp;
+void	RM_dumpscore( FILE *fp )
 {
 	INST_T	*ip;
 	int	i;
@@ -447,13 +455,10 @@ FILE	*fp;
 	}
 }
 
-int	RM_score( comp, slen, sbuf, score )
-int	comp;
-int	slen;
-char	sbuf[];
-double	*score;
+int	RM_score( int comp, int slen, char sbuf[], double *score )
 {
 	INST_T	*ip;
+	int	rval;
 	
 	*score = 0.0;
 	if( l_prog <= 0 )
@@ -462,8 +467,8 @@ double	*score;
 	sc_comp = comp;
 	sc_slen = slen;
 	sc_sbuf = sbuf;
-	sp = mp = -1;
-	for( pc = 0; ; ){
+	esp = sp = mp = -1;
+	for( rval = 0, pc = 0; ; ){
 		if( pc < 0 || pc >= l_prog ){
 			sprintf( emsg, "RM_score: pc: %d: out of range 0..%d.",
 				pc, l_prog - 1 );
@@ -483,10 +488,11 @@ dumpstk( stdout, "before op" );
 
 		case OP_ACPT :
 			*score = *sc_score;
-			return( 1 );
+			rval = 1;
+			goto SCORED;
 			break;
 		case OP_RJCT :
-			return( 0 );
+			goto SCORED;
 			break;
 
 		case OP_MRK :
@@ -609,11 +615,18 @@ dumpstk( stdout, "after op " );
 */
 
 	}
+
+SCORED : ;
 	*score = *sc_score;
+
+#ifdef MEMDEBUG
+	tm_report();
+#endif
+	
+	return( rval );
 }
 
-static	void	fixexpr( np )
-NODE_T	*np;
+static	void	fixexpr( NODE_T *np )
 {
 
 	if( np ){
@@ -629,9 +642,7 @@ NODE_T	*np;
 	}
 }
 
-static	void	genexpr( lval, np )
-int	lval;
-NODE_T	*np;
+static	void	genexpr( int lval, NODE_T *np )
 {
 	int	l_andor;
 
@@ -664,8 +675,7 @@ NODE_T	*np;
 	}
 }
 
-static	int	is_syscall( np )
-NODE_T	*np;
+static	int	is_syscall( NODE_T *np )
 {
 	int	i;
 	char	*sp;
@@ -678,8 +688,7 @@ NODE_T	*np;
 	return( UNDEF );
 }
 
-static	void	fix_kw_stref( np )
-NODE_T	*np;
+static	void	fix_kw_stref( NODE_T *np )
 {
 	int	sel;
 	NODE_T	*n_id, *n_index, *n_tag, *n_pos, *n_len;
@@ -742,7 +751,7 @@ NODE_T	*np;
 	}else
 		n_id = n_index != NULL ? n_index : n_tag;
 
-	np1 = mk_call_strid1( sel, n_id );
+	np1 = mk_call_strid( sel, n_id );
 
 	/* build the 3 parms to stref	*/
 	if( n_len == NULL ){
@@ -766,8 +775,7 @@ NODE_T	*np;
 	np->n_right = np1;
 }
 
-static	void	fix_ix_stref( np )
-NODE_T	*np;
+static	void	fix_ix_stref( NODE_T *np )
 {
 	int	sel;
 	NODE_T	*n_id, *n_pos, *n_len;
@@ -789,10 +797,7 @@ NODE_T	*np;
 		}
 	}
 
-/*
-	np1 = mk_call_strid( n_tag, n_index, np->n_left->n_sym );
-*/
-	np1 = mk_call_strid1( sel, n_id );
+	np1 = mk_call_strid( sel, n_id );
 
 	/* build the 3 parms to stref	*/
 	if( n_len == NULL ){
@@ -804,9 +809,6 @@ NODE_T	*np;
 	np2 = RM_node( SYM_LIST, 0, np3, NULL );
 	if( n_pos == NULL ){
 		v_expr.v_type = T_INT;
-/*
-		v_expr.v_value.v_ival = 1;
-*/
 		v_expr.v_value.v_ival = UNDEF;
 		np3 = RM_node( SYM_INT, &v_expr, 0, 0 );
 	}else
@@ -816,138 +818,7 @@ NODE_T	*np;
 	np->n_right = np1;
 }
 
-static	NODE_T	*mk_call_strid( n_tag, n_index, strel )
-NODE_T	*n_tag;
-NODE_T	*n_index;
-int	strel;
-{
-	NODE_T	*np1, *np2, *np3;
-	VALUE_T	v_expr;
-	int	k_tag, k_index;
-	char	*v_tag;
-	int	v_index;
-	int	d, d_tag, d_index;
-	STREL_T	*stp;
-
-	k_tag = 0;
-	v_tag = NULL;
-	d_tag = UNDEF;
-	k_index = 0;
-	v_index = UNDEF;
-	d_index = UNDEF;
-
-	if( n_tag != NULL ){
-		if( n_tag->n_sym == SYM_STRING ){
-			k_tag = 1;
-			v_tag = n_tag->n_val.v_value.v_pval;
-		}
-	}else{
-		k_tag = 1;
-		v_tag = NULL;
-	}
-
-	if( n_index != NULL ){
-		if( n_index->n_sym == SYM_INT ){
-			k_index = 1;
-			v_index = n_index->n_val.v_value.v_ival;
-		}
-	}else{
-		k_index = 1;
-		v_index = UNDEF;
-	}
-
-	if( k_tag && k_index ){
-		if( v_tag != NULL ){
-			stp = rm_descr;
-			for( d = 0; d < rm_n_descr; d++, stp++ ){
-				if( stp->s_type == strel ){
-					if( stp->s_tag == NULL )
-						continue;
-					else if( !strcmp( stp->s_tag, v_tag ) ){
-						d_tag = d;
-						break;
-					}
-				}
-			}
-			if( d_tag == UNDEF ){
-				rm_emsg_lineno = n_tag->n_lineno;
-				sprintf( emsg,
-				"mk_call_strid: no such tag: '%s'.", v_tag );
-				RM_errormsg( 1, emsg );
-			}
-		}
-		if( v_index != UNDEF ){
-			rm_emsg_lineno = n_index->n_lineno;
-			if( v_index < 1 || v_index > rm_n_descr ){
-				sprintf( emsg,
-			"mk_call_strid: index must be between 1 and %d.",
-					rm_n_descr );
-				RM_errormsg( 1, emsg );
-			}else
-				d_index = v_index;
-			if( rm_descr[ d_index - 1 ].s_type != strel ){
-				sprintf( emsg,
-		"mk_call_strid: strel with index= %d has wrong type.",
-					v_index );
-				RM_errormsg( 1, emsg );
-			}
-		}
-		if( d_tag == UNDEF && d_index == UNDEF ){
-			rm_emsg_lineno = n_tag->n_lineno;
-			RM_errormsg( 1,
-		"mk_call_strid: tag and index both have invalid values." );
-		}else if( d_tag != UNDEF && d_index == UNDEF ){
-			v_expr.v_type = T_INT;
-			v_expr.v_value.v_ival = d_tag;
-			np1 = RM_node( SYM_INT, &v_expr, 0, 0 );
-			return( np1 );
-		}else if( d_tag == UNDEF && d_index != UNDEF ){
-			v_expr.v_type = T_INT;
-			v_expr.v_value.v_ival = d_index - 1;
-			np1 = RM_node( SYM_INT, &v_expr, 0, 0 );
-			return( np1 );
-		}else if( d_tag == d_index - 1 ){
-			v_expr.v_type = T_INT;
-			v_expr.v_value.v_ival = d_index;
-			np1 = RM_node( SYM_INT, &v_expr, 0, 0 );
-			return( np1 );
-		}else{
-			rm_emsg_lineno = n_tag->n_lineno;
-			RM_errormsg( 1,
-		"mk_call_strid: tag and index values are inconsistant." );
-		}
-	}
-
-	if( n_tag == NULL ){
-		v_expr.v_type = T_STRING;
-		v_expr.v_value.v_pval = "";
-		n_tag = RM_node( SYM_STRING, &v_expr, 0, 0 );
-	}
-	np2 = RM_node( SYM_LIST, 0, n_tag, NULL );
-
-	if( n_index == NULL ){
-		v_expr.v_type = T_INT;
-		v_expr.v_value.v_ival = UNDEF;
-		n_index = RM_node( SYM_INT, &v_expr, 0, 0 );
-	}
-		np3 = n_index;
-	np2 = RM_node( SYM_LIST, 0, n_index, np2 );
-
-	v_expr.v_type = T_INT;
-	v_expr.v_value.v_ival = strel;
-	np3 = RM_node( SYM_INT, &v_expr, 0, 0 );
-	np2 = RM_node( SYM_LIST, 0, np3, np2 );
-
-	v_expr.v_type = T_STRING;
-	v_expr.v_value.v_pval = "STRID";
-	np3 = RM_node( SYM_IDENT, &v_expr, 0, 0 );
-	np1 = RM_node( SYM_CALL, 0, np3, np2 );
-	return( np1 );
-}
-
-static	NODE_T	*mk_call_strid1( strel, n_id )
-int	strel;
-NODE_T	*n_id;
+static	NODE_T	*mk_call_strid( int strel, NODE_T *n_id )
 {
 	NODE_T	*np1, *np2, *np3;
 	VALUE_T	v_expr;
@@ -966,8 +837,7 @@ NODE_T	*n_id;
 	return( np1 );
 }
 
-static	void	fix_call( np )
-NODE_T	*np;
+static	void	fix_call( NODE_T *np )
 {
 	int	sc, pcnt;
 	NODE_T	*np1, *np2, *np3;
@@ -1043,8 +913,7 @@ NODE_T	*np;
 	}
 }
 
-static	void	do_fcl( ip )
-INST_T	*ip;
+static	void	do_fcl( INST_T *ip )
 {
 	char	*cp;
 	int	len;
@@ -1052,7 +921,7 @@ INST_T	*ip;
 	if( !strcmp( ip->i_val.v_value.v_pval, "length" ) ){
 		cp = mem[ sp ].v_value.v_pval;
 		len = strlen( cp );
-		free( cp );
+		tm_free( cp );
 		mem[ mp ].v_type = T_INT;
 		mem[ mp ].v_value.v_ival = len;
 		sp = mp;
@@ -1060,8 +929,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_scl( ip )
-INST_T	*ip;
+static	void	do_scl( INST_T *ip )
 {
 	char	*cp;
 	VALUE_T	*v_id;
@@ -1154,6 +1022,7 @@ INST_T	*ip;
 		pos2--;
 		len2 = mem[ sp     ].v_value.v_ival;
 		if( setupefn( ip, idx, pos, idx2, pos2 ) ){
+			RM_initst();
 			rval = 0.01 * RM_efn( 0, rm_l_base, 1 );
 		}else
 			rval = EFN_INFINITY;
@@ -1165,7 +1034,7 @@ INST_T	*ip;
 	case SC_LENGTH :
 		cp = mem[ sp ].v_value.v_pval;
 		len = strlen( cp );
-		free( cp );
+		tm_free( cp );
 		sp = mp;
 		mp = mem[ mp ].v_value.v_ival;
 		mem[ sp ].v_type = T_INT;
@@ -1243,7 +1112,11 @@ INST_T	*ip;
 		sp = mp;
 		mp = mem[ mp ].v_value.v_ival;
 		mem[ sp ].v_type = T_INT;
-		mem[ sp ].v_value.v_ival = strid1( stype, v_id );
+		idx = mem[ sp ].v_value.v_ival = strid( stype, v_id );
+		if( v_id->v_type == T_STRING )
+			tm_free( v_id->v_value.v_pval );
+		esp++;
+		estk[ esp ] = idx;
 		break;
 
 	default :
@@ -1253,10 +1126,7 @@ INST_T	*ip;
 	}
 }
 
-static	int	paired( stp, pos, len )
-STREL_T	*stp;
-int	pos;
-int	len;
+static	int	paired( STREL_T *stp, int pos, int len )
 {
 	STREL_T	*stp1, *stp2, *stp3, *stp4;
 	int	i, mlen;
@@ -1330,16 +1200,14 @@ int	len;
 	}
 }
 
-static	int	strid( stype, idx, tag )
-int	stype;
-int	idx;
-char	*tag;
+static	int	strid( int stype, VALUE_T *v_id )
 {
-	int	s, t_idx;
+	int	s, idx;
 	STREL_T	*stp;
-	char	name1[ 20 ], name2[ 20 ];
+	char	*tag, name1[ 20 ], name2[ 20 ];
 
-	if( *tag == '\0' ){
+	if( v_id->v_type == T_INT ){
+		idx = v_id->v_value.v_ival;
 		if( idx < 1 || idx > rm_n_descr ){
 			rm_emsg_lineno = UNDEF;
 			sprintf( emsg,
@@ -1356,76 +1224,6 @@ char	*tag;
 				rm_emsg_lineno = UNDEF;
 				sprintf( emsg,
 			"strid: descr type mismatch: is %s should be %s.",
-					name1, name2 );
-				RM_errormsg( 1, emsg );
-			}
-		}
-	}else{
-		stp = rm_descr;
-		for( t_idx = UNDEF, s = 0; s < rm_n_descr; s++, stp++ ){ 
-			if( stp->s_tag == NULL )
-				continue;
-			else if( !strcmp( stp->s_tag, tag ) ){
-				if( stp->s_type == stype ){
-					t_idx = s;
-					break;
-				}else if(stp->s_type==SYM_SS && stype==SYM_SE){ 
-					t_idx = s;
-					break;
-				}else{
-					mk_stref_name( stype, name1 );
-					mk_stref_name( stp->s_type, name2 );
-					rm_emsg_lineno = UNDEF;
-					sprintf( emsg,
-				"strid: ambiguous descr reference: %s vs %s.",
-						name1, name2 );
-					RM_errormsg( 1, emsg );
-				}
-			}
-		}
-		if( t_idx == UNDEF ){
-			rm_emsg_lineno = UNDEF;
-			sprintf( emsg, "strid: no such descr '%s'.", tag );
-			RM_errormsg( 1, emsg );
-		}else if( idx != UNDEF ){
-			if( t_idx != idx ){
-				rm_emsg_lineno = UNDEF;
-				sprintf( emsg, 
-				"strid: tag '%s' and index %d conflict.",
-					tag, idx );
-				RM_errormsg( 1, emsg );
-			}
-		}
-	}
-	return( idx );
-}
-
-static	int	strid1( stype, v_id )
-int	stype;
-VALUE_T	*v_id;
-{
-	int	s, idx;
-	STREL_T	*stp;
-	char	*tag, name1[ 20 ], name2[ 20 ];
-
-	if( v_id->v_type == T_INT ){
-		idx = v_id->v_value.v_ival;
-		if( idx < 1 || idx > rm_n_descr ){
-			rm_emsg_lineno = UNDEF;
-			sprintf( emsg,
-				"strid1: index (%d) out of range: 1 .. %d.",
-				idx, rm_n_descr );
-			RM_errormsg( 1, emsg );
-		}
-		idx--;
-		stp = &rm_descr[ idx ];
-		if( stype != SYM_SE ){
-			if( stp->s_type != stype ){
-				mk_stref_name( stype, name1 );
-				mk_stref_name( stp->s_type, name2 );
-				rm_emsg_lineno = UNDEF;
-				sprintf( emsg,
-			"strid1: descr type mismatch: is %s should be %s.",
 					name1, name2 );
 				RM_errormsg( 1, emsg );
 			}
@@ -1449,7 +1247,7 @@ VALUE_T	*v_id;
 					mk_stref_name( stp->s_type, name2 );
 					rm_emsg_lineno = UNDEF;
 					sprintf( emsg,
-				"strid1: ambiguous descr reference: %s vs %s.",
+				"strid: ambiguous descr reference: %s vs %s.",
 						name1, name2 );
 					RM_errormsg( 1, emsg );
 */
@@ -1458,15 +1256,14 @@ VALUE_T	*v_id;
 		}
 		if( idx == UNDEF ){
 			rm_emsg_lineno = UNDEF;
-			sprintf( emsg, "strid1: no such descr '%s'.", tag );
+			sprintf( emsg, "strid: no such descr '%s'.", tag );
 			RM_errormsg( 1, emsg );
 		}
 	}
 	return( idx );
 }
 
-static	void	do_strf( ip )
-INST_T	*ip;
+static	void	do_strf( INST_T *ip )
 {
 	int	index;
 	int	pos;
@@ -1483,9 +1280,6 @@ INST_T	*ip;
 		RM_errormsg( 1, emsg );
 	}
 	stp = &rm_descr[ index ];
-/*
-	if( pos < 1 ){
-*/
 	if( pos == UNDEF )
 		pos = 1;
 	else if( pos < 0 ){
@@ -1507,7 +1301,7 @@ INST_T	*ip;
 		len = stp->s_matchlen - pos;
 	else
 		len = MIN( stp->s_matchlen - pos, len );
-	cp = ( char * )malloc( ( len + 1 ) * sizeof( char ) );
+	cp = ( char * )tm_malloc( ( len + 1 ) * sizeof( char ), "do_strf" );
 	if( cp == NULL ){
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_strf: can't allocate cp." );
@@ -1518,10 +1312,10 @@ INST_T	*ip;
 	sp -= 2; 
 	mem[ sp ].v_type = T_STRING;
 	mem[ sp ].v_value.v_pval = cp; 
+	esp--;
 }
 
-static	void	do_lda( ip )
-INST_T	*ip;
+static	void	do_lda( INST_T *ip )
 {
 	VALUE_T	*v_top;
 	IDENT_T	*idp;
@@ -1545,8 +1339,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_lod( ip )
-INST_T	*ip;
+static	void	do_lod( INST_T *ip )
 {
 	VALUE_T	*v_top;
 	IDENT_T	*idp;
@@ -1578,8 +1371,8 @@ INST_T	*ip;
 			v_top->v_value.v_dval = idp->i_val.v_value.v_dval;
 			break;
 		case T_STRING :
-			cp = ( char * )
-				malloc( strlen(idp->i_val.v_value.v_pval) + 1 );
+			cp = ( char * )tm_malloc(
+				strlen(idp->i_val.v_value.v_pval)+1, "do_lod" );
 			if( cp == NULL ){
 				rm_emsg_lineno = UNDEF;
 				RM_errormsg( 1, "do_lod: can't allocate cp." );
@@ -1596,11 +1389,11 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_ldc( ip )
-INST_T	*ip;
+static	void	do_ldc( INST_T *ip )
 {
 	VALUE_T	*v_top;
 	char	*cp;
+	int	idx;
 
 	sp++;
 	v_top = &mem[ sp ];
@@ -1615,7 +1408,8 @@ INST_T	*ip;
 		break;
 	case T_STRING :
 		v_top->v_type = T_STRING;
-		cp = ( char * )malloc( strlen( ip->i_val.v_value.v_pval ) + 1 );
+		cp = ( char * )tm_malloc(
+			strlen( ip->i_val.v_value.v_pval ) + 1, "do_ldc" );
 		if( cp == NULL ){
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1, "do_ldc: can't allocate cp." );
@@ -1624,8 +1418,10 @@ INST_T	*ip;
 		v_top->v_value.v_pval = cp;
 		break;
 	case	T_POS :
-		v_top->v_type = T_POS;
-		v_top->v_value.v_pval = NULL;
+		v_top->v_type = T_INT;
+		idx = estk[ esp ];
+		v_top->v_value.v_ival = rm_descr[ idx ].s_matchlen;
+		
 		break;
 	case 	T_PAIRSET :
 		v_top->v_type = T_PAIRSET;
@@ -1638,8 +1434,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_sto( ip )
-INST_T	*ip;
+static	void	do_sto( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1667,7 +1462,8 @@ INST_T	*ip;
 		idp->i_val.v_value.v_ival = v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_UNDEF, T_STRING ):
-		cp = ( char * )malloc( strlen( v_top->v_value.v_pval ) + 1 );
+		cp = ( char * )tm_malloc(
+			strlen( v_top->v_value.v_pval ) + 1, "do_sto: US" );
 		if( cp == NULL ){
 			rm_emsg_lineno = UNDEF;
 			RM_errormsg( 1, "do_sto: can't allocate new string." );
@@ -1676,6 +1472,7 @@ INST_T	*ip;
 		idp->i_type = T_STRING;
 		idp->i_val.v_type = T_STRING;
 		idp->i_val.v_value.v_pval = cp;
+		tm_free( v_top->v_value.v_pval );
 		break;
 	case T_IJ( T_INT, T_INT ) :
 		idp->i_val.v_value.v_ival = v_top->v_value.v_ival;
@@ -1690,14 +1487,16 @@ INST_T	*ip;
 		idp->i_val.v_value.v_dval = v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
-		cp = ( char * )malloc( strlen( v_top->v_value.v_pval ) + 1 );
+		cp = ( char * )tm_malloc(
+			strlen( v_top->v_value.v_pval ) + 1, "do_sto: SS" );
 		if( cp == NULL ){
 			rm_emsg_lineno = UNDEF;
 			RM_errormsg( 1, "do_sto: can't allocate new string." );
 		}
 		strcpy( cp, v_top->v_value.v_pval );
-		free( idp->i_val.v_value.v_pval );
+		tm_free( idp->i_val.v_value.v_pval );
 		idp->i_val.v_value.v_pval = cp;
+		tm_free( v_top->v_value.v_pval );
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -1706,11 +1505,11 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_and( ip )
-INST_T	*ip;
+static	void	do_and( INST_T *ip )
 {
 	VALUE_T	*v_top;
 	int	t_top, rv;
+	char	*cp;
 
 	v_top = &mem[ sp ];
 	t_top = v_top->v_type;
@@ -1723,8 +1522,14 @@ INST_T	*ip;
 		rv = v_top->v_value.v_ival = v_top->v_value.v_dval != 0.0;
 		break;
 	case T_STRING :
+/*
 		rv = v_top->v_value.v_ival =
 			*( char * )v_top->v_value.v_pval != '\0';
+*/
+		cp = ( char * )v_top->v_value.v_pval;
+		rv = v_top->v_value.v_ival =
+			*( char * )v_top->v_value.v_pval != '\0';
+		tm_free( cp );
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -1735,11 +1540,11 @@ INST_T	*ip;
 		pc = ip->i_val.v_value.v_ival;
 }
 
-static	void	do_ior( ip )
-INST_T	*ip;
+static	void	do_ior( INST_T *ip )
 {
 	VALUE_T	*v_top;
 	int	t_top, rv;
+	char	*cp;
 
 	v_top = &mem[ sp ];
 	t_top = v_top->v_type;
@@ -1752,8 +1557,14 @@ INST_T	*ip;
 		rv = v_top->v_value.v_ival = v_top->v_value.v_dval != 0.0;
 		break;
 	case T_STRING :
+/*
 		rv = v_top->v_value.v_ival =
 			*( char * )v_top->v_value.v_pval != '\0';
+*/
+		cp = ( char * )v_top->v_value.v_pval;
+		rv = v_top->v_value.v_ival =
+			*( char * )v_top->v_value.v_pval != '\0';
+		tm_free( cp );
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -1764,8 +1575,7 @@ INST_T	*ip;
 		pc = ip->i_val.v_value.v_ival;
 }
 
-static	void	do_not( ip )
-INST_T	*ip;
+static	void	do_not( INST_T *ip )
 {
 	VALUE_T	*v_top;
 	int	t_top;
@@ -1791,8 +1601,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_mat( ip )
-INST_T	*ip;
+static	void	do_mat( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1813,8 +1622,8 @@ INST_T	*ip;
 		s_top = v_top->v_value.v_pval;
 		compile( s_top, expbuf, &expbuf[ EXPBUF_SIZE ], '\0' );
 		v_tm1->v_value.v_ival = step( s_tm1, expbuf );
-		free( s_top );
-		free( s_tm1 );
+		tm_free( s_top );
+		tm_free( s_tm1 );
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -1823,8 +1632,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_ins( ip )
-INST_T	*ip;
+static	void	do_ins( INST_T *ip )
 {
 	VALUE_T	*v_bases[ 4 ], *v_top;
 	char	*s_bases[ 4 ];
@@ -1899,14 +1707,17 @@ INST_T	*ip;
 		break;
 	}
 
+	for( i = 0; i < n_bases; i++ ){
+		tm_free( mem[ mp + 1 + i ].v_value.v_pval );
+	}
+
 	sp = mp;
 	mp = mem[ mp ].v_value.v_ival;
 	mem[ sp ].v_type = T_INT;
 	mem[ sp ].v_value.v_ival = rv;
 }
 
-static	void	do_gtr( ip )
-INST_T	*ip;
+static	void	do_gtr( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1940,8 +1751,8 @@ INST_T	*ip;
 		s_tm1 = v_tm1->v_value.v_pval;
 		s_top = v_top->v_value.v_pval;
 		v_tm1->v_value.v_ival = strcmp( s_tm1, s_top ) > 0;
-		free( s_top );
-		free( s_tm1 );
+		tm_free( s_top );
+		tm_free( s_tm1 );
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -1950,8 +1761,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_geq( ip )
-INST_T	*ip;
+static	void	do_geq( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1985,8 +1795,8 @@ INST_T	*ip;
 		s_tm1 = v_tm1->v_value.v_pval;
 		s_top = v_top->v_value.v_pval;
 		v_tm1->v_value.v_ival = strcmp( s_tm1, s_top ) >= 0;
-		free( s_top );
-		free( s_tm1 );
+		tm_free( s_top );
+		tm_free( s_tm1 );
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -1996,8 +1806,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_equ( ip )
-INST_T	*ip;
+static	void	do_equ( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -2031,8 +1840,8 @@ INST_T	*ip;
 		s_tm1 = v_tm1->v_value.v_pval;
 		s_top = v_top->v_value.v_pval;
 		v_tm1->v_value.v_ival = strcmp( s_tm1, s_top ) == 0;
-		free( s_top );
-		free( s_tm1 );
+		tm_free( s_top );
+		tm_free( s_tm1 );
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -2041,8 +1850,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_neq( ip )
-INST_T	*ip;
+static	void	do_neq( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -2076,8 +1884,8 @@ INST_T	*ip;
 		s_tm1 = v_tm1->v_value.v_pval;
 		s_top = v_top->v_value.v_pval;
 		v_tm1->v_value.v_ival = strcmp( s_tm1, s_top ) != 0;
-		free( s_top );
-		free( s_tm1 );
+		tm_free( s_top );
+		tm_free( s_tm1 );
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -2086,8 +1894,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_leq( ip )
-INST_T	*ip;
+static	void	do_leq( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -2121,8 +1928,8 @@ INST_T	*ip;
 		s_tm1 = v_tm1->v_value.v_pval;
 		s_top = v_top->v_value.v_pval;
 		v_tm1->v_value.v_ival = strcmp( s_tm1, s_top ) <= 0;
-		free( s_top );
-		free( s_tm1 );
+		tm_free( s_top );
+		tm_free( s_tm1 );
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -2131,8 +1938,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_les( ip )
-INST_T	*ip;
+static	void	do_les( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -2166,8 +1972,8 @@ INST_T	*ip;
 		s_tm1 = v_tm1->v_value.v_pval;
 		s_top = v_top->v_value.v_pval;
 		v_tm1->v_value.v_ival = strcmp( s_tm1, s_top ) < 0;
-		free( s_top );
-		free( s_tm1 );
+		tm_free( s_top );
+		tm_free( s_tm1 );
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -2176,8 +1982,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_add( ip )
-INST_T	*ip;
+static	void	do_add( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -2208,8 +2013,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_sub( ip )
-INST_T	*ip;
+static	void	do_sub( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -2240,8 +2044,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_mul( ip )
-INST_T	*ip;
+static	void	do_mul( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -2272,8 +2075,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_div( ip )
-INST_T	*ip;
+static	void	do_div( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -2304,8 +2106,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_mod( ip )
-INST_T	*ip;
+static	void	do_mod( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -2327,8 +2128,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_neg( ip )
-INST_T	*ip;
+static	void	do_neg( INST_T *ip )
 {
 	VALUE_T	*v_top;
 	int	t_top;
@@ -2350,8 +2150,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_i_pp( ip )
-INST_T	*ip;
+static	void	do_i_pp( INST_T *ip )
 {
 	VALUE_T	*v_top;
 	int	t_top;
@@ -2378,8 +2177,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_pp_i( ip )
-INST_T	*ip;
+static	void	do_pp_i( INST_T *ip )
 {
 	VALUE_T	*v_top;
 	int	t_top;
@@ -2406,8 +2204,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_i_mm( ip )
-INST_T	*ip;
+static	void	do_i_mm( INST_T *ip )
 {
 	VALUE_T	*v_top;
 	int	t_top;
@@ -2435,8 +2232,7 @@ INST_T	*ip;
 	}
 }
 
-static	void	do_mm_i( ip )
-INST_T	*ip;
+static	void	do_mm_i( INST_T *ip )
 {
 	VALUE_T	*v_top;
 	int	t_top;
@@ -2463,12 +2259,7 @@ INST_T	*ip;
 	}
 }
 
-static	int	setupefn( ip, idx, pos, idx2, pos2 )
-INST_T	*ip;
-int	idx;
-int	pos;
-int	idx2;
-int	pos2;
+static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 {
 	int	i, p, inc;
 	int	off, off5, len;
@@ -2554,13 +2345,8 @@ int	pos2;
 	return( 1 );
 }
 
-static	int	setbp( stp, p, i, off, len, basepr )
-STREL_T	*stp;
-int	p;
-int	i;
-int	off;
-int	len;
-int	basepr[];
+static	int	setbp( STREL_T *stp, int p, int i, int off, int len,
+	int basepr[] )
 {
 	STREL_T	*stp1;
 	int	p1;
@@ -2587,9 +2373,7 @@ fprintf( stderr, "out of bounds bp: %4d.%4d\n", bp, bp1 );
 	return( 1 );
 }
 
-static	void	mk_stref_name( sym, name )
-int	sym;
-char	name[];
+static	void	mk_stref_name( int sym, char name[] )
 {
 
 	switch( sym ){
@@ -2644,10 +2428,7 @@ char	name[];
 	}
 }
 
-static	void	addnode( lval, np, l_andor )
-int	lval;
-NODE_T	*np;
-int	l_andor;
+static	void	addnode( int lval, NODE_T *np, int l_andor )
 {
 	VALUE_T	v_node;
 	int	sc;
@@ -2852,10 +2633,7 @@ int	l_andor;
 	}
 }
 
-static	void	addinst( ln, op, vp )
-int	ln;
-int	op;
-VALUE_T	*vp;
+static	void	addinst( int ln, int op, VALUE_T *vp )
 {
 	INST_T	*ip;
 	char	*sp;
@@ -2892,9 +2670,7 @@ VALUE_T	*vp;
 	}
 }
 
-static	void	dumpinst( fp, i, ip )
-FILE	*fp;
-INST_T	*ip;
+static	void	dumpinst( FILE *fp, int i, INST_T * ip )
 {
 	VALUE_T	*vp;
 	
@@ -2989,9 +2765,7 @@ INST_T	*ip;
 	fprintf( fp, "\n" );
 }
 
-static	void	dumpstk( fp, msg )
-FILE	*fp;
-char	msg[];
+static	void	dumpstk( FILE *fp, char msg[] )
 {
 	int	i;
 	VALUE_T	*vp;
@@ -3027,4 +2801,51 @@ char	msg[];
 		}
 		fprintf( fp, "\n" );
 	}
+}
+
+static	char	*tm_malloc( int size, char id[] )
+{
+	char	*ptr;
+
+	ptr = ( char * )malloc( size * sizeof( char ) );
+#ifdef	MEMDEBUG
+	if( tm_n_mem < TM_MEM_SIZE ){
+		tm_mem[ tm_n_mem ].t_freed = 0;
+		tm_mem[ tm_n_mem ].t_id = id;
+		tm_mem[ tm_n_mem ].t_pc = pc - 1;
+		tm_mem[ tm_n_mem ].t_addr = ptr;
+		tm_n_mem++;
+	}
+#endif
+	return( ptr );
+}
+
+static	void	tm_free( void *ptr )
+{
+	int	i;
+
+	free( ptr );
+#ifdef	MEMDEBUG
+	for( i = 0;i < tm_n_mem; i++ ){
+		if( tm_mem[ i ].t_addr == ptr ){
+			tm_mem[ i ].t_freed = 1;
+		}
+	}
+#endif
+}
+
+static	void	tm_report( void )
+{
+	int	i;
+	static	int	cnt = 0;
+
+	for( i = 0; i < tm_n_mem; i++ ){
+		fprintf( stderr, "tm_mem[%4d]:", i );
+		fprintf( stderr, " addr = %8p, freed = %d, pc = %4d, id = %s\n",
+			tm_mem[i].t_addr, tm_mem[i].t_freed,
+			tm_mem[i].t_pc, tm_mem[i].t_id );
+	}
+	cnt++;
+	if( cnt > 1 )
+		exit( 1 );
 }

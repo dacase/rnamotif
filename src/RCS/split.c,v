@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2000.10.07.03.43.48;	author macke;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	99.06.22.00.58.12;	author macke;	state Exp;
@@ -16,18 +21,15 @@ desc
 @
 
 
-1.1
+1.2
 log
-@Initial revision
+@converted to use ANSI func. headers.
 @
 text
 @#include <stdio.h>
 #include <string.h>
 
-int	split( str, fields, fsep )
-char	str[];
-char	*fields[];
-char	*fsep;
+int	split( char str[], char *fields[], char *fsep )
 {
 	int	nf, flen, white;
 	char	*sp, *fp, *efp, *nfp;
@@ -91,4 +93,18 @@ char	*fsep;
 		}
 	}
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d4 1
+a4 4
+int	split( str, fields, fsep )
+char	str[];
+char	*fields[];
+char	*fsep;
 @

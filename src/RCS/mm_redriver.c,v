@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2000.10.07.06.05.05;	author macke;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	99.09.15.03.34.44;	author macke;	state Exp;
@@ -16,9 +21,9 @@ desc
 @
 
 
-1.1
+1.2
 log
-@Initial revision
+@converted headers from K&R to ANSI.
 @
 text
 @#include <stdio.h>
@@ -33,13 +38,11 @@ char	expbuf[ EXPBUF_SIZE ];
 extern	char	*loc1, *loc2;
 extern	int	circf;
 
-void	seqlen();
-void	mm_dumppat();
-int	mm_step();
+void	seqlen( char [], int *, int *, int *, int * );
+void	mm_dumppat( FILE *, char [], char * );
+int	mm_step( char [], char [], int );
 
-main( argc, argv )
-int	argc;
-char	*argv[];
+main( int argc, char *argv[] )
 {
 	int	ac, i, j, mm;
 	int	minl, maxl, exact, mmok;
@@ -133,4 +136,22 @@ char	*argv[];
 
 	exit( 0 );
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d13 3
+a15 3
+void	seqlen();
+void	mm_dumppat();
+int	mm_step();
+d17 1
+a17 3
+main( argc, argv )
+int	argc;
+char	*argv[];
 @

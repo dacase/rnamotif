@@ -5,13 +5,9 @@
 
 extern	int	rm_lineno;
 
-void	RM_dumpnode();
+void	RM_dumpnode( FILE *, NODE_T *, int );
 
-NODE_T	*RM_node( sym, vp, left, right )
-int	sym;
-VALUE_T	*vp;
-NODE_T	*left;
-NODE_T	*right;
+NODE_T	*RM_node( int sym, VALUE_T *vp, NODE_T *left, NODE_T *right )
 {
 	NODE_T	*np;
 	char	emsg[ 256 ];
@@ -54,10 +50,7 @@ NODE_T	*right;
 	return( np );
 }
 
-void	RM_dumpexpr( fp, np, indent )
-FILE	*fp;
-NODE_T	*np;
-int	indent;
+void	RM_dumpexpr( FILE *fp, NODE_T *np, int indent )
 {
 
 	if( np ){
@@ -67,10 +60,7 @@ int	indent;
 	}
 }
 
-void	RM_dumpnode( fp, np, indent )
-FILE	*fp;
-NODE_T	*np;
-int	indent;
+void	RM_dumpnode( FILE *fp, NODE_T *np, int indent )
 {
 
 	fprintf( fp, "%*s",indent, "" );
