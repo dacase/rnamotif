@@ -15,8 +15,11 @@
 	 (s)==SYM_PERCENT_ASSIGN||(s)==SYM_SLASH_ASSIGN||(s)==SYM_STAR_ASSIGN)
 
 extern	int	rm_lineno;
+extern	STREL_T	rm_descr[];
+extern	int	rm_n_descr;
 IDENT_T	*RM_find_id();
 IDENT_T	*RM_enter_id();
+NODE_T	*node();
 
 #define	LABTAB_SIZE	1000
 static	int	labtab[ LABTAB_SIZE ];
@@ -146,6 +149,8 @@ void	SC_dump();
 void	SC_link();
 int	SC_run();
 
+static	void	fix_stref();
+static	NODE_T	*mk_call_strid();
 static	void	do_fcl();
 static	void	do_strf();
 static	void	do_lda();
@@ -357,9 +362,9 @@ NODE_T	*np;
 		if( np->n_sym == SYM_CALL ){
 			addinst( OP_MRK, NULL );
 		}else if( np->n_sym == SYM_STREF ){
+			fix_stref( np );
 			v_expr.v_type = T_INT;
 			v_expr.v_value.v_ival = np->n_left->n_sym;
-			addinst( OP_STRF, &v_expr );
 		}else if( np->n_sym == SYM_LCURLY ){
 			addinst( OP_MRK, NULL );
 		}
@@ -399,7 +404,7 @@ int	l_andor;
 	switch( np->n_sym ){
 
 	case SYM_CALL :
-		addinst( OP_FCL, NULL );
+		addinst( OP_FCL, &np->n_val );
 		break;
 	case SYM_LIST :
 		break;
@@ -761,6 +766,211 @@ dumpstk( stdout, "before op" );
 		}
 dumpstk( stdout, "after op" );
 	}
+}
+
+static	void	fix_stref( np )
+NODE_T	*np;
+{
+	NODE_T	*np1, *np2, *np3;
+	NODE_T	*n_index, *n_tag, *n_pos, *n_len;
+	char	*ip, *sp;
+	VALUE_T	v_expr;
+
+	n_index = n_tag = n_pos = n_len = NULL;
+	for( np1 = np->n_right; np1; np1 = np1->n_right ){
+		np2 = np1->n_left;
+		np3 = np2->n_left;
+		if( np3->n_sym == SYM_IDENT ){
+			ip = np3->n_val.v_value.v_pval;
+			if( !strcmp( ip, "index" ) ){
+				if( n_index != NULL ){
+					fprintf( stderr,
+		"fix_stref: index parameter may not appear more than once.\n"
+						);
+					exit( 1 );
+				}else
+					n_index = np2->n_right;
+			}else if( !strcmp( ip, "tag" ) ){
+				if( n_tag != NULL ){
+					fprintf( stderr,
+		"fix_stref: tag parameter may not appear more than once.\n"
+						);
+					exit( 1 );
+				}else
+					n_tag = np2->n_right;
+			}else if( !strcmp( ip, "pos" ) ){
+				if( n_pos != NULL ){
+					fprintf( stderr,
+		"fix_stref: pos parameter may not appear more than once.\n"
+						);
+					exit( 1 );
+				}else
+					n_pos = np2->n_right;
+			}else if( !strcmp( ip, "len" ) ){
+				if( n_len != NULL ){
+					fprintf( stderr,
+		"fix_stref: len parameter may not appear more than once.\n"
+						);
+					exit( 1 );
+				}else
+					n_len = np2->n_right;
+			}else{
+				fprintf( stderr,
+					"fix_stref: unknown parameter: '%s'\n",
+					ip );
+				exit( 1 );
+			}
+		}
+	}
+
+	if( n_index == NULL && n_tag == NULL ){
+		fprintf( stderr,
+			"fix_stref: index = or tag = require for stref().\n" );
+		exit( 1 );
+	}
+
+	np1 = mk_call_strid( n_tag, n_index, np->n_left->n_sym );
+
+	/* build the 3 parms to stref	*/
+	if( n_len == NULL ){
+		v_expr.v_type = T_INT;
+		v_expr.v_value.v_ival = -1;
+		np3 = node( SYM_INT, &v_expr, 0, 0 );
+	}else
+		np3 = n_len;
+	np2 = node( SYM_LIST, 0, np3, NULL );
+	if( n_pos == NULL ){
+		v_expr.v_type = T_INT;
+		v_expr.v_value.v_ival = 1;
+		np3 = node( SYM_INT, &v_expr, 0, 0 );
+	}else
+		np3 = n_pos;
+	np2 = node( SYM_LIST, 0, np3, np2 );
+	np1 = node( SYM_LIST, 0, np1, np2 );
+	np->n_right = np1;
+}
+
+static	NODE_T	*mk_call_strid( n_tag, n_index, strel )
+NODE_T	*n_tag;
+NODE_T	*n_index;
+int	strel;
+{
+	NODE_T	*np1, *np2, *np3;
+	VALUE_T	v_expr;
+	int	k_tag, k_index;
+	char	*v_tag;
+	int	v_index;
+	int	d, d_tag, d_index;
+	STREL_T	*stp;
+
+	k_tag = 0;
+	v_tag = NULL;
+	d_tag = UNDEF;
+	k_index = 0;
+	v_index = UNDEF;
+	d_index = UNDEF;
+
+	if( n_tag != NULL ){
+		if( n_tag->n_sym == SYM_STRING ){
+			k_tag = 1;
+			v_tag = n_tag->n_val.v_value.v_pval;
+		}
+	}else{
+		k_tag = 1;
+		v_tag = NULL;
+	}
+
+	if( n_index != NULL ){
+		if( n_index->n_sym == SYM_INT ){
+			k_index = 1;
+			v_index = n_index->n_val.v_value.v_ival;
+		}
+	}else{
+		k_index = 1;
+		v_index = UNDEF;
+	}
+
+	if( k_tag && k_index ){
+		if( v_tag != NULL ){
+			stp = rm_descr;
+			for( d = 0; d < rm_n_descr; d++, stp++ ){
+				if( stp->s_type == strel ){
+					if( !strcmp( stp->s_tag, v_tag ) ){
+						d_tag = d;
+						break;
+					}
+				}
+			}
+			fprintf( stderr,
+				"mk_call_strid: no such tag: '%s'.\n", v_tag );
+			exit( 1 );
+		}
+		if( v_index != UNDEF ){
+			if( v_index < 0 || v_index >= rm_n_descr ){
+				fprintf( stderr,
+			"mk_call_strid: index must be between 1 and %d\n",
+					rm_n_descr );
+				exit( 1 );
+			}else
+				d_index = v_index;
+			if( rm_descr[ d_index - 1 ].s_type != strel ){
+				fprintf( stderr,
+		"mk_call_strid: strel with index= %d has wrong type.\n",
+					v_index );
+				exit( 1 );
+			}
+		}
+		if( d_tag == UNDEF && d_index == UNDEF ){
+			fprintf( stderr,
+"mk_call_strid: tag and index both have invalid values.\n" );
+			exit( 1 );
+		}else if( d_tag != UNDEF && d_index == UNDEF ){
+			v_expr.v_type = T_INT;
+			v_expr.v_value.v_ival = d_tag;
+			np1 = node( SYM_INT, &v_expr, 0, 0 );
+			return( np1 );
+		}else if( d_tag == UNDEF && d_index != UNDEF ){
+			v_expr.v_type = T_INT;
+			v_expr.v_value.v_ival = d_index - 1;
+			np1 = node( SYM_INT, &v_expr, 0, 0 );
+			return( np1 );
+		}else if( d_tag == d_index - 1 ){
+			v_expr.v_type = T_INT;
+			v_expr.v_value.v_ival = d_index;
+			np1 = node( SYM_INT, &v_expr, 0, 0 );
+			return( np1 );
+		}else{
+			fprintf( stderr,
+		"mk_call_strid: tag and index values are inconsistant.\n" );
+			exit( 1 );
+		}
+	}
+
+	if( n_tag == NULL ){
+		v_expr.v_type = T_STRING;
+		v_expr.v_value.v_pval = "";
+		n_tag = node( SYM_STRING, &v_expr, 0, 0 );
+	}
+	np2 = node( SYM_LIST, 0, n_tag, NULL );
+
+	if( n_index == NULL ){
+		v_expr.v_type = T_INT;
+		v_expr.v_value.v_ival = UNDEF;
+		n_index = node( SYM_INT, &v_expr, 0, 0 );
+	}
+		np3 = n_index;
+	np2 = node( SYM_LIST, 0, n_index, np2 );
+
+	v_expr.v_type = T_INT;
+	v_expr.v_value.v_ival = strel;
+	np3 = node( SYM_INT, &v_expr, 0, 0 );
+	np2 = node( SYM_LIST, 0, np3, np2 );
+
+	v_expr.v_type = T_STRING;
+	v_expr.v_value.v_pval = "strid";
+	np3 = node( SYM_IDENT, &v_expr, 0, 0 );
+	np1 = node( SYM_CALL, 0, np3, np2 );
+	return( np1 );
 }
 
 static	void	do_fcl( ip )
@@ -1737,13 +1947,7 @@ INST_T	*ip;
 		break;
 	}
 	vp = &ip->i_val;
-	if( ip->i_op == OP_STRF ){
-		mk_stref_name( vp->v_value.v_ival, name );
-		if( *name != '\0' )
-			fprintf( fp, " opn (%s)", name );
-		else
-			fprintf( fp, " exec" );
-	}else if( ip->i_op == OP_LDA ){
+	if( ip->i_op == OP_LDA ){
 		fprintf( fp, " %s", vp->v_value.v_pval );
 	}else if( vp->v_type == T_INT ){
 		fprintf( fp, " %d", vp->v_value.v_ival );
