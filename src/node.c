@@ -28,7 +28,7 @@ NODE_T	*right;
 	np->n_left = left;
 	np->n_right = right;
 	if( sym == SYM_IDENT ){
-		np->n_val.v_type = T_STRING;
+		np->n_val.v_type = T_IDENT;
 		np->n_val.v_value.v_pval = vp->v_value.v_pval;
 	}else if( sym == SYM_INT ){
 		np->n_class = C_LIT;
