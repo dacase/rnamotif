@@ -26,6 +26,7 @@ static	char	*fm_sdef;
 static	int	fm_comp;
 static	int	fm_slen;
 static	char	*fm_sbuf;
+static	float	fm_score;
 static	int	*fm_winbuf;	/* windowsize + 2, 1 before, 1 after	*/
 static	int	*fm_window;	/* fm_winbuf[1]				*/
 static	int	fm_windowsize;
@@ -255,7 +256,7 @@ SEARCH_T	*srp;
 		rv = 1;
 		if( !chk_sites( rm_n_descr, rm_descr, rm_sites ) )
 			return( 0 );
-		if( RM_score( fm_sbuf ) )
+		if( RM_score( fm_sbuf, &fm_score ) )
 			print_match( stdout,
 				fm_sid, fm_comp, rm_n_descr, rm_descr );
 /*
@@ -1496,6 +1497,7 @@ STREL_T	descr[];
 
 	if( first ){
 		first = 0;
+		fprintf( fp, "#RM scored\n" );
 		fprintf( fp, "#RM descr" );
 		for( stp = descr, d = 0; d < n_descr; d++, stp++ ){
 			RM_strel_name( stp, name );
@@ -1518,7 +1520,7 @@ STREL_T	descr[];
 
 	if( fm_dtype == DT_FASTN )
 		fprintf( fp, ">%s %s\n", sid, fm_sdef );
-	fprintf( fp, "%-12s %d", sid, comp );
+	fprintf( fp, "%-12s %8.3f %d", sid, fm_score, comp );
 	fprintf( fp, " %7d %4d", offset, len );
 
 	for( d = 0; d < n_descr; d++, stp++ ){
