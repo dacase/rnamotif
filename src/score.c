@@ -255,10 +255,7 @@ void	RM_else()
 {
 
 	v_lab.v_type = T_INT;
-/*
-	v_lab.v_value.v_ival = ifstk[ ifstkp - 1 ];
-*/
-	v_lab.v_value.v_ival = ifstk[ 0 ] + 1;
+	v_lab.v_value.v_ival = ifstk[ ifstkp - 1 ] + 1;
 	addinst( OP_JMP, &v_lab );
 	labtab[ ifstk[ ifstkp - 1 ] ] = l_prog;
 }
