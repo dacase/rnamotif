@@ -275,19 +275,19 @@ SEARCH_T	*srp;
 		if( !chk_wchlx0( srp, szero, h3 ) )
 			return( 0 );
 
-		stp->s_matchoff = szero;
-		stp->s_matchlen = hlen;
-		stp3 = stp->s_mates[ 0 ];
-		stp3->s_matchoff = h3 - hlen + 1;
-		stp3->s_matchlen = hlen;
-
 		i_len = h3 - szero - 2 * hlen + 1;
 		if( i_len > i_maxl )
 			return( 0 );
 
+		stp3 = stp->s_mates[ 0 ];
+		stp->s_matchoff = szero;
+		stp->s_matchlen = hlen;
+		stp3->s_matchoff = h3 - hlen + 1;
+		stp3->s_matchlen = hlen;
+
 		for( h = 0; h < hlen; h++ ){
 			fm_window[ szero+h ] = stp->s_index;
-			fm_window[ sdollar-h ] = stp->s_index;
+			fm_window[ h3-h ] = stp->s_index;
 		}
 
 		i_stp = stp->s_inner;
@@ -300,7 +300,7 @@ SEARCH_T	*srp;
 		}else{
 			for( h = 0; h < hlen; h++ ){
 				fm_window[ szero+h ] = UNDEF;
-				fm_window[ sdollar-h ] = UNDEF;
+				fm_window[ h3-h ] = UNDEF;
 			}
 			return( 0 );
 		}
