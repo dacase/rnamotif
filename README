@@ -5,7 +5,7 @@ various scoring functions.  See doc/rnamot.ps for documentation.
 
 ==============================================================================
 
-   This source code is copyright (C) 1998, 1999, 2000,  by Tom Macke and
+   This source code is copyright (C) 1998, 1999, 2001,  by Tom Macke and
    David A. Case, Department Molecular Biology, The Scripps Research Institute.
 
    This program is free software; you can redistribute it and/or modify it
@@ -26,14 +26,14 @@ Installation and testing of rnamotif:
 
 (a)  Edit the "config.h" file in this directory to suit your local 
      environment.  This may require no change on many machines, but
-     you may need to locate the C-compiler, lex or yacc.
+     you may need to locate the C-compiler, lex or yacc, and set compiler
+     flags.
 
-(b)  Go to the "src" subdirectory; "make" will make the executables, 
-     leaving them in the src subdirectory.  There is no "install" target,
-     but you can manually move rnamotif to someplace in your PATH if you
-     wish.
+(b)  Now "make" will make the executables, leaving them in the src
+	 subdirectory.  There is no "install" target, but (after you run the
+     test suite) you can manually move "rnamotif", "rmfmt", "rm2ct" and 
+     "rmprune" to someplace in your PATH if you wish.
 
-(c)  Go to the "test" subdirectory; "make test" will run some (short) test 
-     calculations and report results.
+(c)  "make test" will run some test calculations and report results.
 
 Please send comments and questions to Tom Macke <macke@scripps.edu>.
