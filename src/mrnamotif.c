@@ -23,7 +23,7 @@
 #define	MT_QUIT		6	/* sent from 0 -> 1,np-1	*/
 #define	MT_ERROR	7	/* sent from 1,np-1 -> 0	*/
 
-static	int	my_rank, n_proc, n_wproc;
+static	int	my_rank, n_proc, n_aproc;
 static	char	hostname[ 256 ];
 static	char	xhostname[ 256 ];
 
@@ -110,12 +110,11 @@ main( int argc, char *argv[] )
 	gethostname( hostname, sizeof( hostname ) );
 	sprintf( xhostname, "%s_%d", hostname, my_rank );
 
-	if( n_proc < 1 ){
+	if( n_proc < 2 ){
 		fprintf( stderr, "%s: n_proc must be > 1\n", xhostname );
 		err = 1;
 		goto CLEAN_UP;
 	}
-	n_wproc = n_proc - 1;
 
 	if( all_init() ){
 		err = 1;
@@ -693,7 +692,7 @@ fprintf( stderr, "%s: READY: %s_%d: rcnt = %d\n",
 				actjobs[ s ] = UNDEF;
 			}
 
-			if( rcnt >= n_wproc + n_jobs ){
+			if( rcnt > n_aproc + n_jobs ){
 				rval = 1;
 				break;
 			}
@@ -867,7 +866,7 @@ static	int	rn_run( char *fname )
 	char	dbfname[ 256 ];
 	char	*wp, *cp, cmd[ 1024 ];
 	FILE	*fp = NULL;
-	char	line[ 256 ];
+	char	line[ 10240 ];
 	int	rval = 0;
 
 	sprintf( cmd, rncmd, xdfname, fname );

@@ -1,9 +1,14 @@
-head	1.114;
+head	1.115;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.115
+date	2002.11.25.01.20.38;	author macke;	state Exp;
+branches;
+next	1.114;
 
 1.114
 date	2002.10.07.14.13.50;	author macke;	state Exp;
@@ -581,15 +586,15 @@ desc
 @
 
 
-1.114
+1.115
 log
-@updated date for new release (2.3.1)
+@updated version
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.3.1 2002-oct-07"
+#define	VERSION	"v2.3.2 2002-nov-24"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ data ]\n\n\
@@ -839,6 +844,17 @@ typedef	struct	args_t	{
 } ARGS_T;
 
 #endif
+@
+
+
+1.114
+log
+@updated date for new release (2.3.1)
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.3.1 2002-oct-07"
 @
 
 
