@@ -71,51 +71,48 @@ fprintf( stderr, "fmd   : locus = %s, slen = %d\n", locus, slen );
 
 	w_winsize = rm_dmaxlen < fm_windowsize ? rm_dmaxlen : fm_windowsize;
 
-	slev = 0;
-	srp = searches[ slev ];
+	srp = searches[ 0 ];
 	for( szero = 0; szero < slen - w_winsize; szero++ ){
 		sdollar = szero + w_winsize - 1;
 		srp->s_zero = szero;
 		srp->s_dollar = sdollar;
-		find_motif( slev, n_searches, searches, szero, sdollar );
+		find_motif( srp );
 	}
 
 	sdollar = slen - 1;
 	for( ; szero <= slen - rm_dminlen; szero++ ){
 		srp->s_zero = szero;
 		srp->s_dollar = sdollar;
-		find_motif( 0, n_searches, searches, szero, sdollar );
+		find_motif( srp );
 	}
 
 	return( 0 );
 }
 
-static	int	find_motif( slev, n_searches, searches, szero, sdollar )
-int	szero;
-int	n_searches;
-SEARCH_T	*searches[];
-int	sdollar;
+static	int	find_motif( srp )
+SEARCH_T	*srp;
 {
-	SEARCH_T	*srp;
 	STREL_T	*stp;
 
-	srp = searches[ slev ];
 	stp = srp->s_descr;
 
-fprintf( stderr, "fm    : slev = %d, str = 0, %4d:%4d, %4d\n",
-	slev, szero, sdollar, fm_slen - 1 );
+fprintf( stderr, "fm    : descr = %2d, str = 0, %4d:%4d, %4d\n",
+	stp->s_index, srp->s_zero, srp->s_dollar, fm_slen - 1 );
 
 	switch( stp->s_type ){
 	case SYM_SS :
+/*
 		find_ss( slev, n_searches, searches, szero, sdollar );
+*/
 		break;
 	case SYM_H5 :
 		if( stp->s_proper ){
-			find_wchlx( slev, n_searches, searches,
-				szero, sdollar );
+			find_wchlx( srp );
 		}else{
+/*
 			find_pknot(  slev, n_searches, searches,
 				szero, sdollar );
+*/
 		}
 		break;
 	case SYM_P5 :
@@ -156,26 +153,23 @@ int	sdollar;
 
 }
 
-static	int	find_wchlx( slev, n_searches, searches, szero, sdollar )
-int	slev;
-int	n_searches;
-SEARCH_T	*searches[];
-int	szero;
-int	sdollar;
+static	int	find_wchlx( srp )
+SEARCH_T	*srp;
 {
-	SEARCH_T	*srp;
 	STREL_T	*stp;
-	int	s, s3lim, slen;
+	int	s, s3lim, slen, szero, sdollar;
 	int	h_minl, h_maxl;
 	int	i_minl;
 	int	h3, hlen;
 
-fprintf( stderr, "fwchlx: slev = %d, str = 0, %4d:%4d, %4d\n",
-	slev, szero, sdollar, fm_slen - 1 );
-
-	srp = searches[ slev ];
-	stp = srp->s_descr;
+	szero = srp->s_zero;
+	sdollar = srp->s_dollar;
 	slen = sdollar - szero + 1;
+	stp = srp->s_descr;
+
+fprintf( stderr, "fwchlx: descr = %2d, str = 0, %4d:%4d, %4d\n",
+	stp->s_index, szero, sdollar, fm_slen - 1 );
+
 	h_minl = stp->s_minlen;
 	h_maxl = stp->s_maxlen;
 	i_minl = stp->s_minilen;
