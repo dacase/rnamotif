@@ -405,6 +405,7 @@ int	d_ok;
 	IDENT_T	*ip, *ip1;
 	int	l_type, r_type;
 	VALUE_T	*vp;
+	PAIRSET_T	*n_ps, *l_ps, *r_ps;
 
 	if( expr ){
 		eval( expr->n_left, d_ok );
@@ -478,8 +479,10 @@ int	d_ok;
 				strcat( sp, r_sp );
 				valstk[ n_valstk - 2 ].v_value.v_pval = sp;
 			}else if( l_type == T_PAIR ){
-				pairop( "add", &valstk[ n_valstk - 2 ],
-					&valstk[ n_valstk - 1 ] );
+				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
+				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
+				n_ps = pairop( "add", l_ps, r_ps );
+				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
 			}
 			n_valstk--;
 			break;
@@ -500,8 +503,10 @@ int	d_ok;
 				errormsg( 1,
 				"eval: '-' not defined for strings.\n" );
 			}else if( l_type == T_PAIR ){
-				pairop( "sub", &valstk[ n_valstk - 2 ],
-					&valstk[ n_valstk - 1 ] );
+				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
+				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
+				n_ps = pairop( "sub", l_ps, r_ps );
+				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
 			}
 			n_valstk--;
 			break;
@@ -545,6 +550,10 @@ int	d_ok;
 				strcat( sp, r_sp );
 				valstk[ n_valstk - 2 ].v_value.v_pval = sp;
 			}else if( l_type == T_PAIR ){
+				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
+				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
+				n_ps = pairop( "add", l_ps, r_ps );
+				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
 			}
 			storeexprval( ip, &valstk[ n_valstk - 2 ] );
 			n_valstk -= 2;
@@ -565,6 +574,10 @@ int	d_ok;
 				errormsg( 1,
 				"eval: '-' not defined for strings.\n" );
 			}else if( l_type == T_PAIR ){
+				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
+				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
+				n_ps = pairop( "sub", l_ps, r_ps );
+				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
 			}
 			storeexprval( ip, &valstk[ n_valstk - 2 ] );
 			n_valstk -= 2;
@@ -655,7 +668,7 @@ char	op[];
 PAIRSET_T	*ps1;
 PAIRSET_T	*ps2;
 {
-	int	i, j, c, b, nb, diff;
+	int	i, j, c, b, nb, sz, diff;
 	PAIRSET_T	*n_ps;
 	PAIR_T	*n_pp, *pp, *ppi, *ppj;
 
@@ -723,6 +736,93 @@ PAIRSET_T	*ps2;
 		for( i = 0; i < n_ps->ps_n_pairs; i++ )
 			n_ps->ps_pairs[ i ] = ps1->ps_pairs[ i ];
 		return( n_ps );
+	}else if( !strcmp( op, "add" ) ){
+		ppi = ps1->ps_pairs;
+		ppj = ps2->ps_pairs;
+		if( ppi->p_n_bases != ppj->p_n_bases ){
+			sprintf( emsg,
+			"pairop: add: pairsets have %d and %d elements.\n",
+				ppi->p_n_bases, ppj->p_n_bases );
+			errormsg( 1, emsg );
+		}
+		sz = ps1->ps_n_pairs + ps2->ps_n_pairs;
+		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
+		if( n_ps == NULL ){
+			errormsg( 1, "pairop: add: can't allocate n_ps.\n" );
+		}
+		n_pp = ( PAIR_T * )malloc( sz * sizeof( PAIR_T ) );
+		if( n_pp == NULL ){
+			errormsg( 1, "pairop: add: can't allocate n_pp.\n" );
+		}
+		n_ps->ps_n_pairs = ps1->ps_n_pairs;
+		n_ps->ps_pairs = n_pp;
+		for( i = 0; i < n_ps->ps_n_pairs; i++ )
+			n_ps->ps_pairs[ i ] = ps1->ps_pairs[ i ];
+		n_pp = &n_ps->ps_pairs[ n_ps->ps_n_pairs ];
+		for( j = 0; j < ps2->ps_n_pairs; j++ ){
+			ppj = &ps2->ps_pairs[ j ];
+			for( i = 0; i < ps1->ps_n_pairs; i++ ){
+				ppi = &ps1->ps_pairs[ i ];
+				for( b = 0; b < ppi->p_n_bases; b++ ){
+					if( ppi->p_bases[b]!=ppj->p_bases[b]){
+						*n_pp = *ppj;
+						n_pp++;
+						n_ps->ps_n_pairs++;
+						goto ADDED;
+					}
+				}
+			}
+			ADDED : ;
+		}
+		return( n_ps );
+	}else if( !strcmp( op, "sub" ) ){
+		ppi = ps1->ps_pairs;
+		ppj = ps2->ps_pairs;
+		if( ppi->p_n_bases != ppj->p_n_bases ){
+			sprintf( emsg,
+			"pairop: sub: pairsets have %d and %d elements.\n",
+				ppi->p_n_bases, ppj->p_n_bases );
+			errormsg( 1, emsg );
+		}
+		sz = ps1->ps_n_pairs;
+		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
+		if( n_ps == NULL ){
+			errormsg( 1, "pairop: add: can't allocate n_ps.\n" );
+		}
+		n_pp = ( PAIR_T * )malloc( sz * sizeof( PAIR_T ) );
+		if( n_pp == NULL ){
+			errormsg( 1, "pairop: add: can't allocate n_pp.\n" );
+		}
+		n_ps->ps_n_pairs = ps1->ps_n_pairs;
+		n_ps->ps_pairs = n_pp;
+		for( i = 0; i < n_ps->ps_n_pairs; i++ )
+			n_ps->ps_pairs[ i ] = ps1->ps_pairs[ i ];
+		for( j = 0; j < ps2->ps_n_pairs; j++ ){
+			ppj = &ps2->ps_pairs[ j ];
+			for( i = 0; i < n_ps->ps_n_pairs; i++ ){
+				n_pp = &n_ps->ps_pairs[ i ];
+				for( b = 0; b < n_pp->p_n_bases; b++ ){
+					if( n_pp->p_bases[b]!=ppj->p_bases[b])
+						goto NOSUB;
+				}
+				n_pp->p_n_bases = 0;
+			}
+			NOSUB : ;
+		}
+		for( j = 0, i = 0; i < ps1->ps_n_pairs; i++ ){
+			ppj = &n_ps->ps_pairs[ j ];
+			ppi = &n_ps->ps_pairs[ i ];
+			if( ppi->p_n_bases != 0 ){
+				*ppj = *ppi;
+				j++;
+			}
+		}
+		n_ps->ps_n_pairs = j;
+		return( n_ps );
+	}else{
+		sprintf( emsg, "pairop: unknown op '%s'.\n", op );
+		errormsg( 1, emsg );
+		return( NULL );
 	}
 }
 
