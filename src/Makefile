@@ -28,11 +28,11 @@ all:	rnamotif	\
 rnamotif:	$(RNAMOTOBJS)
 	$(CC)	$(CFLAGS) -o rnamotif $(RNAMOTOBJS) $(GBLIB) -lm
 
-rnamot.o:	rmdefs.h rnamot.h y.tab.h
+rnamot.o:	rmdefs.h rnamot.h dbutil.h y.tab.h
 
 compile.o:	rmdefs.h rnamot.h mm_regexp.h y.tab.h
 
-dbutil.o:	rmdefs.h rnamot.h
+dbutil.o:	rmdefs.h dbutil.h
 
 dump.o:		rmdefs.h rnamot.h y.tab.h
 

@@ -1,9 +1,14 @@
-head	1.9;
+head	1.10;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.10
+date	2003.02.24.04.14.17;	author macke;	state Exp;
+branches;
+next	1.9;
 
 1.9
 date	2002.11.29.00.36.26;	author macke;	state Exp;
@@ -58,9 +63,9 @@ word `descr'
 @
 
 
-1.9
+1.10
 log
-@removed unused var ofd, to which mkstemp() assigned the result.
+@removed RM_str2seq() decl as it is now in rnamot.h
 @
 text
 @#include <stdio.h>
@@ -101,8 +106,6 @@ static	void	dumpfstk( FILE *, char [] );
 static	FILE	*getline( char [], int, FILE * );
 static	void	putline( FILE *, char [], int, char [] );
 static	char	*isdescr( char [] );
-
-char	*RM_str2seq( char [] );
 
 char	*RM_preprocessor( void )
 {
@@ -352,6 +355,17 @@ static	char	*isdescr( char line[] )
 	}
 	return( dp );
 }
+@
+
+
+1.9
+log
+@removed unused var ofd, to which mkstemp() assigned the result.
+@
+text
+@a39 2
+char	*RM_str2seq( char [] );
+
 @
 
 

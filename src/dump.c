@@ -25,16 +25,6 @@ extern	char	rm_bc2b[];
 extern	SEARCH_T	**rm_searches;
 extern	int	rm_n_searches;
 
-void	RM_dump_gids( FILE *, IDENT_T *, int );
-void	RM_dump_id( FILE *, IDENT_T *, int );
-void	RM_dump_pairset( FILE *, PAIRSET_T * );
-void	RM_dump_pair( FILE *, PAIR_T * );
-void	RM_dump_pairmat( FILE *, PAIRSET_T * );
-void	RM_dump_descr( FILE *, STREL_T * );
-void	RM_dump_pos( FILE *, int, POS_T * );
-void	RM_dump_sites( FILE * );
-void	RM_strel_name( STREL_T *, char [] );
-
 static	char	*attr2str( signed char [] );
 static	void	print_hierarchy( FILE *, int, char [], int, STREL_T [] );
 static	void	print_1_element( FILE *, char [], STREL_T * );

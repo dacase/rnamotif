@@ -37,8 +37,6 @@ static	FILE	*getline( char [], int, FILE * );
 static	void	putline( FILE *, char [], int, char [] );
 static	char	*isdescr( char [] );
 
-char	*RM_str2seq( char [] );
-
 char	*RM_preprocessor( void )
 {
 	FILE	*dfp, *ofp;

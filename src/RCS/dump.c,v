@@ -1,9 +1,14 @@
-head	1.50;
+head	1.51;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.51
+date	2003.02.24.04.05.40;	author macke;	state Exp;
+branches;
+next	1.50;
 
 1.50
 date	2002.08.14.03.58.23;	author macke;	state Exp;
@@ -261,9 +266,9 @@ desc
 @
 
 
-1.50
+1.51
 log
-@moved all cmd line args to ARGS_T *rm_args.
+@moved decls to rnamot.h
 @
 text
 @#include <stdio.h>
@@ -292,16 +297,6 @@ extern	char	rm_bc2b[];
 
 extern	SEARCH_T	**rm_searches;
 extern	int	rm_n_searches;
-
-void	RM_dump_gids( FILE *, IDENT_T *, int );
-void	RM_dump_id( FILE *, IDENT_T *, int );
-void	RM_dump_pairset( FILE *, PAIRSET_T * );
-void	RM_dump_pair( FILE *, PAIR_T * );
-void	RM_dump_pairmat( FILE *, PAIRSET_T * );
-void	RM_dump_descr( FILE *, STREL_T * );
-void	RM_dump_pos( FILE *, int, POS_T * );
-void	RM_dump_sites( FILE * );
-void	RM_strel_name( STREL_T *, char [] );
 
 static	char	*attr2str( signed char [] );
 static	void	print_hierarchy( FILE *, int, char [], int, STREL_T [] );
@@ -1117,6 +1112,25 @@ static	void	print_searches( FILE *fp, int n_searches, SEARCH_T *searches[] )
 		fprintf( fp, "\n" );
 	}
 }
+@
+
+
+1.50
+log
+@moved all cmd line args to ARGS_T *rm_args.
+@
+text
+@a27 10
+void	RM_dump_gids( FILE *, IDENT_T *, int );
+void	RM_dump_id( FILE *, IDENT_T *, int );
+void	RM_dump_pairset( FILE *, PAIRSET_T * );
+void	RM_dump_pair( FILE *, PAIR_T * );
+void	RM_dump_pairmat( FILE *, PAIRSET_T * );
+void	RM_dump_descr( FILE *, STREL_T * );
+void	RM_dump_pos( FILE *, int, POS_T * );
+void	RM_dump_sites( FILE * );
+void	RM_strel_name( STREL_T *, char [] );
+
 @
 
 

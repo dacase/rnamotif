@@ -1,9 +1,14 @@
-head	1.11;
+head	1.12;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.12
+date	2003.02.24.04.07.28;	author macke;	state Exp;
+branches;
+next	1.11;
 
 1.11
 date	2002.05.15.17.49.17;	author macke;	state Exp;
@@ -67,9 +72,10 @@ the Turner energy rules.
 @
 
 
-1.11
+1.12
 log
-@am converting boolean 0,1 to FALSE,TRUE.
+@moved visible function decls to rnamot.h. Convert 2 functions that were
+only used here to statis
 @
 text
 @#include <stdio.h>
@@ -167,6 +173,9 @@ static	int	getstack( char [],
 	int [N_BCODES][N_BCODES][N_BCODES][N_BCODES], int );
 static	int	getcoax( char [],
 	int [N_BCODES][N_BCODES][N_BCODES][N_BCODES], int );
+static	int	gettstack( char [],
+	int [N_BCODES][N_BCODES][N_BCODES][N_BCODES],
+	int [N_BCODES][N_BCODES][N_BCODES][2], int );
 static	int	gettloop( char [] );
 static	int	gettriloop( char [] );
 static	int	get1x1loop( char [] );
@@ -711,7 +720,7 @@ CLEAN_UP : ;
 	return( rval );
 }
 
-int	gettstack( char sfname[],
+static	int	gettstack( char sfname[],
 	int tstack[N_BCODES][N_BCODES][N_BCODES][N_BCODES],
 	int dangle[N_BCODES][N_BCODES][N_BCODES][2], int auend )
 {
@@ -863,7 +872,7 @@ static	int	gettriloop( char fname[] )
 	return( rval );
 }
 
-int	get1x1loop( char fname[] )
+static	int	get1x1loop( char fname[] )
 {
 	char	pname[ 256 ];
 	FILE	*fp;
@@ -1039,7 +1048,7 @@ CLEAN_UP : ;
 	return( rval );
 }
 
-int	get2x2loop( char fname[] )
+static	int	get2x2loop( char fname[] )
 {
 	char	pname[ 256 ];
 	FILE	*fp;
@@ -1189,7 +1198,7 @@ static	int	skipto( FILE *fp, char str[], long s_line, char line[] )
  *	structures cannot have pseudoknots
  *
  */
-int	RM_efn2()
+int	RM_efn2( void )
 {
 	int	i, j, ip, jp, k;
 	int	h, h1;
@@ -1863,6 +1872,27 @@ static	int	ef2_coaxstack( int i, int j, int ip, int jp )
 	energy = ef2dp->e2_coaxstack[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[ip]][rm_bcseq[jp]];
 	return( energy );
 }
+@
+
+
+1.11
+log
+@am converting boolean 0,1 to FALSE,TRUE.
+@
+text
+@d96 3
+d643 1
+a643 1
+int	gettstack( char sfname[],
+d795 1
+a795 1
+int	get1x1loop( char fname[] )
+d971 1
+a971 1
+int	get2x2loop( char fname[] )
+d1121 1
+a1121 1
+int	RM_efn2()
 @
 
 

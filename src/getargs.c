@@ -7,7 +7,7 @@
 
 double	atof();
 
-ARGS_T	*RM_getargs( int argc, char *argv[] )
+ARGS_T	*RM_getargs( int argc, char *argv[], int mpi )
 {
 	ARGS_T	*argp = NULL;
 	int	ac, err, len, cldsize;
@@ -49,9 +49,6 @@ ARGS_T	*RM_getargs( int argc, char *argv[] )
 			}else{
 				ac++;
 				argp->a_maxslen = atoi( argv[ ac ] ) + 1;
-
-fprintf( stderr, "getargs: set maxslen to %d\n", argp->a_maxslen );
-
 			}
 		}else if( !strncmp( argv[ ac ], "-O", 2 ) ){
 			sp = &argv[ ac ][ 2 ];
@@ -140,6 +137,42 @@ fprintf( stderr, "getargs: set maxslen to %d\n", argp->a_maxslen );
 			}else{
 				ac++;
 				argp->a_xdfname = argv[ ac ];
+			}
+		}else if( !strcmp( argv[ ac ], "-pre" ) ){
+			if( !mpi ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}
+			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}else if( argp->a_precmd != NULL ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}else{
+				ac++;
+				argp->a_precmd = argv[ ac ];
+			}
+		}else if( !strcmp( argv[ ac ], "-post" ) ){
+			if( !mpi ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}
+			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}else if( argp->a_postcmd != NULL ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}else{
+				ac++;
+				argp->a_postcmd = argv[ ac ];
 			}
 		}else if( !strcmp( argv[ ac ], "-fmt" ) ){
 			if( ac == argc - 1 ){

@@ -1,7 +1,7 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.3.4 2003-jan-20"
+#define	VERSION	"v2.4.0 2003-feb-25"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ data ]\n\n\
@@ -20,6 +20,8 @@ options:\n\
 \t-Dvar=expr\t\tSet the value of var to expr\n\
 \t-Idir\t\t\tAdd include source directory, dir\n\
 \t-xdfname file-name\tPreprocessor output file\n\
+\t-pre cmd\t\tmrnamotif only: run cmd db | rnamotif\n\
+\t-post cmd\t\tmrnamotif only: run rnamotif | cmd\n\
 \t-help\t\t\tPrint this message\n\
 \n\
 descr:\tUse one:\n\
@@ -33,7 +35,7 @@ fmt:\t(Optional) Use one:\n\
 \n\
 data:\t(Optional) Use one:\n\
 \tfile1 ...\t\tSerial version; no files search stdin (default)\n\
-\t-fmap file-map db1 ...\tParallel version; no dbs search whole map\n"
+\t-fmap file-map db1 ...\tmrnamotif only; no dbs search whole map\n"
 
 #define	UNBOUNDED	0x7fffffff
 #define	EFN_INFINITY	16000	/* ? */
@@ -246,11 +248,89 @@ typedef	struct	args_t	{
 	char	*a_dfname;
 	char	*a_xdfname;
 	char	*a_cldefs;
+	char	*a_precmd;
+	char	*a_postcmd;
 	char	*a_dbfmt;
 	char	*a_fmfname;
 	char	**a_dbfname;
 	int	a_n_dbfname;
 	int	a_c_dbfname;
 } ARGS_T;
+
+int	RM_init( int, char *[] );
+void	PARM_add( NODE_T * );
+void	PR_open( void );
+void	PR_add( NODE_T * );
+NODE_T	*PR_close( void );
+void	SE_open( int );
+void	SE_addval( NODE_T * );
+void	SE_close( void );
+int	SE_link( int, STREL_T [] );
+IDENT_T	*RM_enter_id( char [], int, int, int, int, VALUE_T * );
+IDENT_T	*RM_find_id( char [] );
+char	*RM_str2seq( char [] );
+void	POS_open( int );
+void	POS_addval( NODE_T * );
+void	POS_close( void );
+void	SI_close( NODE_T * );
+
+void	RM_dump_gids( FILE *, IDENT_T *, int );
+void	RM_dump_id( FILE *, IDENT_T *, int );
+void	RM_dump_pairset( FILE *, PAIRSET_T * );
+void	RM_dump_pair( FILE *, PAIR_T * );
+void	RM_dump_pairmat( FILE *, PAIRSET_T * );
+void	RM_dump_descr( FILE *, STREL_T * );
+void	RM_dump_pos( FILE *, int, POS_T * );
+void	RM_dump_sites( FILE * );
+void	RM_strel_name( STREL_T *, char [] );
+
+int	RM_getefn2data( void );
+int	RM_efn2( void );
+
+int	RM_allocefnds( int );
+int	RM_getefndata( void );
+void	RM_dumpefndata( FILE * );
+int	RM_knotted( void );
+int	RM_efn( int, int, int );
+void	RM_initst( void );
+
+void	RM_errormsg( int, char [] );
+
+int	RM_paired( PAIRSET_T *, int, int );
+int	RM_triple( PAIRSET_T *, int, int, int );
+int	RM_quad( PAIRSET_T *, int, int, int, int );
+int	RM_find_motif( int, SEARCH_T *[], SITE_T *,
+		char [], char [], int, int, char [] );
+
+ARGS_T	*RM_getargs( int, char *[], int );
+
+NODE_T	*RM_node( int, VALUE_T *, NODE_T *, NODE_T * );
+void	RM_dumpexpr( FILE *, NODE_T *, int );
+void	RM_dumpnode( FILE *, NODE_T *, int );
+
+char	*RM_preprocessor( void );
+
+void	RM_action( NODE_T * );
+void	RM_endaction( void );
+void	RM_if( NODE_T * );
+void	RM_else( void );
+void	RM_endelse( void );
+void	RM_endif( void );
+void	RM_forinit( NODE_T * );
+void	RM_fortest( NODE_T * );
+void	RM_forincr( NODE_T * );
+void	RM_endfor( void );
+void	RM_while( NODE_T * );
+void	RM_endwhile( void );
+void	RM_break( NODE_T * );
+void	RM_continue( NODE_T * );
+void	RM_accept( void );
+void	RM_reject( void );
+void	RM_mark( void );
+void	RM_clear( void );
+void	RM_expr( int, NODE_T * );
+void	RM_linkscore( void );
+void	RM_dumpscore( FILE * );
+int	RM_score( int, int, char [] );
 
 #endif

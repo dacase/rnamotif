@@ -1,9 +1,14 @@
-head	1.23;
+head	1.24;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.24
+date	2003.02.24.04.13.35;	author macke;	state Exp;
+branches;
+next	1.23;
 
 1.23
 date	2000.12.18.00.19.41;	author macke;	state Exp;
@@ -126,9 +131,9 @@ desc
 @
 
 
-1.23
+1.24
 log
-@save filename in each node.
+@moved visible func decls to rnamot.h
 @
 text
 @#include <stdio.h>
@@ -138,8 +143,6 @@ text
 
 extern	int	rm_lineno;
 extern	char	*rm_wdfname;
-
-void	RM_dumpnode( FILE *, NODE_T *, int );
 
 NODE_T	*RM_node( int sym, VALUE_T *vp, NODE_T *left, NODE_T *right )
 {
@@ -208,6 +211,17 @@ void	RM_dumpnode( FILE *fp, NODE_T *np, int indent )
 
 	}
 }
+@
+
+
+1.23
+log
+@save filename in each node.
+@
+text
+@a8 2
+void	RM_dumpnode( FILE *, NODE_T *, int );
+
 @
 
 

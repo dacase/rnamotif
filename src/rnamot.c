@@ -2,6 +2,7 @@
 
 #include "rmdefs.h"
 #include "rnamot.h"
+#include "dbutil.h"
 
 extern	FILE	*yyin;
 
@@ -29,14 +30,6 @@ static	char	sdef[ SDEF_SIZE ];
 static	int	s_sbuf;
 static	char	*sbuf;
 static	int	slen;
-
-IDENT_T	*RM_find_id();
-
-char	*RM_preprocessor( void );
-FILE	*DB_fnext( FILE *, int *, int, char *[] );
-int	FN_fgetseq( FILE *, char *, int, char *, int, char * );
-int	PIR_fgetseq( FILE *, char *, int, char *, int, char * );
-int	GB_fgetseq( FILE *, char *, int, char *, int, char * );
 
 static	void	mk_rcmp( int, char [] );
 
@@ -166,11 +159,11 @@ main( int argc, char *argv[] )
 					argv[ 0 ], ecnt, sid );
 		}
 
-		find_motif_driver( rm_n_searches, rm_searches, rm_sites,
+		RM_find_motif( rm_n_searches, rm_searches, rm_sites,
 			sid, sdef, 0, slen, sbuf );
 		if( chk_both_strs ){
 			mk_rcmp( slen, sbuf );
-			find_motif_driver( rm_n_searches, rm_searches, rm_sites,
+			RM_find_motif( rm_n_searches, rm_searches, rm_sites,
 				sid, sdef, 1, slen, sbuf );
 		}
 	}

@@ -101,16 +101,8 @@ extern	int	circf;		/* RE ^ kludge	*/
 
 static	char	emsg[ 256 ];
 
-ARGS_T	*RM_getargs( int, char *[] );
-
-NODE_T	*PR_close( void );
-
-IDENT_T	*RM_enter_id( char [], int, int, int, int, VALUE_T * );
-IDENT_T	*RM_find_id( char [] );
 static	IDENT_T	*enterid( IDENT_T *, IDENT_T * );
 static	IDENT_T	*findid( IDENT_T *, char * );
-
-char	*RM_str2seq( char [] );
 
 static	void	SE_init( STREL_T *, int );
 static	int	ends2attr( char [] );
@@ -159,7 +151,7 @@ int	RM_init( int argc, char *argv[] )
 	VALUE_T	val;
 	IDENT_T	*ip;
 
-	if( ( rm_args = RM_getargs( argc, argv ) ) == NULL )
+	if( ( rm_args = RM_getargs( argc, argv, FALSE ) ) == NULL )
 		return( 1 );
 
 	if( rm_args->a_vopt && !rm_args->a_sopt )
@@ -2280,8 +2272,10 @@ static	int	loadidval( VALUE_T *vp )
 		}
 		sp = ( char * )malloc( strlen( ip->i_val.v_value.v_pval ) + 1 );
 		if( sp == NULL ){
-			RM_errormsg( TRUE, "loadidval: can't allocate sp.",
+			sprintf( emsg,
+				"loadidval: can't allocate sp for '%s'.",
 				ip->i_name );
+			RM_errormsg( TRUE, emsg );
 		}
 		vp->v_type = T_STRING;
 		strcpy( sp, ip->i_val.v_value.v_pval );

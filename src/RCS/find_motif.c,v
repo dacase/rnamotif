@@ -1,9 +1,14 @@
-head	1.111;
+head	1.112;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.112
+date	2003.02.24.04.08.33;	author macke;	state Exp;
+branches;
+next	1.111;
 
 1.111
 date	2002.08.14.03.57.49;	author macke;	state Exp;
@@ -568,9 +573,11 @@ map.  Need to fix this.
 @
 
 
-1.111
+1.112
 log
-@moved all cmd line args to ARGS_T *rm_args.
+@moved visible function decls to rnamot.h
+renamed find_motif_driver to RM_find_motif to be conistant with the use
+of the RM_ prefix for visible funcs.
 @
 text
 @#include <stdio.h>
@@ -624,12 +631,6 @@ static	int	fm_opt_lpos = -1;
 static	int	fm_opt_rpos = -1;
 static	char	*fm_chk_seq;
 
-IDENT_T	*RM_find_id( char [] );
-
-int	RM_paired( PAIRSET_T *, int, int );
-int	RM_triple( PAIRSET_T *, int, int, int );
-int	RM_quad( PAIRSET_T *, int, int, int, int );
-
 static	int	find_motif( SEARCH_T * );
 static	int	adjust_szero( int * );
 static	int	find_1_motif( SEARCH_T * );
@@ -671,7 +672,7 @@ static	int	chk_seq( STREL_T *, char [], int );
 static	void	print_match( FILE *, char [], int, int, STREL_T [] );
 static	void	mk_cstr( char [], char [] );
 
-int	find_motif_driver( int n_searches, SEARCH_T *searches[],
+int	RM_find_motif( int n_searches, SEARCH_T *searches[],
 	SITE_T *sites,
 	char sid[], char sdef[], int comp, int slen, char sbuf[] )
 {
@@ -685,22 +686,22 @@ int	find_motif_driver( int n_searches, SEARCH_T *searches[],
 		ip = RM_find_id( "windowsize" );
 		if( ip == NULL )
 			RM_errormsg( TRUE,
-				"find_motif_driver: windowsize undefined." );
+				"RM_find_motif: windowsize undefined." );
 	
 			if( ip->i_val.v_value.v_ival <= 0 )
 				RM_errormsg( TRUE,
-					"find_motif_driver: windowsize <= 0." );
+					"RM_find_motif: windowsize <= 0." );
 		else
 			fm_windowsize = ip->i_val.v_value.v_ival;
 		fm_winbuf = ( int * )malloc( (fm_windowsize+2) * sizeof(int) );
 		if( fm_winbuf == NULL )
 			RM_errormsg( TRUE,
-				"find_motif_driver: can't allocate fm_winbuf.");
+				"RM_find_motif: can't allocate fm_winbuf.");
 		fm_window = &fm_winbuf[ 1 ];
 		fm_chk_seq = ( char * )malloc((fm_windowsize+1) * sizeof(char));
 		if( fm_chk_seq == NULL )
 			RM_errormsg( TRUE,
-			"find_motif_driver: can't allocate fm_chk_seq." );
+			"RM_find_motif: can't allocate fm_chk_seq." );
 	}
 
 	fm_sid = sid;
@@ -2406,6 +2407,36 @@ static	void	mk_cstr( char str[], char cstr[] )
 	}
 	*cp = '\0';
 }
+@
+
+
+1.111
+log
+@moved all cmd line args to ARGS_T *rm_args.
+@
+text
+@a51 6
+IDENT_T	*RM_find_id( char [] );
+
+int	RM_paired( PAIRSET_T *, int, int );
+int	RM_triple( PAIRSET_T *, int, int, int );
+int	RM_quad( PAIRSET_T *, int, int, int, int );
+
+d93 1
+a93 1
+int	find_motif_driver( int n_searches, SEARCH_T *searches[],
+d107 1
+a107 1
+				"find_motif_driver: windowsize undefined." );
+d111 1
+a111 1
+					"find_motif_driver: windowsize <= 0." );
+d117 1
+a117 1
+				"find_motif_driver: can't allocate fm_winbuf.");
+d122 1
+a122 1
+			"find_motif_driver: can't allocate fm_chk_seq." );
 @
 
 

@@ -49,10 +49,6 @@ static	int	rm_n_xdescr;
 
 extern	int	circf;	/* reg. exp. ^ kludge	*/
 
-IDENT_T	*RM_find_id();
-IDENT_T	*RM_enter_id();
-NODE_T	*RM_node();
-
 #define	LABTAB_SIZE	1000
 static	int	labtab[ LABTAB_SIZE ];
 static	int	nextlab;
@@ -203,29 +199,6 @@ static	char	emsg[ 256 ];
 #define	SPRINTFBUF_SIZE	10000
 static	char	sprintfbuf[ SPRINTFBUF_SIZE ];
 static	char	*sbp;
-
-void	RM_action( NODE_T * );
-void	RM_endaction( void );
-void	RM_if( NODE_T * );
-void	RM_else( void );
-void	RM_endelse( void );
-void	RM_endif( void );
-void	RM_forinit( NODE_T * );
-void	RM_fortest( NODE_T * );
-void	RM_forincr( NODE_T * );
-void	RM_endfor( void );
-void	RM_while( NODE_T * );
-void	RM_endwhile( void );
-void	RM_break( NODE_T * );
-void	RM_continue( NODE_T * );
-void	RM_accept( void );
-void	RM_reject( void );
-void	RM_mark( void );
-void	RM_clear( void );
-void	RM_expr( int, NODE_T * );
-void	RM_linkscore( void );
-void	RM_dumpscore( FILE * );
-int	RM_score( int, int, char [] );
 
 static	void	fixexpr( NODE_T * );
 static	void	genexpr( int, NODE_T * );
@@ -562,7 +535,7 @@ int	RM_score( int comp, int slen, char sbuf[] )
 		ip = &prog[ pc ];
 
 /*
-fprintf( stdout, "RM_run, pc = %4d, op = %s\n", pc, opnames[ ip->i_op ] );
+fprintf( stdout, "RM_score, pc = %4d, op = %s\n", pc, opnames[ ip->i_op ] );
 dumpstk( stdout, "before op" );
 */
 
@@ -1521,8 +1494,7 @@ static	float	do_sc_bits( INST_T *ip )
 		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( TRUE, 
-			"do_sc_bits: 2nd descr index must follow 1st descr.",
-			rm_n_descr );
+			"do_sc_bits: 2nd descr index must follow 1st descr." );
 		RM_errormsg( TRUE, emsg );
 	}
 	stp2 = rm_xdescr[ idx2 ];

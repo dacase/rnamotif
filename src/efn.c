@@ -118,7 +118,6 @@ static	int	stkp;
 
 char	*getenv( char * );
 
-int	RM_getefndata( void );
 static	int	gettloops( char [] );
 static	int	gettriloops( char [] );
 static	int	getmiscloop( char [] );
@@ -133,7 +132,6 @@ static	int	packloop( char [] );
 
 static	int	skipto( FILE *, char [], long, char [] );
 
-void	RM_dumpefndata( FILE * );
 static	void	dumpdangle( FILE * );
 static	void	dumpibhloop( FILE * );
 static	void	dumpstack( FILE *, char [], int [5][5][5][5] );
@@ -145,7 +143,6 @@ static	int	ef_hploop( int, int );
 static	int	ef_dangle( int, int, int, int );
 static	int	ef_aupen( int, int );
 
-void	RM_initst( void );
 static	void	push( int, int, int );
 static	int	pull( int *, int *, int * );
 

@@ -1,9 +1,14 @@
-head	1.71;
+head	1.72;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.72
+date	2003.02.24.04.15.57;	author macke;	state Exp;
+branches;
+next	1.71;
 
 1.71
 date	2003.01.20.21.21.34;	author macke;	state Exp;
@@ -366,19 +371,16 @@ desc
 @
 
 
-1.71
+1.72
 log
-@Two changes.  1) the size of the longest seqeunce (ie sbuf) is now set
-at run time.  User use the -N option to change from the default of 30000000.
-2) Create the rev. comp in situ rather than using a sep. (big) csbuf.
-I've known how to do this since 1985, but (*sigh*) just never go around
-to it.
+@removed decls of external funcs, as they are now in rnamot.h
 @
 text
 @#include <stdio.h>
 
 #include "rmdefs.h"
 #include "rnamot.h"
+#include "dbutil.h"
 
 extern	FILE	*yyin;
 
@@ -406,14 +408,6 @@ static	char	sdef[ SDEF_SIZE ];
 static	int	s_sbuf;
 static	char	*sbuf;
 static	int	slen;
-
-IDENT_T	*RM_find_id();
-
-char	*RM_preprocessor( void );
-FILE	*DB_fnext( FILE *, int *, int, char *[] );
-int	FN_fgetseq( FILE *, char *, int, char *, int, char * );
-int	PIR_fgetseq( FILE *, char *, int, char *, int, char * );
-int	GB_fgetseq( FILE *, char *, int, char *, int, char * );
 
 static	void	mk_rcmp( int, char [] );
 
@@ -543,11 +537,11 @@ main( int argc, char *argv[] )
 					argv[ 0 ], ecnt, sid );
 		}
 
-		find_motif_driver( rm_n_searches, rm_searches, rm_sites,
+		RM_find_motif( rm_n_searches, rm_searches, rm_sites,
 			sid, sdef, 0, slen, sbuf );
 		if( chk_both_strs ){
 			mk_rcmp( slen, sbuf );
-			find_motif_driver( rm_n_searches, rm_searches, rm_sites,
+			RM_find_motif( rm_n_searches, rm_searches, rm_sites,
 				sid, sdef, 1, slen, sbuf );
 		}
 	}
@@ -579,6 +573,34 @@ static	void	mk_rcmp( int slen, char sbuf[] )
 		*cp = c;
 	}
 }
+@
+
+
+1.71
+log
+@Two changes.  1) the size of the longest seqeunce (ie sbuf) is now set
+at run time.  User use the -N option to change from the default of 30000000.
+2) Create the rev. comp in situ rather than using a sep. (big) csbuf.
+I've known how to do this since 1985, but (*sigh*) just never go around
+to it.
+@
+text
+@d5 1
+a33 8
+IDENT_T	*RM_find_id();
+
+char	*RM_preprocessor( void );
+FILE	*DB_fnext( FILE *, int *, int, char *[] );
+int	FN_fgetseq( FILE *, char *, int, char *, int, char * );
+int	PIR_fgetseq( FILE *, char *, int, char *, int, char * );
+int	GB_fgetseq( FILE *, char *, int, char *, int, char * );
+
+d162 1
+a162 1
+		find_motif_driver( rm_n_searches, rm_searches, rm_sites,
+d166 1
+a166 1
+			find_motif_driver( rm_n_searches, rm_searches, rm_sites,
 @
 
 

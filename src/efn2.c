@@ -93,6 +93,9 @@ static	int	getstack( char [],
 	int [N_BCODES][N_BCODES][N_BCODES][N_BCODES], int );
 static	int	getcoax( char [],
 	int [N_BCODES][N_BCODES][N_BCODES][N_BCODES], int );
+static	int	gettstack( char [],
+	int [N_BCODES][N_BCODES][N_BCODES][N_BCODES],
+	int [N_BCODES][N_BCODES][N_BCODES][2], int );
 static	int	gettloop( char [] );
 static	int	gettriloop( char [] );
 static	int	get1x1loop( char [] );
@@ -637,7 +640,7 @@ CLEAN_UP : ;
 	return( rval );
 }
 
-int	gettstack( char sfname[],
+static	int	gettstack( char sfname[],
 	int tstack[N_BCODES][N_BCODES][N_BCODES][N_BCODES],
 	int dangle[N_BCODES][N_BCODES][N_BCODES][2], int auend )
 {
@@ -789,7 +792,7 @@ static	int	gettriloop( char fname[] )
 	return( rval );
 }
 
-int	get1x1loop( char fname[] )
+static	int	get1x1loop( char fname[] )
 {
 	char	pname[ 256 ];
 	FILE	*fp;
@@ -965,7 +968,7 @@ CLEAN_UP : ;
 	return( rval );
 }
 
-int	get2x2loop( char fname[] )
+static	int	get2x2loop( char fname[] )
 {
 	char	pname[ 256 ];
 	FILE	*fp;
@@ -1115,7 +1118,7 @@ static	int	skipto( FILE *fp, char str[], long s_line, char line[] )
  *	structures cannot have pseudoknots
  *
  */
-int	RM_efn2()
+int	RM_efn2( void )
 {
 	int	i, j, ip, jp, k;
 	int	h, h1;

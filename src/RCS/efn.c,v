@@ -1,9 +1,14 @@
-head	1.23;
+head	1.24;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.24
+date	2003.02.24.04.06.22;	author macke;	state Exp;
+branches;
+next	1.23;
 
 1.23
 date	2002.08.17.18.06.57;	author macke;	state Exp;
@@ -127,9 +132,9 @@ enough to begin integration into rnamotif.
 @
 
 
-1.23
+1.24
 log
-@removed new line from RM_knotted errmsg.
+@moved function decls of those funcs that are used elsewhere to rnamot.h
 @
 text
 @/*
@@ -252,7 +257,6 @@ static	int	stkp;
 
 char	*getenv( char * );
 
-int	RM_getefndata( void );
 static	int	gettloops( char [] );
 static	int	gettriloops( char [] );
 static	int	getmiscloop( char [] );
@@ -267,7 +271,6 @@ static	int	packloop( char [] );
 
 static	int	skipto( FILE *, char [], long, char [] );
 
-void	RM_dumpefndata( FILE * );
 static	void	dumpdangle( FILE * );
 static	void	dumpibhloop( FILE * );
 static	void	dumpstack( FILE *, char [], int [5][5][5][5] );
@@ -279,7 +282,6 @@ static	int	ef_hploop( int, int );
 static	int	ef_dangle( int, int, int, int );
 static	int	ef_aupen( int, int );
 
-void	RM_initst( void );
 static	void	push( int, int, int );
 static	int	pull( int *, int *, int * );
 
@@ -1816,6 +1818,20 @@ static	int	pull( int *a, int *b, int *c )
 	stkp--;
 	return( 0 );
 }
+@
+
+
+1.23
+log
+@removed new line from RM_knotted errmsg.
+@
+text
+@a120 1
+int	RM_getefndata( void );
+a134 1
+void	RM_dumpefndata( FILE * );
+a145 1
+void	RM_initst( void );
 @
 
 

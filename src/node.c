@@ -6,8 +6,6 @@
 extern	int	rm_lineno;
 extern	char	*rm_wdfname;
 
-void	RM_dumpnode( FILE *, NODE_T *, int );
-
 NODE_T	*RM_node( int sym, VALUE_T *vp, NODE_T *left, NODE_T *right )
 {
 	NODE_T	*np;

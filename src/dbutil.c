@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "rmdefs.h"
+#include "dbutil.h"
 
 static	int	skipbl2nl( FILE * );
 

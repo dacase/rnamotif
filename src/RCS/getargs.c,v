@@ -1,9 +1,14 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2003.02.24.04.09.53;	author macke;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2003.01.20.21.19.58;	author macke;	state Exp;
@@ -46,10 +51,10 @@ desc
 @
 
 
-1.7
+1.8
 log
-@added code to handle the -N size option, which is used to set the length
-of the longest input sequence.
+@added 3 parm: t/f for called from mrnamotif/rnamotif, ie MPI/serial
+added code to handle pre and post cmds
 @
 text
 @#include <stdio.h>
@@ -61,7 +66,7 @@ text
 
 double	atof();
 
-ARGS_T	*RM_getargs( int argc, char *argv[] )
+ARGS_T	*RM_getargs( int argc, char *argv[], int mpi )
 {
 	ARGS_T	*argp = NULL;
 	int	ac, err, len, cldsize;
@@ -103,9 +108,6 @@ ARGS_T	*RM_getargs( int argc, char *argv[] )
 			}else{
 				ac++;
 				argp->a_maxslen = atoi( argv[ ac ] ) + 1;
-
-fprintf( stderr, "getargs: set maxslen to %d\n", argp->a_maxslen );
-
 			}
 		}else if( !strncmp( argv[ ac ], "-O", 2 ) ){
 			sp = &argv[ ac ][ 2 ];
@@ -195,6 +197,42 @@ fprintf( stderr, "getargs: set maxslen to %d\n", argp->a_maxslen );
 				ac++;
 				argp->a_xdfname = argv[ ac ];
 			}
+		}else if( !strcmp( argv[ ac ], "-pre" ) ){
+			if( !mpi ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}
+			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}else if( argp->a_precmd != NULL ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}else{
+				ac++;
+				argp->a_precmd = argv[ ac ];
+			}
+		}else if( !strcmp( argv[ ac ], "-post" ) ){
+			if( !mpi ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}
+			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}else if( argp->a_postcmd != NULL ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}else{
+				ac++;
+				argp->a_postcmd = argv[ ac ];
+			}
 		}else if( !strcmp( argv[ ac ], "-fmt" ) ){
 			if( ac == argc - 1 ){
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
@@ -264,6 +302,23 @@ fprintf( stderr, "getargs: set maxslen to %d\n", argp->a_maxslen );
 
 	return( argp );
 }
+@
+
+
+1.7
+log
+@added code to handle the -N size option, which is used to set the length
+of the longest input sequence.
+@
+text
+@d10 1
+a10 1
+ARGS_T	*RM_getargs( int argc, char *argv[] )
+a51 3
+
+fprintf( stderr, "getargs: set maxslen to %d\n", argp->a_maxslen );
+
+d140 36
 @
 
 

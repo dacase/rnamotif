@@ -21,6 +21,11 @@
 #define	MT_QUIT		4	/* sent from 0 -> 1,np-1	*/
 #define	MT_ERROR	5	/* sent from 1,np-1 -> 0	*/
 
+#define	GS_OFF		0
+#define	GS_RUN_ZERO	1
+#define	GS_RUN_ALL	2
+#define	GS_ERROR	3
+
 static	int	my_rank, n_proc, n_wproc;
 static	char	hostname[ 256 ];
 static	char	xhostname[ 256 ];
@@ -72,10 +77,10 @@ static	int	s_rbuf;
 #define	WORK_SIZE	102400
 static	char	work[ WORK_SIZE ];
 
-ARGS_T	*RM_getargs( int, char *[] );
+ARGS_T	*RM_getargs( int, char *[], int );
 
 static	int	all_init( void );
-static	int	r0_init( int, char *[], int, char [] );
+static	int	r0_init( int, char *[] );
 static	FMAP_T	*get_fmap( ARGS_T * );
 static	int	mk_commands( ARGS_T *,
 	char [], char [], int*, char [], int *, char [] );
@@ -98,7 +103,7 @@ char	*getenv();
 main( int argc, char *argv[] )
 {
 	int	p, qbuf;
-	int	gridon = 0, done;
+	int	gridstat = GS_OFF, done;
 	MPI_Status	pstatus, rstatus;
 
 	MPI_Init( &argc, &argv );
@@ -108,18 +113,15 @@ main( int argc, char *argv[] )
 	if( all_init() )
 		err = 1;
 	else if( my_rank == 0 ){
-		if( r0_init( argc, argv, CMD_SIZE, rncmd ) )
-			err = 1;
-		else{
-			s_sbuf = s_rncmd + s_xdescr;
-			gridon = 1;
-		}
+		gridstat = r0_init( argc, argv );
+		s_sbuf = s_rncmd + s_xdescr;
 	}
 
 	/* If no error, then turn on the grid	*/
-	MPI_Bcast( &gridon, 1, MPI_INT, 0, MPI_COMM_WORLD );
-	if( !gridon ){
-		err = 1;
+	MPI_Bcast( &gridstat, 1, MPI_INT, 0, MPI_COMM_WORLD );
+	if( gridstat != GS_RUN_ALL ){
+		if( gridstat == GS_ERROR )
+			err = 1;
 		goto CLEAN_UP;
 	}
 
@@ -169,7 +171,7 @@ main( int argc, char *argv[] )
 CLEAN_UP : ;
 
 	if( my_rank == 0 ){
-		if( gridon ){
+		if( gridstat == GS_RUN_ALL ){
 			for( p = 1; p < n_proc; p++ ){
 				qbuf = 0;
 				MPI_Send( &qbuf, 1, MPI_INT,
@@ -236,7 +238,7 @@ CLEAN_UP : ;
 	return( rval );
 }
 
-static	int	r0_init( int argc, char *argv[], int s_rncmd, char rncmd[] )
+static	int	r0_init( int argc, char *argv[] )
 {
 	ARGS_T	*args;
 	char	r0cmd[ CMD_SIZE ];
@@ -244,34 +246,40 @@ static	int	r0_init( int argc, char *argv[], int s_rncmd, char rncmd[] )
 	int	xdfd;
 	char	r0efname[ 256 ];
 	int	r0efd;
+	int	rval = GS_RUN_ALL;
 
 	*xdfname = *r0efname = '\0';
 
-	if( ( args = RM_getargs( argc, argv ) ) == NULL ){
-		err = 1;
+	if( ( args = RM_getargs( argc, argv, TRUE ) ) == NULL ){
+		rval = GS_ERROR;
 		goto CLEAN_UP;
 	}
 
-	if( ( fmap = get_fmap( args ) ) == NULL ){
-		err = 1;
-		goto CLEAN_UP;
+	/* only get the file map if it's needed		*/
+	if( !args->a_copt && !args->a_sopt && !args->a_vopt ){
+		if( ( fmap = get_fmap( args ) ) == NULL ){
+			rval = GS_ERROR;
+			goto CLEAN_UP;
+		}
 	}
 
-	if( mk_commands( args,
-		r0cmd, rncmd, &xdfd, xdfname, &r0efd, r0efname ) )
-	{
-		err = 1;
+	rval = mk_commands( args,
+		r0cmd, rncmd, &xdfd, xdfname, &r0efd, r0efname );
+
+	if( rval == GS_ERROR )
 		goto CLEAN_UP;
-	}
 
 	if( compile_descr( r0cmd, xdfd, xdfname, r0efd, r0efname ) ){
-		err = 1;
+		rval = GS_ERROR;
 		goto CLEAN_UP;
+
 	}
 
-	if( setup_jobs( args, fmap ) ){
-		err = 1;
-		goto CLEAN_UP;
+	if( rval == GS_RUN_ALL ){
+		if( setup_jobs( args, fmap ) ){
+			rval = GS_ERROR;
+			goto CLEAN_UP;
+		}
 	}
 
 CLEAN_UP : ;
@@ -281,7 +289,7 @@ CLEAN_UP : ;
 	if( *r0efname )
 		unlink( r0efname );
 
-	return( err );
+	return( rval );
 }
 
 static	FMAP_T	*get_fmap( ARGS_T *args )
@@ -291,10 +299,9 @@ static	FMAP_T	*get_fmap( ARGS_T *args )
 	int	err = 0;
 
 	if( ( fmap = FMread_fmap( args->a_fmfname ) ) == NULL ){
-		err = 1;
+		err = TRUE;
 		goto CLEAN_UP;
 	}
-
 	if( !strcmp( fmap->f_format, DT_FASTN ) )
 		args->a_dbfmt = DT_FASTN;
 	else if( !strcmp( fmap->f_format, DT_PIR ) )
@@ -304,7 +311,7 @@ static	FMAP_T	*get_fmap( ARGS_T *args )
 	else{
 		fprintf( stderr, "%s: get_fmap: unknown format '%s'\n",
 			xhostname, fmap->f_format );
-		err = 1;
+		err = TRUE;
 		goto CLEAN_UP;
 	}
 
@@ -320,9 +327,9 @@ static	int	mk_commands( ARGS_T *args, char r0cmd[], char rncmd[],
 	int	*xdfd, char xdfname[], int *r0efd, char r0efname[] )
 {
 	char	*cp0, *cpn;
-	int	done = FALSE;
 	INCDIR_T	*ip;
 	char	*cdp, *e_cdp;
+	int	rval = GS_RUN_ALL;
 
 	*r0cmd = *rncmd = '\0';
 	*xdfname = *r0efname = '\0';
@@ -336,15 +343,15 @@ static	int	mk_commands( ARGS_T *args, char r0cmd[], char rncmd[],
 	if( args->a_sopt ){
 		strcpy( cp0, " -s" );
 		cp0 += strlen( cp0 );
-		done = TRUE;
+		rval = GS_RUN_ZERO;
 	}
 	if( args->a_vopt ){
 		strcpy( cp0, " -v" );
 		cp0 += strlen( cp0 );
-		done = TRUE;
+		rval = GS_RUN_ZERO;
 	}
-	if( done )
-		return( 0 );
+	if( args->a_copt )
+		rval = GS_RUN_ZERO;
 
 	/* options used on r0:	*/
 	strcpy( cp0, " -c" );
@@ -380,29 +387,44 @@ static	int	mk_commands( ARGS_T *args, char r0cmd[], char rncmd[],
 		sprintf( cp0, " -D%.*s", e_cdp - cdp, cdp );
 		cp0 += strlen( cp0 );
 	}
-	if( args->a_dfname == NULL ){
-		return( 1 );
-	}else{
-		sprintf( cp0, " -descr %s", args->a_dfname );
-		cp0 += strlen( cp0 );
-	}
-	if( args->a_xdfname != NULL ){
-		return( 1 );
-	}else{
-		strcpy( xdfname, "/tmp/rmxdf_XXXXXX" );
-		*xdfd = mkstemp( xdfname );
-		sprintf( cp0, " -xdfname %s", xdfname );
-		cp0 += strlen( cp0 );
+	if( !args->a_sopt && !args->a_vopt ){
+		if( args->a_dfname == NULL ){
+			return( GS_ERROR );
+		}else{
+			sprintf( cp0, " -descr %s", args->a_dfname );
+			cp0 += strlen( cp0 );
+		}
+		if( args->a_xdfname != NULL ){
+			return( GS_ERROR );
+		}else{
+			strcpy( xdfname, "/tmp/rmxdf_XXXXXX" );
+			*xdfd = mkstemp( xdfname );
+			sprintf( cp0, " -xdfname %s", xdfname );
+			cp0 += strlen( cp0 );
+		}
 	}
 	strcpy( r0efname, "/tmp/rmr0ef_XXXXXX" );
 	*r0efd = mkstemp( r0efname );
 	sprintf( cp0, " >& %s", r0efname );
 
-	if( args->a_copt )
-		return( 0 );
+	if( rval == GS_RUN_ZERO )
+		return( rval );
 
 	/* options used on rn:	*/
 	cpn = rncmd;
+	if( args->a_precmd != NULL ){
+		strcpy( cpn, args->a_precmd );
+		cpn += strlen( cpn );
+		if( !strcmp( args->a_dbfmt, DT_FASTN ) )
+			sprintf( cpn, " %s", DT_FASTN );
+		else if( !strcmp( args->a_dbfmt, DT_PIR ) )
+			sprintf( cpn, " %s", DT_PIR );
+		else 
+			sprintf( cpn, " %s", DT_GENBANK );
+		cpn += strlen( cpn );
+		strcpy( cpn, " %s | " );
+		cpn += strlen( cpn );
+	}
 	strcpy( cpn, "rnamotif" );
 	cpn += strlen( cpn );
 
@@ -427,12 +449,18 @@ static	int	mk_commands( ARGS_T *args, char r0cmd[], char rncmd[],
 	else 
 		sprintf( cpn, " %s", DT_GENBANK );
 	cpn += strlen( cpn );
-	strcpy( cpn, " %s" );
-	cpn += strlen( cpn );
+	if( args->a_precmd == NULL ){
+		strcpy( cpn, " %s" );
+		cpn += strlen( cpn );
+	}
+	if( args->a_postcmd != NULL ){
+		sprintf( cpn, " | %s", args->a_postcmd );
+		cpn += strlen( cpn );
+	}
 
 	s_rncmd = strlen( rncmd ) + 1;
 
-	return( 0 );
+	return( rval );
 }
 
 static	int	compile_descr( char *r0cmd,
@@ -454,7 +482,7 @@ static	int	compile_descr( char *r0cmd,
 	}
 	for( cdlmsg = 0, lcnt = 0; fgets( line, sizeof( line ), fp ); lcnt++ ){
 		if( strstr( line, ": complete descr length: min/max = " ) )
-			cdlmsg = 1;
+			cdlmsg = TRUE;
 		fputs( line, stderr );
 	}
 	fclose( fp );
@@ -496,7 +524,7 @@ static	int	setup_jobs( ARGS_T *args, FMAP_T *fmap )
 	if( jobs == NULL ){
 		fprintf( stderr, "%s: setup_jobs: can't allocate jobs\n",
 			xhostname );
-		err = 1;
+		err = TRUE;
 		goto CLEAN_UP;
 	}
 	for( i = 0; i < s_jobs; i++ )
@@ -506,7 +534,7 @@ static	int	setup_jobs( ARGS_T *args, FMAP_T *fmap )
 	if( active == NULL ){
 		fprintf( stderr, "%s: setup_jobs: can't allocate active\n",
 			xhostname );
-		err = 1;
+		err = TRUE;
 		goto CLEAN_UP;
 	}
 
@@ -514,7 +542,7 @@ static	int	setup_jobs( ARGS_T *args, FMAP_T *fmap )
 	if( actjobs == NULL ){
 		fprintf( stderr, "%s: setup_jobs: can't allocate actjobs\n",
 			xhostname );
-		err = 1;
+		err = TRUE;
 		goto CLEAN_UP;
 	}
 	for( i = 0; i < n_proc; i++ )
@@ -527,7 +555,7 @@ static	int	setup_jobs( ARGS_T *args, FMAP_T *fmap )
 	}else{
 		for( i = 0; i < args->a_n_dbfname; i++ ){
 			if( FMmark_active(fmap, args->a_dbfname[ i ], active) ){
-				err = 1;
+				err = TRUE;
 				goto CLEAN_UP;
 			}
 		}
@@ -543,7 +571,7 @@ static	int	setup_jobs( ARGS_T *args, FMAP_T *fmap )
 	if( jidx == NULL ){
 		fprintf( stderr, "%s: setup_jobs: can't allocate jidx\n",
 			xhostname );
-		err = 1;
+		err = TRUE;
 		goto CLEAN_UP;
 	}
 	for( j = i = 0; i < s_jobs; i++ ){
@@ -554,7 +582,7 @@ static	int	setup_jobs( ARGS_T *args, FMAP_T *fmap )
 	}
 
 	if( mk_jobqs() ){
-		err = 1;
+		err = TRUE;
 		goto CLEAN_UP;
 	}
 
@@ -579,7 +607,7 @@ static	int	mk_jobqs( void )
 		ji =  jidx[ j ];
 		fme = &fmap->f_entries[ ji ];
 		if( fme->f_hosts != NULL ){
-			needqs = 1;
+			needqs = TRUE;
 			break;
 		}
 	}
@@ -591,7 +619,7 @@ static	int	mk_jobqs( void )
 	if( jobqs == NULL ){
 		fprintf( stderr, "%s: mk_jobqs: can't allocate jobqs\n",
 			xhostname );
-		err = 1;
+		err = TRUE;
 		goto CLEAN_UP;
 	}
 
@@ -601,7 +629,7 @@ static	int	mk_jobqs( void )
 		for( h = 1; h < n_proc; h++ ){
 			if( strstr( fme->f_hosts, hosts[ h ] ) ){
 				if( qjob( h, ji ) ){
-					err = 1;
+					err = TRUE;
 					goto CLEAN_UP;
 				}
 			}
@@ -673,7 +701,7 @@ fprintf( stderr, "%s: READY: %s_%d: rcnt = %d\n",
 		}
 
 		if( rcnt >= n_wproc + n_jobs ){
-			*done = 1;
+			*done = TRUE;
 		}
 		if( scnt < n_jobs ){
 
@@ -742,7 +770,7 @@ static	int	rn_handle_msg( MPI_Status *pstatus, int *done )
 	case MT_QUIT :
 		if( *xdfname )
 			unlink( xdfname );
-		*done = 1;
+		*done = TRUE;
 		break;
 
 	default :
@@ -790,10 +818,6 @@ static	int	rn_setup( char *rbuf )
 	fclose( xdfp );
 	xdfp = NULL;
 
-/*
-	*work = '\0';
-	MPI_Send( work, 1, MPI_CHAR, 0, MT_READY, MPI_COMM_WORLD );
-*/
 	ibuf = 0;
 	MPI_Send( &ibuf, 1, MPI_INT, 0, MT_READY, MPI_COMM_WORLD );
 

@@ -49,12 +49,6 @@ static	int	fm_opt_lpos = -1;
 static	int	fm_opt_rpos = -1;
 static	char	*fm_chk_seq;
 
-IDENT_T	*RM_find_id( char [] );
-
-int	RM_paired( PAIRSET_T *, int, int );
-int	RM_triple( PAIRSET_T *, int, int, int );
-int	RM_quad( PAIRSET_T *, int, int, int, int );
-
 static	int	find_motif( SEARCH_T * );
 static	int	adjust_szero( int * );
 static	int	find_1_motif( SEARCH_T * );
@@ -96,7 +90,7 @@ static	int	chk_seq( STREL_T *, char [], int );
 static	void	print_match( FILE *, char [], int, int, STREL_T [] );
 static	void	mk_cstr( char [], char [] );
 
-int	find_motif_driver( int n_searches, SEARCH_T *searches[],
+int	RM_find_motif( int n_searches, SEARCH_T *searches[],
 	SITE_T *sites,
 	char sid[], char sdef[], int comp, int slen, char sbuf[] )
 {
@@ -110,22 +104,22 @@ int	find_motif_driver( int n_searches, SEARCH_T *searches[],
 		ip = RM_find_id( "windowsize" );
 		if( ip == NULL )
 			RM_errormsg( TRUE,
-				"find_motif_driver: windowsize undefined." );
+				"RM_find_motif: windowsize undefined." );
 	
 			if( ip->i_val.v_value.v_ival <= 0 )
 				RM_errormsg( TRUE,
-					"find_motif_driver: windowsize <= 0." );
+					"RM_find_motif: windowsize <= 0." );
 		else
 			fm_windowsize = ip->i_val.v_value.v_ival;
 		fm_winbuf = ( int * )malloc( (fm_windowsize+2) * sizeof(int) );
 		if( fm_winbuf == NULL )
 			RM_errormsg( TRUE,
-				"find_motif_driver: can't allocate fm_winbuf.");
+				"RM_find_motif: can't allocate fm_winbuf.");
 		fm_window = &fm_winbuf[ 1 ];
 		fm_chk_seq = ( char * )malloc((fm_windowsize+1) * sizeof(char));
 		if( fm_chk_seq == NULL )
 			RM_errormsg( TRUE,
-			"find_motif_driver: can't allocate fm_chk_seq." );
+			"RM_find_motif: can't allocate fm_chk_seq." );
 	}
 
 	fm_sid = sid;
