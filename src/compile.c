@@ -485,16 +485,28 @@ VALUE_T	*vp;
 	ip = vp->v_value.v_pval;
 	type = ip->i_type;
 	if( type == T_INT ){
+		if( ip->i_val.v_value.v_ival == UNDEF ){
+			fprintf( stderr,
+			"loadidval: FATAL: id '%s' has int value UNDEF.\n",
+				ip->i_name );
+			exit( 1 );
+		}
 		vp->v_type = T_INT;
 		vp->v_value.v_ival = ip->i_val.v_value.v_ival;
 	}else if( type == T_STRING ){
-		vp->v_type = T_STRING;
+		if( ip->i_val.v_value.v_pval == NULL ){
+			fprintf( stderr,
+			"loadidval: FATAL: id '%s' has string value NULL.\n",
+				ip->i_name );
+			exit( 1 );
+		}
 		sp = ( char * )malloc( strlen( ip->i_val.v_value.v_pval ) + 1 );
 		if( sp == NULL ){
 			fprintf( stderr,
 				"loadidval: FATAL: can't allocate sp.\n" );
 			exit( 1 );
 		}
+		vp->v_type = T_STRING;
 		strcpy( sp, ip->i_val.v_value.v_pval );
 		vp->v_value.v_pval = sp;
 	}else if( type == T_PAIR ){
