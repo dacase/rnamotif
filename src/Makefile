@@ -64,7 +64,7 @@ clean:
 		y.tab.h		\
 		y.output	\
 		lex.yy.c	\
-		rnamot		\
+		rnamotif	\
 		rmfmt		\
 		efn_drv		\
 		core		\
