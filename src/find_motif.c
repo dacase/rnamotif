@@ -37,7 +37,9 @@ char	locus[];
 int	slen;
 char	sbuf[];
 {
-	int	i, w_winsize, slev, szero, sdollar;
+	int	i, w_winsize, slev;
+	int	szero, l_szero;
+	int	sdollar, f_sdollar, l_sdollar;
 	IDENT_T	*ip;
 	SEARCH_T	*srp;
 	
@@ -72,15 +74,25 @@ fprintf( stderr, "fmd   : locus = %s, slen = %d\n", locus, slen );
 	w_winsize = rm_dmaxlen < fm_windowsize ? rm_dmaxlen : fm_windowsize;
 
 	srp = searches[ 0 ];
-	for( szero = 0; szero < slen - w_winsize; szero++ ){
+	l_szero = slen - w_winsize;
+	for( szero = 0; szero < l_szero; szero++ ){
+		f_sdollar = szero + w_winsize - 1;
+		l_sdollar = szero + rm_dminlen - 1;
+fprintf( stderr, "fmd.1 : szero = %4d, sdollar = %4d:%4d\n",
+	szero, f_sdollar, l_sdollar );
 		sdollar = szero + w_winsize - 1;
 		srp->s_zero = szero;
 		srp->s_dollar = sdollar;
 		find_motif( srp );
 	}
 
+	l_szero = slen - rm_dminlen;
+	f_sdollar = slen - 1;
 	sdollar = slen - 1;
-	for( ; szero <= slen - rm_dminlen; szero++ ){
+	for( ; szero <= l_szero; szero++ ){
+		l_sdollar = szero + rm_dminlen - 1;
+fprintf( stderr, "fmd.2 : szero = %4d, sdollar = %4d:%4d\n",
+	szero, f_sdollar, l_sdollar );
 		srp->s_zero = szero;
 		srp->s_dollar = sdollar;
 		find_motif( srp );
