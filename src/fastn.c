@@ -29,13 +29,15 @@ char	sbuf[];
 		return( 0 );
 	}
 
-	sp = strchr( line, ' ' );
+	for( lp = &line[ 1 ]; isspace( *lp ); lp++ )
+		;
+	sp = strchr( lp, ' ' );
 	if( sp == NULL ){
-		strncpy( sid, &line[ 1 ], elp - line - 1 );
-		sid[ elp - line - 1 ] = '\0';
+		strncpy( sid, lp, elp - line );
+		sid[ elp - line ] = '\0';
 	}else{
-		strncpy( sid, &line[ 1 ], sp - line - 1 );
-		sid[ sp - line - 1 ] = '\0';
+		strncpy( sid, lp, sp - line );
+		sid[ sp - lp ] = '\0';
 		while( *sp == ' ' )
 			sp++;
 		strncpy( sdef, sp, elp - sp );
