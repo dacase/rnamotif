@@ -1,13 +1,18 @@
-#  Edit the configuration variables below to match your system:
+#  Edit the configuration variables below to match your system.  The default
+#  values given here should work on GNU/Linux systems.
 
 CC= gcc
 CFLAGS= -O2
 #CFLAGS= -g
 
-#  the yacc compiler is typically "yacc" (for the *real* yacc), "byacc"
+#  The yacc compiler is typically "yacc" (for the *real* yacc), "byacc"
 #  (for the Berkeley equivalent) or "bison -y" (to get yacc compatible output 
 #  from bison).  Note that /bin/yacc is sometimes a symlink to bison; on
 #  such systems you need the -y flag.
+
+#  Note that version of bison (like 1.35 that is packaged with a number of
+#  Linux distributions) will not work; you need to get version 1.875 or later.
+#  Go to http://www.gnu.org/software/bison/bison.html for more information.
 
 YACC = bison -y
 
