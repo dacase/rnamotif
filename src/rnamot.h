@@ -95,8 +95,6 @@ typedef	struct	strel_t	{
 	int	s_mismatch;
 	int	s_mispair;
 	PAIRSET_T	*s_pairset;
-	SITE_T	*s_sites;
-	int	s_n_sites;
 } STREL_T;
 
 #endif
