@@ -1,3 +1,16 @@
+3.0.1	2003-nov-10
+	Modified rmlex.l to treat \r as white space.
+
+	Added code to mrnamotif.c to collect worker rnamotif errors
+	and report them back to the rank-0 process using messages of
+	MT_ERROR.
+
+3.0.0	2003-jul-27
+	Modified the score section to allow "carry around" variables.  
+	This allows users to write descriptors that can remember the
+	SCORE of previous candiates which allows them to limit the output
+	to a more global "best" solution.
+
 2.4.1	2003-jun-18
 	Fixed bug in compile.c that never bothered to load float variables
 	in str-element parameter settings.  IE pairfrac=PF, where PF is a
