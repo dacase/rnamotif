@@ -5,11 +5,12 @@
 #include "rnamot.h"
 #include "y.tab.h"
 
-extern	char	rm_fname[ 256 ];
-extern	int	rm_lineno;
 extern	int	rm_error;
-extern	int	rm_emsg_lineno;
 extern	VALUE_T	rm_tokval;
+extern	int	rm_lineno;
+extern	int	rm_emsg_lineno;
+extern	char	rm_fname[];
+extern	int	rm_copt;
 
 static	char	emsg[ 256 ];
 
@@ -66,10 +67,18 @@ static	int	chk_1_strel_parms();
 static	int	chk_len_seq();
 static	int	chk_site();
 
-int	RM_init()
+int	RM_init( argc, argv )
+int	argc;
+char	*argv[];
 {
+	int	ac;
 	IDENT_T	*ip;
 	NODE_T	*np;
+
+	for( ac = 1; ac < argc; ac++ ){
+		if( !strcmp( argv[ ac ], "-c" ) )
+			rm_copt = 1;
+	}
 
 	rm_lineno = 0;
 	curpair[0] = "a:u";
@@ -240,6 +249,10 @@ int	stype;
 	val.v_value.v_ival = UNDEF;
 	ip = enter_id( "maxlen", T_INT, C_VAR, S_STREL, &val );
 
+	val.v_type = T_INT;
+	val.v_value.v_ival = UNDEF;
+	ip = enter_id( "len", T_INT, C_VAR, S_STREL, &val );
+
 	val.v_type = T_STRING;
 	val.v_value.v_pval = NULL;
 	ip = enter_id( "seq", T_STRING, C_VAR, S_STREL, &val );
@@ -308,6 +321,9 @@ void	SE_close()
 		}else if( !strcmp( ip->i_name, "minlen" ) ){
 			stp->s_minlen = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "maxlen" ) ){
+			stp->s_maxlen = ip->i_val.v_value.v_ival;
+		}else if( !strcmp( ip->i_name, "len" ) ){
+			stp->s_minlen = ip->i_val.v_value.v_ival;
 			stp->s_maxlen = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "seq" ) ){
 			stp->s_seq = ip->i_val.v_value.v_pval;
@@ -1570,12 +1586,17 @@ NODE_T	*expr;
 
 }
 
-void	POS_close()
+void	POS_close( parms )
+int	parms;
 {
 	int	i;
 	IDENT_T	*ip;
 	POS_T	*i_pos;
 
+	if( !parms ){
+		errormsg( 1,
+			"POS_close: site descr. requires pos parameter." );
+	}
 	for( i = 0; i < n_local_ids; i++ ){
 		ip = local_ids[ i ];
 		if( !strcmp( ip->i_name, "tag" ) ){
