@@ -9,6 +9,7 @@ int	rm_emsg_lineno;
 char	rm_fname[ 256 ] = "--stdin--";
 int	rm_copt = 0;
 int	rm_dopt = 0;
+int	rm_hopt = 0;	/* dump hierarchy	*/
 
 #define	RM_GLOBAL_IDS_SIZE	50
 IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ] = {
@@ -74,8 +75,8 @@ char	*argv[];
 			fprintf( stderr, "%d\n", rm_tmaxlen );
 	}
 
-	if( rm_dopt )
-		RM_dump( stderr, 1, 1, 1 );
+	if( rm_dopt || rm_hopt )
+		RM_dump( stderr, rm_dopt, rm_dopt, rm_dopt, rm_hopt );
 
 	if( rm_error )
 		exit( 1 );
