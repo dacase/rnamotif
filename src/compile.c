@@ -44,6 +44,7 @@ static	IDENT_T	*find_id();
 static	void	eval();
 static	int	loadidval();
 static	void	storeexprval();
+static	int	pairop();
 
 static	void	seqlen();
 
@@ -194,13 +195,13 @@ int	stype;
 	stp->s_lineno = rm_lineno;
 	stp->s_tag = NULL;
 	stp->s_next = NULL;
-	stp->s_pairs = NULL;
+	stp->s_mates = NULL;
 	stp->s_minlen = UNDEF;
 	stp->s_maxlen = UNDEF;
 	stp->s_seq = NULL;
 	stp->s_mismatch = 0;
 	stp->s_mispair = 0;
-	stp->s_pairdata = NULL;
+	stp->s_pairset = NULL;
 	stp->s_sites = NULL;
 	
 	n_local_ids = 0;
@@ -265,7 +266,7 @@ void	SE_close()
 		}else if( !strcmp( ip->i_name, "mispair" ) ){
 			stp->s_mispair = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "pair" ) ){
-			stp->s_pairdata = NULL;
+			stp->s_pairset = ip->i_val.v_value.v_pval;
 		}
 	}
 	if( stp->s_minlen != UNDEF ){
@@ -445,6 +446,8 @@ int	d_ok;
 				strcat( sp, r_sp );
 				valstk[ n_valstk - 2 ].v_value.v_pval = sp;
 			}else if( l_type == T_PAIR ){
+				pairop( SYM_PLUS, &valstk[ n_valstk - 2 ],
+					&valstk[ n_valstk - 1 ] );
 			}
 			n_valstk--;
 			break;
@@ -465,6 +468,8 @@ int	d_ok;
 				errormsg( 1,
 				"eval: '-' not defined for strings.\n" );
 			}else if( l_type == T_PAIR ){
+				pairop( SYM_ASSIGN, &valstk[ n_valstk - 2 ],
+					&valstk[ n_valstk - 1 ] );
 			}
 			n_valstk--;
 			break;
@@ -542,6 +547,9 @@ VALUE_T	*vp;
 	int	type;
 	IDENT_T	*ip;
 	char	*sp;
+	int	i;
+	PAIR_T	*n_pp, *o_pp;
+	PAIRSET_T	*n_ps, *o_ps ;
 
 	ip = vp->v_value.v_pval;
 	type = ip->i_type;
@@ -563,13 +571,34 @@ VALUE_T	*vp;
 		}
 		sp = ( char * )malloc( strlen( ip->i_val.v_value.v_pval ) + 1 );
 		if( sp == NULL ){
-			errormsg( 1, "loadidval: can't allocate sp.\n" );
+			errormsg( 1, "loadidval: can't allocate sp.\n",
+				ip->i_name );
 		}
 		vp->v_type = T_STRING;
 		strcpy( sp, ip->i_val.v_value.v_pval );
 		vp->v_value.v_pval = sp;
 	}else if( type == T_PAIR ){
+		if( ip->i_val.v_value.v_pval == NULL ){
+			sprintf( emsg,
+				"loadidval: id '%s' has pair value NULL.\n",
+				 ip->i_name );
+			errormsg( 1, emsg );
+		}else
+			o_ps = ip->i_val.v_value.v_pval;
+		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
+		if( n_ps == NULL ){
+			errormsg( 1, "loadidval: can't allocate n_ps.\n" );
+		}
+		n_pp = ( PAIR_T * )malloc( o_ps->ps_n_pairs*sizeof( PAIR_T ) );
+		if( n_pp == NULL ){
+			errormsg( 1, "loadidval: can't allocate n_pp.\n" );
+		}
+		n_ps->ps_n_pairs = o_ps->ps_n_pairs;
+		n_ps->ps_pairs = n_pp;
+		for( i = 0; i < n_ps->ps_n_pairs; i++ )
+			n_ps->ps_pairs[ i ] = o_ps->ps_pairs[ i ];
 		vp->v_type = T_PAIR;
+		vp->v_value.v_pval = n_ps;
 	}
 	return( type );
 }
@@ -600,6 +629,14 @@ VALUE_T	*vp;
 		ip->i_val.v_type = T_PAIR;
 		ip->i_val.v_value.v_pval = vp->v_value.v_pval;
 	}
+}
+
+static	int	pairop( op, vp1, vp2 )
+int	op;
+VALUE_T	*vp1;
+VALUE_T	*vp2;
+{
+
 }
 
 static	void	seqlen( seq, minlen, maxlen )
