@@ -44,6 +44,9 @@ char	*argv[];
 	}
 
 	for( t_fields = 0; fgets( line, sizeof( line ), ifp ); ){
+		/* skip fastn def lines	*/
+		if( *line == '>' )
+			continue;
 		n_fields = split( line, fields, " \t\n" );
 		if( n_fields == 0 )
 			continue;
