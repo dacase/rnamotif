@@ -42,6 +42,19 @@ NODE_T	*right;
 	return( np );
 }
 
+NODE_T	*updnode( np, vp, left, right )
+NODE_T	*np;
+VALUE_T	*vp;
+NODE_T	*left;
+NODE_T	*right;
+{
+
+	if( left != NULL )
+		np->n_left = left;
+	if( right != NULL )
+		np->n_right = right;
+}
+
 void	dumpexpr( fp, np, indent )
 FILE	*fp;
 NODE_T	*np;
@@ -62,8 +75,9 @@ int	indent;
 {
 
 	fprintf( fp, "%*s",indent, "" );
-	fprintf( fp, "%7d: lf = %7d rt = %7d tp,cl = %2d,%2d ",
-		np, np->n_left, np->n_right, np->n_type, np->n_class );
+	fprintf( fp, "%7d: lf = %7d rt = %7d ln,tp,cl = %3d,%2d,%2d ",
+		np, np->n_left, np->n_right,
+		np->n_lineno, np->n_type, np->n_class );
 	switch( np->n_sym ){
 	case SYM_PARMS :
 		fprintf( fp, "SYM_PARMS\n" );
