@@ -9,8 +9,11 @@ extern	VALUE_T	rm_tokval;
 #define	CTX_PARMS	1
 #define	CTX_DESCR	2
 #define	CTX_SITES	3
+#define	CTX_SCORE	4
 
 static	int	context = CTX_START;
+
+static	NODE_T	*np;
 
 %}
 
@@ -161,7 +164,7 @@ site_part	: SYM_SITES { context = CTX_SITES; } site_list
 		| ;
 site_list	: site
 		| site_list site ;
-site		: siteaddr_list SYM_ASSIGN pairval
+site		: siteaddr_list SYM_IN pairval
 				{ SI_close( $3 ); } ;
 siteaddr_list	: strel
 		| siteaddr_list SYM_COLON strel ;
