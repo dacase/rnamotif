@@ -69,13 +69,13 @@ typedef	struct	strel_t	{
 	int	s_lineno;
 	char	*s_tag;
 	struct	strel_t	*s_next;
-	struct	strel_t	*s_pairs;
+	struct	strel_t	*s_mates;
 	int	s_minlen;
 	int	s_maxlen;
 	char	*s_seq;
 	int	s_mismatch;
 	int	s_mispair;
-	char	*s_pairdata;
+	PAIRSET_T	*s_pairset;
 	char	*s_sites;
 } STREL_T;
 
