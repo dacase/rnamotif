@@ -1,6 +1,9 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
+#define	UNDEF	(-1)
+#define	LONGEST	(-2)
+
 typedef	struct	value_t	{
 	int	v_sym;
 	union	{
@@ -13,6 +16,7 @@ typedef	struct	value_t	{
 
 typedef	struct	strel_t	{
 	int	s_type;
+	char	s_index;	/* index into descr array */
 	char	*s_tag;
 	struct	strel_t	*s_next;
 	struct	strel_t	*s_pairs;
