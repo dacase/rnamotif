@@ -136,13 +136,15 @@ site		: pairing SYM_IN expr
 
 rule_list	: rule
 		| rule rule_list ;
-rule		: expr action
+rule		: expr 		{ SC_action( $1 ); }
+			action	{ SC_endaction(); } ;
 		| action ;
 action		: SYM_LCURLY stmt_list SYM_RCURLY ;
 stmt_list	: stmt
 		| stmt stmt_list ;
 stmt		: accept_stmt
 		| asgn_stmt
+		| auto_stmt
 		| break_stmt
 		| call_stmt
 		| cmpd_stmt
@@ -153,22 +155,51 @@ stmt		: accept_stmt
 		| reject_stmt
 		| while_stmt ;
 accept_stmt	: SYM_ACCEPT SYM_SEMICOLON
-asgn_stmt	: asgn SYM_SEMICOLON ;
+				{ SC_accept(); } ;
+asgn_stmt	: asgn SYM_SEMICOLON
+				{ SC_mark();
+				  SC_expr( 0, $1 );
+				  SC_clear();
+				} ;
+auto_stmt	: auto_lval SYM_SEMICOLON
+				{ SC_mark();
+				  SC_expr( 0, $1 );
+				  SC_clear();
+				} ;
 break_stmt	: SYM_BREAK SYM_SEMICOLON ;
-call_stmt	: fcall SYM_SEMICOLON ;
+call_stmt	: fcall SYM_SEMICOLON
+				{ SC_expr( 0, $1 );
+				  SC_clear();
+				} ;
 cmpd_stmt	: SYM_LCURLY stmt_list SYM_RCURLY ;
 continue_stmt	: SYM_CONTINUE SYM_SEMICOLON ;
 empty_stmt	: empty SYM_SEMICOLON ;
-for_stmt	: for_hdr stmt
-if_stmt		: if_hdr stmt
-		| if_hdr stmt SYM_ELSE stmt ;
-reject_stmt	: SYM_REJECT SYM_SEMICOLON ;
-while_stmt	: SYM_WHILE SYM_LPAREN expr SYM_RPAREN stmt ;
-if_hdr		: SYM_IF SYM_LPAREN expr SYM_RPAREN ;
+for_stmt	: for_hdr stmt	{ SC_endfor(); } ;
+if_stmt		: if_hdr stmt	{ SC_endif(); }
+		| if_hdr stmt SYM_ELSE
+				{ SC_else(); } stmt
+				{ SC_endelse(); } ;
+reject_stmt	: SYM_REJECT SYM_SEMICOLON
+				{ SC_reject(); } ;
+while_stmt	: SYM_WHILE SYM_LPAREN expr { SC_while( $3 ); }
+			SYM_RPAREN stmt
+				{ SC_endwhile(); } ;
+if_hdr		: SYM_IF SYM_LPAREN expr { SC_if( $3 ); } SYM_RPAREN ;
 for_hdr		: SYM_FOR SYM_LPAREN for_ctrl SYM_RPAREN ;
-for_ctrl	: for_expr SYM_SEMICOLON for_expr SYM_SEMICOLON for_expr ;
-for_expr	: expr
-		| empty ;
+for_ctrl	: for_init	{ SC_forinit( $1 ); }
+			 SYM_SEMICOLON for_test
+				{ SC_fortest( $4 ); }
+			SYM_SEMICOLON for_incr
+				{ SC_forincr( $7 ); } ;
+for_init	: asgn		{ $$ = $1; }
+		| auto_lval	{ $$ = $1; }
+		| empty 	{ $$ = $1; } ;
+for_test	: asgn		{ $$ = $1; }
+		| expr		{ $$ = $1; }
+		| empty		{ $$ = $1; } ;
+for_incr	: asgn		{ $$ = $1; }
+		| auto_lval	{ $$ = $1; }
+		| empty		{ $$ = $1; } ;
 
 asgn		: lval asgn_op asgn
 				{ $$ = node( $2, 0, $1, $3 );
@@ -258,7 +289,8 @@ stref		: strhdr SYM_LPAREN a_list SYM_RPAREN
 					$$ = node( SYM_STREF, 0, $1, $3 );
 				} ;
 lval		: ident		{ $$ = $1; }
-		| incr_op ident	{ $$ = node( $1, 0, 0, $2 ); }
+		| auto_lval	{ $$ = $1; } ;
+auto_lval	: incr_op ident	{ $$ = node( $1, 0, 0, $2 ); }
 		| ident incr_op	{ $$ = node( $2, 0, $1, 0 ); } ;
 literal		: SYM_INT	{ $$ = node( SYM_INT, &rm_tokval, 0, 0 ); }
 		| SYM_FLOAT	{ $$ = node( SYM_FLOAT, &rm_tokval, 0, 0 ); }
@@ -295,7 +327,7 @@ pairset		: SYM_LCURLY 	{ if( rm_context != CTX_SCORE )
 				  else
 					$$ = node( SYM_LCURLY, 0, 0, $2 );
 				} ;
-empty		: ;
+empty		: 		{ $$ = NULL; } ;
 %%
 
 #include "lex.yy.c"
