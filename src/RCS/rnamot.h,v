@@ -1,9 +1,14 @@
-head	1.84;
+head	1.85;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.85
+date	2001.08.24.17.18.45;	author macke;	state Exp;
+branches;
+next	1.84;
 
 1.84
 date	2001.07.31.17.13.36;	author macke;	state Exp;
@@ -431,22 +436,22 @@ desc
 @
 
 
-1.84
+1.85
 log
-@updated version and time to 1.6.0
+@added new defines for the seq. format: FASTN, PIR, GENBANK.
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.6.0 2001-jul-31"
+#define	VERSION	"v1.6.1 2001-aug-24"
 
 #define	U_MSG_S	\
-"usage: %s [ options ] descr [ seq-file ... ]\n\n\
+"usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
 options:\n\
 \t-c\t\t\tCompile only, no search\n\
 \t-d\t\t\tDump internal data structures\n\
-\t-h\t\t\tDump the strucure hierarchy\n\
+\t-h\t\t\tDump the structure hierarchy\n\
 \t-s\t\t\tShow builtin variables\n\
 \t-v\t\t\tPrint Version Infomation\n\
 \t-context\t\tPrint solution context\n\
@@ -457,7 +462,11 @@ options:\n\
 \n\
 descr:\tUse one:\n\
 \t-descr descr-file\tMay have includes; use cmd-line defs\n\
-\t-xdescr xdescr-file\tMay not have includes; ignore cmd-line defs\n"
+\t-xdescr xdescr-file\tMay not have includes; ignore cmd-line defs\n\
+\n\
+fmt:\t(Optional) Use one:\n\
+\t-fmt fastn\t\tfastn (default)\n\
+\t-fmt pir\t\tpir\n"
 
 #define	UNDEF	(-1)
 #define	UNBOUNDED	0x7fffffff
@@ -467,6 +476,10 @@ descr:\tUse one:\n\
 
 #define	MIN(a,b)	((a)<(b)?(a):(b))
 #define	MAX(a,b)	((a)>(b)?(a):(b))
+
+#define	DT_FASTN	0
+#define	DT_PIR		1
+#define	DT_GENBANK	2
 
 #define	T_UNDEF		0
 #define	T_INT		1
@@ -631,6 +644,27 @@ typedef	struct	incdir_t	{
 } INCDIR_T;
 
 #endif
+@
+
+
+1.84
+log
+@updated version and time to 1.6.0
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.6.0 2001-jul-31"
+d7 1
+a7 1
+"usage: %s [ options ] descr [ seq-file ... ]\n\n\
+d11 1
+a11 1
+\t-h\t\t\tDump the strucure hierarchy\n\
+d22 5
+a26 1
+\t-xdescr xdescr-file\tMay not have includes; ignore cmd-line defs\n"
+d36 4
 @
 
 

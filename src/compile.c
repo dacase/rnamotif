@@ -27,6 +27,7 @@ int	rm_popt = 0;
 int	rm_sopt = 0;
 int	rm_vopt = 0;
 int	rm_show_context = 0;
+int	rm_dbfmt = DT_FASTN;
 FILE	*rm_dbfp = NULL;
 char	**rm_dbfname;
 int	rm_n_dbfname;
@@ -253,6 +254,22 @@ int	RM_init( int argc, char *argv[] )
 			}else{
 				ac++;
 				rm_xdfname = argv[ ac ];
+			}
+		}else if( !strcmp( argv[ ac ], "-fmt" ) ){
+			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
+			}
+			ac++;
+			if( !strcmp( argv[ ac ], "fastn" ) )
+				rm_dbfmt = DT_FASTN;
+			else if( !strcmp( argv[ ac ], "pir" ) )
+				rm_dbfmt = DT_PIR;
+			else{
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
 			}
 		}else if( *argv[ ac ] == '-' ){
 			fprintf( stderr, U_MSG_S, argv[ 0 ] );

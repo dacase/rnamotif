@@ -1,9 +1,14 @@
-head	1.124;
+head	1.125;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.125
+date	2001.08.24.17.17.34;	author macke;	state Exp;
+branches;
+next	1.124;
 
 1.124
 date	2001.07.30.20.04.58;	author macke;	state Exp;
@@ -631,10 +636,9 @@ desc
 @
 
 
-1.124
+1.125
 log
-@added/modified code to deal with new structure element, ctx,
-standing for context.
+@added code to get the format from the cmd option -fmt f
 @
 text
 @#include <stdio.h>
@@ -666,6 +670,7 @@ int	rm_popt = 0;
 int	rm_sopt = 0;
 int	rm_vopt = 0;
 int	rm_show_context = 0;
+int	rm_dbfmt = DT_FASTN;
 FILE	*rm_dbfp = NULL;
 char	**rm_dbfname;
 int	rm_n_dbfname;
@@ -892,6 +897,22 @@ int	RM_init( int argc, char *argv[] )
 			}else{
 				ac++;
 				rm_xdfname = argv[ ac ];
+			}
+		}else if( !strcmp( argv[ ac ], "-fmt" ) ){
+			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
+			}
+			ac++;
+			if( !strcmp( argv[ ac ], "fastn" ) )
+				rm_dbfmt = DT_FASTN;
+			else if( !strcmp( argv[ ac ], "pir" ) )
+				rm_dbfmt = DT_PIR;
+			else{
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
 			}
 		}else if( *argv[ ac ] == '-' ){
 			fprintf( stderr, U_MSG_S, argv[ 0 ] );
@@ -4029,6 +4050,17 @@ static	int	pk_cmp( STREL_T **d1, STREL_T **d2 )
 
 	return( ( *d1 )->s_index - ( *d2 )->s_index );
 }
+@
+
+
+1.124
+log
+@added/modified code to deal with new structure element, ctx,
+standing for context.
+@
+text
+@d30 1
+d257 16
 @
 
 

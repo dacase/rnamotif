@@ -15,6 +15,7 @@ extern	int	rm_hopt;
 extern	int	rm_popt;
 extern	int	rm_sopt;
 extern	int	rm_vopt;
+extern	int	rm_dbfmt;
 extern	FILE	*rm_dbfp;
 extern	char	**rm_dbfname;
 extern	int	rm_n_dbfname;
@@ -42,7 +43,12 @@ static	char	csbuf[ SBUF_SIZE ];
 IDENT_T	*RM_find_id();
 
 char	*RM_preprocessor( void );
+/*
 FILE	*FN_fnext( FILE *, int *, int, char *[] );
+*/
+FILE	*DB_fnext( FILE *, int *, int, char *[] );
+int	FN_fgetseq( FILE *, char *, int, char *, int, char * );
+int	PIR_fgetseq( FILE *, char *, int, char *, int, char * );
 
 static	void	mk_rcmp( int, char [], char [] );
 
@@ -53,6 +59,7 @@ main( int argc, char *argv[] )
 	int	chk_both_strs;
 	int	show_progress;
 	int	ecnt;
+	int	( *fgetseq )( FILE *, char *, int, char *, int, char * );
 
 	if( RM_init( argc, argv ) )
 		exit( 1 );
@@ -125,15 +132,35 @@ main( int argc, char *argv[] )
 	else
 		show_progress = ip->i_val.v_value.v_ival;
 
+	if( rm_dbfmt == DT_FASTN )
+		fgetseq = FN_fgetseq;
+	else if( rm_dbfmt == DT_PIR )
+		fgetseq = PIR_fgetseq;
+	else{
+		fprintf( stderr, "%s: unknown data format %d.\n",
+			argv[ 0 ], rm_dbfmt );
+		exit( 1 );
+	}
+/*
 	rm_dbfp = FN_fnext( rm_dbfp, &rm_c_dbfname, rm_n_dbfname, rm_dbfname );
+*/
+	rm_dbfp = DB_fnext( rm_dbfp, &rm_c_dbfname, rm_n_dbfname, rm_dbfname );
 	if( rm_dbfp == NULL )
 		exit( 1 );
 
 	for( ecnt = 0; ; ){
+/*
 		slen = FN_fgetseq( rm_dbfp, sid,
 			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
+*/
+		slen = fgetseq( rm_dbfp, sid,
+			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
 		if( slen == EOF ){
+/*
 			rm_dbfp = FN_fnext( rm_dbfp,
+				&rm_c_dbfname, rm_n_dbfname, rm_dbfname );
+*/
+			rm_dbfp = DB_fnext( rm_dbfp,
 				&rm_c_dbfname, rm_n_dbfname, rm_dbfname );
 			if( rm_dbfp == NULL )
 				break;

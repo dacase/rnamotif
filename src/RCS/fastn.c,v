@@ -1,9 +1,14 @@
-head	1.12;
+head	1.13;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.13
+date	2001.08.16.20.23.33;	author macke;	state Exp;
+branches;
+next	1.12;
 
 1.12
 date	2001.05.31.21.01.25;	author macke;	state Exp;
@@ -71,9 +76,9 @@ desc
 @
 
 
-1.12
+1.13
 log
-@return EOF for end of file and 0 for 0 length seqs.
+@removed commented out obsolete code
 @
 text
 @#include <stdio.h>
@@ -122,9 +127,6 @@ int	FN_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	*sbuf = '\0';
 	
 	if( ( c = getc( fp ) ) == EOF ){
-/*
-		return( 0 );
-*/
 		return( EOF );
 	}else if( c != '>' ){
 		fprintf( stderr,
@@ -208,6 +210,18 @@ static	int	skipbl2nl( FILE *fp )
 			break;
 	return( c );
 }
+@
+
+
+1.12
+log
+@return EOF for end of file and 0 for 0 length seqs.
+@
+text
+@a46 3
+/*
+		return( 0 );
+*/
 @
 
 

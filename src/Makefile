@@ -3,10 +3,10 @@ include ../config.h
 RNAMOTOBJS=	\
 	rnamot.o	\
 	compile.o	\
+	dbutil.o	\
 	dump.o		\
 	efn.o		\
 	errormsg.o	\
-	fastn.o		\
 	find_motif.o	\
 	mm_regexp.o	\
 	node.o		\
@@ -24,9 +24,11 @@ all:	rnamotif	\
 rnamotif:	$(RNAMOTOBJS)
 	$(CC)	$(CFLAGS) -o rnamotif $(RNAMOTOBJS) $(GBLIB) -lm
 
-rnamot.o:	rnamot.h dbase.h y.tab.h
+rnamot.o:	rnamot.h y.tab.h
 
 compile.o:	rnamot.h y.tab.h
+
+dbutil.o:	rnamot.h
 
 dump.o:		rnamot.h y.tab.h
 
@@ -34,8 +36,6 @@ dumpnode.h:	y.tab.h mk_dumpnode.h
 		./mk_dumpnode.h y.tab.h > dumpnode.h
 
 efn.o:		rnamot.h
-
-fastn.o:	rnamot.h
 
 find_motif.o:	rnamot.h y.tab.h
 

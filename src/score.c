@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <math.h>
 
 #include "rnamot.h"
 #include "y.tab.h"
@@ -9,6 +10,7 @@
 #define	FMTFLAGS	"'-+ #0"
 
 #define	MIN(a,b)	((a)<(b)?(a):(b))
+#define	LG(v)		(3.32192809488736234789*log(v))
 
 #define	ISLVAL(s)	\
 	((s)==SYM_ASSIGN||(s)==SYM_PLUS_ASSIGN||(s)==SYM_MINUS_ASSIGN||\
@@ -137,16 +139,18 @@ static	char	*opnames[ N_OP ] = {
 };
 
 #define	SC_STRID	0
-#define	SC_EFN		1
-#define	SC_LENGTH	2
-#define	SC_MISMATCHES	3
-#define	SC_MISPAIRS	4
-#define	SC_PAIRED	5
-#define	SC_SPRINTF	6
-#define	N_SC		7	
+#define	SC_BITS		1
+#define	SC_EFN		2
+#define	SC_LENGTH	3
+#define	SC_MISMATCHES	4
+#define	SC_MISPAIRS	5
+#define	SC_PAIRED	6
+#define	SC_SPRINTF	7
+#define	N_SC		8
 
 static	char	*scnames[ N_SC ] = {
 	"STRID",
+	"bits",
 	"efn",
 	"length",
 	"mismatches",
@@ -245,6 +249,7 @@ static	void	do_pp_i( INST_T * );
 static	void	do_i_mm( INST_T * );
 static	void	do_mm_i( INST_T * );
 
+static	float	RM_bits( INST_T *, int, int, int, int );
 static	int	setupefn( INST_T *, int, int, int, int );
 static	int	setbp( STREL_T *, int, int, int, int, int [] );
 static	void	mk_stref_name( int, char []);
@@ -917,6 +922,7 @@ static	void	fix_call( NODE_T *np )
 		rm_emsg_lineno = np->n_lineno;
 		RM_errormsg( 1, "fix_call: STRID can not be called by user." );
 		break;
+	case SC_BITS :
 	case SC_EFN :
 		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
 			pcnt++;
@@ -1029,6 +1035,84 @@ static	void	do_scl( INST_T *ip )
 		estk[ esp ] = idx;
 		break;
 
+	case SC_BITS :
+		idx  = mem[ sp - 5 ].v_value.v_ival;
+		if( idx < 0 || idx >= rm_n_xdescr ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, 
+		"do_scl: bits: 1st descr index must be between 1 and %d.",
+				rm_n_xdescr );
+			RM_errormsg( 1, emsg );
+		}
+		stp = rm_xdescr[ idx ];
+		pos = mem[ sp - 4 ].v_value.v_ival;
+		if( pos == UNDEF )
+			pos = 1;
+		else if( pos < 0 ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, "do_scl: bits: pos1 must be > 0." );
+		}else if( stp->s_matchlen == 0 ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1,
+	"do_scl: bits: descr1 must have match len > 0." );
+		}else if( pos > stp->s_matchlen ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, "do_scl: bits: pos1 must be <= %d.",
+				stp->s_matchlen );
+			RM_errormsg( 1, emsg );
+		}
+		pos--;
+		len  = mem[ sp - 3 ].v_value.v_ival;
+
+		idx2 = mem[ sp - 2 ].v_value.v_ival;
+		if( idx2 < 0 || idx2 >= rm_n_xdescr ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, 
+		"do_scl: bits: 2nd descr index must be between 1 and %d.",
+				rm_n_xdescr );
+			RM_errormsg( 1, emsg );
+		}else if( idx >= idx2 ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, 
+		"do_scl: bits: 2nd descr index must follow 1st descr.",
+				rm_n_descr );
+			RM_errormsg( 1, emsg );
+		}
+		stp2 = rm_xdescr[ idx2 ];
+		pos2 = mem[ sp - 1 ].v_value.v_ival;
+		if( pos2 == UNDEF )
+			pos2 = stp2->s_matchlen;
+		else if( pos2 < 0 ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, "do_scl: bits: pos2 must be > 0." );
+		}else if( stp2->s_matchlen == 0 ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1,
+	"do_scl: bits: descr2 must have match len > 0." );
+		}else if( pos > stp2->s_matchlen ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, "do_scl: bits: pos2 must be <= %d.",
+				stp2->s_matchlen );
+			RM_errormsg( 1, emsg );
+		}
+		pos2--;
+
+		rval = RM_bits( ip, idx, pos, idx2, pos2 );
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+		mem[ sp ].v_type = T_FLOAT;
+		mem[ sp ].v_value.v_dval = rval;
+		break;
+
 	case SC_EFN :
 		if( !rm_efninit ){
 			rm_efninit = 1;
@@ -1050,22 +1134,22 @@ static	void	do_scl( INST_T *ip )
 		}
 
 		idx  = mem[ sp - 5 ].v_value.v_ival;
-		if( idx < 0 || idx >= rm_n_descr ){
+		if( idx < 0 || idx >= rm_n_xdescr ){
 			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, 
 		"do_scl: efn: 1st descr index must be between 1 and %d.",
-				rm_n_descr );
+				rm_n_xdescr );
 			RM_errormsg( 1, emsg );
 		}
-		stp = &rm_descr[ idx ];
+		stp = rm_xdescr[ idx ];
 		pos = mem[ sp - 4 ].v_value.v_ival;
 		if( pos == UNDEF )
 			pos = 1;
 		else if( pos < 0 ){
 			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( 1, "efn: pos1 must be > 0." );
+			RM_errormsg( 1, "do_scl: efn: pos1 must be > 0." );
 		}else if( stp->s_matchlen == 0 ){
 			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
@@ -1082,12 +1166,12 @@ static	void	do_scl( INST_T *ip )
 		len  = mem[ sp - 3 ].v_value.v_ival;
 
 		idx2 = mem[ sp - 2 ].v_value.v_ival;
-		if( idx2 < 0 || idx2 >= rm_n_descr ){
+		if( idx2 < 0 || idx2 >= rm_n_xdescr ){
 			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, 
 		"do_scl: efn: 2nd descr index must be between 1 and %d.",
-				rm_n_descr );
+				rm_n_xdescr );
 			RM_errormsg( 1, emsg );
 		}else if( idx >= idx2 ){
 			rm_wdfname = ip->i_filename;
@@ -1097,14 +1181,14 @@ static	void	do_scl( INST_T *ip )
 				rm_n_descr );
 			RM_errormsg( 1, emsg );
 		}
-		stp2 = &rm_descr[ idx2 ];
+		stp2 = rm_xdescr[ idx2 ];
 		pos2 = mem[ sp - 1 ].v_value.v_ival;
 		if( pos2 == UNDEF )
 			pos2 = stp2->s_matchlen;
 		else if( pos2 < 0 ){
 			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( 1, "efn: pos2 must be > 0." );
+			RM_errormsg( 1, "do_scl: efn: pos2 must be > 0." );
 		}else if( stp2->s_matchlen == 0 ){
 			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
@@ -1141,15 +1225,15 @@ static	void	do_scl( INST_T *ip )
 
 	case SC_MISMATCHES :
 		idx = mem[ sp - 2 ].v_value.v_ival;
-		if( idx < 0 || idx >= rm_n_descr ){
+		if( idx < 0 || idx >= rm_n_xdescr ){
 			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, 
 		"do_scl: mismatches: descr index must be between 1 and %d.",
-				rm_n_descr );
+				rm_n_xdescr );
 			RM_errormsg( 1, emsg );
 		}
-		stp = &rm_descr[ idx ];
+		stp = rm_xdescr[ idx ];
 		sp = mp;
 		mp = mem[ mp ].v_value.v_ival;
 		mem[ sp ].v_type = T_INT;
@@ -1158,15 +1242,15 @@ static	void	do_scl( INST_T *ip )
 
 	case SC_MISPAIRS :
 		idx = mem[ sp - 2 ].v_value.v_ival;
-		if( idx < 0 || idx >= rm_n_descr ){
+		if( idx < 0 || idx >= rm_n_xdescr ){
 			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, 
 		"do_scl: mispairs: descr index must be between 1 and %d.",
-				rm_n_descr );
+				rm_n_xdescr );
 			RM_errormsg( 1, emsg );
 		}
-		stp = &rm_descr[ idx ];
+		stp = rm_xdescr[ idx ];
 		sp = mp;
 		mp = mem[ mp ].v_value.v_ival;
 		mem[ sp ].v_type = T_INT;
@@ -1175,15 +1259,15 @@ static	void	do_scl( INST_T *ip )
 
 	case SC_PAIRED :
 		idx = mem[ sp - 2 ].v_value.v_ival;
-		if( idx < 0 || idx >= rm_n_descr ){
+		if( idx < 0 || idx >= rm_n_xdescr ){
 			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, 
 		"do_scl: paired: descr index must be between 1 and %d.",
-				rm_n_descr );
+				rm_n_xdescr );
 			RM_errormsg( 1, emsg );
 		}
-		stp = &rm_descr[ idx ];
+		stp = rm_xdescr[ idx ];
 		
 		pos = mem[ sp - 1 ].v_value.v_ival;
 		if( pos < 1 || pos > stp->s_matchlen ){
@@ -2798,6 +2882,50 @@ static	void	do_mm_i( INST_T *ip )
 		RM_errormsg( 1, "do_mm_i: type mismatch." );
 		break;
 	}
+}
+
+static	float	RM_bits( INST_T *ip, int idx, int pos, int idx2, int pos2 )
+{
+	STREL_T	*stp, *stp2;
+	int	i, start, stop;
+	char	*bp;
+	int	bc, bi, bn, len;
+	int	bindex[ 4 ];
+	int	bvec[ 4 ];
+	double	bits;
+
+	stp = rm_xdescr[ idx ];
+	stp2 = rm_xdescr[ idx2 ];
+	start = stp->s_matchoff + pos;
+	stop = stp2->s_matchoff + pos2;
+	len = stop - start + 1;
+
+	for( i = 0; i < 4; i++ ){
+		bindex[ i ] = UNDEF;
+		bvec[ i ] = 0;
+	}
+
+	for( i = 0; i < 4; i++ ){
+		bindex[ i ] = UNDEF;
+		bvec[ i ] = 0;
+	}
+
+	for( bn = 0, bp = &sc_sbuf[ start ], i = start; i <= stop; i++, bp++ ){
+		if( ( bc = rm_b2bc[ *bp ] ) != BCODE_N ){
+			if( ( bi = bindex[ bc ] ) == UNDEF )
+				bi = bindex[ bc ] = bn++;
+			bvec[ bi ]++;
+				
+		}
+	}
+
+	for( bits = 0.0, i = 0; i < 4; i++ ){
+		if( bvec[ i ] != 0 )
+			bits += bvec[ i ] * LG( 1.0 * bvec[ i ] / len );
+	}
+	bits /= -len;
+
+	return( bits );
 }
 
 static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )

@@ -1,14 +1,14 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.6.0 2001-jul-31"
+#define	VERSION	"v1.6.1 2001-aug-24"
 
 #define	U_MSG_S	\
-"usage: %s [ options ] descr [ seq-file ... ]\n\n\
+"usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
 options:\n\
 \t-c\t\t\tCompile only, no search\n\
 \t-d\t\t\tDump internal data structures\n\
-\t-h\t\t\tDump the strucure hierarchy\n\
+\t-h\t\t\tDump the structure hierarchy\n\
 \t-s\t\t\tShow builtin variables\n\
 \t-v\t\t\tPrint Version Infomation\n\
 \t-context\t\tPrint solution context\n\
@@ -19,7 +19,11 @@ options:\n\
 \n\
 descr:\tUse one:\n\
 \t-descr descr-file\tMay have includes; use cmd-line defs\n\
-\t-xdescr xdescr-file\tMay not have includes; ignore cmd-line defs\n"
+\t-xdescr xdescr-file\tMay not have includes; ignore cmd-line defs\n\
+\n\
+fmt:\t(Optional) Use one:\n\
+\t-fmt fastn\t\tfastn (default)\n\
+\t-fmt pir\t\tpir\n"
 
 #define	UNDEF	(-1)
 #define	UNBOUNDED	0x7fffffff
@@ -29,6 +33,10 @@ descr:\tUse one:\n\
 
 #define	MIN(a,b)	((a)<(b)?(a):(b))
 #define	MAX(a,b)	((a)>(b)?(a):(b))
+
+#define	DT_FASTN	0
+#define	DT_PIR		1
+#define	DT_GENBANK	2
 
 #define	T_UNDEF		0
 #define	T_INT		1
