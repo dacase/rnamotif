@@ -1,0 +1,59 @@
+parms
+	wc += gu;
+
+descr
+	ss( len=3 )
+	h5( len=3 )
+		ss( minlen=1, maxlen=3, tag='5p', seq="c$" )
+		h5( len=5 )
+			ss( len=6, seq="^cagug" )
+		h3
+		ss( minlen=0, maxlen=1, tag='3p' )
+	h3
+	ss( len=3 )
+
+score
+	#
+	# Very strict rules on the internal ss's:
+	# 5p/3p = 3/1 OR 5p/3p = 1/0. No other solutions!
+	#
+	# 1/0 solutions which consist only of a 'c' bulge 
+	# recieve a perfect score of 1.000
+	#
+	# 3/1 solutions recieve a score that is the sum of the
+	# contribution from both sides of the internal loop:
+	#
+	#	5p	val	3p	val
+	#	tgc	0.5	c	0.5
+	#	tac	0.4	t	0.2
+	#	tcc	0.3	others	0.0
+	#	ttc	0.2
+	#	cnn	0.1
+	#	others	0.0
+	#
+	#	thus tgc/c	gets the perfect score of 1.0
+	#
+	{
+	  SCORE = 0.0;
+	  if( length(ss['5p']) == 3 && length( ss['3p']) == 1 ){
+		if( ss['5p'] == "tgc" )
+			SCORE = 0.5;
+		else if( ss['5p'] == "tac" )
+			SCORE = 0.4;
+		else if( ss['5p'] == "tcc" )
+			SCORE = 0.3;
+		else if( ss['5p'] == "ttc" )
+			SCORE = 0.2;
+		else if( ss['5p',1,1] == "c" )
+			SCORE = 0.1;
+		if( ss['3p'] == "c" )
+			SCORE += 0.5;
+		else if( ss['3p'] == "t" )
+			SCORE += 0.2;
+		ACCEPT;
+	  }else if( length(ss['5p']) == 1 && length(ss['3p']) == 0 ){
+		SCORE = 1.0;
+		ACCEPT;
+	  }else
+		REJECT;
+	}
