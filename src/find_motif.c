@@ -32,6 +32,8 @@ static	int	find_wchlx();
 static	int	find_pknot();
 static	int	match_helix();
 static	int	paired();
+static	void	mark_helix();
+static	void	unmark_helix();
 static	int	chk_wchlx0();
 static	int	chk_motif();
 static	int	chk_wchlx();
@@ -280,15 +282,7 @@ SEARCH_T	*srp;
 			return( 0 );
 
 		stp3 = stp->s_mates[ 0 ];
-		stp->s_matchoff = szero;
-		stp->s_matchlen = hlen;
-		stp3->s_matchoff = h3 - hlen + 1;
-		stp3->s_matchlen = hlen;
-
-		for( h = 0; h < hlen; h++ ){
-			fm_window[ szero+h ] = stp->s_index;
-			fm_window[ h3-h ] = stp->s_index;
-		}
+		mark_helix( stp, szero, stp3, h3, hlen );
 
 		i_stp = stp->s_inner;
 		i_srp = rm_searches[ i_stp->s_searchno ];
@@ -298,10 +292,7 @@ SEARCH_T	*srp;
 		if( find_motif( i_srp ) ){
 			return( 1 );
 		}else{
-			for( h = 0; h < hlen; h++ ){
-				fm_window[ szero+h ] = UNDEF;
-				fm_window[ h3-h ] = UNDEF;
-			}
+			unmark_helix( stp, szero, stp3, h3, hlen );
 			return( 0 );
 		}
 	}else
@@ -318,9 +309,13 @@ SEARCH_T	*srp;
 	int	i1_minl, i1_maxl;
 	int	h2_minl, h2_maxl;
 	int	i2_minl, i2_maxl;
+	int	i3_minl, i3_maxl;
 	int	h13, h1len;
 	int	s2, s2_zero, s20_lim, s23_lim;
 	int	h23, h2len;
+	int	i1_len, i2_len, i3_len;
+	STREL_T	*i1_stp, *i2_stp, *i3_stp;
+	SEARCH_T	*i1_srp, *i2_srp, *i3_srp;
 
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
@@ -337,11 +332,20 @@ SEARCH_T	*srp;
 	h1_maxl = stp->s_maxlen;
 	i1_minl = stp->s_minilen;
 	i1_maxl = stp->s_maxilen;
+	i1_stp = stp->s_inner;
+	i1_srp = rm_searches[ i1_stp->s_searchno ];
 
 	h2_minl = stp1->s_minlen;
 	h2_maxl = stp1->s_maxlen;
 	i2_minl = stp1->s_minilen;
 	i2_maxl = stp1->s_maxilen;
+	i2_stp = stp1->s_inner;
+	i2_srp = rm_searches[ i2_stp->s_searchno ];
+
+	i3_minl = stp2->s_minilen;
+	i3_maxl = stp2->s_maxilen;
+	i3_stp = stp2->s_inner;
+	i3_srp = rm_searches[ i3_stp->s_searchno ];
 
 	s13_lim = s1_dollar - szero + 1;
 	s13_lim = ( s13_lim - i1_minl - h2_minl - i2_minl ) / 2;
@@ -350,6 +354,8 @@ SEARCH_T	*srp;
 
 	if( match_helix( stp, szero, s1_dollar, s13_lim, &h13, &h1len ) ){
 
+		mark_helix( stp, szero, stp2, h13, h1len );
+
 		s2_zero = szero + h1len + stp->s_minilen;
 		s20_lim = h13 - h1len - stp1->s_minilen - stp1->s_minlen;
 		s23_lim = s1_dollar + stp2->s_minilen;
@@ -357,17 +363,42 @@ SEARCH_T	*srp;
 		for( s2 = s2_zero; s2 <= s20_lim; s2++ ){
 			if(match_helix(stp1,s2,sdollar,s23_lim,&h23,&h2len)){
 
-fprintf( stderr, "fpk: h1: h5:h3 = %4d:%4d, len = %4d\n",
-	szero, h13, h1len );
-fprintf( stderr, "fpk: h2: h5:h3 = %4d:%4d, len = %4d\n",
-	s2, h23, h2len );
+				i1_len = s2 - szero - h1len + 1;
+				if( i1_len > i1_maxl ){
+					unmark_helix(stp,szero,stp2,h13,h1len);
+					return( 0 );
+				}
+				i2_len = h13 - s2 - h1len - h2len + 1;
+				if( i2_len > i2_maxl ){
+					unmark_helix(stp,szero,stp2,h13,h1len);
+					return( 0 );
+				}
+				i3_len = h23 - h13 - h2len + 1;
+				if( i3_len > i2_maxl ){
+					unmark_helix(stp,szero,stp2,h13,h1len);
+					return( 0 );
+				}
 
+				mark_helix( stp1, s2, stp3, h23, h2len );
+
+				i1_srp->s_zero = szero + h1len;
+				i1_srp->s_dollar = s2 - 1;
+				i2_srp->s_zero = s2 + h2len;
+				i2_srp->s_dollar = h13 - h1len;
+				i3_srp->s_zero = h13 + 1;
+				i3_srp->s_dollar = h23 - h2len;
+
+				if( find_motif( i1_srp ) ){
+					return( 1 );
+				}else{
+					unmark_helix(stp,szero,stp2,h13,h1len);
+					unmark_helix(stp1,s2,stp3,h23,h2len );
+					return( 0 );
+				}
 			}
 		}
-
-	}
-
-	return( 0 );
+	}else
+		return( 0 );
 }
 static	int	match_helix( stp, s5, s3, s3lim, h3, hlen )
 STREL_T	*stp;
@@ -441,6 +472,47 @@ int	b3;
 	b3i = rm_b2bc[ b3 ];
 	rv = (*bpmatp)[b5i][b3i];
 	return( rv );
+}
+
+static	void	mark_helix( stp5, h5, stp3, h3, hlen )
+STREL_T	*stp5;
+int	h5;
+STREL_T	*stp3;
+int	h3;
+int	hlen;
+{
+	int	h;
+
+	stp5->s_matchoff = h5;
+	stp5->s_matchlen = hlen;
+	stp3->s_matchoff = h3 - hlen + 1;
+	stp3->s_matchlen = hlen;
+
+	for( h = 0; h < hlen; h++ ){
+		fm_window[ h5+h ] = stp5->s_index;
+		fm_window[ h3-h ] = stp5->s_index;
+	}
+}
+
+static	void	unmark_helix( stp5, h5, stp3, h3, hlen )
+STREL_T	*stp5;
+int	h5;
+STREL_T	*stp3;
+int	h3;
+int	hlen;
+{
+	int	h;
+
+	stp5->s_matchoff = UNDEF;
+	stp5->s_matchlen = 0;
+	stp3->s_matchoff = UNDEF;
+	stp3->s_matchlen = 0;
+
+	for( h = 0; h < hlen; h++ ){
+		fm_window[ h5+h ] = UNDEF;
+		fm_window[ h3-h ] = UNDEF;
+	}
+
 }
 
 static	int	chk_wchlx0( srp, s5, s3 )
