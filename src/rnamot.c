@@ -40,6 +40,10 @@ int	rm_n_pos;
 
 SITE_T	*rm_sites = NULL;
 
+#define	RM_S_B2C	256	
+int	rm_b2bc[ RM_S_B2C ];
+int	rm_s_b2bc = RM_S_B2C;
+
 SEARCH_T	**rm_searches;
 int		rm_n_searches;
 
