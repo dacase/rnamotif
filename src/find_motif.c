@@ -141,7 +141,7 @@ int	find_motif_driver( int n_searches, SEARCH_T *searches[],
 				return( rv );
 		}
 		srp->s_zero = fm_szero;
-		srp->s_dollar = fm_szero + w_winsize - 1;
+		srp->s_dollar = MIN( fm_szero + w_winsize - 1, slen - 1 );
 		fm_window[ srp->s_zero - 1 - fm_szero ] = UNDEF;
 		fm_window[ srp->s_dollar + 1 - fm_szero ] = UNDEF;
 		rv |= find_motif( srp );

@@ -1,9 +1,14 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.01.08.20.16.17;	author macke;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2001.12.19.21.08.24;	author macke;	state Exp;
@@ -47,9 +52,10 @@ the Turner energy rules.
 @
 
 
-1.7
+1.8
 log
-@still more formatting to make it easier to understand.
+@still can't decide on the comments.  Fixed bug that had combined the
+last if-stmt in the tail m-way loop into an unreachable if-clause.
 @
 text
 @#include <stdio.h>
@@ -1238,9 +1244,9 @@ SUBROUTINE : ;
 					memset(coax[h],0,
 						(n_helix+1)*sizeof(int));
 
-				/* find each helix and store info in array helix	*/
-				/* place these helixes onto the stack			*/
-				/* calculate energy of the intervening unpaired nucs	*/
+		/* find each helix and store info in array helix	*/
+		/* place these helixes onto the stack			*/
+		/* calculate energy of the intervening unpaired nucs	*/
 
 				helix[0][0] = i;
 				helix[0][1] = j;
@@ -1274,11 +1280,13 @@ SUBROUTINE : ;
 					energy += 6*(ef2dp->e2_efn2b)+ (int)(11.*log((double)((n_upn/6.)))+0.5);
 				}
 
-				/* Now calculate the energy of stacking:	*/
+			/* Now calculate the energy of stacking:	*/
 				for( h = 0; h <= n_helix; h++ ){
 
-					/* h+1 indicates the number of helixes consider	*/
-					if( h == 0 ){ /* this is the energy of stacking bases	*/
+			/* h+1 indicates the number of helixes consider	*/
+			/* h == 0: this is the energy of stacking bases	*/
+			/* h == 1: is coaxial stacking better?		 */
+					if( h == 0 ){
 						for( h1 = 0; h1 < n_helix; h1++ ){
 							coax[h1][h1] = 0;
 							mw_5pgap = FALSE;
@@ -1316,8 +1324,6 @@ SUBROUTINE : ;
 					coax[n_helix][n_helix] = coax[0][0];
 
 					}else if( h == 1 ){
-						/* now consider whether coaxial stacking is	*/
-						/* more favorable than just stacked bases	*/
 						for( h1 = 0; h1 < n_helix; h1++ ){
 							if( helix[h1+1][1] - helix[h1][0] == 1 ){
 
@@ -1419,11 +1425,13 @@ SUBROUTINE : ;
 		/* Now calculate the energy of stacking:	*/
 		for( h = 0; h < n_helix; h++ ){
 			/* h+1 indicates the number of helixes consider	*/
-			if( h == 0 ){ /* this is the energy of stacking bases	*/
+			/* h == 0: this is the energy of stacking bases	*/
+			/* h == 1: is coaxial stacking better?		*/
+			if( h == 0 ){
 				for( h1 = 0; h1 < n_helix; h1++ ){
 					coax[h1][h1] = 0;
 					if( h1 < n_helix-1 ){
-						/* not at 3' end of structure	*/
+			/* not at 3' end of structure	*/
 						if( helix[h1+1][1] - helix[h1][0] > 1 ){
 
 			/* try 3' dangle	*/
@@ -1454,8 +1462,6 @@ SUBROUTINE : ;
 					}
 				}
 			}else if( h == 1 ){
-				/* now consider whether coaxial stacking is	*/
-				/* more favorable than just stacked bases	*/
 				for( h1 = 0; h1 < n_helix-1; h1++ ){
 					/* see if they're close enough to stack	*/
 					if( helix[h1+1][1] - helix[h1][0] == 1 ){ /* flush stacking:	*/
@@ -1510,8 +1516,13 @@ SUBROUTINE : ;
 						coax[i][i+h] = MIN( coax[i][i+h], coax[i][i+j]+coax[i+j+1][i+h] );
 					}
 				}
+			}
+			if( h == n_helix-1 )
+				energy += coax[0][n_helix-1];
+/*
 			}else if( h == n_helix-1 )
 				energy += coax[0][n_helix-1];
+*/
 		}
 
 		goto SUBROUTINE;
@@ -1842,6 +1853,40 @@ static	int	ef2_coaxstack( int i, int j, int ip, int jp )
 	energy = ef2dp->e2_coaxstack[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[ip]][rm_bcseq[jp]];
 	return( energy );
 }
+@
+
+
+1.7
+log
+@still more formatting to make it easier to understand.
+@
+text
+@d1187 3
+a1189 3
+				/* find each helix and store info in array helix	*/
+				/* place these helixes onto the stack			*/
+				/* calculate energy of the intervening unpaired nucs	*/
+d1223 1
+a1223 1
+				/* Now calculate the energy of stacking:	*/
+d1226 4
+a1229 2
+					/* h+1 indicates the number of helixes consider	*/
+					if( h == 0 ){ /* this is the energy of stacking bases	*/
+a1266 2
+						/* now consider whether coaxial stacking is	*/
+						/* more favorable than just stacked bases	*/
+d1368 3
+a1370 1
+			if( h == 0 ){ /* this is the energy of stacking bases	*/
+d1374 1
+a1374 1
+						/* not at 3' end of structure	*/
+a1404 2
+				/* now consider whether coaxial stacking is	*/
+				/* more favorable than just stacked bases	*/
+d1459 4
+d1465 1
 @
 
 

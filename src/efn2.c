@@ -1184,9 +1184,9 @@ SUBROUTINE : ;
 					memset(coax[h],0,
 						(n_helix+1)*sizeof(int));
 
-				/* find each helix and store info in array helix	*/
-				/* place these helixes onto the stack			*/
-				/* calculate energy of the intervening unpaired nucs	*/
+		/* find each helix and store info in array helix	*/
+		/* place these helixes onto the stack			*/
+		/* calculate energy of the intervening unpaired nucs	*/
 
 				helix[0][0] = i;
 				helix[0][1] = j;
@@ -1220,11 +1220,13 @@ SUBROUTINE : ;
 					energy += 6*(ef2dp->e2_efn2b)+ (int)(11.*log((double)((n_upn/6.)))+0.5);
 				}
 
-				/* Now calculate the energy of stacking:	*/
+			/* Now calculate the energy of stacking:	*/
 				for( h = 0; h <= n_helix; h++ ){
 
-					/* h+1 indicates the number of helixes consider	*/
-					if( h == 0 ){ /* this is the energy of stacking bases	*/
+			/* h+1 indicates the number of helixes consider	*/
+			/* h == 0: this is the energy of stacking bases	*/
+			/* h == 1: is coaxial stacking better?		 */
+					if( h == 0 ){
 						for( h1 = 0; h1 < n_helix; h1++ ){
 							coax[h1][h1] = 0;
 							mw_5pgap = FALSE;
@@ -1262,8 +1264,6 @@ SUBROUTINE : ;
 					coax[n_helix][n_helix] = coax[0][0];
 
 					}else if( h == 1 ){
-						/* now consider whether coaxial stacking is	*/
-						/* more favorable than just stacked bases	*/
 						for( h1 = 0; h1 < n_helix; h1++ ){
 							if( helix[h1+1][1] - helix[h1][0] == 1 ){
 
@@ -1365,11 +1365,13 @@ SUBROUTINE : ;
 		/* Now calculate the energy of stacking:	*/
 		for( h = 0; h < n_helix; h++ ){
 			/* h+1 indicates the number of helixes consider	*/
-			if( h == 0 ){ /* this is the energy of stacking bases	*/
+			/* h == 0: this is the energy of stacking bases	*/
+			/* h == 1: is coaxial stacking better?		*/
+			if( h == 0 ){
 				for( h1 = 0; h1 < n_helix; h1++ ){
 					coax[h1][h1] = 0;
 					if( h1 < n_helix-1 ){
-						/* not at 3' end of structure	*/
+			/* not at 3' end of structure	*/
 						if( helix[h1+1][1] - helix[h1][0] > 1 ){
 
 			/* try 3' dangle	*/
@@ -1400,8 +1402,6 @@ SUBROUTINE : ;
 					}
 				}
 			}else if( h == 1 ){
-				/* now consider whether coaxial stacking is	*/
-				/* more favorable than just stacked bases	*/
 				for( h1 = 0; h1 < n_helix-1; h1++ ){
 					/* see if they're close enough to stack	*/
 					if( helix[h1+1][1] - helix[h1][0] == 1 ){ /* flush stacking:	*/
@@ -1456,8 +1456,13 @@ SUBROUTINE : ;
 						coax[i][i+h] = MIN( coax[i][i+h], coax[i][i+j]+coax[i+j+1][i+h] );
 					}
 				}
+			}
+			if( h == n_helix-1 )
+				energy += coax[0][n_helix-1];
+/*
 			}else if( h == n_helix-1 )
 				energy += coax[0][n_helix-1];
+*/
 		}
 
 		goto SUBROUTINE;

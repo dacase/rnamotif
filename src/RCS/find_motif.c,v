@@ -1,9 +1,14 @@
-head	1.105;
+head	1.106;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.106
+date	2002.01.08.00.32.56;	author macke;	state Exp;
+branches;
+next	1.105;
 
 1.105
 date	2001.12.19.21.09.57;	author macke;	state Exp;
@@ -538,10 +543,10 @@ map.  Need to fix this.
 @
 
 
-1.105
+1.106
 log
-@added new function, adjust_szero() which does the initial (optimizing)
-search.
+@fixed bug that allowed the end of the optimized search to extend past the
+end of the seqeunce.
 @
 text
 @#include <stdio.h>
@@ -687,7 +692,7 @@ int	find_motif_driver( int n_searches, SEARCH_T *searches[],
 				return( rv );
 		}
 		srp->s_zero = fm_szero;
-		srp->s_dollar = fm_szero + w_winsize - 1;
+		srp->s_dollar = MIN( fm_szero + w_winsize - 1, slen - 1 );
 		fm_window[ srp->s_zero - 1 - fm_szero ] = UNDEF;
 		fm_window[ srp->s_dollar + 1 - fm_szero ] = UNDEF;
 		rv |= find_motif( srp );
@@ -2318,6 +2323,18 @@ static	void	mk_cstr( char str[], char cstr[] )
 	}
 	*cp = '\0';
 }
+@
+
+
+1.105
+log
+@added new function, adjust_szero() which does the initial (optimizing)
+search.
+@
+text
+@d144 1
+a144 1
+		srp->s_dollar = fm_szero + w_winsize - 1;
 @
 
 

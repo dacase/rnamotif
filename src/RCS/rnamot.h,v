@@ -1,9 +1,19 @@
-head	1.91;
+head	1.93;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.93
+date	2002.01.08.00.32.38;	author macke;	state Exp;
+branches;
+next	1.92;
+
+1.92
+date	2001.12.28.17.39.49;	author macke;	state Exp;
+branches;
+next	1.91;
 
 1.91
 date	2001.12.19.21.13.11;	author macke;	state Exp;
@@ -466,16 +476,15 @@ desc
 @
 
 
-1.91
+1.93
 log
-@added new type, BESTPAT_T that is used to hold the best subpattern of
-all the seq= values, which is in turn used for initial optimizing search.
+@updated version to 2.0.1
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.0.0 2001-dec-19"
+#define	VERSION	"v2.0.1 2002-jan-07"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
@@ -483,7 +492,7 @@ options:\n\
 \t-c\t\t\tCompile only, no search\n\
 \t-d\t\t\tDump internal data structures\n\
 \t-h\t\t\tDump the structure hierarchy\n\
-\t-ON\t\t\tMin #chars, best seq= for opt. (default=2.5)\n\
+\t-On\t\t\tMin #chars, best seq= for opt. (default=2.5)\n\
 \t-p\t\t\tDump the score code\n\
 \t-s\t\t\tShow builtin variables\n\
 \t-v\t\t\tPrint Version Infomation\n\
@@ -690,6 +699,30 @@ typedef	struct	incdir_t	{
 } INCDIR_T;
 
 #endif
+@
+
+
+1.92
+log
+@changed -ON to -On to make it consistant with the rest of the
+switches
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.0.0 2001-dec-19"
+@
+
+
+1.91
+log
+@added new type, BESTPAT_T that is used to hold the best subpattern of
+all the seq= values, which is in turn used for initial optimizing search.
+@
+text
+@d12 1
+a12 1
+\t-ON\t\t\tMin #chars, best seq= for opt. (default=2.5)\n\
 @
 
 
