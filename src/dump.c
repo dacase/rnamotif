@@ -248,6 +248,12 @@ STREL_T	*stp;
 	else
 		fprintf( fp, "(None)\n" );
 
+	fprintf( fp, "\tprev     = " );
+	if( stp->s_prev != NULL ) 
+		fprintf( fp, "%d\n", stp->s_prev->s_index );
+	else
+		fprintf( fp, "(None)\n" );
+
 	fprintf( fp, "\tinner    = " );
 	if( stp->s_inner ){
 		stp1 = stp->s_inner;
