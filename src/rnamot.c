@@ -15,5 +15,5 @@ char	*argv[];
 		fprintf( stderr, "syntax error.\n" );
 	}
 
-	SE_dump( stderr, 1, 1, 1, 1 );
+	RM_dump( stderr, 1, 1, 1 );
 }
