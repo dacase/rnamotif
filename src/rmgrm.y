@@ -46,35 +46,38 @@ extern	VALUE_T	rmval;
 %%
 program		: parm_part descr_part site_part ;
 
-parm_part	: SYM_PARM { RMC_context( SYM_PARM ); } assign_list
+parm_part	: SYM_PARM { set_context( SYM_PARM ); } assign_list
 		| ;
 assign_list	: assign
 		| assign assign_list ;
-assign		: ident assign_op expr ;
-assign_op	: SYM_EQUAL
+assign		: ident assign_op expr
+				{ $$ = node( $2, 0, $1, $3 ); } ;
+assign_op	: SYM_EQUAL	{ $$ = SYM_EQUAL; }
 		| SYM_PLUS_EQUAL
-		| SYM_MINUS_EQUAL ;
-expr		: val 
-		| val add_op expr ;
-add_op		: SYM_PLUS
-		| SYM_MINUS ;
-val		: ident
-		| intval
-		| lastval
-		| strval
-		| pairval ;
+				{ $$ = SYM_PLUS_EQUAL; }
+		| SYM_MINUS_EQUAL
+				{ $$ = SYM_MINUS_EQUAL; } ;
+expr		: val 		{ $$ = $1; }
+		| val add_op expr
+				{ $$ = node( $2, 0, $1, $3 ); } ;
+add_op		: SYM_PLUS	{ $$ = SYM_PLUS; }
+		| SYM_MINUS 	{ $$ = SYM_MINUS; } ;
+val		: ident		{ $$ = $1; }
+		| intval	{ $$ = $1; }
+		| lastval	{ $$ = $1; }
+		| strval	{ $$ = $1; }
+		| pairval 	{ $$ = $1; } ;
 
-ident		: SYM_IDENT 	{ SE_saveval( &rmval ); } ;
-intval		: SYM_INT	{ SE_saveval( &rmval ); } ;
-lastval		: SYM_DOLLAR 	{ rmval.v_sym = SYM_DOLLAR;
-				  SE_saveval( &rmval ); } ;
-strval		: SYM_STRING 	{ SE_saveval( &rmval ); } ;
+ident		: SYM_IDENT 	{ $$ = node( SYM_IDENT, &rmval, 0, 0 ); } ;
+intval		: SYM_INT	{ $$ = node( SYM_INT, &rmval, 0, 0 ); } ;
+lastval		: SYM_DOLLAR 	{ $$ = node( SYM_DOLLAR, &rmval, 0, 0 ); } ;
+strval		: SYM_STRING 	{ $$ = node( SYM_STRING, &rmval, 0, 0 ); } ;
 pairval		: SYM_LCURLY pair_list SYM_RCURLY ;
 pair_list	: pair
 		| pair SYM_COMMA pair_list ;
 pair		: SYM_STRING ;
 
-descr_part	: SYM_DESCR { RMC_context( SYM_DESCR ); } strel_list ;
+descr_part	: SYM_DESCR { set_context( SYM_DESCR ); } strel_list ;
 strel_list	: strel
 		| strel strel_list ;
 strel		: strtype SYM_LPAREN strparm_list SYM_RPAREN ;
@@ -90,10 +93,11 @@ strtype		: SYM_SS	{ SE_new( SYM_SS ); }
 		| SYM_Q2	{ SE_new( SYM_Q2 ); }
 		| SYM_Q3	{ SE_new( SYM_Q3 ); }
 		| SYM_Q4	{ SE_new( SYM_Q4 ); } ;
-strparm_list	: assign
-		| assign SYM_COMMA strparm_list ;
+strparm_list	: strparm
+		| strparm SYM_COMMA strparm_list ;
+strparm		: assign 	{ SE_addval( $1); } ;
 
-site_part	: SYM_SITE { RMC_context( SYM_SITE ); } site_list
+site_part	: SYM_SITE { set_context( SYM_SITE ); } site_list
 		| ;
 site_list	: site
 		| site site_list ;
