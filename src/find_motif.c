@@ -164,10 +164,7 @@ SEARCH_T	*srp;
 		if( stp->s_proper ){
 			rv = find_wchlx( srp );
 		}else{
-/*
-			rv = find_pknot(  slev, n_searches, searches,
-				szero, sdollar );
-*/
+			rv = find_pknot( srp );
 		}
 		break;
 	case SYM_P5 :
@@ -311,14 +308,66 @@ SEARCH_T	*srp;
 		return( 0 );
 }
 
-static	int	find_pknot(  slev, n_searches, searches, szero, sdollar )
-int	slev;
-int	n_searches;
-SEARCH_T	*searches[];
-int	szero;
-int	sdollar;
+static	int	find_pknot(  srp )
+SEARCH_T	*srp;
 {
+	STREL_T	*stp, *stp1, *stp2, *stp3;
+	int	s, slen, szero, sdollar;
+	int	s13_lim, s1_dollar;
+	int	h1_minl, h1_maxl;
+	int	i1_minl, i1_maxl;
+	int	h2_minl, h2_maxl;
+	int	i2_minl, i2_maxl;
+	int	h13, h1len;
+	int	s2, s2_zero, s20_lim, s23_lim;
+	int	h23, h2len;
 
+	szero = srp->s_zero;
+	sdollar = srp->s_dollar;
+	slen = sdollar - szero + 1;
+	stp = srp->s_descr;
+
+	stp1 = stp->s_scopes[ 1 ];
+	stp2 = stp->s_scopes[ 2 ];
+	stp3 = stp->s_scopes[ 3 ];
+
+	s1_dollar = sdollar - stp2->s_minilen - stp3->s_minlen;
+
+	h1_minl = stp->s_minlen;
+	h1_maxl = stp->s_maxlen;
+	i1_minl = stp->s_minilen;
+	i1_maxl = stp->s_maxilen;
+
+	h2_minl = stp1->s_minlen;
+	h2_maxl = stp1->s_maxlen;
+	i2_minl = stp1->s_minilen;
+	i2_maxl = stp1->s_maxilen;
+
+	s13_lim = s1_dollar - szero + 1;
+	s13_lim = ( s13_lim - i1_minl - h2_minl - i2_minl ) / 2;
+	s13_lim = MIN( s13_lim, h1_maxl );
+	s13_lim = s1_dollar - s13_lim + 1;
+
+	if( match_helix( stp, szero, s1_dollar, s13_lim, &h13, &h1len ) ){
+
+		s2_zero = szero + h1len + stp->s_minilen;
+		s20_lim = h13 - h1len - stp1->s_minilen - stp1->s_minlen;
+		s23_lim = s1_dollar + stp2->s_minilen;
+
+		for( s2 = s2_zero; s2 <= s20_lim; s2++ ){
+			if(match_helix(stp1,s2,sdollar,s23_lim,&h23,&h2len)){
+
+fprintf( stderr, "fpk: h1: h5:h3 = %4d:%4d, len = %4d\n",
+	szero, h13, h1len );
+fprintf( stderr, "fpk: h2: h5:h3 = %4d:%4d, len = %4d\n",
+	s2, h23, h2len );
+
+			}
+		}
+
+	}
+
+	return( 0 );
 }
 static	int	match_helix( stp, s5, s3, s3lim, h3, hlen )
 STREL_T	*stp;
@@ -336,6 +385,7 @@ int	*hlen;
 	stp3 = stp->s_scopes[ 1 ];
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
+
 	if( !paired( stp, b5, b3 ) )
 		return( 0 );
 
