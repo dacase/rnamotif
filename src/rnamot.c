@@ -24,7 +24,7 @@ extern	int		rm_n_searches;
 
 #define	SID_SIZE	100
 static	char	sid[ SID_SIZE ];
-#define	SDEF_SIZE	10000
+#define	SDEF_SIZE	20000
 static	char	sdef[ SDEF_SIZE ];
 #define	SBUF_SIZE	5000000
 static	char	sbuf[ SBUF_SIZE ];
@@ -47,6 +47,7 @@ char	*argv[];
 	IDENT_T	*ip;
 	char	*dbnp;
 	int	chk_both_strs;
+	int	show_progress;
 
 	if( RM_init( argc, argv ) )
 		exit( 1 );
@@ -84,10 +85,16 @@ char	*argv[];
 		exit( 0 );
 
 	ip = RM_find_id( "chk_both_strs" );
-	if( ip == NULL ){
+	if( ip == NULL )
 		chk_both_strs = 1;
-	}else
+	else
 		chk_both_strs = ip->i_val.v_value.v_ival;
+
+	ip = RM_find_id( "show_progress" );
+	if( ip == NULL )
+		show_progress = 0;
+	else
+		show_progress = ip->i_val.v_value.v_ival;
 
 #ifdef	USE_GENBANK
 	if( rm_dtype == DT_GENBANK ){
@@ -98,13 +105,17 @@ char	*argv[];
 
 	for( ; ; ){
 		if( rm_dtype == DT_FASTN )
-			slen = FN_fgetseq( rm_dbfp, sid, sdef, SBUF_SIZE, sbuf );
+			slen = FN_fgetseq( rm_dbfp, sid,
+				SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
 #ifdef	USE_GENBANK
 		else
 			slen = GB_fgetseq( dbp, sid, SBUF_SIZE, sbuf );
 #endif
 		if( slen == 0 )
 			break;
+
+		if( show_progress )
+			fprintf( stderr, "%s\n", sid );
 
 		find_motif_driver( rm_n_searches, rm_searches, rm_sites,
 			sid, rm_dtype, sdef, 0, slen, sbuf );

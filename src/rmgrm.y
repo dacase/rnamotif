@@ -1,7 +1,6 @@
 %{
 
 #include <stdio.h>
-#include <stdlib.h>
 #include "rnamot.h"
 
 extern	VALUE_T	rm_tokval;
@@ -334,7 +333,7 @@ pairset		: SYM_LCURLY 	{ if( rm_context != CTX_SCORE )
 				{ if( rm_context != CTX_SCORE )
 					$$ = PR_close();
 				  else
-					$$ = RM_node( SYM_LCURLY, 0, 0, $2 );
+					$$ = RM_node( SYM_LCURLY, 0, 0, $3 );
 				} ;
 empty		: 		{ $$ = (  int )NULL; } ;
 %%

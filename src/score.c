@@ -624,6 +624,7 @@ NODE_T	*np;
 			addinst( OP_MRK, NULL );
 		}else if( np->n_sym == SYM_LCURLY ){
 			addinst( OP_MRK, NULL );
+RM_dumpexpr( stderr, np, 0 );
 		}
 
 		genexpr( ISLVAL( np->n_sym ), np->n_left );
@@ -805,7 +806,7 @@ int	strel;
 		}
 		if( v_index != UNDEF ){
 			rm_emsg_lineno = n_index->n_lineno;
-			if( v_index < 0 || v_index >= rm_n_descr ){
+			if( v_index < 1 || v_index > rm_n_descr ){
 				sprintf( emsg,
 			"mk_call_strid: index must be between 1 and %d.",
 					rm_n_descr );

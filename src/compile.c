@@ -98,6 +98,8 @@ static	void	chk_tagorder();
 static	void	mk_links();
 static	void	duptags_error();
 static	int	chk_proper_nesting();
+static	void	find_pknots0();
+static	void	find_pknots1();
 static	void	find_pknots();
 static	int	chk_strel_parms();
 static	int	chk_1_strel_parms();
@@ -117,6 +119,8 @@ static	int	closes_unbnd();
 static	int	min_prefixlen();
 static	int	max_prefixlen();
 static	int	min_suffixlen();
+
+static	int	pk_cmp();
 
 int	RM_init( argc, argv )
 int	argc;
@@ -987,7 +991,7 @@ STREL_T	descr[];
 	return( 1 );
 }
 
-static	void	find_pknots( stp, n_descr, descr )
+static	void	find_pknots0( stp, n_descr, descr )
 STREL_T	*stp;
 int	n_descr;
 STREL_T	descr[];
@@ -1029,7 +1033,8 @@ STREL_T	descr[];
 
 	if( !pk ){
 		rm_emsg_lineno = stp->s_lineno;
-		sprintf( emsg, "fpk: INTERNAL ERROR: improper helix %d.",
+		sprintf( emsg,
+			"find_pknots0: INTERNAL ERROR: improper helix %d.",
 			stp->s_index );
 		RM_errormsg( 1, emsg );
 	}
@@ -1048,7 +1053,7 @@ STREL_T	descr[];
 				if( stp2->s_index < h5 || stp2->s_index > h3 ){
 					rm_emsg_lineno = pknot[i]->s_lineno;
 					RM_errormsg( 0,
-						"improper pseudoknot." );
+					"find_pknots0: improper pseudoknot." );
 					return;
 				}
 			}
@@ -1061,7 +1066,7 @@ STREL_T	descr[];
 	for( i = 0; i < 4; i++ ){
 		stps = ( STREL_T ** )malloc( 4 * sizeof( STREL_T * ) );
 		if( stps == NULL )
-			RM_errormsg( 1, "find_pknot: can't alloc stps." );
+			RM_errormsg( 1, "find_pknots0: can't alloc stps." );
 		for( j = 0; j < 4; j++ )
 			stps[ j ] = pknot[ j ];
 		free( pknot[i]->s_scopes );
@@ -1069,6 +1074,221 @@ STREL_T	descr[];
 		pknot[i]->s_n_scopes = 4;
 		pknot[i]->s_scope = i;
 	}
+}
+
+static	void	find_pknots1( stp, n_descr, descr )
+STREL_T	*stp;
+int	n_descr;
+STREL_T	descr[];
+{
+	int	i, j, k;
+	int	pk, h5, h3;
+	STREL_T	*stp1, *stp2, *stp3;
+	static	STREL_T	**pknot = NULL;
+	int	n_pknot;
+	STREL_T	**stps;
+
+	if( stp->s_type == SYM_SS ){
+		stp->s_checked = 1;
+		return;
+	}
+	if( stp->s_attr & SA_PROPER ){
+		stp->s_checked = 1;
+		for( j = 0; j < stp->s_n_mates; j++ ){
+			stp1 = stp->s_mates[ j ];
+			stp1->s_checked = 1;
+		}
+		return;
+	}
+
+	if( pknot == NULL ){
+		pknot = ( STREL_T ** )malloc( n_descr * sizeof( STREL_T * ) );
+		if( pknot == NULL )
+			RM_errormsg(1, "find_pknots1: can't allocate pknot.");
+	}
+
+	/* determine the extent of snarl */
+	stp3 = stp->s_mates[ 0 ];
+	pknot[ 0 ] = stp;
+	pknot[ 1 ] = stp3;
+	n_pknot = 2;
+	for( i = stp->s_index + 1; i < stp3->s_index; i++ ){
+		stp1 = &descr[ i ];
+		if( stp1->s_type != SYM_H5 )
+			continue;
+		stp2 = stp1->s_mates[ 0 ];
+		if( stp2->s_index < stp3->s_index ){
+			for( j = 0; j < n_pknot; j++ ){
+				if( stp1->s_index < pknot[ j ]->s_index &&
+					stp2->s_index > pknot[ j ]->s_index ){
+					pknot[ n_pknot ] = stp1;
+					pknot[ n_pknot + 1 ] = stp2;
+					n_pknot += 2;
+					break;
+				}
+			}
+		}else{
+			pknot[ n_pknot ] = stp1;
+			pknot[ n_pknot + 1 ] = stp2;
+			n_pknot += 2;
+			stp3 = stp2;
+		}
+	}
+
+	qsort( pknot, n_pknot, sizeof( int ), pk_cmp );
+
+	for( i = 0; i < n_pknot; i++ ){
+		stps = ( STREL_T ** )malloc( n_pknot * sizeof( STREL_T * ) );
+		if( stps == NULL )
+			RM_errormsg( 1, "find_pknots1: can't allocate stps." );
+		for( j = 0; j < n_pknot; j++ )
+			stps[ j ] = pknot[ j ];
+		free( pknot[ i ]->s_scopes );
+		pknot[ i ]->s_checked = 1;
+		pknot[ i ]->s_scopes = stps;
+		pknot[ i ]->s_n_scopes = n_pknot;
+		pknot[ i ]->s_scope = i;
+	}
+}
+static	void	find_pknots( stp, n_descr, descr )
+STREL_T	*stp;
+int	n_descr;
+STREL_T	descr[];
+{
+	int	fd, fd0, fd1;
+	int	ld, ld1;
+	int	d, d0, d1;
+	int	diff;
+	int	i, j;
+	STREL_T	*stp1, *stp2, *stp3;
+	static	int	*pknot = NULL;
+	int	n_pknot;
+	STREL_T	**stps;
+
+	if( stp->s_type == SYM_SS ){
+		stp->s_checked = 1;
+		return;
+	}
+	if( stp->s_attr & SA_PROPER ){
+		stp->s_checked = 1;
+		for( j = 0; j < stp->s_n_mates; j++ ){
+			stp1 = stp->s_mates[ j ];
+			stp1->s_checked = 1;
+		}
+		return;
+	}
+
+	if( pknot == NULL ){
+		pknot = ( int * )malloc( n_descr * sizeof( int * ) );
+		if( pknot == NULL )
+			RM_errormsg(1, "find_pknots: can't allocate pknot.");
+	}
+
+	stp3 = stp->s_mates[ 0 ];
+	fd0 = fd = stp->s_index;
+	ld = stp3->s_index; 
+
+	for( d = 0; d < fd; d++ )
+		pknot[ d ] = UNDEF; 
+	for( d = fd; d < ld; d++ )
+		pknot[ d ] = stp->s_index;
+	pknot[ ld ] = ld;
+	for( d = ld + 1; d < n_descr; d++ )
+		pknot[ d ] = UNDEF;
+
+	for( diff = 1; diff; ){
+		for( diff = 0, d = fd + 1; d < ld; d++ ){
+			stp1 = &rm_descr[ d ];
+			if( stp1->s_type == SYM_H5 ){
+				if( stp1->s_attr & SA_PROPER )
+					continue;
+				else if( stp1->s_checked )
+					continue;
+			}else
+				continue;
+			stp2 = stp1->s_mates[ 0 ];
+			fd1 = stp1->s_index;
+			ld1 = stp2->s_index;
+			if( pknot[ fd1 ] == pknot[ ld1 ] )
+				continue;
+			stp1->s_checked = 1;
+			diff = 1;
+			for( d0 = pknot[ fd1 ], d1 = fd1; d1 < ld1; d1++ ){
+				if( pknot[ d1 ] == d0 )
+					pknot[ d1 ] = fd1; 
+				else
+					break;
+			}
+			if( ld1 < ld ){
+				for( d0=pknot[ld1], d1=ld1; d1 < ld; d1++ ){
+					if( pknot[ d1 ] == d0 )
+						pknot[ d1 ] = ld1;
+					else
+						break;
+				}
+			}else{
+				for( d0=pknot[ld], d1=ld+1; d1 < ld1; d1++ )
+					pknot[ d1 ] = d0;
+				pknot[ ld1 ] = ld1;
+				ld = ld1;
+			}
+		}
+	}
+
+	for( d = fd; d <= ld; d++ )
+		pknot[ d - fd0 ] = pknot[ d ];
+	ld -= fd;
+
+	d0 = pknot[ 0 ];
+	n_pknot = 1;
+	for( d = 1; d <= ld; d++ ){
+		if( pknot[ d ] != d0 ){
+			d0 = pknot[ d ];
+			pknot[ n_pknot ] = pknot[ d ];
+			n_pknot++;
+		}
+	}
+
+	pknot[ n_pknot ] = UNDEF; 
+
+	for( i = 0; i < n_pknot; i++ ){
+		stps = ( STREL_T ** )malloc( n_pknot * sizeof( STREL_T * ) );
+		if( stps == NULL )
+			RM_errormsg( 1, "find_pknots: can't allocate stps." );
+		for( j = 0; j < n_pknot; j++ )
+			stps[ j ] = &rm_descr[ pknot[ j ] ];
+		stp1 = &rm_descr[ pknot[ i ] ];
+		free( stp1->s_scopes );
+		stp1->s_checked = 1;
+		stp1->s_scopes = stps;
+		stp1->s_n_scopes = n_pknot;
+		stp1->s_scope = i;
+	}
+}
+
+dump_pknot( fp, s_pknot, pknot )
+FILE	*fp;
+int	s_pknot;
+int	pknot[];
+{
+	int	p, lp;
+	int	first;
+
+	for( first = 1, lp = 0, p = 0; p < s_pknot; p++ ){
+		if( pknot[ p ] == UNDEF )
+			continue;
+		if( first ){
+			fprintf( fp, "fd = %3d: ", p );
+			first = 0;
+		}
+		fprintf( fp, " %3d", pknot[ p ] ); 
+		lp = p;
+		if( p < s_pknot - 1 ){
+			if( pknot[ p + 1 ] != UNDEF )
+				putc( ',', fp );
+		}
+	}
+	fprintf( fp, ": ld = %3d\n", lp );
 }
 
 static	int	chk_strel_parms( n_descr, descr )
@@ -2885,7 +3105,7 @@ static	void	find_search_order( fd, descr )
 int	fd;
 STREL_T	descr[];
 {
-	int	d, nd;
+	int	d, nd, s;
 	STREL_T	*stp, *stp1, *stp2;
 	SEARCH_T	*srp;
 
@@ -2927,34 +3147,56 @@ STREL_T	descr[];
 				if( stp1 != NULL )
 					find_search_order( stp1->s_index,
 						descr );
-			}else{	/* pseudoknot */
-				srp = ( SEARCH_T * )malloc(sizeof( SEARCH_T ));
-				if( srp == NULL ){
-					sprintf( emsg,
-			"find_search_order: can't allocate srp for pk.1 h5." );
-					RM_errormsg( 1, emsg );
+			}else{	/* snarl */
+/*
+				for( s = 0; s < stp->s_n_scopes; s++ ){
+					stp1 = stp->s_scopes[ s ];
+					if( stp1->s_type == SYM_H5 ){
+						srp = ( SEARCH_T * )
+						    malloc(sizeof(SEARCH_T));
+						if( srp == NULL ){
+							sprintf( emsg,
+			"find_search_order: can't allocate srp for hlx h5." );
+							RM_errormsg( 1, emsg );
+						}
+						srp->s_descr = stp1;
+						stp1->s_searchno=rm_n_searches;
+						srp->s_forward = NULL;
+						srp->s_backup = NULL;
+						rm_searches[rm_n_searches]=srp;
+						rm_n_searches++;
+					}
+					stp2 = stp1->s_inner;
+					if( stp2 != NULL )
+						find_search_order(
+							stp2->s_index, descr );
 				}
-				srp->s_descr = stp;
-				stp->s_searchno = rm_n_searches;
-				srp->s_forward = NULL;
-				srp->s_backup = NULL;
-				rm_searches[ rm_n_searches ] = srp;
-				rm_n_searches++;
-
-				stp1 = stp->s_inner;
-				if( stp1 != NULL )
-					find_search_order( stp1->s_index,
-						descr );
-				stp1 = stp->s_scopes[ 1 ];
-				stp2 = stp1->s_inner;
-				if( stp2 != NULL )
-					find_search_order( stp2->s_index,
-						descr );
-				stp1 = stp->s_scopes[ 2 ];
-				stp2 = stp1->s_inner;
-				if( stp2 != NULL )
-					find_search_order( stp2->s_index,
-						descr );
+*/
+				for( s = 0; s < stp->s_n_scopes; s++ ){
+					stp1 = stp->s_scopes[ s ];
+					if( stp1->s_type == SYM_H5 ){
+						srp = ( SEARCH_T * )
+						    malloc(sizeof(SEARCH_T));
+						if( srp == NULL ){
+							sprintf( emsg,
+			"find_search_order: can't allocate srp for hlx h5." );
+							RM_errormsg( 1, emsg );
+						}
+						srp->s_descr = stp1;
+						stp1->s_searchno=rm_n_searches;
+						srp->s_forward = NULL;
+						srp->s_backup = NULL;
+						rm_searches[rm_n_searches]=srp;
+						rm_n_searches++;
+					}
+				}
+				for( s = 0; s < stp->s_n_scopes; s++ ){
+					stp1 = stp->s_scopes[ s ];
+					stp2 = stp1->s_inner;
+					if( stp2 != NULL )
+						find_search_order(
+							stp2->s_index, descr );
+				}
 			}
 			break;
 
@@ -3077,4 +3319,12 @@ SEARCH_T	*searches[];
 			}
 		}
 	}
+}
+
+static	int	pk_cmp( d1, d2 )
+STREL_T	**d1;
+STREL_T	**d2;
+{
+
+	return( ( *d1 )->s_index - ( *d2 )->s_index );
 }

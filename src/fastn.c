@@ -2,67 +2,103 @@
 #include <ctype.h>
 #include <string.h>
 
-static	char	line[ 10240 ];
+static	int	skipbl2nl();
 
-static	void	skip();
-
-int	FN_fgetseq( fp, sid, sdef, s_sbuf, sbuf )
+int	FN_fgetseq( fp, sid, s_sdef, sdef, s_sbuf, sbuf )
 FILE	*fp;
 char	sid[];
+int	s_sdef;
 char	sdef[];
 int	s_sbuf;
 char	sbuf[];
 {
-	char	*elp, *lp, *sp;
-	int	c;
+	char	*dp, *sp;
+	int	c, cnt;
 
 	*sid = '\0';
 	*sdef = '\0';
 	*sbuf = '\0';
-	if( fgets( line, sizeof( line ), fp ) == NULL )
-		return( 0 ); 
-
-	elp = strpbrk( line, "\r\n" );
-	if( elp == NULL ){
-		fprintf( stderr, "FN_fgetseq: bad fastn entry: '%s'.\n", line );
-		skip( fp );
+	
+	if( ( c = getc( fp ) ) == EOF )
+		return( 0 );
+	else if( c != '>' ){
+		fprintf( stderr,
+			"FN_fgetseq: fastn file does not begin with '>'.\n" );
 		return( 0 );
 	}
 
-	for( lp = &line[ 1 ]; isspace( *lp ); lp++ )
-		;
-	sp = strchr( lp, ' ' );
-	if( sp == NULL ){
-		strncpy( sid, lp, elp - line );
-		sid[ elp - line ] = '\0';
-	}else{
-		strncpy( sid, lp, sp - line );
-		sid[ sp - lp ] = '\0';
-		while( *sp == ' ' )
-			sp++;
-		strncpy( sdef, sp, elp - sp );
-		sdef[ elp - sp ] = '\0';
+	if( ( c = skipbl2nl( fp ) ) == EOF || c == '\n' ){
+		fprintf( stderr,
+			"FN_fgetseq: fastn file has unnamed entry.\n" );
+		return( 0 );
 	}
 
-	for( sp = sbuf; ( c = getc( fp ) ) != EOF; ){
+	dp = sid;
+	for( *dp++ = c; ( c = getc( fp ) ) != EOF; ){
+		if( !isspace( c ) )
+			*dp++ = c;
+		else
+			break;
+	}
+	*dp = '\0';
+	if( c == EOF ){
+		fprintf( stderr,
+			"FN_fgetseq: last entry: '%s': has no sequence.\n",
+			sid );
+		return( 0 );
+	}else if( c != '\n' )
+		c = skipbl2nl( fp );
+
+	if( c != '\n' ){
+		dp = sdef;
+		*dp++ = c;
+		for( cnt = 1; c = getc( fp ); ){
+			if( c == '\n' || c == EOF )
+				break;
+			cnt++;
+			if( cnt < s_sdef )
+				*dp++ = c;
+		}
+		*dp = '\0';
+		if( cnt >= s_sdef ){
+			fprintf( stderr,
+		"FN_fgetseq: entry: '%s': def len: %d, truncated to %d.\n",
+				sid, cnt, s_sdef - 1 );
+		}
+	}
+	if( c == EOF ){
+		fprintf( stderr,
+		"FN_fgetseq: last entry of fastn file has no sequence.\n" );
+		return( 0 );
+	}
+
+	for( cnt = 0, sp = sbuf; ( c = getc( fp ) ) != EOF; ){
 		if( c == '>' ){
 			ungetc( c, fp );
 			break;
-		}else if( isalpha( c ) )
-			*sp++ = tolower( c );
+		}else if( isalpha( c ) ){
+			cnt++;
+			if( cnt < s_sbuf )
+				*sp++ = tolower( c );
+		}
 	}
 	*sp = '\0';
+	if( cnt >= s_sbuf ){
+		fprintf( stderr,
+		"FN_fgetseq: entry: '%s': seq len: %d, truncated to %d.\n",
+			sid, cnt, s_sbuf - 1 );
+	}
 
 	return( sp - sbuf );
 }
 
-static	void	skip( fp )
+static	int	skipbl2nl( fp )
 FILE	*fp;
 {
 	int	c;
 
-	while( ( c = getc( fp ) ) != '>' && c != EOF )
-		;
-	if( c == '>' )
-		ungetc( c, fp );
+	while( isspace( c = getc( fp ) ) )
+		if( c == '\n' )
+			break;
+	return( c );
 }
