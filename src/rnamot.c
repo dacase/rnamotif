@@ -92,7 +92,7 @@ char	*argv[];
 #endif
 
 	for( ; ; ){
-		if( rm_dtype == DT_FASTN ) 
+		if( rm_dtype == DT_FASTN )
 			slen = FN_fgetseq( rm_dbfp, sid, sdef, SBUF_SIZE, sbuf );
 #ifdef	USE_GENBANK
 		else
