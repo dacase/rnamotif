@@ -1424,12 +1424,21 @@ int	d_ok;
 		eval( expr->n_right, d_ok );
 		rm_emsg_lineno = expr->n_lineno;
 		switch( expr->n_sym ){
+
 		case SYM_INT :
 			valstk[ n_valstk ].v_type = T_INT;
 			valstk[ n_valstk ].v_value.v_ival =
 				expr->n_val.v_value.v_ival;
 			n_valstk++;
 			break;
+
+		case SYM_FLOAT :
+			valstk[ n_valstk ].v_type = T_FLOAT;
+			valstk[ n_valstk ].v_value.v_fval =
+				expr->n_val.v_value.v_fval;
+			n_valstk++;
+			break;
+
 		case SYM_STRING :
 			sp = ( char * )
 				malloc(strlen( expr->n_val.v_value.v_pval )+1);
@@ -1442,18 +1451,21 @@ int	d_ok;
 			valstk[ n_valstk ].v_value.v_pval = sp;
 			n_valstk++;
 			break;
+
 		case SYM_LCURLY :
 			valstk[ n_valstk ].v_type = T_PAIR;
 			valstk[ n_valstk ].v_value.v_pval = 
 				expr->n_val.v_value.v_pval;
 			n_valstk++;
 			break;
+
 		case SYM_DOLLAR :
 			valstk[ n_valstk ].v_type = T_POS;
 			valstk[ n_valstk ].v_value.v_pval = 
 				expr->n_val.v_value.v_pval;
 			n_valstk++;
 			break;
+
 		case SYM_IDENT :
 			ip = RM_find_id( expr->n_val.v_value.v_pval );
 			if( ip == NULL ){
@@ -1472,6 +1484,7 @@ int	d_ok;
 			valstk[ n_valstk ].v_value.v_pval = ip;
 			n_valstk++;
 			break;
+
 		case SYM_PLUS :
 			l_type = valstk[ n_valstk - 2 ].v_type;
 			if( l_type == T_IDENT )
@@ -1479,13 +1492,25 @@ int	d_ok;
 			r_type = valstk[ n_valstk - 1 ].v_type;
 			if( r_type == T_IDENT )
 				r_type = loadidval( &valstk[ n_valstk - 1 ] );
-			if( l_type != r_type ){
-				errormsg( 1, "eval: type mismatch '+'." );
-			}
-			if( l_type == T_INT ){
+
+			switch( T_IJ( l_type, r_type ) ){ 
+			case T_IJ( T_INT, T_INT ) :
 				valstk[ n_valstk - 2 ].v_value.v_ival +=
 					valstk[ n_valstk - 1 ].v_value.v_ival;
-			}else if( l_type == T_STRING ){
+				break;
+			case T_IJ( T_INT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_ival +=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_FLOAT, T_INT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval +=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+				break;
+			case T_IJ( T_FLOAT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval +=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_STRING, T_STRING ) :
 				l_sp = valstk[ n_valstk - 2 ].v_value.v_pval;
 				r_sp = valstk[ n_valstk - 1 ].v_value.v_pval;
 				sp = ( char * )malloc( strlen( l_sp ) +
@@ -1497,14 +1522,20 @@ int	d_ok;
 				strcpy( sp, l_sp );
 				strcat( sp, r_sp );
 				valstk[ n_valstk - 2 ].v_value.v_pval = sp;
-			}else if( l_type == T_PAIR ){
+				break;
+			case T_IJ( T_PAIR, T_PAIR ) :
 				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
 				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
 				n_ps = pairop( "add", l_ps, r_ps );
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
+				break;
+			default :
+				errormsg( 1, "eval: type mismatch '+'." );
+				break;
 			}
 			n_valstk--;
 			break;
+
 		case SYM_MINUS :
 			l_type = valstk[ n_valstk - 2 ].v_type;
 			if( l_type == T_IDENT )
@@ -1512,33 +1543,44 @@ int	d_ok;
 			r_type = valstk[ n_valstk - 1 ].v_type;
 			if( r_type == T_IDENT )
 				r_type = loadidval( &valstk[ n_valstk - 1 ] );
-			if( l_type != r_type ){
-				if( l_type == T_POS && r_type == T_INT ){
-					posop("cvt", &valstk[n_valstk-1], NULL);
-				}else{
-					errormsg( 1,
-						"eval: type mismatch '-'." );
-				}
-			}
-			if( l_type == T_INT ){
+
+			switch( T_IJ( l_type, r_type ) ){
+			case T_IJ( T_INT, T_INT ) :
 				valstk[ n_valstk - 2 ].v_value.v_ival -=
 					valstk[ n_valstk - 1 ].v_value.v_ival;
-			}else if( l_type == T_STRING ){
-				errormsg( 1,
-				"eval: '-' not defined for strings." );
-			}else if( l_type == T_PAIR ){
+				break;
+			case T_IJ( T_INT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_ival -=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_FLOAT, T_INT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval -=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+				break;
+			case T_IJ( T_FLOAT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval -=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_PAIR, T_PAIR ) :
 				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
 				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
 				n_ps = pairop( "sub", l_ps, r_ps );
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
-			}else if( l_type == T_POS ){
+				break;
+			case T_IJ( T_POS, T_INT ) :
 				l_pos = valstk[ n_valstk - 2 ].v_value.v_pval;
+				posop( "cvt", &valstk[ n_valstk - 1 ], NULL );
 				r_pos = valstk[ n_valstk - 1 ].v_value.v_pval;
 				n_pos = posop( "sub", l_pos, r_pos );
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_pos;
+				break;
+			default :
+				errormsg( 1, "eval: type mismatch '-'." );
+				break;
 			}
 			n_valstk--;
 			break;
+
 		case SYM_ASSIGN :
 			ip = valstk[ n_valstk - 2 ].v_value.v_pval;
 			l_type = ip->i_type;
@@ -1547,30 +1589,62 @@ int	d_ok;
 				r_type = loadidval( &valstk[ n_valstk - 1 ] );
 			if( l_type == T_UNDEF )
 				ip->i_type = r_type;
-			else if( l_type != r_type ){
-				if( l_type == T_POS && r_type == T_INT ){
-					posop("cvt", &valstk[n_valstk-1], NULL);
-				}else{
-					errormsg( 1,
-						"eval: type mismatch '='." );
-				}
+
+			switch(  T_IJ( l_type, r_type ) ){
+			case T_IJ( T_INT, T_INT ) :
+				break;
+			case T_IJ( T_INT, T_FLOAT ) :
+				valstk[n_valstk-1].v_value.v_ival =
+					valstk[n_valstk-1].v_value.v_fval;
+				break;
+			case T_IJ( T_FLOAT, T_INT ) :
+				valstk[n_valstk-1].v_value.v_fval =
+					valstk[n_valstk-1].v_value.v_ival;
+				break;
+			case T_IJ( T_FLOAT, T_FLOAT ) :
+				break;
+			case T_IJ( T_STRING, T_STRING ) :
+				break;
+			case T_IJ( T_PAIR, T_PAIR ) :
+				break;
+			case T_IJ( T_POS, T_INT ) :
+				posop( "cvt", &valstk[ n_valstk - 1 ], NULL );
+				break;
+			case T_IJ( T_POS, T_POS ) :
+				break;
+			default :
+				errormsg( 1, "eval: type mismatch '='." );
+				break;
 			}
 			storeexprval( ip, &valstk[ n_valstk-1 ] );
 			n_valstk -= 2;
 			break;
+
 		case SYM_PLUS_ASSIGN :
 			ip = valstk[ n_valstk - 2 ].v_value.v_pval;
 			l_type = loadidval( &valstk[ n_valstk - 2 ] );
 			r_type = valstk[ n_valstk - 1 ].v_type;
 			if( r_type == T_IDENT )
 				r_type = loadidval( &valstk[ n_valstk - 1 ] );
-			if( l_type != r_type ){
-				errormsg( 1, "eval: type mismatch '+='." );
-			}
-			if( l_type == T_INT ){
+
+			switch( T_IJ( l_type, r_type ) ){
+			case T_IJ( T_INT, T_INT ) :
 				valstk[ n_valstk - 2 ].v_value.v_ival +=
 					valstk[ n_valstk - 1 ].v_value.v_ival;
-			}else if( l_type == T_STRING ){
+				break;
+			case T_IJ( T_INT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_ival +=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_FLOAT, T_INT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval +=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+				break;
+			case T_IJ( T_FLOAT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval +=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_STRING, T_STRING ) :
 				l_sp = valstk[ n_valstk - 2 ].v_value.v_pval;
 				r_sp = valstk[ n_valstk - 1 ].v_value.v_pval;
 				sp = ( char * )malloc( strlen( l_sp ) +
@@ -1582,42 +1656,61 @@ int	d_ok;
 				strcpy( sp, l_sp );
 				strcat( sp, r_sp );
 				valstk[ n_valstk - 2 ].v_value.v_pval = sp;
-			}else if( l_type == T_PAIR ){
+				break;
+			case T_IJ( T_PAIR, T_PAIR ) :
 				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
 				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
 				n_ps = pairop( "add", l_ps, r_ps );
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
+				break;
+			default :
+				errormsg( 1, "eval: type mismatch '+='." );
+				break;
 			}
 			storeexprval( ip, &valstk[ n_valstk - 2 ] );
 			n_valstk -= 2;
 			break;
+
 		case SYM_MINUS_ASSIGN :
 			ip = valstk[ n_valstk - 2 ].v_value.v_pval;
 			l_type = loadidval( &valstk[ n_valstk - 2 ] );
 			r_type = valstk[ n_valstk - 1 ].v_type;
 			if( r_type == T_IDENT )
 				r_type = loadidval( &valstk[ n_valstk - 1 ] );
-			if( l_type != r_type ){
-				errormsg( 1, "eval: type mismatch '-='." );
-			}
-			if( l_type == T_INT ){
+
+			switch( T_IJ( l_type, r_type ) ){
+			case T_IJ( T_INT, T_INT ) :
 				valstk[ n_valstk - 2 ].v_value.v_ival -=
 					valstk[ n_valstk - 1 ].v_value.v_ival;
-			}else if( l_type == T_STRING ){
-				errormsg( 1,
-				"eval: '-' not defined for strings." );
-			}else if( l_type == T_PAIR ){
+				break;
+			case T_IJ( T_INT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_ival -=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_FLOAT, T_INT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval -=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+				break;
+			case T_IJ( T_FLOAT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval -=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_PAIR, T_PAIR ) :
 				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
 				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
 				n_ps = pairop( "sub", l_ps, r_ps );
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
+				break;
+			default :
+				errormsg( 1, "eval: type mismatch '+='." );
+				break;
 			}
 			storeexprval( ip, &valstk[ n_valstk - 2 ] );
 			n_valstk -= 2;
 			break;
+
 		default :
-			sprintf( emsg,
-				"eval: operator %d not implemented.",
+			sprintf( emsg, "eval: operator %d not implemented.",
 				expr->n_sym );
 			errormsg( 1, emsg );
 			break;
@@ -1690,6 +1783,10 @@ VALUE_T	*vp;
 		ip->i_type = T_INT;
 		ip->i_val.v_type = T_INT;
 		ip->i_val.v_value.v_ival = vp->v_value.v_ival;
+	}else if( type == T_FLOAT ){
+		ip->i_type = T_FLOAT;
+		ip->i_val.v_type = T_FLOAT;
+		ip->i_val.v_value.v_fval = vp->v_value.v_fval;
 	}else if( type == T_STRING ){
 		ip->i_type = T_STRING;
 		sp = ( char * )malloc( strlen( vp->v_value.v_pval ) + 1 );
