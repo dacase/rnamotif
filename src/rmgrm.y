@@ -122,7 +122,7 @@ site_part	: SYM_SITES { context = CTX_SITES; } site_list
 site_list	: site
 		| site_list site ;
 site		: siteaddr_list SYM_ASSIGN pairval
-				{ SI_close(); } ;
+				{ SI_close( $3 ); } ;
 siteaddr_list	: strel
 		| siteaddr_list SYM_COLON strel ;
 %%
