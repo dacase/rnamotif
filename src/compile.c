@@ -132,7 +132,11 @@ char	*argv[];
 			rm_dopt = 1;
 		else if( !strcmp( argv[ ac ], "-h" ) )
 			rm_hopt = 1;
-		else if( !strcmp( argv[ ac ], "-descr" ) ){
+		else if( !strcmp( argv[ ac ], "-v" ) ){
+			fprintf( stderr, "rnamot: %s\n", VERSION );
+			err = 1;
+			return( err );
+		}else if( !strcmp( argv[ ac ], "-descr" ) ){
 			if( ac == argc - 1 ){
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
 				err = 1;
