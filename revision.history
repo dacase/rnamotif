@@ -1,3 +1,6 @@
+2.0.1   2001-dec-20
+    Added a section to the Users' Manual explaining the new optimizations.
+
 2.0.0	2001-dec-19
 	Added query optimization that looks for the best fixed subpattern among
 	the seq=, and if this sub pat is long enough, has a bounded prefix and
