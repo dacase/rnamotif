@@ -39,8 +39,6 @@ char	dbname[];
 		}
 	}
 
-fprintf( stderr, "DB_open: n_fmap = %d\n", n_fmap );
-
 	first = last = UNDEF;
 	for( fmp = fmap, i = 0; i < n_fmap; i++, fmp++ ){
 		if( !strcmp( fmp->f_dbname, dbname ) ){
@@ -49,9 +47,6 @@ fprintf( stderr, "DB_open: n_fmap = %d\n", n_fmap );
 			last = fmp->f_dblast;
 		}
 	}
-
-fprintf( stderr, "DB_open: dbname = '%s', first = %d, last = %d\n",
-	dbname, first, last );
 
 	if( first == UNDEF ){
 		fprintf( stderr, "DB_open: can't read database '%s'.\n",
@@ -71,10 +66,12 @@ fprintf( stderr, "DB_open: dbname = '%s', first = %d, last = %d\n",
 	return( dbp );
 }
 
-DBASE_T	*DB_next()
+DBASE_T	*DB_next( dbp )
+DBASE_T	*dbp;
 {
 
-	return( NULL );
+	dbp->d_current++;
+	return( dbp->d_current <= dbp->d_last ? dbp : NULL );
 }
 
 int	DB_getseq( dbp, s_sbuf, sbuf )
@@ -85,6 +82,7 @@ char	sbuf[];
 	int	rval;
 	int	slen;
 	char	*sp, *ep;
+	char	locus[ 25 ];
 
 	*sbuf = 0;
 	if( dbp->d_current > dbp->d_last )
@@ -92,7 +90,6 @@ char	sbuf[];
 
 	rval = GB_get_entry( dbp->d_current, n_fmap, fmap,
 		ebuf, &gentry, gbrefs, gbftab, gbqtab );
-	dbp->d_current++;
 	if( rval )
 		return( 0 );
 
@@ -104,5 +101,11 @@ char	sbuf[];
 		}
 	}
 	*sp = '\0';
+	if( slen > s_sbuf - 1 ){
+		sscanf( locus, "%s", &ebuf[ gentry.g_locus ] );
+		fprintf( stderr,
+			"DB_getseq: sequence '%s' too long, truncated.\n",
+			locus );
+	}
 	return( sp - sbuf );
 }
