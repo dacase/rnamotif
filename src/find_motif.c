@@ -217,9 +217,10 @@ SEARCH_T	*srp;
 static	int	find_ss( srp )
 SEARCH_T	*srp;
 {
-	STREL_T	*stp, *n_stp;
-	SEARCH_T	*n_srp;
+	STREL_T	*stp;
 	int	s, slen, szero, sdollar;
+	STREL_T	*n_stp;
+	SEARCH_T	*n_srp;
 	int	rv;
 
 	stp = srp->s_descr;
@@ -256,12 +257,13 @@ SEARCH_T	*srp;
 static	int	find_wchlx( srp )
 SEARCH_T	*srp;
 {
-	STREL_T	*stp, *stp3, *i_stp, *n_stp;
+	STREL_T	*stp, *stp3;
 	int	s, s3lim, slen, szero, sdollar;
 	int	h_minl, h_maxl;
 	int	i_minl, i_maxl, i_len;
 	int	h, h3, hlen;
-	SEARCH_T	*i_srp, *n_srp;
+	STREL_T	*i_stp;
+	SEARCH_T	*i_srp;
 	int	rv;
 
 	szero = srp->s_zero;
@@ -464,8 +466,8 @@ SEARCH_T	*srp;
 	int	i1_len, i2_len;
 	int	i1_minl, i1_maxl, i2_minl, i2_maxl;
 	int	h, hlen;
-	int	rv;
 	SEARCH_T	*i1_srp, *i2_srp;
+	int	rv;
 
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
@@ -583,7 +585,6 @@ int	s3;
 int	hlen;
 {
 	STREL_T	*stp, *stp1, *stp2, *stp3;
-	STREL_T	*i1_stp, *i2_stp, *i3_stp;
 	int	slen, szero, sdollar;
 	int	s, s1, s1lim, s2, s2lim;
 	int	h_minl, h_maxl;
@@ -591,6 +592,7 @@ int	hlen;
 	int	i1_minl, i2_minl, i3_minl;
 	int	i1_maxl, i2_maxl, i3_maxl;
 	int	i1_len, i2_len, i3_len;
+	STREL_T	*i1_stp, *i2_stp, *i3_stp;
 	SEARCH_T	*i1_srp, *i2_srp, *i3_srp;
 	int	rv;
 
