@@ -17,3 +17,6 @@ descr
 		h3
 	h3
 	ss(len=4)
+
+score
+	{ SCORE = sprintf( '%8.3f %8.3f', bits( h5[1], ss[15] ), efn( h5[1], ss[15] ) ); }

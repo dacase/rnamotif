@@ -3028,9 +3028,9 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 	STREL_T	*stp, *stp5, *stp3;
 	char	*bp;
 
-	stp5 = &rm_descr[ idx ];
+	stp5 = rm_xdescr[ idx ];
 	off5 = stp5->s_matchoff;
-	stp3 = &rm_descr[ idx2 ];
+	stp3 = rm_xdescr[ idx2 ];
 	for( len = 0, stp = stp5, i = idx; i <= idx2; i++, stp++ ){
 		len += stp->s_matchlen;
 	}

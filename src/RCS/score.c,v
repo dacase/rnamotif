@@ -1,9 +1,14 @@
-head	1.53;
+head	1.54;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.54
+date	2001.10.04.03.29.43;	author macke;	state Exp;
+branches;
+next	1.53;
 
 1.53
 date	2001.09.11.13.22.51;	author macke;	state Exp;
@@ -276,11 +281,10 @@ desc
 @
 
 
-1.53
+1.54
 log
-@added an overloaded version of mismatches(): mismatches( str, pat )
-where str is a string and pat a pattern.  compiles the pattern and
-then does a mm_step() on it returning the number of mismatches.
+@fixed bug in setupefn() that used rm_descr[] instead of
+rm_xdescr[] to get the elements correspsonding to idx, idx2.
 @
 text
 @#include <stdio.h>
@@ -3313,9 +3317,9 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 	STREL_T	*stp, *stp5, *stp3;
 	char	*bp;
 
-	stp5 = &rm_descr[ idx ];
+	stp5 = rm_xdescr[ idx ];
 	off5 = stp5->s_matchoff;
-	stp3 = &rm_descr[ idx2 ];
+	stp3 = rm_xdescr[ idx2 ];
 	for( len = 0, stp = stp5, i = idx; i <= idx2; i++, stp++ ){
 		len += stp->s_matchlen;
 	}
@@ -3919,6 +3923,22 @@ static	void	tm_report( void )
 	if( cnt > 1 )
 		exit( 1 );
 }
+@
+
+
+1.53
+log
+@added an overloaded version of mismatches(): mismatches( str, pat )
+where str is a string and pat a pattern.  compiles the pattern and
+then does a mm_step() on it returning the number of mismatches.
+@
+text
+@d3031 1
+a3031 1
+	stp5 = &rm_descr[ idx ];
+d3033 1
+a3033 1
+	stp3 = &rm_descr[ idx2 ];
 @
 
 

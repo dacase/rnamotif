@@ -1,3 +1,12 @@
+1.6.3	2001-oct-03
+	Fixed bug in efn() that incorrectly indexed tetraloops.
+
+	Fixed bug in setupefn() that used rm_descr[] instead of 
+	rm_xdescr[] to get the ref'd descriptors.
+
+	Fixed bug in bits() that used the wrong log conversion
+	constant.
+	
 1.6.2	2001-sep-10
 	Collected all e-params used in efn() into a structure, EFNDATA_T
 	which will make it relatively easy to do DNA and T != 37 calcs.

@@ -324,8 +324,9 @@ static	int	getsinfo( char line[], int n_descr, DESCR_T descr[],
 		dp->d_off = ocnt;
 		dp->d_start = lp;
 		while( !isspace( *lp ) ){
+			if( *lp != '.' )
+				ocnt++;
 			lp++;
-			ocnt++;
 		}
 		dp->d_stop = lp - 1;
 	}
@@ -348,6 +349,8 @@ static	void	wr_ctfile( FILE *fp, DESCR_T descr[], char name[],
 	fprintf( fp, "%4d %s %d %d %d\n", nb, name, comp, off, len );
 
 	for( d0 = 0, dp = descr, d = 0; d < n_descr; d++, dp++ ){
+		if( dp->d_start[ 0 ] == '.' )
+			continue;
 		for( d1 = 0; d1 < dp->d_stop - dp->d_start + 1; d1++ ){
 			bn = d0 + d1 + 1;
 			fprintf( fp, "%4d %c", bn, dp->d_start[ d1 ] );

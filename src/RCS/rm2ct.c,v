@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.4
+date	2001.10.04.03.26.48;	author macke;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2001.07.30.19.58.57;	author macke;	state Exp;
@@ -28,10 +33,9 @@ pknots.  Passes on triples, quads.
 @
 
 
-1.3
+1.4
 log
-@added new structure element DT_CTX with rep "ctx" which is
-the context element of the rnamotif descriptor.
+@fixed bug that allow .'s into the ct files.
 @
 text
 @#include <stdio.h>
@@ -360,8 +364,9 @@ static	int	getsinfo( char line[], int n_descr, DESCR_T descr[],
 		dp->d_off = ocnt;
 		dp->d_start = lp;
 		while( !isspace( *lp ) ){
+			if( *lp != '.' )
+				ocnt++;
 			lp++;
-			ocnt++;
 		}
 		dp->d_stop = lp - 1;
 	}
@@ -384,6 +389,8 @@ static	void	wr_ctfile( FILE *fp, DESCR_T descr[], char name[],
 	fprintf( fp, "%4d %s %d %d %d\n", nb, name, comp, off, len );
 
 	for( d0 = 0, dp = descr, d = 0; d < n_descr; d++, dp++ ){
+		if( dp->d_start[ 0 ] == '.' )
+			continue;
 		for( d1 = 0; d1 < dp->d_stop - dp->d_start + 1; d1++ ){
 			bn = d0 + d1 + 1;
 			fprintf( fp, "%4d %c", bn, dp->d_start[ d1 ] );
@@ -438,6 +445,19 @@ static	int	getpn( DESCR_T *dp, int d0, DESCR_T descr[] )
 	}
 	return( -1 );
 }
+@
+
+
+1.3
+log
+@added new structure element DT_CTX with rep "ctx" which is
+the context element of the rnamotif descriptor.
+@
+text
+@d327 2
+a329 1
+			ocnt++;
+d352 2
 @
 
 

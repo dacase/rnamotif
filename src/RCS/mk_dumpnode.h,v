@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2001.09.13.05.01.31;	author macke;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2000.04.25.00.20.44;	author macke;	state Exp;
@@ -32,14 +37,15 @@ in node.c
 @
 
 
-1.4
+1.5
 log
-@changed v_fval to v_dval; change format from %e to %lg
+@added check for every id to start SYM_ as this is needed for
+yacc with RH 7.1
 @
 text
 @#! /bin/csh
 tr '#' ' ' < $1 |\
-awk '{	printf( "\tcase %s :\n", $2 )\
+awk '$2 ~ /^SYM_/{	printf( "\tcase %s :\n", $2 )\
 	printf( "\t\tfprintf( fp, \"%s", $2 ) \
 	if( $2 == "SYM_IDENT" ){ \
 		printf( " = \\\"%%s\\\"\\n\"" ) \
@@ -65,6 +71,17 @@ awk '{	printf( "\tcase %s :\n", $2 )\
 	printf( "\t\tfprintf( fp, \"RM_dumpnode: Unknown symbol %%d\\n\"" ) \
 	printf( ", np->n_sym );\n" ) \
 	printf( "\t\tbreak;\n" ) } '
+@
+
+
+1.4
+log
+@changed v_fval to v_dval; change format from %e to %lg
+@
+text
+@d3 1
+a3 1
+awk '{	printf( "\tcase %s :\n", $2 )\
 @
 
 

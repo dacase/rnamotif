@@ -1,6 +1,6 @@
 #! /bin/csh
 tr '#' ' ' < $1 |\
-awk '{	printf( "\tcase %s :\n", $2 )\
+awk '$2 ~ /^SYM_/{	printf( "\tcase %s :\n", $2 )\
 	printf( "\t\tfprintf( fp, \"%s", $2 ) \
 	if( $2 == "SYM_IDENT" ){ \
 		printf( " = \\\"%%s\\\"\\n\"" ) \

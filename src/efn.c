@@ -52,8 +52,18 @@ typedef	struct	efndata_t	{
 	int	e_dangle[ 5 ][ 5 ][ 5 ][ 2 ];
 	float	e_prelog;
 	int	e_maxpen;
-	int	e_eparam[ EPARAM_SIZE ];
 	int	e_poppen[ POPPEN_SIZE + 1 ];
+	int	e_eparam[ EPARAM_SIZE ];
+	int	e_efn2a;
+	int	e_efn2b;
+	int	e_efn2c;
+	int	e_auend;
+	int	e_gubonus;
+	int	e_cslope;
+	int	e_cint;
+	int	e_c3;
+	int	e_init;
+	int	e_gail;
 	int	e_sint2[ 6 ][ 6 ][ 5 ][ 5 ];
 	int	e_sint4[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ][ 5 ];
 	int	e_tloops[ MAXTLOOPS ][ 2 ];
@@ -122,11 +132,11 @@ static	void	dumpibhloop( FILE * );
 static	void	dumpstack( FILE *, char [], int [5][5][5][5] );
 static	void	dumpsint( FILE *fp );
 
-static	int	e_stack( int, int );
-static	int	e_ibloop( int, int, int, int );
-static	int	e_hploop( int, int );
-static	int	e_dangle( int, int, int, int );
-static	int	e_aupen( int, int );
+static	int	ef_stack( int, int );
+static	int	ef_ibloop( int, int, int, int );
+static	int	ef_hploop( int, int );
+static	int	ef_dangle( int, int, int, int );
+static	int	ef_aupen( int, int );
 
 void	RM_initst( void );
 static	void	push( int, int, int );
@@ -365,14 +375,21 @@ static	int	getmiscloop( char fname[] )
 		for( i = 9; i < EPARAM_SIZE; i++ )
 			efdp->e_eparam[ i ] = 0;
 	}else{	
-		/* these parms are not currently used */
+		/* these parms are not currently used by efn1 */
 		fgets( line, sizeof( line ), fp );
+/*
 		sscanf( line, "%f %f %f", &fv1, &fv2, &fv3 );
+*/
+		sscanf( line, "%f %f %f",
+			&efdp->e_efn2a, &efdp->e_efn2b, &efdp->e_efn2c );
 
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
 			sscanf( line, "%f", &fv1 );
+/*
 			efdp->e_eparam[ 9 ] = NINT( 100.0*fv1 );
+*/
+			efdp->e_auend = NINT( 100.0*fv1 );
 		}else{
 			RM_errormsg( 0,
 				"getmiscloop: no terminal AU penalty." );
@@ -383,7 +400,10 @@ static	int	getmiscloop( char fname[] )
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
 			sscanf( line, "%f", &fv1 );
+/*
 			efdp->e_eparam[ 10 ] = NINT( 100.0*fv1 );
+*/
+			efdp->e_gubonus = NINT( 100.0*fv1 );
 		}else{
 			RM_errormsg( 0, "getmiscloop: no GGG hairpin term." );
 			rval = 0;
@@ -393,7 +413,10 @@ static	int	getmiscloop( char fname[] )
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
 			sscanf( line, "%f", &fv1 );
+/*
 			efdp->e_eparam[ 11 ] = NINT( 100.0*fv1 );
+*/
+			efdp->e_cslope = NINT( 100.0*fv1 );
 		}else{
 			RM_errormsg( 0, "getmiscloop: no c hairpin slope." );
 			rval = 0;
@@ -403,7 +426,10 @@ static	int	getmiscloop( char fname[] )
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
 			sscanf( line, "%f", &fv1 );
+/*
 			efdp->e_eparam[ 12 ] = NINT( 100.0*fv1 );
+*/
+			efdp->e_cint = NINT( 100.0*fv1 );
 		}else{
 			RM_errormsg( 0,
 				"getmiscloop: no c hairpin intercept." );
@@ -414,7 +440,10 @@ static	int	getmiscloop( char fname[] )
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
 			sscanf( line, "%f", &fv1 );
+/*
 			efdp->e_eparam[ 13 ] = NINT( 100.0*fv1 );
+*/
+			efdp->e_c3 = NINT( 100.0*fv1 );
 		}else{
 			RM_errormsg( 0,
 				"getmiscloop: no c hairpin of 3 term." );
@@ -425,7 +454,10 @@ static	int	getmiscloop( char fname[] )
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
 			sscanf( line, "%f", &fv1 );
+/*
 			efdp->e_eparam[ 14 ] = NINT( 100.0*fv1 );
+*/
+			efdp->e_init = NINT( 100.0*fv1 );
 		}else{
 			RM_errormsg( 0,
 			"getmiscloop: no Intermol init free energy." );
@@ -435,7 +467,10 @@ static	int	getmiscloop( char fname[] )
 	
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
+/*
 			sscanf( line, "%d", &efdp->e_eparam[ 15 ] );
+*/
+			sscanf( line, "%d", &efdp->e_gail );
 		}else{
 			RM_errormsg( 0, "getmiscloop: no GAIL Rule term." );
 			rval = 0;
@@ -491,6 +526,9 @@ static	int	getdangle( char fname[] )
 				if( *fields[ f ] != '.' )
 					efdp->e_dangle[v1][v2][v3][v4] = 
 						NINT( 100.0*atof( fields[f] ) );
+				else
+					efdp->e_dangle[v1][v2][v3][v4] = 
+						EFN_INFINITY;
 				free( fields[ f ] );
 			}
 		}
@@ -910,27 +948,28 @@ CLEAN_UP : ;
 static	int	packloop( char loop[] )
 {
 	char	*lp;
-	int	num;
+	int	len, num;
 
-	for( lp = loop, num = 0; *lp; lp++ ){
+	len = strlen( loop );
+	for( lp = &loop[ len - 1 ], num = 0; lp >= loop; lp-- ){
 		switch( *lp ){
 		case 'A' :
 		case 'a' :
-			num = ( num << 3 ) + 1;
+			num = ( num << 3 ) + BCODE_A;
 			break;
 		case 'C' :
 		case 'c' :
-			num = ( num << 3 ) + 2;
+			num = ( num << 3 ) + BCODE_C;
 			break;
 		case 'G' :
 		case 'g' :
-			num = ( num << 3 ) + 3;
+			num = ( num << 3 ) + BCODE_G;
 			break;
 		case 'T' :
 		case 't' :
 		case 'U' :
 		case 'u' :
-			num = ( num << 3 ) + 4;
+			num = ( num << 3 ) + BCODE_T;
 			break;
 		default :
 			sprintf( emsg,
@@ -1173,14 +1212,14 @@ int	RM_efn( int i, int j, int open )
 			}
 
 			if( rm_basepr[i] == UNDEF && rm_basepr[i+1] > i+1 ){
-				e += MIN( 0, e_dangle(rm_basepr[i+1],i+1,i,1) )
+				e += MIN( 0, ef_dangle(rm_basepr[i+1],i+1,i,1) )
 					+ efdp->e_eparam[5];
 				i++;
 			}
 			if( rm_basepr[j] == UNDEF && rm_basepr[j-1] != UNDEF &&
 				rm_basepr[j-1] < j-1 )
 			{
-				e += MIN( 0, e_dangle(j-1,rm_basepr[j-1],j,0) )
+				e += MIN( 0, ef_dangle(j-1,rm_basepr[j-1],j,0) )
 					+ efdp->e_eparam[5];
 				j--;
 			}
@@ -1197,13 +1236,13 @@ int	RM_efn( int i, int j, int open )
 			}
 
 			if( rm_basepr[i] == UNDEF && rm_basepr[i+1] > i+1 ){
-				e += MIN( 0, e_dangle(rm_basepr[i+1],i+1,i,1) );
+				e += MIN( 0, ef_dangle(rm_basepr[i+1],i+1,i,1) );
 				i++;
 			}
 			if( rm_basepr[j] == UNDEF && rm_basepr[j-1] != UNDEF &&
 				rm_basepr[j-1] < j-1 )
 			{
-				e += MIN( 0, e_dangle(j-1,rm_basepr[j-1],j,0) );
+				e += MIN( 0, ef_dangle(j-1,rm_basepr[j-1],j,0) );
 				j--;
 			}
 		}
@@ -1225,8 +1264,8 @@ int	RM_efn( int i, int j, int open )
 		}else if( rm_basepr[k+2] == UNDEF ){
 			e += RM_efn( i, k+1, open );
 			e += RM_efn( k+2, j, open );
-		}else if(e_dangle( k,i,k+1,0 ) <=
-			e_dangle( rm_basepr[k+2],k+2,k+1,1 ))
+		}else if(ef_dangle( k,i,k+1,0 ) <=
+			ef_dangle( rm_basepr[k+2],k+2,k+1,1 ))
 		{
 			e += RM_efn( i, k+1, open );
 			e += RM_efn( k+2, j, open );
@@ -1238,11 +1277,11 @@ int	RM_efn( int i, int j, int open )
 	}else{
 		if( !open )
 			e += efdp->e_eparam[8];
-		e += e_aupen( i, j );
+		e += ef_aupen( i, j );
 
 		for( open = 0; ; ){
 			if( rm_basepr[i+1] == j-1 ){
-				e += e_stack( i, j );
+				e += ef_stack( i, j );
 				i++;
 				j--;
 				continue;
@@ -1265,10 +1304,10 @@ int	RM_efn( int i, int j, int open )
 			}
 
 			if( sum == 0 ){	/* hairpin */
-				e += e_hploop( i, j );
+				e += ef_hploop( i, j );
 				return( e );
 			}else if( sum == 1 ){ /* internal or bulge loop */
-				e += e_ibloop( i, j, ip, jp );
+				e += ef_ibloop( i, j, ip, jp );
 				i = ip;
 				j = jp;
 				continue;
@@ -1276,17 +1315,17 @@ int	RM_efn( int i, int j, int open )
 				is = i + 1;
 				js = j - 1;
 				e += efdp->e_eparam[4] +
-					efdp->e_eparam[8] + e_aupen( i, j );
+					efdp->e_eparam[8] + ef_aupen( i, j );
 				if( rm_basepr[i+1]==UNDEF &&
 					rm_basepr[i+2]!=UNDEF )
 				{
-					if( e_dangle(i,j,i+1,0) <=
-						e_dangle(rm_basepr[i+2],
+					if( ef_dangle(i,j,i+1,0) <=
+						ef_dangle(rm_basepr[i+2],
 						i+2,i+1,1) )
 					{
 						is = i + 2;
 						e += MIN( 0,
-							e_dangle( i,j,i+1,0 )) +
+							ef_dangle( i,j,i+1,0 )) +
 							efdp->e_eparam[5];
 					}
 				}
@@ -1294,19 +1333,19 @@ int	RM_efn( int i, int j, int open )
 					rm_basepr[i+2]==UNDEF )
 				{
 					is = i + 2;
-					e += MIN( 0, e_dangle( i,j,i+1,0 ) ) +
+					e += MIN( 0, ef_dangle( i,j,i+1,0 ) ) +
 						efdp->e_eparam[5];
 				}
 				if( rm_basepr[j-1]==UNDEF &&
 					rm_basepr[j-2]!=UNDEF )
 				{
-					if( e_dangle(i,j,j-1,1) <=
-						e_dangle(j-2,rm_basepr[j-2],
+					if( ef_dangle(i,j,j-1,1) <=
+						ef_dangle(j-2,rm_basepr[j-2],
 						j-1,0) )
 					{
 						js = j - 2;
 						e += MIN( 0,
-							e_dangle( i,j,j-1,1 )) +
+							ef_dangle( i,j,j-1,1 )) +
 							efdp->e_eparam[5];
 					}
 				}
@@ -1314,7 +1353,7 @@ int	RM_efn( int i, int j, int open )
 					rm_basepr[j-2]==UNDEF )
 				{
 					js = j - 2;
-					e += MIN( 0, e_dangle( i,j,j-1,1 ) ) +
+					e += MIN( 0, ef_dangle( i,j,j-1,1 ) ) +
 						efdp->e_eparam[5];
 				}
 				e += RM_efn( is, js, 0 );
@@ -1326,7 +1365,7 @@ int	RM_efn( int i, int j, int open )
 }
 
 /* helical stacking energy */
-static	int	e_stack( int i, int j )
+static	int	ef_stack( int i, int j )
 {
 	int	rval;
 
@@ -1340,7 +1379,7 @@ static	int	e_stack( int i, int j )
 }
 
 /* interior & bulge loop energy */
-static	int	e_ibloop( int i, int j, int ip, int jp )
+static	int	ef_ibloop( int i, int j, int ip, int jp )
 {
 	int	size, size1, size2, min4;
 	int	lopsid, loginc;
@@ -1362,7 +1401,7 @@ static	int	e_ibloop( int i, int j, int ip, int jp )
 	    efdp->e_stack[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[ip]][rm_bcseq[jp]]
 			    + efdp->e_bulge[size] + efdp->e_eparam[1];
 		}else{
-			rval += e_aupen( i, j ) + e_aupen( ip, jp );
+			rval += ef_aupen( i, j ) + ef_aupen( ip, jp );
 			if( size > 30 ){
 				loginc = NINT(efdp->e_prelog*log(size / 30.0));
 				rval += efdp->e_bulge[30] + loginc +
@@ -1374,7 +1413,10 @@ static	int	e_ibloop( int i, int j, int ip, int jp )
 		lopsid = fabs( ( double )( size1 - size2 ) );
 		if( size > 30 ){			/* BIG loops	*/
 			loginc = NINT( efdp->e_prelog*log( size / 30. ) );
+/*
 			if( ( size1==1 || size2==1 ) && efdp->e_eparam[15]==1 ){
+*/
+			if( ( size1==1 || size2==1 ) && efdp->e_gail==1 ){
 				rval +=
 		efdp->e_tstki[rm_bcseq[i]][rm_bcseq[j]][BCODE_A][BCODE_A] +
 		efdp->e_tstki[rm_bcseq[jp]][rm_bcseq[ip]][BCODE_A][BCODE_A]+
@@ -1459,7 +1501,10 @@ efdp->e_tstki[rm_bcseq[jp]][rm_bcseq[ip]][rm_bcseq[jp+1]][rm_bcseq[ip-1]] +
 efdp->e_sint4[lf][rt][rm_bcseq[i+1]][rm_bcseq[j-1]][rm_bcseq[ip-1]][rm_bcseq[jp+1]];
 			}
 		}else{					/* 3x2 loops & up */
+/*
 			if( ( size1==1 || size2==1 ) && efdp->e_eparam[15]==1 ){
+*/
+			if( ( size1==1 || size2==1 ) && efdp->e_gail==1 ){
 				rval += efdp->e_eparam[2] +
 		efdp->e_tstki[rm_bcseq[i]][rm_bcseq[j]][BCODE_A][BCODE_A] +
 		efdp->e_tstki[rm_bcseq[jp]][rm_bcseq[ip]][BCODE_A][BCODE_A]+
@@ -1481,7 +1526,7 @@ efdp->e_tstki[rm_bcseq[jp]][rm_bcseq[ip]][rm_bcseq[jp+1]][rm_bcseq[ip-1]] +
 }
 
 /* hairpin energy */
-static	int	e_hploop( int i, int j )
+static	int	ef_hploop( int i, int j )
 {
 	int	size, ccnt, k;
 	int	key, lval, loginc;
@@ -1502,8 +1547,11 @@ static	int	e_hploop( int i, int j )
 	}
 	if( ccnt == size ){
 		rval = ( size == 3 ) ?
+/*
 			efdp->e_eparam[13] :
 			efdp->e_eparam[12]+size*efdp->e_eparam[11];
+*/
+			efdp->e_c3 : efdp->e_cint + size * efdp->e_cslope;
 	}
 
 	/* ggg loop */
@@ -1513,14 +1561,17 @@ static	int	e_hploop( int i, int j )
 			rm_bcseq[i-2]==BCODE_G &&
 			rm_bcseq[j] == BCODE_T )
 		{
+/*
 			rval += efdp->e_eparam[10];
+*/
+			rval += efdp->e_gubonus;
 		}
 	}
 
 	if( size <= 3 ){ /* loops of 1-3 */
 		if( size == 3 ){
 			key = rm_bcseq[i+size+1];
-			for( k = size; k >= 0; k-- )
+			for( k = size + 1; k >= 0; k-- )
 				key = ( key << 3 ) + rm_bcseq[i+k];
 			for( lval = 0, k = 0; k < efdp->e_ntriloops; k++ ){
 				if( efdp->e_triloops[k][0] == key ){
@@ -1531,7 +1582,7 @@ static	int	e_hploop( int i, int j )
 		}else
 			lval = 0;
 		rval += efdp->e_hairpin[size] + efdp->e_eparam[3]
-			+ e_aupen(i,j) + lval;
+			+ ef_aupen(i,j) + lval;
 	}else if( size <= 30 ){ /* loops of 4-30 */
 		if( size == 4 ){
 			key = rm_bcseq[i+size+1];
@@ -1559,7 +1610,7 @@ static	int	e_hploop( int i, int j )
 }
 
 /* dangling base energy */
-static	int	e_dangle( int i, int j, int ip, int jp )
+static	int	ef_dangle( int i, int j, int ip, int jp )
 {
 	int	rval;
 
@@ -1568,7 +1619,7 @@ static	int	e_dangle( int i, int j, int ip, int jp )
 	return( rval );
 }
 
-static	int	e_aupen( int i, int j )
+static	int	ef_aupen( int i, int j )
 {
 	static	int	pval[5][5] = {
 		{ 0, 0, 0, 1, 0 },
@@ -1578,7 +1629,10 @@ static	int	e_aupen( int i, int j )
 		{ 0, 0, 0, 0, 0 } };
 	int	rval = 0;
 
+/*
 	rval = pval[ rm_bcseq[i] ][ rm_bcseq[j] ] * efdp->e_eparam[ 9 ];
+*/
+	rval = pval[ rm_bcseq[i] ][ rm_bcseq[j] ] * efdp->e_auend;
 	return( rval );
 }
 
