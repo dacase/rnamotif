@@ -242,9 +242,9 @@ STREL_T	*stp;
 	fprintf( fp, "\ttag      = '%s'\n",
 		stp->s_tag ? stp->s_tag : "(No tag)" );
 
-	fprintf( fp, "\tin       = " );
-	if( stp->s_in ){
-		stp1 = stp->s_in;
+	fprintf( fp, "\tinner    = " );
+	if( stp->s_inner ){
+		stp1 = stp->s_inner;
 		fprintf( fp, "%d", stp1->s_index + 1 );
 	}else
 		fprintf( fp, "(None)" );
