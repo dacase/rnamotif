@@ -93,11 +93,15 @@ pair		: SYM_STRING 	{ $$ = node( SYM_STRING, &rm_tokval, 0, 0 ); };
 descr_part	: SYM_DESCR { context = CTX_DESCR; } strel_list ;
 strel_list	: strel
 		| strel strel_list ;
-strel		: strhdr SYM_LPAREN strparm_list SYM_RPAREN
+strel		: strhdr	{ if( context == CTX_DESCR )
+					SE_close();
+				  else if( context == CTX_SITES )
+					POS_close( 0 ); }
+		| strhdr SYM_LPAREN strparm_list SYM_RPAREN
 				{ if( context == CTX_DESCR )
 					SE_close();
 				  else if( context == CTX_SITES )
-					POS_close(); } ;
+					POS_close( 1 ); } ;
 strhdr		: strtype	{ if( context == CTX_DESCR )
 					SE_open( $1 );
 				  else if( context == CTX_SITES )
