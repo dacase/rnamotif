@@ -59,6 +59,7 @@ static	int	chk_sites();
 static	int	chk_1_site();
 
 static	void	print_match();
+static	void	mk_cstr();
 static	void	set_mbuf();
 
 IDENT_T	*find_id();
@@ -962,9 +963,6 @@ int	b3;
 /*
 	btmatp = stp->s_pairset->ps_mat[ 1 ];
 */
-/*
-	btmatp = ps->ps_mat[ 0 ];
-*/
 	btmatp = ps->ps_mat[ 1 ];
 	b1i = rm_b2bc[ b1 ];
 	b2i = rm_b2bc[ b2 ];
@@ -986,9 +984,6 @@ int	b4;
 	
 /*
 	bqmatp = stp->s_pairset->ps_mat[ 1 ];
-*/
-/*
-	bqmatp = ps->ps_mat[ 0 ];
 */
 	bqmatp = ps->ps_mat[ 1 ];
 	b1i = rm_b2bc[ b1 ];
@@ -1440,14 +1435,18 @@ STREL_T	descr[];
 	char	name[ 20 ];
 	int	d, len, offset;
 	STREL_T	*stp;
-	char	mbuf[ 256 ];
+	char	mbuf[ 256 ], cstr[ 256 ];
 
 	if( first ){
 		first = 0;
-		fprintf( fp, "#RM fmt" );
+		fprintf( fp, "#RM descr" );
 		for( stp = descr, d = 0; d < n_descr; d++, stp++ ){
 			RM_strel_name( stp, name );
 			fprintf( fp, " %s", name );
+			if( stp->s_tag != NULL ){
+				mk_cstr( stp->s_tag, cstr );
+				fprintf( fp, "(tag=\"%s\")", cstr );
+			}
 		}
 		fprintf( fp, "\n" );
 	}
@@ -1455,6 +1454,7 @@ STREL_T	descr[];
 		len += stp->s_matchlen;
 
 	fprintf( fp, "%-12s %d", locus, comp );
+/*
 	stp = descr; 
 	set_mbuf( stp->s_matchoff, stp->s_matchlen, mbuf );
 
@@ -1464,17 +1464,46 @@ STREL_T	descr[];
 		offset = stp->s_matchoff + 1;
 
 	fprintf( fp, " %7d %4d %s", offset, len, mbuf );
+*/
+	stp = descr; 
+	if( fm_comp ){
+		offset = fm_slen - stp->s_matchoff;
+	}else
+		offset = stp->s_matchoff + 1;
+	fprintf( fp, " %7d %4d", offset, len );
 
-	for( ++stp, d = 1; d < n_descr; d++, stp++ ){
+	for( d = 0; d < n_descr; d++, stp++ ){
 		if( stp->s_matchlen > 0 ){
+/*
 			set_mbuf( stp->s_matchoff, stp->s_matchlen, mbuf );
 			fprintf( fp, " %s", mbuf );
+*/
+			fprintf( fp, " %.*s",
+				stp->s_matchlen, &fm_sbuf[ stp->s_matchoff ] );
 		}else
 			fprintf( fp, " ." );
 	}
 	fprintf( fp, "\n" );
 }
 
+static	void	mk_cstr( str, cstr )
+char	str[];
+char	cstr[];
+{
+	char	*sp, *cp;
+
+	if( str == NULL ){
+		*cstr = '\0';
+		return;
+	}
+
+	for( sp = str, cp = cstr; *sp; sp++ ){
+		if( *sp == '"' || *sp == '\\' )
+			*cp++ = '\\';
+		*cp++ = *sp;
+	}
+	*cp = '\0';
+}
 static	void	set_mbuf( off, len, mbuf )
 int	off;
 int	len;
