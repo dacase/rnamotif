@@ -1,0 +1,153 @@
+Descriptors in here are for local use in debugging , not really for
+distribution.
+
+-------------------------------------------------------------------------------
+Likely to be useful to others:
+
+1	bits.descr		Apply bits() to tetraloops to evaluate their compositional complexity.
+1	ctx2.descr		Use ctx to find a hairpin surrounded by specified RE sites.
+1	ctx-efn.descr		Apply efn() to tetraloop with context.
+1	dollar.descr		Use of '$', (last char in a string) in a score.
+1	dr.descr		Use a parallel helix to find direct repeats.
+1	efn.1.descr		Apply efn() to tetraloops, reject those with high dG.
+1	ex.2.descr		Tetraloop with closing bp restrictions.
+1	ex.3a.descr		Variation of ex.3.descr.
+1	ex.3b.descr		Another variation of ex.3.descr.
+1	ex.3c.descr		Still another variation of ex.3.descr.
+1	ex.3.descr		Tetraloop with stem restrictions.
+1	ex.4.descr		Two consecutive hairpins.
+1	ex.5.descr		Nested hairpins with a bulge base.
+1	ex.6.descr		Hairpin with different bp-rules for different parts.
+1	ex.7.descr		Simple pknot.
+1	in0.descr		Score using assigned `in' operator.
+1	inc.descr		Use #include to use a shared score.
+1	in.descr		Score using `in' operator to count pair types. 
+1	loc.descr		Score using loc() builtin to find actual match position.
+1	mp1.ends.descr		HP that requires at least one end to be mispaired.
+1	mp.pf.descr		Use pairfrac= to specify the amount of mispairs.
+1	quad.descr		A 4-plex.
+1	rs2_gaps.descr		Use of substr to permit an interruption in a seq.
+1	rs.anywhere.descr	Hairpin that must contain a sequence, but anywhere.
+1	rs_gaps.descr		Use of fixed strings to permit an interrupted seq.
+1	score.1.descr		Score that computes the %gc of a stem.
+1	score.2.descr		Score that rejects consecutive mispairs.
+1	score.3.descr		Score that computes the total mispairs in the descr.
+1	slen.descr		Score using SLEN, the length of seq being searched.
+1	sprintf.descr		Score using sprintf()
+1	trip.descr		A triplex.
+1	trna.descr		A tRNA descriptor.
+1	ugly.descr		One line (ugly format) descriptor.
+1	using.descr		Hard to believe, a score with 2 (!) pat actions
+
+-------------------------------------------------------------------------------
+Unlikely to be useful to others:
+
+0	0len.descr		ss element with minlen=0.
+0	4loop.descr		tetraloops with 4 nt stem.
+0	AE000434.fastn_1.descr	Apply efn() to complicated hairpin structure.
+0	bpcnt.descr		Count g:c pairs in helix, reject if too many, obsolete.
+0	break.descr		Use of break stmt for early end of a base counting loop.
+0	ch2.descr		ch.descr with less restrictions on the loop sequences.
+0	ch2.mm.descr		ch2.descr with mismatches.
+0	ch.descr		2 consecutive hairpins, fixed loop sequences.
+0	continue.descr		Rather silly use of a continue stmt in a for loop.
+0	ctx0.descr		tetraloop with context.
+0	ctx1.descr		use of context, must have been for debugging.
+0	ctx.descr		tetraloop with required context. 
+0	dbl-pknot.descr		Double pknot.
+0	dbl-pknot.test.descr	Simplified version of above.
+0	de.1.descr		check if parms work in descr elements.
+0	define.descr		more parms in descr elements.
+0	descr9a_test7.descr	Complicated score from RS, used to fix 1 letter REs.
+0	dg.bad.descr		zero length loop in a hairpin.
+0	efn.2.descr		Test #include facility to share parms + score.
+0	efn.bulge.descr		Apply efn() to hairpins with a bulge.
+0	efn.descr		Like efn.1.
+0	efn.hp.descr		Apply efn() to hairpins of varying loop size.
+0	efn.iloop.descr		Incorrect test of efn() to internal loops.
+0	eloop.descr		An eloop(?) descriptor.
+0	ends.descr		check that *_ends vars can be set.
+0	hlx.gf.if.descr		Simple hairpin, stem fixed, loop fixed.
+0	hlx.gf.iu.descr		Simple hairpin, stem fixed, loop unbounded.
+0	hlx.gfsgu.if.descr	Simple hairpin, stem, loop, sequence fixed, gu allowed.
+0	hlx.gfs.if.descr	Simple hairpin, stem fixed, loop fixed, sequence fixed.
+0	hlx.gu.if.descr		Simple hairpin, stem unbounded, loop fixed.
+0	hlx.gu.iu.descr		Simple hairpin, stem, loop unbounded.
+0	hlx.parmed.descr	Simple hairpin, uses parms to set limits.
+0	hlx.pfrac.descr		Simple hairpin, uses pfrac= to control mispairs.
+0	hp.descr		UUCG hairpin.
+0	hp+pk.descr		Hairpin containing a pknot.
+0	hp+tr.descr		Hairpin containing a triplex.
+0	ifs.descr		Score with with illegal (run time) type conversion.
+0	jev.descr		Simple hairpin with mispair=1.
+0	mcops.descr		Score testing &&, ||. (McCarthy operators.)
+0	minmaxseq.descr		Hairpin using minlen=, maxlen=.
+0	mism2.descr		Score using mismatches(,) to chk str spanning 2 strels.
+0	ml2.descr		Very complicated descriptor! (From Gutell?)
+0	mloupe.descr		Very similar to ml2.  Who knows?
+0	mp.consec.ok.descr	Same HP as above, but consecutive mispairs OK.
+0	mp.ends.descr		Permit HP at the ends of a helix.
+0	mpr.descr		HP with mispair=.
+0	mps.descr		Pairset with duplicate.  Error, caught.
+0	nan2.descr		Simplified version of nanlin descr.
+0	nan3.descr		Even more simplified version of nanlin.descr.
+0	nan4.descr		Simplest possible version of nanlin.descr.
+0	nan.bog2.descr		Weird nanlin (Gutell postdoc) hairpin.
+0	nan.bogus.descr		Truly weird nanlin descr.
+0	nanlin.0hlx.descr	Another nanlin descr.
+0	nanlin.descr		Complicated helix nest.
+0	nanlin.mm.descr		Last nanlin descr.
+0	nh.descr		Two nested hairpins.
+0	nodescr.descr		Input w/o descr section.  Error, caught.
+0	nsbp.descr		Overly ambitious include.  Won't (ever) work.
+0	phlx.gf.if.descr	Simple phlx, stem, loop fixed.
+0	phlx.mpr.descr		Simple phlx, stem, loop fixed, mispair allowed.
+0	phlx.pfrac.descr	Simple phlx, stem, loop fixed, pairfrac used.
+0	pk1.descr		Pknot, with everything.
+0	pk1.efn.descr		Pknot, sent to efn() runtime error.
+0	pk.gf.if.descr		Pknot, stems, loops, fixed.
+0	pk.gf.iu.descr		Pknot, stems fixed, loops unbounded.
+0	pk.gf.iz.descr		Pknot, coaxial stems.
+0	pk.gu.if.descr		Pknot, stems unbounded, loops fixed.
+0	pk.gu.iu.descr		Pknot, stems fixed, loops unbounded.
+0	pk+hp.descr		Pknot containing a hairpin.
+0	pk+pk.descr		Pknot containing a pknot.
+0	pk.test.descr		Pknot, very simple structure.
+0	ps.1.descr		Odd hairpin.
+0	ps.2.descr		Odd nested hairpin.
+0	ps.3.descr		No descr section, error: caught.
+0	quad2.descr		4-plex containg one hairpin.
+0	quadm.descr		4-plex allowing mispair.
+0	qu.mp.descr		4-plex allowing mispair
+0	qu+tr.descr		4-plex followed by triplex.
+0	rho-term.descr		rho terminator.  Hairpins + score -- not tested.
+0	rs.bad.2.descr		Weird Ranga descr. HP from only U's?
+0	rs.bad.descr		Nested HP's from Ranga, must have been a bug.
+0	rs.bad.mm.descr		Simple HP from Ranga with mismatch to tail.  Bug fixed.
+0	rs.include.descr	Includes jev.descr, won't (ever) work.
+0	rs.rmprune.descr	Simple variable length HP used to test rmprune.
+0	rs.wild.descr		Primer from Ranga that was too long for RE. Fixed.
+0	sample_descriptor1.descr	Set of 5 weird ss descriptors, primers?
+0	sample_descriptor2.descr	#2 of 5
+0	sample_descriptor3.descr	#3 of 5
+0	sample_descriptor4.descr	#4 of 5
+0	sample_descriptor5.descr	#5 of 5
+0	score.0.descr		Score that assgins a string value.
+0	score.4.descr		Incomplete score section, error, delete.
+0	sh.descr		Another primer search.
+0	ss.mp.descr		Score that computes total mispairs (*2).
+0	strict.bug.descr	Nested hairpin that found a strict helix bug (fixed).
+0	strict.descr		Hairpin that set strict=1.
+0	terbaour.descr		Weird descr from this person.  efn(pknot). Hopeless!
+0	test.descr		Nested hairpin.
+0	tmrna.2.descr		Simplifed tmrna.
+0	tmrna.descr		tm rna. Tested, looks like it works, upgraded to use bits()
+0	tr+hp2.descr		triplex + 2 hairpins.
+0	tr+hp.descr		triplex + hairpin.
+0	trip2.descr		triplex allowing ccg triplets.
+0	tr.mp.descr		triplex with mispair=
+0	tr+pk.descr		triplex + pknot.
+0	uucg.descr		UUCG hairpins.
+0	vlhlx.descr		Hmm. I think that maybe parms isn't required?
+0	vt.393.bad.descr	One of V. Tsui's tRNA descriptors.
+0	vt.bad.descr		Another of V. Tsui's tRNA descriptors.
