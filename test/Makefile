@@ -1,0 +1,56 @@
+all: nanlin pk1 qu+tr score.1 score.2 trna
+
+nanlin:
+	@echo =====================================================
+	@echo   "Running $@ test:"
+	@echo
+	@../rnamot -descr $@.descr gbrna.111.0.fastn | ../rmfmt -l > $@.test
+	@-diff $@.chk $@.test && echo "  PASSED" \
+		|| echo "   FAILED (possibly; see if diffs above look OK)"
+	@-rm -f $@.test
+
+pk1:
+	@echo =====================================================
+	@echo   "Running $@ test:"
+	@echo
+	@../rnamot -descr $@.descr gbrna.111.0.fastn | ../rmfmt -l > $@.test
+	@-diff $@.chk $@.test && echo "  PASSED" \
+		|| echo "   FAILED (possibly; see if diffs above look OK)"
+	@-rm -f $@.test
+
+qu+tr:
+	@echo =====================================================
+	@echo   "Running $@ test:"
+	@echo
+	@../rnamot -descr $@.descr gbrna.111.0.fastn | ../rmfmt -l > $@.test
+	@-diff $@.chk $@.test && echo "  PASSED" \
+		|| echo "   FAILED (possibly; see if diffs above look OK)"
+	@-rm -f $@.test
+
+score.1:
+	@echo =====================================================
+	@echo   "Running $@ test:"
+	@echo
+	@../rnamot -descr $@.descr gbrna.111.0.fastn | ../rmfmt -l > $@.test
+	@-diff $@.chk $@.test && echo "  PASSED" \
+		|| echo "   FAILED (possibly; see if diffs above look OK)"
+	@-rm -f $@.test
+
+score.2:
+	@echo =====================================================
+	@echo   "Running $@ test:"
+	@echo
+	@../rnamot -descr $@.descr gbrna.111.0.fastn | ../rmfmt -l > $@.test
+	@-diff $@.chk $@.test && echo "  PASSED" \
+		|| echo "   FAILED (possibly; see if diffs above look OK)"
+	@-rm -f $@.test
+
+trna:
+	@echo =====================================================
+	@echo   "Running $@ test:"
+	@echo
+	@../rnamot -descr $@.descr gbrna.111.0.fastn | ../rmfmt -l > $@.test
+	@-diff $@.chk $@.test && echo "  PASSED" \
+		|| echo "   FAILED (possibly; see if diffs above look OK)"
+	@-rm -f $@.test
+
