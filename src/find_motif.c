@@ -1,11 +1,17 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "rnamot.h"
 #include "y.tab.h"
 
+#define	RM_R2L(st)	\
+	((st)==SYM_P3||(st)==SYM_H3||(st)==SYM_T2||(st)==SYM_Q2||(st)==SYM_Q4)
 static	int	strel_name();
 static	int	find_start();
+static	int	find_start2();
 static	int	find_stop();
+static	void	find_plen();	
+static	int	find_nlen();	
 
 int	find_motif( n_descr, descr, sites, locus, slen, sbuf )
 int	n_descr;
@@ -71,49 +77,79 @@ int	n_descr;
 STREL_T	descr[];
 {
 	int	start, stop, l2r;
-	char	name[ 20 ], tstr[ 20 ];;
+	char	name[ 20 ], tstr[ 20 ];
+	char	*bp, buf[ 200 ];
 
-	fprintf( fp, "%4d", stp->s_index );
-	fprintf( fp, " %5d", stp->s_minlen );
+	bp = buf;
+	sprintf( bp, "%4d", stp->s_index );
+	bp += strlen( bp );
+
+	sprintf( bp, " %5d", stp->s_minlen );
+	bp += strlen( bp );
+
 	if( stp->s_maxlen == UNBOUNDED )
-		fprintf( fp, " UNBND" );
+		sprintf( bp, " UNBND" );
 	else
-		fprintf( fp, " %5d", stp->s_maxlen );
+		sprintf( bp, " %5d", stp->s_maxlen );
+	bp += strlen( bp );
+
 	if( stp->s_minglen == UNDEF )
-		fprintf( fp, " UNDEF" );
+		sprintf( bp, " UNDEF" );
 	else
-		fprintf( fp, " %5d", stp->s_minglen );
+		sprintf( bp, " %5d", stp->s_minglen );
+	bp += strlen( bp );
+
 	if( stp->s_maxglen == UNBOUNDED )
-		fprintf( fp, " UNBND" );
+		sprintf( bp, " UNBND" );
 	else if( stp->s_maxglen == UNDEF )
-		fprintf( fp, " UNDEF" );
+		sprintf( bp, " UNDEF" );
 	else
-		fprintf( fp, " %5d", stp->s_maxglen );
+		sprintf( bp, " %5d", stp->s_maxglen );
+	bp += strlen( bp );
+
 	if( stp->s_minilen == UNDEF )
-		fprintf( fp, " UNDEF" );
+		sprintf( bp, " UNDEF" );
 	else
-		fprintf( fp, " %5d", stp->s_minilen );
+		sprintf( bp, " %5d", stp->s_minilen );
+	bp += strlen( bp );
+
 	if( stp->s_maxilen == UNBOUNDED )
-		fprintf( fp, " UNBND" );
+		sprintf( bp, " UNBND" );
 	else if( stp->s_maxilen == UNDEF )
-		fprintf( fp, " UNDEF" );
+		sprintf( bp, " UNDEF" );
 	else
-		fprintf( fp, " %5d", stp->s_maxilen );
+		sprintf( bp, " %5d", stp->s_maxilen );
+	bp += strlen( bp );
+
+/*
 	start = find_start( slen, stp, n_descr, descr, &l2r );
 	sprintf( tstr, "%s%d", !l2r ? "$-" : "", start );
-	fprintf( fp, " %5s", tstr );
-/*
-	start = find_start2( stp, descr );
-	fprintf( fp, " %5d", start );
+	sprintf( bp, " %5s", tstr );
+	bp += strlen( bp );
 */
+
+	start = find_start2( stp, descr, &l2r );
+	sprintf( tstr, "%s%d", !l2r ? "$-" : "", start );
+	sprintf( bp, " %5s", tstr );
+	bp += strlen( bp );
+
 	stop = find_stop( slen, stp, n_descr, descr, &l2r );
 	sprintf( tstr, "%s%d", !l2r ? "$-" : "", stop );
-	fprintf( fp, " %5s", tstr );
+	sprintf( bp, " %5s", tstr );
+	bp += strlen( bp );
+
 	strel_name( stp, name );
-	fprintf( fp, "  %s%s", prefix, name );
-	if( stp->s_scope == 0 )
-		fprintf( fp, "+--+" );
-	fprintf( fp, "\n" );
+	sprintf( bp, "  %s%s", prefix, name );
+	bp += strlen( bp );
+
+	if( stp->s_scope == 0 ){
+		sprintf( bp, "+--+" );
+		bp += strlen( bp );
+	}
+	sprintf( bp, "\n" );
+	bp += strlen( bp );
+
+	fputs( buf, fp );
 }
 
 static	int	strel_name( stp, name )
@@ -287,12 +323,88 @@ fprintf( stderr, "%3d: prefix1 = '%s'\n", stp->s_index, prefix1 );
 */
 }
 
-int	find_start2( stp, descr )
+int	find_start2( stp, descr, l2r )
 STREL_T	*stp;
 STREL_T	descr[];
+int	*l2r;
 {
-	int	s0;
+	int	start, s;
+	int	plen, nlen;
+	STREL_T	*stp1, *stp2;
+	int	unbnd, s_unbnd, p_unbnd, n_unbnd ;
 
-	s0 = stp->s_scope == 0;
-	fprintf( stderr, "\nfs: idx = %d, s0 = %d\n", stp->s_index, s0 );
+	s_unbnd = stp->s_maxlen == UNBOUNDED;
+	if( RM_R2L( stp->s_type ) ){
+		if( s_unbnd ){
+			start = 0;
+			for( stp1 = stp->s_next; stp1; stp1 = stp1->s_next )
+				start += stp1->s_minglen;
+		}else{
+			find_plen( stp, descr, &p_unbnd, &start );
+			if( p_unbnd ){
+			}else{
+				start += stp->s_maxlen; 
+			}
+		}
+		*l2r = !( s_unbnd || p_unbnd );
+		if( *l2r )
+			start--;
+	}else{
+		*l2r = 1;
+		p_unbnd = 0;
+		for( start = 0, stp1 = stp->s_prev; stp1; stp1 = stp1->s_prev ){
+			start += stp1->s_minglen;
+			if( stp1->s_maxglen == UNBOUNDED )
+				p_unbnd = 1;
+		}
+		for( s = stp->s_scope - 1; s >= 0; s-- ){
+			stp2 = stp->s_scopes[ s ];
+			start += stp2->s_minlen + stp2->s_minilen;
+			if( stp2->s_maxlen==UNBOUNDED ||
+				stp2->s_maxilen==UNBOUNDED )
+				unbnd = 1;
+		}
+	}
+	return( start );
+}
+
+static	void	find_plen( stp, descr, p_unbnd, plen )
+STREL_T	*stp;
+STREL_T	descr[];
+int	*p_unbnd;
+int	*plen;
+{
+	int	start, s, sl;
+	STREL_T	*stp1, *stp2, *stp3; 
+
+	*p_unbnd = 0;
+	*plen = 0;
+	stp1 = stp->s_outer;
+	for( s = stp->s_index - 1; s >= stp1->s_index; s-- ){
+		stp2 = &descr[ s ];
+		if( stp2->s_maxlen == UNBOUNDED ){
+			*p_unbnd = 1;
+			break;
+		}else
+			*plen += stp2->s_maxlen;
+	}
+	if( !*p_unbnd ){
+		for( stp2 = stp1->s_prev; stp2; stp2 = stp2->s_prev ){
+			if( stp2->s_maxglen == UNBOUNDED ){
+				*p_unbnd = UNBOUNDED;
+				break;
+			}else
+				*plen += stp2->s_maxglen;
+		}
+	}else{
+		*plen = 0;
+		if( stp->s_n_scopes > 0 ){
+			stp3 = stp->s_scopes[ stp->s_n_scopes - 1 ];
+			sl = stp3->s_index;
+			for( s = stp->s_index + 1; s <= sl; s++ ){
+				stp2 = &descr[ sl ];
+				*plen += stp2->s_minlen;
+			}
+		}
+	}
 }
