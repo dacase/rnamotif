@@ -20,8 +20,8 @@ extern	SITE_T	*rm_sites;
 extern	SEARCH_T	**rm_searches;
 extern	int		rm_n_searches;
 
-#define	SBUFSIZE	2000000
-static	char	sbuf[ SBUFSIZE ];
+#define	SBUF_SIZE	2000000
+static	char	sbuf[ SBUF_SIZE ];
 static	int	slen;
 
 IDENT_T	*find_id();
@@ -68,7 +68,7 @@ char	*argv[];
 		dbnp = ip->i_val.v_value.v_pval;
 
 	for( dbp = DB_open( dbnp ); dbp; ){
-		if( slen = DB_getseq( dbp, locus, SBUFSIZE, sbuf ) ){
+		if( slen = DB_getseq( dbp, locus, SBUF_SIZE, sbuf ) ){
 			find_motif_driver( rm_n_searches, rm_searches, rm_sites,
 				locus, slen, sbuf );
 		}
