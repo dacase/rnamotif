@@ -139,10 +139,4 @@ typedef	struct	search_t	{
 	int	s_dollar;
 } SEARCH_T;
 
-typedef	struct	dbase_t	{
-	int	d_first;
-	int	d_last;
-	int	d_current;
-} DBASE_T;
-
 #endif
