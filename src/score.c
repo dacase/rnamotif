@@ -14,8 +14,6 @@
 	((s)==SYM_PLUS_ASSIGN||(s)==SYM_MINUS_ASSIGN||\
 	 (s)==SYM_PERCENT_ASSIGN||(s)==SYM_SLASH_ASSIGN||(s)==SYM_STAR_ASSIGN)
 
-#define	T_IJ(i,j)	((i)*N_TYPE+(j))
-
 extern	int	rm_lineno;
 IDENT_T	*RM_find_id();
 IDENT_T	*RM_enter_id();
