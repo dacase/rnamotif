@@ -15,6 +15,7 @@ static	NODE_T	*np;
 %token	SYM_SITES
 %token	SYM_SCORE
 
+%token	SYM_SE
 %token	SYM_SS
 %token	SYM_H5
 %token	SYM_H3
@@ -117,7 +118,8 @@ strhdr		: strtype	{ if( rm_context == CTX_DESCR )
 				  else
 					$$ = RM_node( $1, 0, 0, 0 );
 				} ;
-strtype		: SYM_SS	{ $$ = SYM_SS; }
+strtype		: SYM_SE	{ $$ = SYM_SE; }
+		| SYM_SS	{ $$ = SYM_SS; }
 		| SYM_H5	{ $$ = SYM_H5; }
 		| SYM_H3	{ $$ = SYM_H3; }
 		| SYM_P5	{ $$ = SYM_P5; }
