@@ -40,6 +40,13 @@ options:\n\
 #define	S_STREL		2
 #define	S_SITE		3
 
+	/* context for the parser/lexer	*/
+#define	CTX_START	0
+#define	CTX_PARMS	1
+#define	CTX_DESCR	2
+#define	CTX_SITES	3
+#define	CTX_SCORE	4
+
 typedef	struct	value_t	{
 	int	v_type;
 	union	{
