@@ -15,8 +15,10 @@ static	char	fm_emsg[ 256 ];
 static	char	*fm_locus;
 static	int	fm_slen;
 static	char	*fm_sbuf;
-static	int	*fm_window;
+static	int	*fm_winbuf;	/* windowsize + 2, 1 before, 1 after	*/
+static	int	*fm_window;	/* fm_winbuf[1]				*/
 static	int	fm_windowsize;
+static	char	*fm_chk_seq;
 
 static	int	find_motif();
 static	int	find_ss();
@@ -39,7 +41,7 @@ char	sbuf[];
 	IDENT_T	*ip;
 	SEARCH_T	*srp;
 	
-	if( fm_window == NULL ){
+	if( fm_winbuf == NULL ){
 		ip = find_id( "windowsize" );
 		if( ip == NULL )
 			errormsg( 1,
@@ -50,10 +52,15 @@ char	sbuf[];
 					"find_motif_driver: windowsize <= 0." );
 		else
 			fm_windowsize = ip->i_val.v_value.v_ival;
-		fm_window = ( int * )malloc( fm_windowsize * sizeof( int ) );
-		if( fm_window == NULL )
+		fm_winbuf = ( int * )malloc( (fm_windowsize+2) * sizeof(int) );
+		if( fm_winbuf == NULL )
 			errormsg( 1,
-				"find_motif_driver: can't allocate fm_window.");
+				"find_motif_driver: can't allocate fm_winbuf.");
+		fm_window = &fm_winbuf[ 1 ];
+		fm_chk_seq = ( char * )malloc((fm_windowsize+1) * sizeof(char));
+		if( fm_chk_seq == NULL )
+			errormsg( 1,
+			"find_motif_driver: can't allocate fm_chk_seq." );
 	}
 
 fprintf( stderr, "fmd: locus = %s, slen = %d\n", locus, slen );
@@ -203,10 +210,12 @@ int	s3lim;
 int	*h3;
 int	*hlen;
 {
+	STREL_T	*stp3;
 	int	s, s3_5plim;
 	int	b5, b3;
 	int	bpcnt, mpr;
 
+	stp3 = stp->s_scopes[ 1 ];
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
 	if( !paired( stp, b5, b3 ) )
@@ -227,13 +236,26 @@ int	*hlen;
 		}else{
 			mpr++;
 			if( mpr > stp->s_mispair ){
-				if( *hlen < stp->s_minlen ){
+				if( *hlen < stp->s_minlen )
 					return( 0 );
-				}else
+				else
 					break;
 			}
 		}
 	}
+
+	if( stp->s_seq != NULL ){
+		strncpy( fm_chk_seq,  &fm_sbuf[ s5 ], *hlen );
+		fm_chk_seq[ *hlen ] = '\0';
+		if( !step( fm_chk_seq, stp->s_expbuf ) )
+			return( 0 );
+	}else if( stp3->s_seq != NULL ){
+		strncpy( fm_chk_seq,  &fm_sbuf[ s3 - *hlen + 1 ], *hlen );
+		fm_chk_seq[ *hlen ] = '\0';
+		if( !step( fm_chk_seq, stp3->s_expbuf ) )
+			return( 0 );
+	}
+
 	return( 1 );
 }
 
