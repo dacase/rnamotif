@@ -7,24 +7,24 @@
 
 [\ \t\f\n]+	;
 
-pairings	return( SYM_PAIRINGS );
-parameters	return( SYM_PARAMETERS );
-descriptor	return( SYM_DESCRIPTOR );
+pair		return( SYM_PAIR );
+parm		return( SYM_PARM );
+descr		return( SYM_DESCR );
 mismatch	return( SYM_MISMATCH );
 mispair		return( SYM_MISPAIR );
-positions	return( SYM_POSITIONS );
-ss		return( SYM_SINGLE );
-h5		return( SYM_HELIX5 );
-h3		return( SYM_HELIX3 );
-p5		return( SYM_PARALLEL5 );
-p3		return( SYM_PARALLEL3 );
-t1		reteun( SYM_TRIPLEX1 );
-t2		reteun( SYM_TRIPLEX2 );
-t3		reteun( SYM_TRIPLEX3 );
-q1		reteun( SYM_QUAD1 );
-q2		reteun( SYM_QUAD2 );
-q3		reteun( SYM_QUAD3 );
-q4		reteun( SYM_QUAD4 );
+site		return( SYM_SITE );
+ss		return( SYM_SS );
+h5		return( SYM_H5 );
+h3		return( SYM_H3 );
+p5		return( SYM_P5 );
+p3		return( SYM_P3 );
+t1		return( SYM_T1 );
+t2		return( SYM_T2 );
+t3		return( SYM_T3 );
+q1		return( SYM_Q1 );
+q2		return( SYM_Q2 );
+q3		return( SYM_Q3 );
+q4		return( SYM_Q4 );
 
 [a-zA-Z][_a-zA-Z0-9]*	return( SYM_IDENT );
 [0-9]+		return( SYM_INT );
