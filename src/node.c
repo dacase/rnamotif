@@ -14,12 +14,12 @@ NODE_T	*left;
 NODE_T	*right;
 {
 	NODE_T	*np;
+	char	emsg[ 256 ];
 
 	np = ( NODE_T * )malloc( sizeof( NODE_T ) );
 	if( np == NULL ){
-		fprintf( stderr, "node: FATAL: can't alloc np for sym = %d.\n",
-			sym );
-		exit( 1 );
+		sprintf( emsg, "node: can't allocate np for sym %d.\n", sym );
+		errormsg( 1, emsg );
 	}
 	np->n_sym = sym;
 	np->n_type = T_UNDEF;
@@ -31,9 +31,11 @@ NODE_T	*right;
 		np->n_val.v_type = T_STRING;
 		np->n_val.v_value.v_pval = vp->v_value.v_pval;
 	}else if( sym == SYM_INT ){
+		np->n_class = C_LIT;
 		np->n_val.v_type = T_INT;
 		np->n_val.v_value.v_ival = vp->v_value.v_ival;
 	}else if( sym == SYM_STRING ){
+		np->n_class = C_LIT;
 		np->n_val.v_type = T_STRING;
 		np->n_val.v_value.v_pval = vp->v_value.v_pval;
 	}
