@@ -1,3 +1,24 @@
+2.4.1	2003-jun-18
+	Fixed bug in compile.c that never bothered to load float variables
+	in str-element parameter settings.  IE pairfrac=PF, where PF is a
+	float valued variable didn't do anything.  Result, the assignments
+	were skipped.
+
+	Fixed bug in compile.c that never converted between int/float in
+	parm (str-element) keywords.  
+
+	Fixed bug! This is a stretch whereby an extremely long sequence
+	would defeat the the seq. buf overflow check because the counter
+	itself overflowed!  Really.  Somebody tried to pipe a TEN BILLION
+	nt randeom seq to rnamotif and at 30,000,000 it stopped filling 
+	the buffer, but 2^31 the cnt went <0 and buffer filling restarted
+	producing ... ugly.  Now check for 32 bit in overflow in addition
+	to buffer size, so there!
+
+	Added new flag -la to rmfmt.  Acts just like -l except the single
+	ID is the ACC# instead of the LOCUS name.  Left -l in because all
+	the tests are based on it.
+
 2.4.0	2003-feb-25
 	Improved the MPI driver so that -v, -s work without other options;
 	-c works so that no search is done; -v, -s, -c do not require data.
