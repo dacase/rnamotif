@@ -34,7 +34,7 @@ void	RM_dump_pos( FILE *, int, POS_T * );
 void	RM_dump_sites( FILE * );
 void	RM_strel_name( STREL_T *, char [] );
 
-static	char	*attr2str( int );
+static	char	*attr2str( signed char [] );
 static	void	print_hierarchy( FILE *, int, char [], int, STREL_T [] );
 static	void	print_1_element( FILE *, char [], STREL_T * );
 static	void	mk_prefix( STREL_T *, char [], char [] );
@@ -105,9 +105,11 @@ void	RM_dump_id( FILE *fp, IDENT_T *ip, int fmt )
 	PAIRSET_T	*ps;
 
 	if( fmt == 1 )
-		fprintf( fp, "%s = {\n", ip->i_name );
+		fprintf( fp, "%s (%s) = {\n", ip->i_name,
+			ip->i_reinit ? "RW" : "RO" );
 	else
-		fprintf( fp, "%-16s = ", ip->i_name );
+		fprintf( fp, "%-16s (%s) = ", ip->i_name,
+			ip->i_reinit ? "RW" : "RO" );
 
 	if( fmt == 1 ){
 		fprintf( fp, "\ttype  = " );
@@ -655,32 +657,44 @@ void	RM_strel_name( STREL_T *stp, char name[] )
 	}
 }
 
-static	char	*attr2str( int attr )
+static	char	*attr2str( signed char attr[] )
 {
-	int	i, acnt;
+	int	acnt = 0;
 	static	char	astr[ 256 ];
 
 	strcpy( astr, "{ " );
-	for( acnt = 0, i = 0; i < SA_N_ATTR; i++ ){
-		switch( attr & (1<<i) ){
-		case SA_PROPER :
-			if( acnt > 0 )
-				strcat( astr, "," );
-			strcat( astr, "P" );
-			acnt++;
-			break;
-		case SA_5PAIRED :
+	if( attr[ SA_PROPER ] ){
+		if( acnt > 0 )
+			strcat( astr, "," );
+		strcat( astr, "P" );
+		acnt++;
+	}
+	if( attr[ SA_ENDS ] ){
+		if( attr[ SA_ENDS ] & SA_5PAIRED ){
 			if( acnt > 0 )
 				strcat( astr, "," );
 			strcat( astr, "p5" );
 			acnt++;
-			break;
-		case SA_3PAIRED :
+		}
+		if( attr[ SA_ENDS ] & SA_3PAIRED ){
 			if( acnt > 0 )
 				strcat( astr, "," );
 			strcat( astr, "p3" );
 			acnt++;
-			break;
+		}
+	}
+	if( attr[ SA_STRICT ] ){
+		if( attr[ SA_STRICT ] & SA_5STRICT ){
+			if( acnt > 0 )
+				strcat( astr, "," );
+			strcat( astr, "s5" );
+			acnt++;
+		}
+		if( attr[ SA_STRICT ] & SA_3STRICT ){
+			if( acnt > 0 )
+				strcat( astr, "," );
+			strcat( astr, "s3" );
+			acnt++;
 		}
 	}
 	return( strcat( astr, " }" ) );

@@ -10,6 +10,7 @@
 #define	EPS		1e-6
 
 extern	int	rm_emsg_lineno;
+extern	int	rm_strict_helices;
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
 extern	STREL_T	*rm_o_stp;	/* search for this first	*/
@@ -251,7 +252,7 @@ static	int	find_1_motif( SEARCH_T *srp )
 		rv = find_ss( srp );
 		break;
 	case SYM_H5 :
-		if( stp->s_attr & SA_PROPER )
+		if( stp->s_attr[ SA_PROPER ] )
 			rv = find_wchlx( srp );
 		else
 			rv = find_pknot( srp );
@@ -307,13 +308,25 @@ static	int	find_ss( SEARCH_T *srp )
 			return( 0 );
 	}
 
-	mark_ss( stp, szero, slen);
+	mark_ss( stp, szero, slen );
 	n_stp = srp->s_forward;
 	if( n_stp != NULL ){
 		n_srp = rm_searches[ n_stp->s_searchno ];
 		rv = find_motif( n_srp );
 	}else{
 		rv = 1;
+		if( rm_strict_helices && 
+			!chk_motif( rm_n_descr, rm_descr, rm_sites ) )
+		{
+				rv = 0;
+		}else if( !set_context( rm_n_descr, rm_descr ) ){
+			rv = 0;
+		}else if( !chk_sites( rm_n_descr, rm_descr, rm_sites ) ){
+			rv = 0;
+		}else if( RM_score( fm_comp, fm_slen, fm_sbuf ) )
+			print_match( stdout,
+				fm_sid, fm_comp, rm_n_descr, rm_descr );
+/*
 		if( !set_context( rm_n_descr, rm_descr ) ){
 			rv = 0;
 		}else if( !chk_sites( rm_n_descr, rm_descr, rm_sites ) ){
@@ -321,6 +334,7 @@ static	int	find_ss( SEARCH_T *srp )
 		}else if( RM_score( fm_comp, fm_slen, fm_sbuf ) )
 			print_match( stdout,
 				fm_sid, fm_comp, rm_n_descr, rm_descr );
+*/
 /*
 		if( chk_motif( rm_n_descr, rm_descr, rm_sites ) ){
 			rv = 1;
@@ -896,7 +910,7 @@ REAL_HELIX : ;
 		hl = 1;
 		mpr = 0;
 		l_bpr = 1;
-	}else if( !( stp->s_attr & SA_5PAIRED ) ){
+	}else if( !( stp->s_attr[ SA_ENDS ] & SA_5PAIRED ) ){
 		hl = 1;
 		mpr = 1;
 		l_bpr = 0;
@@ -918,7 +932,7 @@ REAL_HELIX : ;
 	}
 
 	if( hl >= stp->s_minlen ){
-		if( !l_bpr && ( stp->s_attr & SA_3PAIRED ) )
+		if( !l_bpr && ( stp->s_attr[ SA_ENDS ] & SA_3PAIRED ) )
 			goto SKIP;
 
 		if( pfrac ){
@@ -964,7 +978,7 @@ SKIP : ;
 		}
 		hl++;
 		if( hl >= stp->s_minlen ){
-			if( !l_bpr && ( stp->s_attr & SA_3PAIRED ) )
+			if( !l_bpr && ( stp->s_attr[ SA_ENDS ] & SA_3PAIRED ) )
 				continue;
 
 			if( pfrac ){	
@@ -1021,7 +1035,7 @@ static	int	match_phlx( STREL_T *stp, STREL_T *stp3,
 			*hlen = 1;
 			*n_mpr = 0;
 			l_pr = 1;
-		}else if( !( stp->s_attr & SA_5PAIRED ) ){
+		}else if( !( stp->s_attr[ SA_ENDS ] & SA_5PAIRED ) ){
 			*hlen = 1;
 			*n_mpr = 1;
 			l_pr = 0;
@@ -1042,7 +1056,7 @@ static	int	match_phlx( STREL_T *stp, STREL_T *stp3,
 			( *hlen )++;
 		}
 		if( !l_pr ){
-			if( ( stp->s_attr & SA_3PAIRED ) )
+			if( ( stp->s_attr[ SA_ENDS ] & SA_3PAIRED ) )
 				return( 0 );
 		}
 		if( *hlen < stp->s_minlen || *hlen > stp->s_maxlen )
@@ -1084,7 +1098,7 @@ static	int	match_triplex( STREL_T *stp, STREL_T *stp1,
 	if( RM_triple( stp->s_pairset, b1, b2, b3 ) ){
 		*n_mpr = 0;
 		l_pr = 1;
-	}else if( !( stp->s_attr & SA_5PAIRED ) ){
+	}else if( !( stp->s_attr[ SA_ENDS ] & SA_5PAIRED ) ){
 		*n_mpr = 1;
 		l_pr = 0;
 	}else
@@ -1104,7 +1118,7 @@ static	int	match_triplex( STREL_T *stp, STREL_T *stp1,
 	}
 
 	if( !l_pr ){
-		if( stp->s_attr & SA_3PAIRED )
+		if( stp->s_attr[ SA_ENDS ] & SA_3PAIRED )
 			return( 0 );
 	}
 
@@ -1136,7 +1150,7 @@ static	int	match_4plex( STREL_T *stp1, STREL_T *stp2,
 	if( RM_quad( stp1->s_pairset, b1, b2, b3, b4 ) ){
 		*n_mpr = 0;
 		l_pr = 1;
-	}else if( !( stp1->s_attr & SA_5PAIRED ) ){
+	}else if( !( stp1->s_attr[ SA_ENDS ] & SA_5PAIRED ) ){
 		*n_mpr = 1;
 		l_pr = 0;
 	}else
@@ -1156,7 +1170,7 @@ static	int	match_4plex( STREL_T *stp1, STREL_T *stp2,
 			l_pr = 1;
 	}
 	if( !l_pr ){
-		if( stp1->s_attr & SA_3PAIRED )
+		if( stp1->s_attr[ SA_ENDS ] & SA_3PAIRED )
 			return( 0 );
 	}
 
@@ -1292,8 +1306,10 @@ static	int	chk_motif( int n_descr, STREL_T descr[], SITE_T *sites )
 	STREL_T	*stp;
 
 	for( stp = descr, d = 0; d < n_descr; d++, stp++ ){
-		switch( stp->s_type ){
+		if( !stp->s_attr[ SA_STRICT ] )
+			continue;
 
+		switch( stp->s_type ){
 		case SYM_H5 :
 			if( !chk_wchlx( stp, n_descr, descr ) )
 				return( 0 );
@@ -1316,19 +1332,17 @@ static	int	chk_motif( int n_descr, STREL_T descr[], SITE_T *sites )
 			break;
 		}
 	}
-	if( chk_sites( n_descr, descr, sites ) )
-		return( 1 );
-	else
-		return( 0 );
+	return( 1 );
 }
 
 static	int	chk_wchlx( STREL_T *stp, int n_descr, STREL_T descr[] )
 {
-	STREL_T	*stp3, *stpd5, *stpd3;
+	STREL_T	*stp3;
 	int	h5_5, h5_3;
 	int	h3_5, h3_3;
 	int	h5, h3, b5, b3;
 	int	d5, d3;
+	int	st5, st3;
 
 	h5_5 = stp->s_matchoff;
 	h5_3 = h5_5 + stp->s_matchlen - 1;
@@ -1337,15 +1351,21 @@ static	int	chk_wchlx( STREL_T *stp, int n_descr, STREL_T descr[] )
 	h3_5 = stp3->s_matchoff;
 	h3_3 = h3_5 + stp3->s_matchlen - 1;
 
-	if( h5_5 > 0 ){
-		if( h3_3 < fm_slen - 1 ){
+	if( stp->s_attr[ SA_STRICT ] & SA_5STRICT ){
+		if( h5_5 > 0 && h3_3 < fm_slen - 1 ){
 			h5 = h5_5 - 1;
+			if( ( d5 = fm_window[ h5 - fm_szero ] ) == UNDEF )
+				st5 = SYM_SS;
+			else
+				st5 = descr[ d5 ].s_type;
+				
 			h3 = h3_3 + 1;
-			d5 = fm_window[ h5 - fm_szero ];
-			d3 = fm_window[ h3 - fm_szero ];
-			stpd5 = &descr[ d5 ];
-			stpd3 = &descr[ d3 ];
-			if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
+			if( ( d3 = fm_window[ h3 - fm_szero ] ) == UNDEF )
+				st3 = SYM_SS;
+			else
+				st3 = descr[ d3 ].s_type;
+
+			if( st5 == SYM_SS && st3 == SYM_SS ){
 				b5 = fm_sbuf[ h5 ];
 				b3 = fm_sbuf[ h3 ];
 				if( RM_paired( stp->s_pairset, b5, b3 ) )
@@ -1354,17 +1374,21 @@ static	int	chk_wchlx( STREL_T *stp, int n_descr, STREL_T descr[] )
 		}
 	}
 
-	h5 = h5_3 + 1;
-	h3 = h3_5 - 1;
-	d5 = fm_window[ h5 - fm_szero ];
-	d3 = fm_window[ h3 - fm_szero ];
-	stpd5 = &descr[ d5 ];
-	stpd3 = &descr[ d3 ];
-	if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
-		b5 = fm_sbuf[ h5 ];
-		b3 = fm_sbuf[ h3 ];
-		if( RM_paired( stp->s_pairset, b5, b3 ) )
-			return( 0 );
+	if( stp->s_attr[ SA_STRICT ] & SA_3STRICT ){
+		h5 = h5_3 + 1;
+		d5 = fm_window[ h5 - fm_szero ];
+		st5 = descr[ d5 ].s_type;
+
+		h3 = h3_5 - 1;
+		d3 = fm_window[ h3 - fm_szero ];
+		st3 = descr[ d3 ].s_type;
+
+		if( st5 == SYM_SS && st3 == SYM_SS ){
+			b5 = fm_sbuf[ h5 ];
+			b3 = fm_sbuf[ h3 ];
+			if( RM_paired( stp->s_pairset, b5, b3 ) )
+				return( 0 );
+		}
 	}
 
 	return( 1 );
@@ -1372,11 +1396,12 @@ static	int	chk_wchlx( STREL_T *stp, int n_descr, STREL_T descr[] )
 
 static	int	chk_phlx( STREL_T *stp, int n_descr, STREL_T descr[] )
 {
-	STREL_T	*stp3, *stpd5, *stpd3;
+	STREL_T	*stp3;
 	int	h5_5, h5_3;
 	int	h3_5, h3_3;
 	int	h5, h3, b5, b3;
 	int	d5, d3;
+	int	st5, st3;
 
 	h5_5 = stp->s_matchoff;
 	h5_3 = h5_5 + stp->s_matchlen - 1;
@@ -1385,14 +1410,18 @@ static	int	chk_phlx( STREL_T *stp, int n_descr, STREL_T descr[] )
 	h3_5 = stp3->s_matchoff;
 	h3_3 = h3_5 + stp3->s_matchlen - 1;
 
-	if( h5_5 > 0 ){
+	if( ( stp->s_attr[ SA_STRICT ] & SA_5STRICT ) && h5_5 > 0 ){
 		h5 = h5_5 - 1;
+		if( ( d5 = fm_window[ h5 - fm_szero ] ) == UNDEF )
+			st5 = SYM_SS;
+		else
+			st5 = descr[ d5 ].s_type;
+
 		h3 = h3_5 - 1;
-		d5 = fm_window[ h5 - fm_szero ];
 		d3 = fm_window[ h3 - fm_szero ];
-		stpd5 = &descr[ d5 ];
-		stpd3 = &descr[ d3 ];
-		if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
+		st3 = descr[ d3 ].s_type;
+
+		if( st5 == SYM_SS && st3 == SYM_SS ){
 			b5 = fm_sbuf[ h5 ];
 			b3 = fm_sbuf[ h3 ];
 			if( RM_paired( stp->s_pairset, b5, b3 ) )
@@ -1400,14 +1429,18 @@ static	int	chk_phlx( STREL_T *stp, int n_descr, STREL_T descr[] )
 		}
 	}
 
-	if( h3_3 < fm_slen - 1 ){
+	if( ( stp->s_attr[ SA_STRICT ] & SA_3STRICT ) && h3_3 < fm_slen - 1 ){
 		h5 = h5_3 + 1;
-		h3 = h3_3 + 1;
 		d5 = fm_window[ h5 - fm_szero ];
-		d3 = fm_window[ h3 - fm_szero ];
-		stpd5 = &descr[ d5 ];
-		stpd3 = &descr[ d3 ];
-		if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
+		st5 = descr[ d5 ].s_type;
+
+		h3 = h3_3 + 1;
+		if( ( d3 = fm_window[ h3 - fm_szero ] ) == UNDEF )
+			st3 = SYM_SS;
+		else
+			st3 = descr[ d3 ].s_type;
+
+		if( st5 == SYM_SS && st3 == SYM_SS ){
 			b5 = fm_sbuf[ h5 ];
 			b3 = fm_sbuf[ h3 ];
 			if( RM_paired( stp->s_pairset, b5, b3 ) )
@@ -1426,7 +1459,7 @@ static	int	chk_triplex( STREL_T *stp, int n_descr, STREL_T descr[] )
 	int	t1, t2, t3;
 	int	d1, d2, d3;
 	int	b1, b2, b3;
-	STREL_T	*stpd1, *stpd2, *stpd3;
+	int	st1, st2, st3;
 
 	t1_5 = stp->s_matchoff;
 	t1_3 = t1_5 + stp->s_matchlen - 1;
@@ -1439,41 +1472,49 @@ static	int	chk_triplex( STREL_T *stp, int n_descr, STREL_T descr[] )
 	t3_5 = stp2->s_matchoff;
 	t3_3 = t3_5 + stp2->s_matchlen - 1;
 
-	if( t1_5 > 0 ){
+	if( ( stp->s_attr[ SA_STRICT ] & SA_5STRICT ) && t1_5 > 0 ){
 		t1 = t1_5 - 1; 
+		if( ( d1 = fm_window[ t1 - fm_szero ] ) == UNDEF )
+			st1 = SYM_SS;
+		else
+			st1 = descr[ d1 ].s_type;
+
 		t2 = t2_3 + 1;
-		t3 = t3_5 - 1;
-		d1 = fm_window[ t1 - fm_szero ];
 		d2 = fm_window[ t2 - fm_szero ];
+		st2 = descr[ d2 ].s_type;
+
+		t3 = t3_5 - 1;
 		d3 = fm_window[ t3 - fm_szero ];
-		stpd1 = &descr[ d1 ];
-		stpd2 = &descr[ d2 ];
-		stpd3 = &descr[ d3 ];
-		if( stpd1->s_type==SYM_SS && stpd2->s_type==SYM_SS && 
-				stpd3->s_type==SYM_SS){
-			b1 = fm_sbuf[ d1 ];
-			b2 = fm_sbuf[ d2 ];
-			b3 = fm_sbuf[ d3 ];
+		st3 = descr[ d3 ].s_type;
+
+		if( st1 == SYM_SS && st2 == SYM_SS && st3 == SYM_SS ){
+			b1 = fm_sbuf[ t1 ];
+			b2 = fm_sbuf[ t2 ];
+			b3 = fm_sbuf[ t3 ];
 			if( RM_triple( stp->s_pairset, b1, b2, b3 ) )
 				return( 0 );
 		}
 	}
 
-	if( t3_3 < fm_slen - 1 ){
+	if( ( stp->s_attr[ SA_STRICT ] & SA_3STRICT ) && t3_3 < fm_slen - 1 ){
 		t1 = t1_3 + 1; 
-		t2 = t2_5 - 1;
-		t3 = t3_3 + 1;
 		d1 = fm_window[ t1 - fm_szero ];
+		st1 = descr[ d1 ].s_type;
+
+		t2 = t2_5 - 1;
 		d2 = fm_window[ t2 - fm_szero ];
-		d3 = fm_window[ t3 - fm_szero ];
-		stpd1 = &descr[ d1 ];
-		stpd2 = &descr[ d2 ];
-		stpd3 = &descr[ d3 ];
-		if( stpd1->s_type==SYM_SS && stpd2->s_type==SYM_SS && 
-				stpd3->s_type==SYM_SS){
-			b1 = fm_sbuf[ d1 ];
-			b2 = fm_sbuf[ d2 ];
-			b3 = fm_sbuf[ d3 ];
+		st2 = descr[ d2 ].s_type;
+
+		t3 = t3_3 + 1;
+		if( ( d3 = fm_window[ t3 - fm_szero ] ) == UNDEF )
+			st3 = SYM_SS;
+		else
+			st3 = descr[ d3 ].s_type;
+
+		if( st1 == SYM_SS && st2 == SYM_SS && st3 == SYM_SS ){
+			b1 = fm_sbuf[ t1 ];
+			b2 = fm_sbuf[ t2 ];
+			b3 = fm_sbuf[ t3 ];
 			if( RM_triple( stp->s_pairset, b1, b2, b3 ) )
 				return( 0 );
 		}
@@ -1490,7 +1531,7 @@ static	int	chk_4plex( STREL_T *stp, int n_descr, STREL_T descr[] )
 	int	q1, q2, q3, q4;
 	int	d1, d2, d3, d4;
 	int	b1, b2, b3, b4;
-	STREL_T	*stpd1, *stpd2, *stpd3, *stpd4;
+	int	st1, st2, st3, st4;
 
 	q1_5 = stp->s_matchoff;
 	q1_3 = q1_5 + stp->s_matchlen - 1;
@@ -1507,52 +1548,67 @@ static	int	chk_4plex( STREL_T *stp, int n_descr, STREL_T descr[] )
 	q4_5 = stp3->s_matchoff;
 	q4_3 = q4_5 + stp3->s_matchlen - 1;
 
-	if( q1_5 > 0 ){
-		if( q4_3 < fm_slen - 1 ){
+	if( stp->s_attr[ SA_STRICT ] & SA_5STRICT ){
+		if( q1_5 > 0 && q4_3 < fm_slen - 1 ){
 			q1 = q1_5 - 1; 
+			if( ( d1 = fm_window[ q1 - fm_szero ] ) == UNDEF )
+				st1 = SYM_SS;
+			else
+				st1 = descr[ d1 ].s_type;
+
 			q2 = q2_3 + 1;
-			q3 = q3_5 - 1;
-			q4 = q4_3 + 1;
-			d1 = fm_window[ q1 - fm_szero ];
 			d2 = fm_window[ q2 - fm_szero ];
+			st2 = descr[ d2 ].s_type;
+
+			q3 = q3_5 - 1;
 			d3 = fm_window[ q3 - fm_szero ];
-			d4 = fm_window[ q4 - fm_szero ];
-			stpd1 = &descr[ d1 ];
-			stpd2 = &descr[ d2 ];
-			stpd3 = &descr[ d3 ];
-			stpd4 = &descr[ d4 ];
-			if( stpd1->s_type==SYM_SS && stpd2->s_type==SYM_SS && 
-				stpd3->s_type==SYM_SS&&stpd4->s_type==SYM_SS){
-				b1 = fm_sbuf[ d1 ];
-				b2 = fm_sbuf[ d2 ];
-				b3 = fm_sbuf[ d3 ];
-				b4 = fm_sbuf[ d4 ];
+			st3 = descr[ d3 ].s_type;
+
+			q4 = q4_3 + 1;
+			if( ( d4 = fm_window[ q4 - fm_szero ] ) == UNDEF )
+				st4 = SYM_SS;
+			else
+				st4 = descr[ d4 ].s_type;
+
+			if( st1 == SYM_SS && st2 == SYM_SS && 
+				st3 ==SYM_SS && st4 == SYM_SS )
+			{
+				b1 = fm_sbuf[ q1 ];
+				b2 = fm_sbuf[ q2 ];
+				b3 = fm_sbuf[ q3 ];
+				b4 = fm_sbuf[ q4 ];
 				if( RM_quad( stp->s_pairset, b1, b2, b3, b4 ) )
 					return( 0 );
 			}
 		}
 	}
 
-	q1 = q1_3 + 1; 
-	q2 = q2_5 - 1;
-	q3 = q3_3 + 1;
-	q4 = q4_5 - 1;
-	d1 = fm_window[ q1 - fm_szero ];
-	d2 = fm_window[ q2 - fm_szero ];
-	d3 = fm_window[ q3 - fm_szero ];
-	d4 = fm_window[ q4 - fm_szero ];
-	stpd1 = &descr[ d1 ];
-	stpd2 = &descr[ d2 ];
-	stpd3 = &descr[ d3 ];
-	stpd4 = &descr[ d4 ];
-	if( stpd1->s_type==SYM_SS && stpd2->s_type==SYM_SS && 
-		stpd3->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
-		b1 = fm_sbuf[ d1 ];
-		b2 = fm_sbuf[ d2 ];
-		b3 = fm_sbuf[ d3 ];
-		b4 = fm_sbuf[ d4 ];
-		if( RM_quad( stp->s_pairset, b1, b2, b3, b4 ) )
-			return( 0 );
+	if( stp->s_attr[ SA_STRICT ] & SA_3STRICT ){
+		q1 = q1_3 + 1; 
+		d1 = fm_window[ q1 - fm_szero ];
+		st1 = descr[ d1 ].s_type;
+
+		q2 = q2_5 - 1;
+		d2 = fm_window[ q2 - fm_szero ];
+		st2 = descr[ d2 ].s_type;
+
+		q3 = q3_3 + 1;
+		d3 = fm_window[ q3 - fm_szero ];
+		st3 = descr[ d3 ].s_type;
+
+		q4 = q4_5 - 1;
+		d4 = fm_window[ q4 - fm_szero ];
+		st4 = descr[ d4 ].s_type;
+
+		if( st1 == SYM_SS && st2 == SYM_SS && 
+			st3 == SYM_SS && st3 == SYM_SS ){
+			b1 = fm_sbuf[ q1 ];
+			b2 = fm_sbuf[ q2 ];
+			b3 = fm_sbuf[ q3 ];
+			b4 = fm_sbuf[ q4 ];
+			if( RM_quad( stp->s_pairset, b1, b2, b3, b4 ) )
+				return( 0 );
+		}
 	}
 
 	return( 1 );

@@ -1,7 +1,7 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.0.1 2002-jan-07"
+#define	VERSION	"v2.1.1 2002-feb-15"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
@@ -14,6 +14,8 @@ options:\n\
 \t-s\t\t\tShow builtin variables\n\
 \t-v\t\t\tPrint Version Infomation\n\
 \t-context\t\tPrint solution context\n\
+\t-sh\t\t\tStrict helices: bases surrounding a helix\n\
+\t\t\t\tmust not be able to extend that helix\n\
 \t-Dvar=expr\t\tSet the value of var to expr\n\
 \t-Idir\t\t\tAdd include source directory, dir\n\
 \t-xdfname file-name\tPreprocessor output file\n\
@@ -145,10 +147,25 @@ typedef	struct	site_t	{
 	PAIRSET_T	*s_pairset;
 } SITE_T;
 
-#define	SA_PROPER	001
-#define	SA_5PAIRED	002
-#define	SA_3PAIRED	004
+/*#define	SA_PROPER	0001	*/
+/*#define	SA_5PAIRED	0002	*/
+/*#define	SA_3PAIRED	0004	*/
+/*#define	SA_DEF_PAIRED	0010	*/
+/*#define	SA_5STRICT	0020	*/
+/*#define	SA_3STRICT	0040	*/
+/*#define	SA_DEF_STRICT	0100	*/
+/*#define	SA_N_ATTR	7	*/
+
+#define	SA_PROPER	0
+#define	SA_ENDS		1
+#define	SA_STRICT	2
 #define	SA_N_ATTR	3
+
+#define	SA_5PAIRED	01
+#define	SA_3PAIRED	02
+
+#define	SA_5STRICT	01
+#define	SA_3STRICT	02
 
 typedef	struct	subpat_t	{
 	float	b_ecnt;
@@ -165,7 +182,7 @@ typedef	struct	subpat_t	{
 typedef	struct	strel_t	{
 	int	s_checked;	/* used during linking		*/
 	int	s_type;
-	int	s_attr;		/* holds set of SA_*		*/
+	signed char	s_attr[ SA_N_ATTR ];	
 	char	s_index;	/* index into descr array	*/
 	int	s_lineno;
 	int	s_searchno;	/* index into searches[]	*/

@@ -27,6 +27,7 @@ int	rm_dopt = 0;
 int	rm_hopt = 0;
 int	rm_popt = 0;
 int	rm_sopt = 0;
+int	rm_strict_helices = 0;
 int	rm_vopt = 0;
 int	rm_show_context = 0;
 int	rm_dbfmt = DT_FASTN;
@@ -71,11 +72,11 @@ STREL_T	*rm_lctx = NULL;	/* left context			*/
 int	rm_lctx_explicit = 0;	/* set via a ctx element	*/
 STREL_T	*rm_rctx = NULL;	/* left context 		*/
 int	rm_rctx_explicit = 0;	/* set via a ctx element	*/
-static	STREL_T	*stp;
+static	STREL_T	*open_stp;
+static	PAIRSET_T	*open_pairset = NULL;
 #define	SCOPE_STK_SIZE	100
 static	STREL_T	*scope_stk[ SCOPE_STK_SIZE ];
 static	int	t_scope_stk;
-static	PAIRSET_T	*def_pairset = NULL;
 
 #define	RM_POS_SIZE	10
 POS_T	rm_pos[ RM_POS_SIZE ];
@@ -126,6 +127,7 @@ char	*RM_str2seq( char [] );
 
 static	void	SE_init( STREL_T *, int );
 static	int	ends2attr( char [] );
+static	int	stricts2attr( int );
 static	void	eval( NODE_T *, int );
 static	int	loadidval( VALUE_T *vp );
 static	void	storeexprval( IDENT_T *, VALUE_T * );
@@ -145,6 +147,7 @@ static	void	find_pknots( STREL_T *, int, STREL_T [] );
 static	int	chk_strel_parms( int, STREL_T [] );
 static	int	chk_1_strel_parms( STREL_T * );
 static	int	chk_len_seq( int, STREL_T *[] );
+static	void	chk_strict_helices( int, STREL_T [] );
 static	int	chk_site( SITE_T * );
 static	STREL_T	*set_scopes( int, int, STREL_T [] );
 static	void	find_gi_len( int, STREL_T [], int *, int * );
@@ -207,6 +210,8 @@ int	RM_init( int argc, char *argv[] )
 			rm_vopt = 1;
 		else if( !strcmp( argv[ ac ], "-context" ) )
 			rm_show_context = 1;
+		else if( !strcmp( argv[ ac ], "-sh" ) )
+			rm_strict_helices = 1;
 		else if( !strcmp( argv[ ac ], "-descr" ) ){
 			if( ac == argc - 1 ){
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
@@ -422,17 +427,33 @@ int	RM_init( int argc, char *argv[] )
 	val.v_value.v_pval = "pp";
 	RM_enter_id( "wc_ends", T_STRING, C_VAR, S_GLOBAL, 0, &val );
 
+	val.v_type = T_INT;
+	val.v_value.v_ival = rm_strict_helices;
+	RM_enter_id( "wc_strict", T_INT, C_VAR, S_GLOBAL, 0, &val );
+
 	val.v_type = T_STRING;
 	val.v_value.v_pval = "pp";
 	RM_enter_id( "phlx_ends", T_STRING, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = rm_strict_helices;
+	RM_enter_id( "phlx_strict", T_INT, C_VAR, S_GLOBAL, 0, &val );
 
 	val.v_type = T_STRING;
 	val.v_value.v_pval = "pp";
 	RM_enter_id( "tr_ends", T_STRING, C_VAR, S_GLOBAL, 0, &val );
 
+	val.v_type = T_INT;
+	val.v_value.v_ival = rm_strict_helices;
+	RM_enter_id( "tr_strict", T_INT, C_VAR, S_GLOBAL, 0, &val );
+
 	val.v_type = T_STRING;
 	val.v_value.v_pval = "pp";
 	RM_enter_id( "qu_ends", T_STRING, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = rm_strict_helices;
+	RM_enter_id( "qu_strict", T_INT, C_VAR, S_GLOBAL, 0, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 6000;
@@ -586,17 +607,17 @@ void	SE_open( int stype )
 				rm_s_descr );
 			RM_errormsg( 1, emsg );
 		}
-		stp = &rm_descr[ rm_n_descr ];
+		open_stp = &rm_descr[ rm_n_descr ];
 		rm_n_descr++;
 	}else if( rm_n_descr == 0 ){
 		if( rm_lctx == NULL ){
-			stp = ( STREL_T * )malloc( sizeof( STREL_T ) );
-			if( stp == NULL ){
+			open_stp = ( STREL_T * )malloc( sizeof( STREL_T ) );
+			if( open_stp == NULL ){
 				rm_emsg_lineno = rm_lineno;
 				RM_errormsg( 1,
 			"SE_open: can't allocate stp for left ctx element." );
 			}
-			rm_lctx = stp;
+			rm_lctx = open_stp;
 			rm_lctx_explicit = 1;
 		}else{
 			rm_emsg_lineno = rm_lineno;
@@ -604,20 +625,20 @@ void	SE_open( int stype )
 		"SE_open: ctx elements must contain a real descriptor." );
 		}
 	}else if( rm_rctx == NULL ){
-		stp = ( STREL_T * )malloc( sizeof( STREL_T ) );
-		if( stp == NULL ){
+		open_stp = ( STREL_T * )malloc( sizeof( STREL_T ) );
+		if( open_stp == NULL ){
 			rm_emsg_lineno = rm_lineno;
 			RM_errormsg( 1,
 			"SE_open: can't allocate stp for right ctx element." );
 		}
-		rm_rctx = stp;
+		rm_rctx = open_stp;
 		rm_rctx_explicit = 1;
 	}else{
 		rm_emsg_lineno = rm_lineno;
 		RM_errormsg( 1,
 		"SE_open: Descr can contain at most 1 right ctx element." );
 	}
-	SE_init( stp, stype );
+	SE_init( open_stp, stype );
 }
 
 static	void	SE_init( STREL_T *stp, int stype )
@@ -627,7 +648,9 @@ static	void	SE_init( STREL_T *stp, int stype )
 
 	stp->s_checked = 0;
 	stp->s_type = stype;
-	stp->s_attr = 0;
+	stp->s_attr[ SA_PROPER ] = 0;
+	stp->s_attr[ SA_ENDS ] = 0;
+	stp->s_attr[ SA_STRICT ] = 0;
 	stp->s_index = stype != SYM_CTX ? rm_n_descr - 1 : UNDEF;
 	stp->s_lineno = rm_lineno;
 	stp->s_searchno = UNDEF;
@@ -694,7 +717,9 @@ static	void	SE_init( STREL_T *stp, int stype )
 	val.v_value.v_dval = 1.0;
 	ip = RM_enter_id( "matchfrac", T_FLOAT, C_VAR, S_STREL, 0, &val );
 
-	if( stype != SYM_SS ){ 
+	if( stype != SYM_SS && stype != SYM_CTX ){ 
+		stp->s_attr[ SA_ENDS ] = UNDEF;
+		stp->s_attr[ SA_STRICT ] = UNDEF;
 		val.v_type = T_INT;
 		val.v_value.v_ival = UNDEF;
 		ip = RM_enter_id( "mispair", T_INT, C_VAR, S_STREL, 0, &val );
@@ -708,40 +733,53 @@ static	void	SE_init( STREL_T *stp, int stype )
 		val.v_value.v_pval = NULL;
 		ip = RM_enter_id( "ends", T_STRING, C_VAR, S_STREL, 0, &val );
 
+		val.v_type = T_INT;
+		val.v_value.v_ival = UNDEF;
+		ip = RM_enter_id( "strict", T_INT, C_VAR, S_STREL, 0, &val );
+
 		switch( stype ){
-		case SYM_SS :
-			stp->s_pairset = NULL;
-			break;
 		case SYM_H5 :
 		case SYM_H3 :
 			ip = RM_find_id( "wc" );
-			def_pairset = ip->i_val.v_value.v_pval;
+			open_pairset = ip->i_val.v_value.v_pval;
+/*
 			ip = RM_find_id( "wc_ends" );
-			stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
+			stp->s_attr[ SA_ENDS ] =
+				ends2attr( ip->i_val.v_value.v_pval );
+*/
 			break;
 		case SYM_P5 :
 		case SYM_P3 :
 			ip = RM_find_id( "wc" );
-			def_pairset = ip->i_val.v_value.v_pval;
+			open_pairset = ip->i_val.v_value.v_pval;
+/*
 			ip = RM_find_id( "phlx_ends" );
-			stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
+			stp->s_attr[ SA_ENDS ]
+				= ends2attr( ip->i_val.v_value.v_pval );
+*/
 			break;
 		case SYM_T1 :
 		case SYM_T2 :
 		case SYM_T3 :
 			ip = RM_find_id( "tr" );
-			def_pairset = ip->i_val.v_value.v_pval;
+			open_pairset = ip->i_val.v_value.v_pval;
+/*
 			ip = RM_find_id( "tr_ends" );
-			stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
+			stp->s_attr[ SA_ENDS ]
+				= ends2attr( ip->i_val.v_value.v_pval );
+*/
 			break;
 		case SYM_Q1 :
 		case SYM_Q2 :
 		case SYM_Q3 :
 		case SYM_Q4 :
 			ip = RM_find_id( "qu" );
-			def_pairset = ip->i_val.v_value.v_pval;
+			open_pairset = ip->i_val.v_value.v_pval;
+/*
 			ip = RM_find_id( "qu_ends" );
-			stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
+			stp->s_attr[ SA_ENDS ]
+				= ends2attr( ip->i_val.v_value.v_pval );
+*/
 			break;
 		}
 		val.v_type = T_PAIRSET;
@@ -767,66 +805,73 @@ void	SE_close( void )
 	for( i = 0; i < n_local_ids; i++ ){
 		ip = local_ids[ i ];
 		if( !strcmp( ip->i_name, "tag" ) ){
-			stp->s_tag = ip->i_val.v_value.v_pval;
+			open_stp->s_tag = ip->i_val.v_value.v_pval;
 		}else if( !strcmp( ip->i_name, "minlen" ) ){
 			s_minlen = ip->i_val.v_value.v_ival != UNDEF;
-			stp->s_minlen = ip->i_val.v_value.v_ival;
+			open_stp->s_minlen = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "maxlen" ) ){
 			s_maxlen = ip->i_val.v_value.v_ival != UNDEF;
-			stp->s_maxlen = ip->i_val.v_value.v_ival;
+			open_stp->s_maxlen = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "len" ) ){
 			s_len = ip->i_val.v_value.v_ival != UNDEF;
 			if( s_len ){
 				if( s_minlen || s_maxlen ){
-					rm_emsg_lineno = stp->s_lineno;
+					rm_emsg_lineno = open_stp->s_lineno;
 					RM_errormsg( 0,
 				"len= can't be used with minlen=/maxlen=." );
 				}else{
-					stp->s_minlen=ip->i_val.v_value.v_ival;
-					stp->s_maxlen=ip->i_val.v_value.v_ival;
+					open_stp->s_minlen=
+						ip->i_val.v_value.v_ival;
+					open_stp->s_maxlen=
+						ip->i_val.v_value.v_ival;
 				}
 			}
 		}else if( !strcmp( ip->i_name, "seq" ) ){
-			stp->s_seq = ip->i_val.v_value.v_pval;
+			open_stp->s_seq = ip->i_val.v_value.v_pval;
 		}else if( !strcmp( ip->i_name, "mismatch" ) ){
-			stp->s_mismatch = ip->i_val.v_value.v_ival;
+			open_stp->s_mismatch = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "matchfrac" ) ){
 			if( ip->i_val.v_value.v_dval < 0. ||
 				ip->i_val.v_value.v_dval > 1. ){
-				rm_emsg_lineno = stp->s_lineno;
+				rm_emsg_lineno = open_stp->s_lineno;
 				RM_errormsg( 0,
 				"matchfrac must be >= 0 and <= 1." );
 			}else
-				stp->s_matchfrac = ip->i_val.v_value.v_dval;
+				open_stp->s_matchfrac=ip->i_val.v_value.v_dval;
 		}else if( !strcmp( ip->i_name, "mispair" ) ){
 			s_mispair = ip->i_val.v_value.v_ival != UNDEF;
-			stp->s_mispair = ip->i_val.v_value.v_ival;
+			open_stp->s_mispair = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "pairfrac" ) ){
 			s_pairfrac = ip->i_val.v_value.v_dval != UNDEF;
 			if( s_pairfrac ){
 				if( s_mispair ){
-					rm_emsg_lineno = stp->s_lineno;
+					rm_emsg_lineno = open_stp->s_lineno;
 					RM_errormsg( 0,
 				"pairfrac= can't be used with mispair=." );
 				}else if( ip->i_val.v_value.v_dval < 0. ||
 					ip->i_val.v_value.v_dval > 1. ){
-					rm_emsg_lineno = stp->s_lineno;
+					rm_emsg_lineno = open_stp->s_lineno;
 					RM_errormsg( 0,
 					"pairfrac must be >= 0 and <= 1." );
 				}
 			}
-			stp->s_pairfrac = ip->i_val.v_value.v_dval;
+			open_stp->s_pairfrac = ip->i_val.v_value.v_dval;
 		}else if( !strcmp( ip->i_name, "pair" ) ){
-			stp->s_pairset = ip->i_val.v_value.v_pval;
+			open_stp->s_pairset = ip->i_val.v_value.v_pval;
 		}else if( !strcmp( ip->i_name, "ends" ) ){
 			if( ip->i_val.v_value.v_pval != NULL ){
-				stp->s_attr &= ~( SA_5PAIRED | SA_3PAIRED );
-				stp->s_attr |=
+				open_stp->s_attr[ SA_ENDS ] =
 					ends2attr( ip->i_val.v_value.v_pval );
+			}
+		}else if( !strcmp( ip->i_name, "strict" ) ){
+			if( ip->i_val.v_value.v_ival != UNDEF ){
+				open_stp->s_attr[ SA_STRICT ] =
+					strict2attr( ip->i_val.v_value.v_ival );
 			}
 		}
 	}
-	def_pairset = NULL;
+	open_pairset = NULL;
+	open_stp = NULL;
 	n_local_ids = 0;
 }
 
@@ -888,7 +933,9 @@ static	int	chk_context( void )
 				"chk_context: can't allocate rm_lctx." );
 			return( 1 );
 		}
-		SE_init( rm_lctx, SYM_CTX );
+		open_stp = rm_lctx;
+		SE_init( open_stp, SYM_CTX );
+		SE_close();
 	}
 
 	if( rm_rctx == NULL ){
@@ -899,7 +946,9 @@ static	int	chk_context( void )
 				"chk_context: can't allocate rm_rctx." );
 			return( 1 );
 		}
-		SE_init( rm_rctx, SYM_CTX );
+		open_stp = rm_rctx;
+		SE_init( open_stp, SYM_CTX );
+		SE_close();
 	}
 
 	return( 0 );
@@ -933,6 +982,7 @@ static	int	link_tags( int n_descr, STREL_T descr[] )
 	}
 
 	/* link all explicitly tagged elements	*/
+
 	for( stp = descr, i = 0; i < n_descr; i++, stp++ ){
 		if( stp->s_checked )
 			continue;
@@ -972,8 +1022,8 @@ static	int	link_tags( int n_descr, STREL_T descr[] )
 				rm_emsg_lineno = stp->s_lineno;
 				sprintf( emsg,
 				"%s element has no matching %s element.",
-					stp->s_type == SYM_H3 ? "h3" : "h5",
-					stp->s_type == SYM_H3 ? "p3" : "p5" );
+					stp->s_type == SYM_H3 ? "h3" : "p3",
+					stp->s_type == SYM_H3 ? "h5" : "p5" );
 				RM_errormsg( 0, emsg );
 			}else{
 				tags[ 0 ] = tstk[ n_tstk - 1 ];
@@ -1000,12 +1050,12 @@ static	int	link_tags( int n_descr, STREL_T descr[] )
 	for( i = 0; i < n_descr; i++ ){
 		stp = &descr[ i ];
 		if( stp->s_type == SYM_SS )
-			stp->s_attr |= SA_PROPER;
+			stp->s_attr[ SA_PROPER ] = 1;
 		else if( stp->s_type == SYM_H5 || stp->s_type == SYM_P5 ){
 			stp1 = stp->s_mates[ 0 ];
 			if( chk_proper_nesting( stp, stp1, descr ) ){
-				stp->s_attr |= SA_PROPER;
-				stp->s_mates[ 0 ]->s_attr |= SA_PROPER;
+				stp->s_attr[ SA_PROPER ] = 1;
+				stp->s_mates[ 0 ]->s_attr[ SA_PROPER ] = 1;
 			}
 		}else if( stp->s_type == SYM_T1 ){
 			stp1 = stp->s_mates[ 0 ];
@@ -1017,9 +1067,9 @@ static	int	link_tags( int n_descr, STREL_T descr[] )
 			}
 			stp2 = stp->s_mates[ 1 ];
 			if( chk_proper_nesting( stp1, stp2, descr ) ){
-				stp->s_attr |= SA_PROPER;
-				stp->s_mates[ 0 ]->s_attr |= SA_PROPER;
-				stp->s_mates[ 1 ]->s_attr |= SA_PROPER;
+				stp->s_attr[ SA_PROPER ] = 1;
+				stp->s_mates[ 0 ]->s_attr[ SA_PROPER ] = 1;
+				stp->s_mates[ 1 ]->s_attr[ SA_PROPER ] = 1;
 			}
 		}else if( stp->s_type == SYM_Q1 ){
 			stp1 = stp->s_mates[ 0 ];
@@ -1038,10 +1088,10 @@ static	int	link_tags( int n_descr, STREL_T descr[] )
 			}
 			stp3 = stp->s_mates[ 2 ];
 			if( chk_proper_nesting( stp2, stp3, descr ) ){
-				stp->s_attr |= SA_PROPER;
-				stp->s_mates[ 0 ]->s_attr |= SA_PROPER;
-				stp->s_mates[ 1 ]->s_attr |= SA_PROPER;
-				stp->s_mates[ 2 ]->s_attr |= SA_PROPER;
+				stp->s_attr[ SA_PROPER ] = 1;
+				stp->s_mates[ 0 ]->s_attr[ SA_PROPER ] = 1;
+				stp->s_mates[ 1 ]->s_attr[ SA_PROPER ] = 1;
+				stp->s_mates[ 2 ]->s_attr[ SA_PROPER ] = 1;
 			}
 		}
 	}
@@ -1225,7 +1275,7 @@ static	void	find_pknots0( STREL_T *stp, int n_descr, STREL_T descr[] )
 		stp->s_checked = 1;
 		return;
 	}
-	if( stp->s_attr & SA_PROPER ){
+	if( stp->s_attr[ SA_PROPER ] ){
 		stp->s_checked = 1;
 		for( j = 0; j < stp->s_n_mates; j++ ){
 			stp1 = stp->s_mates[ j ];
@@ -1307,7 +1357,7 @@ static	void	find_pknots1( STREL_T *stp, int n_descr, STREL_T descr[] )
 		stp->s_checked = 1;
 		return;
 	}
-	if( stp->s_attr & SA_PROPER ){
+	if( stp->s_attr[ SA_PROPER ] ){
 		stp->s_checked = 1;
 		for( j = 0; j < stp->s_n_mates; j++ ){
 			stp1 = stp->s_mates[ j ];
@@ -1382,7 +1432,7 @@ static	void	find_pknots( STREL_T *stp, int n_descr, STREL_T descr[] )
 		stp->s_checked = 1;
 		return;
 	}
-	if( stp->s_attr & SA_PROPER ){
+	if( stp->s_attr[ SA_PROPER ] ){
 		stp->s_checked = 1;
 		for( j = 0; j < stp->s_n_mates; j++ ){
 			stp1 = stp->s_mates[ j ];
@@ -1413,7 +1463,7 @@ static	void	find_pknots( STREL_T *stp, int n_descr, STREL_T descr[] )
 		for( diff = 0, d = fd + 1; d < ld; d++ ){
 			stp1 = &rm_descr[ d ];
 			if( stp1->s_type == SYM_H5 ){
-				if( stp1->s_attr & SA_PROPER )
+				if( stp1->s_attr[ SA_PROPER ] )
 					continue;
 				else if( stp1->s_checked )
 					continue;
@@ -1500,12 +1550,14 @@ static	int	chk_strel_parms( int n_descr, STREL_T descr[] )
 			rm_rctx->s_mismatch = 0;
 		err != chk_1_strel_parms( rm_rctx );
 	}
+	if( !err )
+		chk_strict_helices( n_descr, descr );
 	return( err );
 }
 
 static	int	chk_1_strel_parms( STREL_T *stp )
 {
-	int	err, pfrac;
+	int	err, err1, pfrac;
 	int	stype;
 	STREL_T	*egroup[ 4 ];
 	int	i, n_egroup;
@@ -1545,20 +1597,22 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 		stype == SYM_P5 || stype == SYM_H5 ||
 		stype == SYM_T1 || stype == SYM_Q1 )
 	{
-		err = chk_len_seq( n_egroup, egroup ); 
+		err |= chk_len_seq( n_egroup, egroup ); 
 	}
 
-	/* check & set the mispair, pairfrac & pair values	*/
+	/* check & set the pair params:					*/
+	/* mispair, pairfrac, pair values, end rules and strictness	*/
 	if(	stype == SYM_P5 || stype == SYM_H5 ||
 		stype == SYM_T1 || stype == SYM_Q1 )
 	{
+		err1 = 0;
 		for( pfrac = 0, stpv = NULL, i = 0; i < n_egroup; i++ ){
 			stp1 = egroup[ i ];
 			if( stp1->s_mispair != UNDEF ){
 				if( stpv == NULL )
 					stpv = stp1;
 				else if( stpv->s_mispair != stp1->s_mispair ){
-					err = 1;
+					err1 = 1;
 					rm_emsg_lineno = stp1->s_lineno;
 					RM_errormsg( 0,
 					"inconsistant mispair values." );
@@ -1568,14 +1622,15 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 				if( stpv == NULL )
 					stpv = stp1;
 				else if( stpv->s_pairfrac != stp1->s_pairfrac ){
-					err = 1;
+					err1 = 1;
 					rm_emsg_lineno = stp1->s_lineno;
 					RM_errormsg( 0,
 					"inconsistant pairfrac values." );
 				}
 			}
 		}
-		if( !err ){
+		err |= err1;
+		if( !err1 ){
 			if( pfrac ){
 				fval = stpv ? stpv->s_pairfrac : 1.;
 				for( i = 0; i < n_egroup; i++ ){
@@ -1593,6 +1648,7 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 			}
 		}
 
+		err1 = 0;
 		for( stpv = NULL, i = 0; i < n_egroup; i++ ){
 			stp1 = egroup[ i ];
 			if( stp1->s_pairset != NULL ){
@@ -1600,7 +1656,7 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 					stpv = stp1;
 				else if( !pairop( "equal", stpv->s_pairset,
 					stp1->s_pairset ) ){
-					err = 1;
+					err1 = 1;
 					rm_emsg_lineno = stp1->s_lineno;
 					RM_errormsg( 0,
 					"inconsistant pairset values." );
@@ -1620,12 +1676,94 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 			}
 		}else
 			pval = stpv->s_pairset;
-		if( !err ){
+		err |= err1;
+		if( !err1 ){
 			for( i = 0; i < n_egroup; i++ ){
 				stp1 = egroup[ i ];
 				if( stp1->s_pairset == NULL )
 					stp1->s_pairset = pairop( "copy",
 						pval, NULL );
+			}
+		}
+
+		err1 = 0;
+		for( stpv = NULL, i = 0; i < n_egroup; i++ ){
+			stp1 = egroup[ i ];
+			if( stp1->s_attr[ SA_ENDS ] != UNDEF ){
+				if( stpv == NULL )
+					stpv = stp1;
+				else if( stpv->s_attr[ SA_ENDS ] !=
+					stp1->s_attr[ SA_ENDS ] ){
+					err1 = 1;
+					rm_emsg_lineno = stp1->s_lineno;
+					RM_errormsg( 0,
+					"inconsistant ends values." );
+				}
+			}
+		}
+		if( stpv == NULL ){
+			if( stype == SYM_H5 ){
+				ip = RM_find_id( "wc_ends" );
+				ival = ends2attr( ip->i_val.v_value.v_pval );
+			}else if( stype == SYM_P5 ){
+				ip = RM_find_id( "phlx_ends" );
+				ival = ends2attr( ip->i_val.v_value.v_pval );
+			}else if( stype == SYM_T1 ){
+				ip = RM_find_id( "tr_ends" );
+				ival = ends2attr( ip->i_val.v_value.v_pval );
+			}else if( stype == SYM_Q1 ){
+				ip = RM_find_id( "qu_ends" );
+				ival = ends2attr( ip->i_val.v_value.v_pval );
+			}
+		}else
+			ival = stpv->s_attr[ SA_ENDS ];
+
+		err |= err1;
+		if( !err1 ){
+			for( i = 0; i < n_egroup; i++ ){
+				stp1 = egroup[ i ];
+				if( stp1->s_attr[ SA_ENDS ] == UNDEF )
+					stp1->s_attr[ SA_ENDS ] = ival;
+			}
+		}
+
+		err1 = 0;
+		for( stpv = NULL, i = 0; i < n_egroup; i++ ){
+			stp1 = egroup[ i ];
+			if( stp1->s_attr[ SA_STRICT ] != UNDEF ){
+				if( stpv == NULL )
+					stpv = stp1;
+				else if( stpv->s_attr[ SA_STRICT ] !=
+					stp1->s_attr[ SA_STRICT ] ){
+					err1 = 1;
+					rm_emsg_lineno = stp1->s_lineno;
+					RM_errormsg( 0,
+					"inconsistant strict values." );
+				}
+			}
+		}
+		if( stpv == NULL ){
+			if( stype == SYM_H5 ){
+				ip = RM_find_id( "wc_strict" );
+				ival = strict2attr( ip->i_val.v_value.v_ival );
+			}else if( stype == SYM_P5 ){
+				ip = RM_find_id( "phlx_strict" );
+				ival = strict2attr( ip->i_val.v_value.v_ival );
+			}else if( stype == SYM_T1 ){
+				ip = RM_find_id( "tr_strict" );
+				ival = strict2attr( ip->i_val.v_value.v_ival );
+			}else if( stype == SYM_Q1 ){
+				ip = RM_find_id( "qu_strict" );
+				ival = strict2attr( ip->i_val.v_value.v_ival );
+			}
+		}else
+			ival = stpv->s_attr[ SA_ENDS ];
+		err |= err1;
+		if( !err1 ){
+			for( i = 0; i < n_egroup; i++ ){
+				stp1 = egroup[ i ];
+				if( stp1->s_attr[ SA_STRICT ] == UNDEF )
+					stp1->s_attr[ SA_STRICT ] = ival;
 			}
 		}
 	}
@@ -1770,6 +1908,26 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 	return( err );
 }
 
+static	void	chk_strict_helices( int n_descr, STREL_T descr[] )
+{
+	int	i, sh;
+	STREL_T	*stp;
+
+	for( sh = 0, stp = descr, i = 0; i < n_descr; i++, stp++ ){
+		if( stp->s_type == SYM_H5 ||
+			stp->s_type == SYM_P5 ||
+			stp->s_type == SYM_T1 ||
+			stp->s_type == SYM_Q1  )
+		{
+			if( stp->s_attr[ SA_STRICT ] ){
+				sh = 1;
+				break;
+			}
+		}
+	}
+	rm_strict_helices = sh;
+}
+
 IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
 	VALUE_T *vp )
 {
@@ -1909,6 +2067,29 @@ static	int	ends2attr( char str[] )
 		rm_emsg_lineno = rm_lineno;
 		RM_errormsg( 0,
 		"ends2attr: end values are \"pp\", \"mp\", \"pm\" & \"mm\"." );
+		return( 0 );
+	}
+}
+
+static	int	strict2attr( int sval )
+{
+
+	if( sval == UNDEF )
+		return( 0 );
+	else if( sval == 0 )
+		return( 0 );
+	else if( sval == 1 )
+		return( SA_5STRICT | SA_3STRICT );
+	else if( sval == 3 )
+		return( SA_3STRICT );
+	else if( sval == 5 )
+		return( SA_3STRICT );
+	else if( sval == 35 || sval == 53 )
+		return( SA_5STRICT | SA_3STRICT );
+	else{
+		rm_emsg_lineno = rm_lineno;
+		RM_errormsg( 0,
+		"strict2attr: strict values are 0, 1, 3, 5, 35, 53.\n" );
 		return( 0 );
 	}
 }
@@ -2276,8 +2457,8 @@ static	int	loadidval( VALUE_T *vp )
 		vp->v_value.v_pval = sp;
 	}else if( type == T_PAIRSET ){
 		if( ip->i_val.v_value.v_pval == NULL ){
-			if( def_pairset != NULL )
-				ps = def_pairset;
+			if( open_pairset != NULL )
+				ps = open_pairset;
 			else{
 				sprintf( emsg,
 				"loadidval: id '%s' has pair value NULL.",
@@ -3156,7 +3337,7 @@ static	void	find_search_order( int fd, STREL_T descr[] )
 			break;
 
 		case SYM_H5 :
-			if( stp->s_attr & SA_PROPER ){
+			if( stp->s_attr[ SA_PROPER ] ){
 				srp = ( SEARCH_T * )malloc(sizeof( SEARCH_T ));
 				if( srp == NULL ){
 					sprintf( emsg,
@@ -3311,7 +3492,7 @@ static	void	set_search_order_links( int n_searches, SEARCH_T *searches[] )
 			stp1 = stp->s_outer;
 			if( stp1 == NULL )
 				searches[ s ]->s_backup = NULL;
-			else if( stp1->s_attr & SA_PROPER )
+			else if( stp1->s_attr[ SA_PROPER ] )
 				searches[ s ]->s_backup = stp1;
 			else{	/* pknot	*/
 				stp1 = stp1->s_scopes[ 0 ];

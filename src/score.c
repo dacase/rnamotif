@@ -27,7 +27,9 @@ extern	int	rm_emsg_lineno;
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
 extern	STREL_T	*rm_lctx;
+extern	int	rm_lctx_explicit;
 extern	STREL_T	*rm_rctx;
+extern	int	rm_rctx_explicit;
 extern	int	rm_b2bc[];
 extern	int	rm_efninit;
 extern	int	rm_efn2init;
@@ -498,28 +500,28 @@ void	RM_linkscore( void )
 	}
 
 	rm_n_xdescr = rm_n_descr;
-	if( rm_lctx != NULL )
+	if( rm_lctx != NULL && rm_lctx_explicit )
 		rm_n_xdescr++;
-	if( rm_rctx != NULL )
+	if( rm_rctx != NULL && rm_rctx_explicit )
 		rm_n_xdescr++;
 	rm_xdescr = ( STREL_T ** )malloc( rm_n_xdescr * sizeof( STREL_T * ) );
 	if( rm_xdescr == NULL ){
 		rm_emsg_lineno = UNDEF;
 		RM_errormsg( 1, "RM_linkscore: can't allocate rm_xdescr." );
 	}
-	if( rm_lctx != NULL ){
+	if( rm_lctx != NULL && rm_lctx_explicit ){
 		rm_xdescr[ 0 ] = rm_lctx;
 		x = 1;
 	}else
 		x = 0;
 	for( i = 0; i < rm_n_descr; i++, x++ )
 		rm_xdescr[ x ] = &rm_descr[ i ];
-	if( rm_rctx != NULL )
+	if( rm_rctx != NULL && rm_rctx_explicit )
 		rm_xdescr[ x ] = rm_rctx;
 
 	v_svars.v_type = T_INT;
-	v_svars.v_value.v_ival = rm_n_descr;
-	RM_enter_id( "NSE", T_INT, C_VAR, S_GLOBAL, 1, &v_svars );
+	v_svars.v_value.v_ival = rm_n_xdescr;
+	RM_enter_id( "NSE", T_INT, C_VAR, S_GLOBAL, 0, &v_svars );
 }
 
 void	RM_dumpscore( FILE *fp )

@@ -35,7 +35,7 @@ static	char	dline[ LINE_SIZE ];
 static	int	getline( char [], FILE * );
 static	void	ungetline( char [] );
 static	int	*getfmt( int, int, char *[], int * );
-static	int	isnumber( char [] );
+static	int	is_a_number( char [] );
 static	int	fcmprs( int, char [] );
 static	void	align( FILE *, int, char [], char [] );
 
@@ -167,7 +167,7 @@ main( int argc, char *argv[] )
 			sfields[ f ] = fields[ f + 1 ];
 
 		if( scored )
-			scored = isnumber( sfields[ 0 ] );
+			scored = is_a_number( sfields[ 0 ] );
 
 		if( lopt ){
 			for( l_vbp = vbp = NULL, sp = ofields[ 0 ]; *sp; sp++ ){
@@ -404,7 +404,7 @@ static	int	*getfmt( int n_fields, int df1, char *fields[], int *n_fmt )
 	return( fmt );
 }
 
-static	int	isnumber( char str[] )
+static	int	is_a_number( char str[] )
 {
 	char	*sp;
 	int	mcnt, ecnt;

@@ -1,9 +1,24 @@
-head	1.44;
+head	1.47;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.47
+date	2002.02.15.22.41.26;	author macke;	state Exp;
+branches;
+next	1.46;
+
+1.46
+date	2002.02.07.19.37.24;	author macke;	state Exp;
+branches;
+next	1.45;
+
+1.45
+date	2002.02.07.03.14.24;	author macke;	state Exp;
+branches;
+next	1.44;
 
 1.44
 date	2001.07.30.20.01.36;	author macke;	state Exp;
@@ -231,10 +246,9 @@ desc
 @
 
 
-1.44
+1.47
 log
-@added/modified code to deal with the new descriptor type
-ctx (context).
+@changed to reflect the change from bit to byte attributes.
 @
 text
 @#include <stdio.h>
@@ -273,7 +287,7 @@ void	RM_dump_pos( FILE *, int, POS_T * );
 void	RM_dump_sites( FILE * );
 void	RM_strel_name( STREL_T *, char [] );
 
-static	char	*attr2str( int );
+static	char	*attr2str( signed char [] );
 static	void	print_hierarchy( FILE *, int, char [], int, STREL_T [] );
 static	void	print_1_element( FILE *, char [], STREL_T * );
 static	void	mk_prefix( STREL_T *, char [], char [] );
@@ -344,9 +358,11 @@ void	RM_dump_id( FILE *fp, IDENT_T *ip, int fmt )
 	PAIRSET_T	*ps;
 
 	if( fmt == 1 )
-		fprintf( fp, "%s = {\n", ip->i_name );
+		fprintf( fp, "%s (%s) = {\n", ip->i_name,
+			ip->i_reinit ? "RW" : "RO" );
 	else
-		fprintf( fp, "%-16s = ", ip->i_name );
+		fprintf( fp, "%-16s (%s) = ", ip->i_name,
+			ip->i_reinit ? "RW" : "RO" );
 
 	if( fmt == 1 ){
 		fprintf( fp, "\ttype  = " );
@@ -894,32 +910,44 @@ void	RM_strel_name( STREL_T *stp, char name[] )
 	}
 }
 
-static	char	*attr2str( int attr )
+static	char	*attr2str( signed char attr[] )
 {
-	int	i, acnt;
+	int	acnt = 0;
 	static	char	astr[ 256 ];
 
 	strcpy( astr, "{ " );
-	for( acnt = 0, i = 0; i < SA_N_ATTR; i++ ){
-		switch( attr & (1<<i) ){
-		case SA_PROPER :
-			if( acnt > 0 )
-				strcat( astr, "," );
-			strcat( astr, "P" );
-			acnt++;
-			break;
-		case SA_5PAIRED :
+	if( attr[ SA_PROPER ] ){
+		if( acnt > 0 )
+			strcat( astr, "," );
+		strcat( astr, "P" );
+		acnt++;
+	}
+	if( attr[ SA_ENDS ] ){
+		if( attr[ SA_ENDS ] & SA_5PAIRED ){
 			if( acnt > 0 )
 				strcat( astr, "," );
 			strcat( astr, "p5" );
 			acnt++;
-			break;
-		case SA_3PAIRED :
+		}
+		if( attr[ SA_ENDS ] & SA_3PAIRED ){
 			if( acnt > 0 )
 				strcat( astr, "," );
 			strcat( astr, "p3" );
 			acnt++;
-			break;
+		}
+	}
+	if( attr[ SA_STRICT ] ){
+		if( attr[ SA_STRICT ] & SA_5STRICT ){
+			if( acnt > 0 )
+				strcat( astr, "," );
+			strcat( astr, "s5" );
+			acnt++;
+		}
+		if( attr[ SA_STRICT ] & SA_3STRICT ){
+			if( acnt > 0 )
+				strcat( astr, "," );
+			strcat( astr, "s3" );
+			acnt++;
 		}
 	}
 	return( strcat( astr, " }" ) );
@@ -1073,6 +1101,78 @@ static	void	print_searches( FILE *fp, int n_searches, SEARCH_T *searches[] )
 		fprintf( fp, "\n" );
 	}
 }
+@
+
+
+1.46
+log
+@added code to print new attribute.
+@
+text
+@d37 1
+a37 1
+static	char	*attr2str( int );
+d660 1
+a660 1
+static	char	*attr2str( int attr )
+d662 1
+a662 1
+	int	i, acnt;
+d666 8
+a673 3
+	for( acnt = 0, i = 0; i < SA_N_ATTR; i++ ){
+		switch( attr & (1<<i) ){
+		case SA_PROPER :
+d676 1
+a676 1
+			strcat( astr, "P" );
+d678 2
+a679 2
+			break;
+		case SA_5PAIRED :
+d682 1
+a682 1
+			strcat( astr, "p5" );
+d684 4
+a687 2
+			break;
+		case SA_3PAIRED :
+d690 1
+a690 1
+			strcat( astr, "p3" );
+d692 2
+a693 2
+			break;
+		case SA_STRICT :
+d696 1
+a696 1
+			strcat( astr, "S" );
+a697 1
+			break;
+@
+
+
+1.45
+log
+@added code to print the reinit stat of each symbol.
+@
+text
+@d686 6
+@
+
+
+1.44
+log
+@added/modified code to deal with the new descriptor type
+ctx (context).
+@
+text
+@d108 2
+a109 1
+		fprintf( fp, "%s = {\n", ip->i_name );
+d111 2
+a112 1
+		fprintf( fp, "%-16s = ", ip->i_name );
 @
 
 

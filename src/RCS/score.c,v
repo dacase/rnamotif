@@ -1,9 +1,14 @@
-head	1.56;
+head	1.57;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.57
+date	2002.02.07.03.11.13;	author macke;	state Exp;
+branches;
+next	1.56;
 
 1.56
 date	2001.12.19.21.14.42;	author macke;	state Exp;
@@ -291,10 +296,10 @@ desc
 @
 
 
-1.56
+1.57
 log
-@removed unused variables that were left over from commented out code.
-Removed the commented out code as well.
+@1. set NSE to rm_n_xdescr as well as making it RO.
+2. fixed bug in indexing of implied context descr's.
 @
 text
 @#include <stdio.h>
@@ -326,7 +331,9 @@ extern	int	rm_emsg_lineno;
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
 extern	STREL_T	*rm_lctx;
+extern	int	rm_lctx_explicit;
 extern	STREL_T	*rm_rctx;
+extern	int	rm_rctx_explicit;
 extern	int	rm_b2bc[];
 extern	int	rm_efninit;
 extern	int	rm_efn2init;
@@ -797,28 +804,28 @@ void	RM_linkscore( void )
 	}
 
 	rm_n_xdescr = rm_n_descr;
-	if( rm_lctx != NULL )
+	if( rm_lctx != NULL && rm_lctx_explicit )
 		rm_n_xdescr++;
-	if( rm_rctx != NULL )
+	if( rm_rctx != NULL && rm_rctx_explicit )
 		rm_n_xdescr++;
 	rm_xdescr = ( STREL_T ** )malloc( rm_n_xdescr * sizeof( STREL_T * ) );
 	if( rm_xdescr == NULL ){
 		rm_emsg_lineno = UNDEF;
 		RM_errormsg( 1, "RM_linkscore: can't allocate rm_xdescr." );
 	}
-	if( rm_lctx != NULL ){
+	if( rm_lctx != NULL && rm_lctx_explicit ){
 		rm_xdescr[ 0 ] = rm_lctx;
 		x = 1;
 	}else
 		x = 0;
 	for( i = 0; i < rm_n_descr; i++, x++ )
 		rm_xdescr[ x ] = &rm_descr[ i ];
-	if( rm_rctx != NULL )
+	if( rm_rctx != NULL && rm_rctx_explicit )
 		rm_xdescr[ x ] = rm_rctx;
 
 	v_svars.v_type = T_INT;
-	v_svars.v_value.v_ival = rm_n_descr;
-	RM_enter_id( "NSE", T_INT, C_VAR, S_GLOBAL, 1, &v_svars );
+	v_svars.v_value.v_ival = rm_n_xdescr;
+	RM_enter_id( "NSE", T_INT, C_VAR, S_GLOBAL, 0, &v_svars );
 }
 
 void	RM_dumpscore( FILE *fp )
@@ -4013,6 +4020,33 @@ static	void	tm_report( void )
 	if( cnt > 1 )
 		exit( 1 );
 }
+@
+
+
+1.56
+log
+@removed unused variables that were left over from commented out code.
+Removed the commented out code as well.
+@
+text
+@d30 1
+d32 1
+d503 1
+a503 1
+	if( rm_lctx != NULL )
+d505 1
+a505 1
+	if( rm_rctx != NULL )
+d512 1
+a512 1
+	if( rm_lctx != NULL ){
+d519 1
+a519 1
+	if( rm_rctx != NULL )
+d523 2
+a524 2
+	v_svars.v_value.v_ival = rm_n_descr;
+	RM_enter_id( "NSE", T_INT, C_VAR, S_GLOBAL, 1, &v_svars );
 @
 
 
