@@ -2508,27 +2508,6 @@ STREL_T	descr[];
 				srp->s_backup = NULL;
 				rm_searches[ rm_n_searches ] = srp;
 				rm_n_searches++;
-/*
-				stp1 = stp->s_inner;
-				if( stp1 != NULL )
-					find_search_order( stp1->s_index,
-						descr );
-*/
-/*
-				stp1 = stp->s_scopes[ 1 ];
-				srp = ( SEARCH_T * )malloc(sizeof( SEARCH_T ));
-				if( srp == NULL ){
-					sprintf( emsg,
-			"find_search_order: can't allocate srp for pk.2 h5." );
-					errormsg( 1, emsg );
-				}
-				srp->s_descr = stp1;
-				stp->s_searchno = rm_n_searches;
-				srp->s_forward = NULL;
-				srp->s_backup = NULL;
-				rm_searches[ rm_n_searches ] = srp;
-				rm_n_searches++;
-*/
 
 				stp1 = stp->s_inner;
 				if( stp1 != NULL )
@@ -2548,19 +2527,73 @@ STREL_T	descr[];
 			break;
 
 		case SYM_P5 :
+			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
+			if( srp == NULL ){
+				rm_emsg_lineno = stp->s_lineno;
+				sprintf( emsg,
+		"find_search_order: can't allocate srp for p-hlx p5." );
+				errormsg( 1, emsg );
+			}
+			srp->s_descr = stp;
+			stp->s_searchno = rm_n_searches;
+			srp->s_forward = NULL;
+			srp->s_backup = NULL;
+			rm_searches[ rm_n_searches ] = srp;
+			rm_n_searches++;
+			stp1 = stp->s_inner;
+			if( stp1 != NULL )
+				find_search_order( stp1->s_index, descr );
 			rm_emsg_lineno = stp->s_lineno;
-			errormsg( 1,
-		"find_search_order: parallel helix finder not implemented." );
 			break;
+
 		case SYM_T1 :
-			rm_emsg_lineno = stp->s_lineno;
-			errormsg( 1,
-		"find_search_order: triple helix finder not implemented." );
+			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
+			if( srp == NULL ){
+				rm_emsg_lineno = stp->s_lineno;
+				sprintf( emsg,
+		"find_search_order: can't allocate srp for triple t1." );
+				errormsg( 1, emsg );
+			}
+			srp->s_descr = stp;
+			stp->s_searchno = rm_n_searches;
+			srp->s_forward = NULL;
+			srp->s_backup = NULL;
+			rm_searches[ rm_n_searches ] = srp;
+			rm_n_searches++;
+			stp1 = stp->s_inner;
+			if( stp1 != NULL )
+				find_search_order( stp1->s_index, descr );
+			stp1 = stp->s_scopes[ 1 ];
+			stp2 = stp1->s_inner;
+			if( stp2 != NULL )
+				find_search_order( stp2->s_index, descr );
 			break;
+
 		case SYM_Q1 :
-			rm_emsg_lineno = stp->s_lineno;
-			errormsg( 1,
-		"find_search_order: quad helix finder not implemented." );
+			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
+			if( srp == NULL ){
+				rm_emsg_lineno = stp->s_lineno;
+				sprintf( emsg,
+		"find_search_order: can't allocate srp for quad q1." );
+				errormsg( 1, emsg );
+			}
+			srp->s_descr = stp;
+			stp->s_searchno = rm_n_searches;
+			srp->s_forward = NULL;
+			srp->s_backup = NULL;
+			rm_searches[ rm_n_searches ] = srp;
+			rm_n_searches++;
+			stp1 = stp->s_inner;
+			if( stp1 != NULL )
+				find_search_order( stp1->s_index, descr );
+			stp1 = stp->s_scopes[ 1 ];
+			stp2 = stp1->s_inner;
+			if( stp2 != NULL )
+				find_search_order( stp2->s_index, descr );
+			stp1 = stp->s_scopes[ 2 ];
+			stp2 = stp1->s_inner;
+			if( stp2 != NULL )
+				find_search_order( stp2->s_index, descr );
 			break;
 
 		case SYM_H3 :
