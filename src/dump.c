@@ -24,11 +24,11 @@ void	RM_dump_pair();
 void	RM_dump_pairmat();
 void	RM_dump_descr();
 void	RM_dump_sites();
+void	RM_strel_name();
 
 static	void	print_hierarchy();
 static	void	print_1_element();
 static	void	mk_prefix();
-static	void	mk_strel_name();
 static	void	print_searches();
 static	void	print_mat();
 
@@ -564,6 +564,55 @@ FILE	*fp;
 	}
 }
 
+void	RM_strel_name( stp, name )
+STREL_T	*stp;
+char	name[];
+{
+
+	switch( stp->s_type ){
+	case SYM_SS :
+		strcpy( name, "ss" );
+		break;
+
+	case SYM_H5 :
+		strcpy( name, "h5" );
+		break;
+	case SYM_H3 :
+		strcpy( name, "h3" );
+		break;
+
+	case SYM_P5 :
+		strcpy( name, "p5" );
+		break;
+	case SYM_P3 :
+		strcpy( name, "p3" );
+		break;
+
+	case SYM_T1 :
+		strcpy( name, "t1" );
+		break;
+	case SYM_T2 :
+		strcpy( name, "t2" );
+		break;
+	case SYM_T3 :
+		strcpy( name, "t3" );
+		break;
+
+	case SYM_Q1 :
+		strcpy( name, "q1" );
+		break;
+	case SYM_Q2 :
+		strcpy( name, "q2" );
+		break;
+	case SYM_Q3 :
+		strcpy( name, "q3" );
+		break;
+	case SYM_Q4 :
+		strcpy( name, "q4" );
+		break;
+	}
+}
+
 static	void	print_hierarchy( fp, lev, prefix, fd, descr )
 FILE	*fp;
 int	lev;
@@ -655,7 +704,7 @@ STREL_T	*stp;
 	sprintf( bp, " %5s", tstr );
 	bp += strlen( bp );
 
-	mk_strel_name( stp, name );
+	RM_strel_name( stp, name );
 	sprintf( bp, "  %s%s", prefix, name );
 	bp += strlen( bp );
 
@@ -698,55 +747,6 @@ char	prefix1[];
 	strcat( prefix1, "  +" );
 }
 
-static	void	mk_strel_name( stp, name )
-STREL_T	*stp;
-char	name[];
-{
-
-	switch( stp->s_type ){
-	case SYM_SS :
-		strcpy( name, "ss" );
-		break;
-
-	case SYM_H5 :
-		strcpy( name, "h5" );
-		break;
-	case SYM_H3 :
-		strcpy( name, "h3" );
-		break;
-
-	case SYM_P5 :
-		strcpy( name, "p5" );
-		break;
-	case SYM_P3 :
-		strcpy( name, "p3" );
-		break;
-
-	case SYM_T1 :
-		strcpy( name, "t1" );
-		break;
-	case SYM_T2 :
-		strcpy( name, "t2" );
-		break;
-	case SYM_T3 :
-		strcpy( name, "t3" );
-		break;
-
-	case SYM_Q1 :
-		strcpy( name, "q1" );
-		break;
-	case SYM_Q2 :
-		strcpy( name, "q2" );
-		break;
-	case SYM_Q3 :
-		strcpy( name, "q3" );
-		break;
-	case SYM_Q4 :
-		strcpy( name, "q4" );
-		break;
-	}
-}
-
 static	void	print_searches( fp, n_searches, searches )
 FILE	*fp;
 int	n_searches;
@@ -760,7 +760,7 @@ SEARCH_T	*searches[];
 	fprintf( fp, "srch# desc# type  forward  backup\n" );
 	for( s = 0; s < n_searches; s++ ){
 		stp = searches[ s ]->s_descr;
-		mk_strel_name( stp, name );
+		RM_strel_name( stp, name );
 		fprintf( fp, "%4d %5d %5s", s, stp->s_index, name );
 		stp1 = searches[ s ]->s_forward;
 		if( stp1 != NULL )
