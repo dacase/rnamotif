@@ -56,9 +56,11 @@ program		: parm_part descr_part site_part ;
 parm_part	: SYM_PARMS { context = CTX_PARMS; } assign_list
 		| ;
 assign_list	: assign
-		| assign assign_list ;
+		| assign_list assign;
 assign		: ident assign_op expr
-				{ $$ = node( $2, 0, $1, $3 ); } ;
+				{ $$ = node( $2, 0, $1, $3 );
+				  if( context == CTX_DESCR )
+					SE_addval( $$ ); } ;
 assign_op	: SYM_ASSIGN	{ $$ = SYM_ASSIGN; }
 		| SYM_PLUS_ASSIGN
 				{ $$ = SYM_PLUS_ASSIGN; }
@@ -80,7 +82,7 @@ ident		: SYM_IDENT 	{ $$ = node( SYM_IDENT, &rmval, 0, 0 ); } ;
 
 pairval		: SYM_LCURLY 	{ PR_open(); } pair_list SYM_RCURLY
 				{ $$ = PR_close(); } ;
-pair_list	: pair		{ PR_add( $1 ); } ;
+pair_list	: pair		{ PR_add( $1 ); }
 		| pair_list SYM_COMMA pair
 				{ PR_add( $3 ); } ;
 pair		: SYM_STRING 	{ $$ = node( SYM_STRING, &rmval, 0, 0 ); };
@@ -105,10 +107,8 @@ strtype		: SYM_SS	{ $$ = SYM_SS; }
 		| SYM_Q2	{ $$ = SYM_Q2; }
 		| SYM_Q3	{ $$ = SYM_Q3; }
 		| SYM_Q4	{ $$ = SYM_Q4; } ;
-strparm_list	: strparm
-		| strparm SYM_COMMA strparm_list ;
-strparm		: assign 	{ if( context == CTX_DESCR )
-					SE_addval( $1); } ;
+strparm_list	: assign
+		| assign SYM_COMMA strparm_list ;
 
 site_part	: SYM_SITES { context = CTX_SITES; } site_list
 		| ;
