@@ -23,6 +23,7 @@ descr		return( SYM_DESCR );
 sites		return( SYM_SITES );
 score		return( SYM_SCORE );
 
+se		return( SYM_SE );
 ss		return( SYM_SS );
 h5		return( SYM_H5 );
 h3		return( SYM_H3 );
