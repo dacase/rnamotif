@@ -12,8 +12,8 @@ various scoring functions.  See doc/rnamot.ps for documentation.
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 1, or (at your option) any later
    version. The GNU General Public License should be in a file called
-   COPYING.GNU; if not, write to the Free Software Foundation, Inc., 675 Mass
-   Ave, Cambridge, MA 02139, USA.
+   COPYING.GNU; if not, write to the Free Software Foundation, Inc.,
+   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,7 +22,7 @@ various scoring functions.  See doc/rnamot.ps for documentation.
 
 ==============================================================================
 
-Installation and testing of rnamot3:
+Installation and testing of rnamotif:
 
 (a)  Edit the "config.h" file in this directory to suit your local 
      environment.  This may require no change on many machines, but
