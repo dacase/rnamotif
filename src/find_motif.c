@@ -55,7 +55,7 @@ char	sbuf[];
 	else
 		fprintf( stderr, "\t%5d\n", maxl );
 
-	fprintf( stderr, "start =" );
+	fprintf( stderr, "first =" );
 	for( stp = descr, d = 0; d < n_descr; d++, stp++ ){
 		start = find_start( slen, stp, n_descr, descr, &l2r );
 		sprintf( tstr, "\%s%d", !l2r ? "$-" : "", start );
@@ -63,7 +63,7 @@ char	sbuf[];
 	}
 	fprintf( stderr, "\n" );
 
-	fprintf( stderr, "stop  =" );
+	fprintf( stderr, "last  =" );
 	for( stp = descr, d = 0; d < n_descr; d++, stp++ ){
 		stop = find_stop( slen, stp, n_descr, descr );
 		fprintf( stderr, "\t%5d", stop );
@@ -129,45 +129,25 @@ int	n_descr;
 STREL_T	descr[];
 int	*l2r;
 {
-	int	i, unbnd;
+	int	i;
 	int	start;
 	STREL_T	*stp1;
 
 	if(    	stp->s_type == SYM_SS ||
-		stp->s_type == SYM_H5 ||
-		stp->s_type == SYM_P5 ||
-		stp->s_type == SYM_T1 || 
-		stp->s_type == SYM_Q1 )
+		stp->s_type == SYM_H5 || stp->s_type == SYM_P5 ||
+		stp->s_type == SYM_T1 || stp->s_type == SYM_T3 ||
+		stp->s_type == SYM_Q1 || stp->s_type == SYM_Q4 ||
+		stp->s_maxlen != UNBOUNDED )
 	{
 		*l2r = 1;
 		start = 0;
 		for( stp1 = descr, i = 0; i < stp->s_index; i++, stp1++ )
 			start += stp1->s_minlen;
 		return( start + 1 );
-	}else if( stp->s_maxlen != UNBOUNDED ){
-		start = stp->s_maxlen;
-		unbnd = 0;
-		for( i = stp->s_index - 1; i >= 0; i-- ){
-			stp1 = &descr[ i ];
-			if( stp1->s_maxlen == UNBOUNDED ){
-				unbnd = 1;
-				break;
-			}
-			start += stp1->s_maxlen;
-		}
-		if( !unbnd )
-			return( start );
-		*l2r = 0;
-		start = 0;
-		for( i = stp->s_index + 1; i < n_descr; i++ ){
-			stp1 = &descr[ i ];
-			start += stp1->s_minlen;
-		}
-		return( start );
 	}else{
 		*l2r = 0;
 		start = 0;
-		for( i = stp->s_index + 1; i < n_descr; i++ ){
+		for( i = stp->s_index + 1; i < stp->s_index; i++, stp1++ ){
 			stp1 = &descr[ i ];
 			start += stp1->s_minlen;
 		}
