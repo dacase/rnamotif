@@ -2,9 +2,11 @@
 
 #include "rnamot.h"
 
-extern	int	 yydebug;
+extern	int	yydebug;
 
-main()
+main( argc, argv )
+int	argc;
+char	*argv[];
 {
 
 	if( yyparse() ){
