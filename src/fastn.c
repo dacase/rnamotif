@@ -2,41 +2,49 @@
 #include <ctype.h>
 #include <string.h>
 
-int	FN_fgetseq( fp, locus, s_sbuf, sbuf )
+static	char	line[ 10240 ];
+
+static	void	skip();
+
+int	FN_fgetseq( fp, sid, sdef, s_sbuf, sbuf )
 FILE	*fp;
-char	locus[];
+char	sid[];
+char	sdef[];
 int	s_sbuf;
 char	sbuf[];
 {
-	char	line[ 1024 ];
 	char	*elp, *lp, *sp;
 	int	c;
 
-	*locus = '\0';
+	*sid = '\0';
+	*sdef = '\0';
 	*sbuf = '\0';
 	if( fgets( line, sizeof( line ), fp ) == NULL )
 		return( 0 ); 
 
-	elp = strpbrk( line, " \r\n" );
+	/* Ctl-A separates entries on the ID line of a fastn file	*/
+	/* So this may be wrong in that it returns only the first	*/
+	/* such def if there are more than 1				*/
+
+	elp = strpbrk( line, "\001\r\n" );
 	if( elp == NULL ){
-		fprintf( stderr, "bad fastn entry: %s", line );
-		skip();
+		fprintf( stderr, "FN_fgetseq: bad fastn entry: '%s'.\n", line );
+		skip( fp );
 		return( 0 );
 	}
 
-	for( lp = elp - 1; lp >= line && *lp != '|'; lp-- )
-		;
-	if( *lp == '|' )
-		lp++;
-	if( elp - lp == 0 ){
-		elp = lp - 1;
-		for( lp -= 2; lp >= line && *lp != '|'; lp-- ) 
-			;
-		if( *lp == '|' )
-			lp++;
+	sp = strchr( line, ' ' );
+	if( sp == NULL ){
+		strncpy( sid, &line[ 1 ], elp - line - 1 );
+		sid[ elp - line - 1 ] = '\0';
+	}else{
+		strncpy( sid, &line[ 1 ], sp - line - 1 );
+		sid[ sp - line - 1 ] = '\0';
+		while( *sp == ' ' )
+			sp++;
+		strncpy( sdef, sp, elp - sp );
+		sdef[ elp - sp ] = '\0';
 	}
-	strncpy( locus, lp, elp - lp );
-	locus[ elp - lp ] = '\0';
 
 	for( sp = sbuf; ( c = getc( fp ) ) != EOF; ){
 		if( c == '>' ){
@@ -46,10 +54,17 @@ char	sbuf[];
 			*sp++ = tolower( c );
 	}
 	*sp = '\0';
+
 	return( sp - sbuf );
 }
 
-int	skip()
+static	void	skip( fp )
+FILE	*fp;
 {
+	int	c;
 
+	while( ( c = getc( fp ) ) != '>' && c != EOF )
+		;
+	if( c == '>' )
+		ungetc( c, fp );
 }
