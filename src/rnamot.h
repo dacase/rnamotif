@@ -90,6 +90,7 @@ typedef	struct	strel_t	{
 	struct	strel_t	*s_next;
 	struct	strel_t	*s_prev;
 	struct	strel_t	*s_inner;
+	struct	strel_t	*s_outer;
 	struct	strel_t	**s_mates;
 	int	s_n_mates;
 	struct	strel_t	**s_scopes;
