@@ -49,7 +49,7 @@ extern	SITE_T	*rm_sites;
 NODE_T	*PR_close();
 
 static	IDENT_T	*enter_id();
-static	IDENT_T	*find_id();
+IDENT_T	*find_id();
 static	void	eval();
 static	int	loadidval();
 static	void	storeexprval();
@@ -880,7 +880,7 @@ VALUE_T	*vp;
 	return( ip );
 }
 
-static	IDENT_T	*find_id( name )
+IDENT_T	*find_id( name )
 char	name[];
 {
 	int	i;
