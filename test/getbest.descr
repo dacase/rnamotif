@@ -1,0 +1,55 @@
+parms
+	EMAX = -15;
+
+descr
+	h5( minlen=2, maxlen=4 )
+		ss( minlen=0, maxlen= 2 )
+		h5( minlen=2, maxlen=4 )
+			ss( minlen=0, maxlen= 2 )
+			h5( minlen=2, maxlen=4 )
+				ss( len=4 )
+			h3
+			ss( minlen=0, maxlen= 2 )
+		h3
+		ss( minlen=0, maxlen= 2 )
+	h3
+
+score
+        BEGIN { # initialize the carry around variables
+          first = 1;
+          l_NAME = "";
+          l_COMP = 0;
+          l_POS = 0;
+        }
+        { # compute the score for this hit, say
+          SCORE = efn( h5[1], h3[NSE] );
+	  if( SCORE > EMAX )
+		REJECT;
+
+          # check if the relevant "range" of hits has ended
+          if( NAME != l_NAME || COMP != l_COMP || POS != l_POS ){
+                if( !first )
+                        RELEASE b_hit;
+                first = 0;
+                b_SCORE = SCORE;
+                hold = 1;
+          }else if( SCORE < b_SCORE ){
+                b_SCORE = SCORE;
+                hold = 1;
+          }else
+                hold = 0;
+
+          # remember last values
+          l_NAME = NAME;
+          l_COMP = COMP;
+          l_POS = POS;
+
+          # take the correct action
+          if( hold )
+                HOLD b_hit;
+          else
+                REJECT;
+        }
+        END { # write the last hit
+          RELEASE b_hit;
+        }
