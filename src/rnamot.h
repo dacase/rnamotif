@@ -67,6 +67,7 @@ typedef	struct	pos_t	{
 	int	p_type;
 	int	p_lineno;
 	char	*p_tag;
+	int	p_dindex;
 	int	p_l2r;
 	int	p_offset;
 } POS_T;
