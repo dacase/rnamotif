@@ -355,7 +355,7 @@ STREL_T	*stp;
 	if( stp->s_start.a_offset == UNDEF )
 		fprintf( fp, "UNDEF" );
 	else if( stp->s_start.a_l2r )
-		fprintf( fp, "$%d", stp->s_start.a_offset );
+		fprintf( fp, "%d", stp->s_start.a_offset );
 	else
 		fprintf( fp, "$-%d", stp->s_start.a_offset );
 	fprintf( fp, "\n" );
