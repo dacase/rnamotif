@@ -1,13 +1,18 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 
-#define	U_MSG_S	"usage: %s [ -l ] [ rm-output-file ]\n"
+#define	U_MSG_S	"usage: %s [ -a ] [ -l ] [ rm-output-file ]\n"
+
+#define	MAX(a,b)	((a)<(b)?(a):(b))
 
 #define	MAXFIELDS	200
 #define	FIELD1		4
 #define	MAXW		20
 static	char	*fields[ MAXFIELDS ];
-static	int	n_fields, t_fields;
+static	int	n_fields, t_fields, field1;
+
+#define	WBSIZE	70
 
 static	int	*maxw;
 
@@ -16,6 +21,7 @@ static	int	*maxw;
 static	int	*fmt;
 static	int	*getfmt();
 static	int	fcmprs();
+static	void	align();
 
 main( argc, argv )
 int	argc;
@@ -25,29 +31,22 @@ char	*argv[];
 	FILE	*ifp, *tfp1, *tfp2;
 	char	*tfnp1, *tfnp2;
 	char	cmd[ 256 ];
-	char	line[ 10000 ];
+#define	LINE_SIZE	50000
+	char	line[ LINE_SIZE ];
+	char	dline[ LINE_SIZE ];
 	char	*sp, *vbp;
-	int	ac, field1, f, fw, fs;
-	int	lopt, scored;
+	int	ac, f, fw, fs;
+	int	aopt, lopt, scored;
 
-/*
-	if( argc == 1 )
-		ifp = stdin;
-	else if( argc > 2 ){
-		fprintf( stderr, "usage: %s [ rm-output-file ]\n", argv[ 0 ] );
-		exit( 1 );
-	}else if( ( ifp = fopen( argv[ 1 ], "r" ) ) == NULL ){
-		fprintf( stderr, "%s: can't open rm-output-file '%s'\n",
-			argv[ 0 ], argv[ 1 ] );
-		exit( 1 );
-	}
-*/
-	lopt = 0;
 	ifname = NULL;
+	aopt = 0;	/* 1 = make fastn alignment		*/ 
+	lopt = 0;	/* 1 = print only entry's locus name	*/
 	for( ac = 1; ac < argc; ac++ ){
-		if( !strcmp( argv[ ac ], "-l" ) )
+		if( !strcmp( argv[ ac ], "-a" ) )
+			aopt = 1;
+		else if( !strcmp( argv[ ac ], "-l" ) ){
 			lopt = 1;
-		else if( *argv[ ac ] == '-' ){
+		}else if( *argv[ ac ] == '-' ){
 			fprintf( stderr, U_MSG_S, argv[ 0 ] );
 			exit( 1 );
 		}else if( ifname != NULL ){
@@ -65,7 +64,7 @@ char	*argv[];
 	}
 
 	tfnp1 = tempnam( NULL, "raw" );
-	if( ( tfp1 = fopen( tfnp1, "w" ) ) == NULL ){
+	if( ( tfp1 = fopen( tfnp1, "w+" ) ) == NULL ){
 		fprintf( stderr, "%s: can't open temp-file '%s'\n",
 			argv[ 0 ], tfnp1 );
 		exit( 1 );
@@ -74,9 +73,11 @@ char	*argv[];
 	scored = 0;	/* #RM scored line seen */
 	field1 = FIELD1;
 	for( t_fields = 0; fgets( line, sizeof( line ), ifp ); ){
-		/* skip fastn def lines	*/
-		if( *line == '>' )
+		if( *line == '>' ){
+			if( aopt )
+				fputs( line, tfp1 );
 			continue;
+		}
 		n_fields = split( line, fields, " \t\n" );
 		if( n_fields == 0 )
 			continue;
@@ -91,7 +92,8 @@ char	*argv[];
 				field1++;
 				scored = 1;
 			}
-			fputs( line, stdout );
+			if( !aopt )
+				fputs( line, stdout );
 			continue;
 		}else if( *fields[ 0 ] == '#' )
 			continue;
@@ -124,8 +126,10 @@ char	*argv[];
 		}
 		for( f = field1; f < t_fields; f++ ){
 			fw = strlen( fields[ f ] );
+			if( !aopt ){
 			if( fw > MAXW )
 				fw = fcmprs( fw, fields[ f ] );
+			}
 			if( fw > maxw[ f ] )
 				maxw[ f ] = fw;
 		}
@@ -136,51 +140,67 @@ char	*argv[];
 		for( f = 0; f < n_fields; f++ )
 			free( fields[ f ] );
 	}
-	fclose( tfp1 );
 
-	tfnp2 = tempnam( NULL, "srt" );
-	if( scored ){
-		sprintf( cmd,
+	if( !aopt ){
+		fclose( tfp1 );
+
+		tfnp2 = tempnam( NULL, "srt" );
+		if( scored ){
+			sprintf( cmd,
 			"sort +1rn -2 +0 -1 +2n -3 +3n -4 +4n -5 %s > %s\n",
-			tfnp1, tfnp2 );
+				tfnp1, tfnp2 );
+		}else{
+			sprintf( cmd,
+				"sort +0 -1 +1n -2 +2n -3 +3n -4 %s > %s\n",
+				tfnp1, tfnp2 );
+		}
+		system( cmd );
+
+		if( ( tfp2 = fopen( tfnp2, "r" ) ) == NULL ){
+			fprintf( stderr,
+				"%s: can't open sorted temp-file '%s'\n",
+				argv[ 0 ], tfnp2 );
+			exit( 1 );
+		}
+
+		while( fgets( line, sizeof( line ), tfp2 ) ){
+			n_fields = split( line, fields, " \t\n" );
+			for( f = 0; f < t_fields; f++ ){
+				fw = strlen( fields[ f ] );
+				if( fmt[ f ] == FMT_LEFT ){
+					if( f != 0 )
+						putchar( ' ' );
+					printf( "%s", fields[ f ] );
+					for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+						putchar( ' ' );
+				}else{
+					printf( " " );
+					for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+						putchar( ' ' );
+					printf( "%s", fields[ f ] );
+				}
+			}
+			printf( "\n" );
+			for( f = 0; f < n_fields; f++ )
+				free( fields[ f ] );
+		}
+		fclose( tfp2 );
+		unlink( tfnp2 );
 	}else{
-		sprintf( cmd, "sort +0 -1 +1n -2 +2n -3 +3n -4 %s > %s\n",
-			tfnp1, tfnp2 );
-	}
-	system( cmd );
-
-	if( ( tfp2 = fopen( tfnp2, "r" ) ) == NULL ){
-		fprintf( stderr,
-			"%s: can't open sorted temp-file '%s'\n",
-			argv[ 0 ], tfnp2 );
-		exit( 1 );
-	}
-
-	while( fgets( line, sizeof( line ), tfp2 ) ){
-		n_fields = split( line, fields, " \t\n" );
-		for( f = 0; f < t_fields; f++ ){
-			fw = strlen( fields[ f ] );
-			if( fmt[ f ] == FMT_LEFT ){
-				if( f != 0 )
-					putchar( ' ' );
-				printf( "%s", fields[ f ] );
-				for( fs = 0; fs < maxw[ f ] - fw; fs++ )
-					putchar( ' ' );
-			}else{
-				printf( " " );
-				for( fs = 0; fs < maxw[ f ] - fw; fs++ )
-					putchar( ' ' );
-				printf( "%s", fields[ f ] );
+		rewind( tfp1 );
+		*dline = *line = '\0';
+		while( fgets( line, sizeof( line ), tfp1 ) ){
+			if( *line == '>' )
+				strcpy( dline, line );
+			else{
+				align( stdout, lopt, dline, line );
+				*dline = *line = '\0';
 			}
 		}
-		printf( "\n" );
-		for( f = 0; f < n_fields; f++ )
-			free( fields[ f ] );
+		align( stdout, lopt, dline, line );
 	}
-	fclose( tfp2 );
 
 	unlink( tfnp1 );
-	unlink( tfnp2 );
 
 	if( ifp != stdin )
 		fclose( ifp );
@@ -229,4 +249,77 @@ char	field[];
 		return( strlen( field ) );
 	}else
 		return( flen );
+}
+
+static	void	align( fp, lopt, dline, line )
+FILE	*fp;
+int	lopt;
+char	dline[];
+char	line[];
+{
+	char	*def;
+	char	name[ 256 ], ver[ 10 ];
+	static	char	l_name[ 256 ] = "";
+	static	int	l_cnt = 1;
+	int	f, fs, fw;
+	char	*wp, work[ 50000 ];
+	int	w, wb, wlim, wlen;
+
+	if( !*dline || !*align )
+		return;
+
+	for( def = &dline[ 1 ]; *def && isspace( *def ); def++ )
+		;
+	if( *def ){
+		def = strchr( def, ' ' );
+		if( def ){
+			for( ; isspace( *def ); def++ )
+				;
+		}
+	}
+	n_fields = split( line, fields, " \t\n" );
+	if( lopt ){
+		sprintf( name, "%s_%s%s",
+			fields[0], fields[3], *fields[2] == '0' ? "d" : "c" );
+	}else{
+		sprintf( name, "%s_%s_%s_%s",
+			fields[ 0 ], fields[ 2 ], fields[ 3 ], fields[ 4 ] );
+	}
+	if( !strcmp( l_name, name ) ){
+		l_cnt++;
+		sprintf( ver, "%s%d", !lopt ? "_" : "", l_cnt );
+	}else{
+		l_cnt = 1;
+		*ver = '\0';
+	}
+	fprintf( fp, ">%s%s %s %s", name, ver, fields[ 1 ], def );
+	strcpy( l_name, name );
+
+	for( wp = work, f = field1; f < t_fields; f++ ){
+		if( f != field1 )
+			*wp++ = '|';
+		fw = strlen( fields[ f ] );
+		if( fmt[ f ] == FMT_LEFT ){
+			sprintf( wp, "%s", fields[ f ] );
+			wp += strlen( wp );
+			for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+				*wp++ = '-';
+		}else{
+			for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+				*wp++ = '-';
+			sprintf( wp, "%s", fields[ f ] );
+			wp += strlen( wp );
+		}
+	}
+	*wp = '\0';
+	wlen = wp - work;
+	for( wp = work, wb = 0; wb < wlen; wb += WBSIZE ){
+		wlim = MAX( wb + WBSIZE, wlen );
+		for( w = wb; w < wlim; w++ )
+			putc( *wp++, fp );
+		putc( '\n', fp );
+	}
+
+	for( f = 0; f < n_fields; f++ )
+		free( fields[ f ] );
 }

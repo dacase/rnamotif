@@ -105,6 +105,7 @@ static	void	find_pknots();
 static	int	chk_strel_parms();
 static	int	chk_1_strel_parms();
 static	int	chk_len_seq();
+static	int	chk_len_seq1();
 static	int	chk_site();
 static	STREL_T	*set_scopes();
 static	void	find_gi_len();
@@ -1270,6 +1271,9 @@ STREL_T	descr[];
 	STREL_T	*stp;
 	int	err;
 
+	for( stp = descr, i = 0; i < n_descr; i++, stp++ )
+		if( stp->s_mismatch == UNDEF )
+			stp->s_mismatch = 0;
 	for( err = 0, stp = descr, i = 0; i < n_descr; i++, stp++ )
 		err |= chk_1_strel_parms( stp );
 	return( err );
@@ -1317,7 +1321,10 @@ STREL_T	*stp;
 	if(	stype == SYM_SS || stype == SYM_P5 || stype == SYM_H5 ||
 		stype == SYM_T1 || stype == SYM_Q1 )
 	{
+/*
 		err = chk_len_seq( n_egroup, egroup ); 
+*/
+		err = chk_len_seq1( n_egroup, egroup ); 
 	}
 
 	/* check & set the mispair, pairfrac & pair values	*/
@@ -1563,6 +1570,142 @@ STREL_T	*egroup[];
 			maxl = ip->i_val.v_value.v_ival;
 		}else
 			maxl = UNBOUNDED;
+	}
+
+	if( !err ){
+		for( i = 0; i < n_egroup; i++ ){
+			stp = egroup[ i ];
+			stp->s_minlen = minl;
+			stp->s_maxlen = maxl;
+		}
+	}
+
+	return( err );
+}
+
+static	int	chk_len_seq1( n_egroup, egroup )
+int	n_egroup;
+STREL_T	*egroup[];
+{
+	int	err, mmok;
+	int	i, size;
+	int	minl, maxl;
+	int	x_minl, x_maxl;
+	int	i_minl, i_maxl;
+	int	i1_minl, i1_maxl;
+	STREL_T	*stp, *stp0;
+	IDENT_T	*ip;
+
+	err = 0;
+	stp0 = egroup[ 0 ];
+
+	/* find explicit (len=,minlen=,maxlen=) specs	*/
+	for( x_minl = x_maxl = UNDEF, i = 0; i < n_egroup; i++ ){
+		stp = egroup[ i ];
+		if( stp->s_minlen != UNDEF ){
+			if( x_minl == UNDEF )
+				x_minl = stp->s_minlen;
+			else if( stp->s_minlen != x_minl ){
+				err = 1;
+				rm_emsg_lineno = stp->s_lineno;
+				RM_errormsg( 0, "inconsistant minlen values." );
+			}
+		}
+		if( stp->s_maxlen != UNDEF ){
+			if( x_maxl == UNDEF )
+				x_maxl = stp->s_maxlen;
+			else if( stp->s_maxlen != x_maxl ){
+				err = 1;
+				rm_emsg_lineno = stp->s_lineno;
+				RM_errormsg( 0, "inconsistant maxlen values." );
+			}
+		}
+	}
+
+	/* allocate reg. exp buffers		*/
+	for( i = 0; i < n_egroup; i++ ){
+		stp = egroup[ i ];
+		if( stp->s_seq != NULL ){
+			size = strlen( stp->s_seq );
+			size = size > 100 ? 2.5 * size : 250;
+			stp->s_expbuf =
+				( char * )malloc( size * sizeof( char ) );
+			if( stp->s_expbuf == NULL ){
+				rm_emsg_lineno = stp->s_lineno;
+				RM_errormsg( 1, "can't allocate s_expbuf." );
+			}
+			stp->s_e_expbuf = &stp->s_expbuf[ size ];
+			compile( stp->s_seq, stp->s_expbuf,
+				stp->s_e_expbuf, '\0' );
+		}
+	}
+
+	/* find implicit (seq=) length specs	*/
+	for( i_minl = i_maxl = UNDEF, i = 0; i < n_egroup; i++ ){
+		stp = egroup[ i ];
+		if( stp->s_seq == NULL )
+			continue;
+		mm_seqlen1( stp, &i1_minl, &i1_maxl, &mmok );
+		if( !mmok && stp->s_mismatch > 0 ){
+			err = 1;
+			rm_emsg_lineno = stp->s_lineno;
+			RM_errormsg( 0, "mismatches not allowed in this seq." );
+		}
+		if( i1_minl != UNDEF ){
+			if( i_minl == UNDEF )
+				i_minl = i1_minl;
+			else if( i1_minl > i_minl )
+				i_minl = i1_minl;
+		}
+		if( i1_maxl != UNDEF ){
+			if( i_maxl == UNDEF )
+				i_maxl = i1_maxl;
+			else if( i1_maxl != i_maxl ){	/* all must agree */
+				err = 1;
+				rm_emsg_lineno = stp->s_lineno;
+				RM_errormsg( 0,
+					"inconsistant implied max lengths." );
+			}
+		}
+	}
+
+	if( x_minl != UNDEF ){
+		if( i_minl == UNDEF )
+			minl = x_minl;
+		else
+			minl = MAX( x_minl, i_minl );
+	}else if( i_minl != UNDEF ){
+		minl = i_minl;
+	}else if( stp0->s_type == SYM_H5 ){
+		ip = RM_find_id( "wc_minlen" );
+		minl = ip->i_val.v_value.v_ival;
+	}else
+		minl = 1;
+
+	if( x_maxl != UNDEF ){
+		if( i_maxl == UNDEF )
+			maxl = x_maxl;
+		else if( x_maxl == i_maxl )
+			maxl = x_maxl;
+		else{
+fprintf( stderr, "e+i: %d, %d\n", x_maxl, i_maxl );
+			err = 1;
+			rm_emsg_lineno = stp0->s_lineno;
+			RM_errormsg( 0,
+				"explicit and implicit maxlen values differ." );
+		}
+	}else if( i_maxl != UNDEF ){
+		maxl = i_maxl;
+	}else if( stp0->s_type == SYM_H5 ){
+		ip = RM_find_id( "wc_maxlen" );
+		maxl = ip->i_val.v_value.v_ival;
+	}else
+		maxl = UNBOUNDED;
+
+	if( minl > maxl ){
+		err = 1;
+		rm_emsg_lineno = stp0->s_lineno;
+		RM_errormsg( 0, "minlen > maxlen." );
 	}
 
 	if( !err ){

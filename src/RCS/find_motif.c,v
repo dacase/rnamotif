@@ -1,9 +1,14 @@
-head	1.92;
+head	1.93;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.93
+date	2000.06.13.17.53.51;	author macke;	state Exp;
+branches;
+next	1.92;
 
 1.92
 date	2000.04.27.21.20.16;	author macke;	state Exp;
@@ -473,10 +478,10 @@ map.  Need to fix this.
 @
 
 
-1.92
+1.93
 log
-@changed print_match() to use single quotes for tag istead of
-double quotes.
+@added code to match_wchlx() to match 0-len helices.  0-len p-hlx
+still not permitted.
 @
 text
 @#include <stdio.h>
@@ -1411,6 +1416,30 @@ int	n_mpr[];
 	nh = 0;
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
+	if( stp->s_minlen == 0 ){
+		hl = 0;
+		mpr = 0;
+		if( stp->s_seq != NULL ){
+			if( !chk_seq( stp, &fm_sbuf[ s5 ], hl ) )
+				goto REAL_HELIX;
+		}
+		if( stp3->s_seq != NULL ){
+			if( chk_seq(stp3, &fm_sbuf[s3-hl+1], hl ) ){
+				h3[ nh ] = s3;
+				hlen[ nh ] = hl;
+				n_mpr[ nh ] = mpr;
+				nh++;
+			}
+		}else{
+			h3[ nh ] = s3;
+			hlen[ nh ] = hl;
+			n_mpr[ nh ] = mpr;
+			nh++;
+		}
+	}
+
+REAL_HELIX : ;
+
 	if( RM_paired( stp->s_pairset, b5, b3 ) ){
 		hl = 1;
 		mpr = 0;
@@ -1419,9 +1448,10 @@ int	n_mpr[];
 		hl = 1;
 		mpr = 1;
 		l_bpr = 0;
-	}else{
+	}else if( stp->s_minlen == 0 )
+		return( 1 );
+	else
 		return( 0 );
-	}
 
 	if( stp->s_mispair > 0 ){
 		mplim = stp->s_mispair;
@@ -2371,6 +2401,21 @@ int	slen;
 	}else
 		return( step( fm_chk_seq, stp->s_expbuf ) );
 }
+@
+
+
+1.92
+log
+@changed print_match() to use single quotes for tag istead of
+double quotes.
+@
+text
+@d933 24
+d965 3
+a967 1
+	}else{
+a968 1
+	}
 @
 
 

@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#define	UNBOUNDED	0x7fffffff
+#include "rnamot.h"
 
 #define	CBRA	2	/* 0002, \(      */
 #define	CCHR	4	/* 0004  ord chr */
@@ -131,6 +131,120 @@ int	*mmok;
 		}
 	}
 }
+void	mm_seqlen1( stp, minl, maxl, mmok )
+STREL_T	*stp;
+int	*minl;
+int	*maxl;
+int	*mmok;
+{
+	char	*ep;
+	int	dol, star;
+	int	rng;
+
+	*minl = 0;
+	*maxl = UNDEF;	/* generally no max length 	*/
+	*mmok = 1;	/* allow mismatch unless ...	*/
+	dol = 0;
+	star = 0;
+	rng = UNDEF;
+	for( ep = stp->s_expbuf; *ep != CCEOF; ep++ ){
+		switch( *ep ){
+		case CBRA :
+			ep++;
+			break;
+		case CKET :
+			break;
+
+		case CBRC :
+			*mmok = 0;
+			break;
+
+		case CLET :
+			*mmok = 0;
+			break;
+
+		case CCHR :
+		case CCHR | STAR :
+		case CCHR | RANGE :
+			if( *ep == ( CCHR | STAR ) ){
+				star = 1;
+				*mmok = 0;
+			}else if( *ep == ( CCHR | RANGE ) ){
+				*minl += ep[2];
+/*
+				if( *maxl != UNBOUNDED )
+					*maxl += ep[3];
+*/
+				rng = rng == UNDEF ? ep[3]-ep[2] :
+					rng + ep[3]-ep[2];
+				if( ep[2] != ep[3] )
+					*mmok = 0;
+				ep += 2;
+			}else{
+				( *minl )++;
+			}
+			ep++;
+			break;
+		case CDOT :
+		case CDOT | STAR :
+		case CDOT | RANGE :
+			if( *ep == ( CDOT | STAR ) ){
+				star = 1;
+				*mmok = 0;
+			}else if( *ep == ( CDOT | RANGE ) ){
+				*minl += ep[2];
+/*
+				if( *maxl != UNBOUNDED )
+					*maxl += ep[3];
+*/
+				rng = rng == UNDEF ? ep[3]-ep[2] :
+					rng + ep[3]-ep[2];
+				if( ep[2] != ep[3] )
+					*mmok = 0;
+				ep += 2;
+			}else{
+				( *minl )++;
+			}
+			break;
+		case CCL :
+		case CCL | STAR :
+		case CCL | RANGE :
+		case NCCL :
+		case NCCL | STAR :
+		case NCCL | RANGE :
+			if( *ep == (CCL|STAR) || *ep == (NCCL|STAR)){
+				star = 1;
+				*mmok = 0;
+			}else if( *ep == (CCL|RANGE) || *ep == (NCCL|RANGE) ){
+				*minl += ep[16+1];
+/*
+				if( *maxl != UNBOUNDED )
+					*maxl += ep[3];
+*/
+				rng = rng == UNDEF ? ep[16+2]-ep[16+1] :
+					rng + ep[16+2] - ep[16+1];
+				if( ep[16+1] != ep[16+2] )
+					*mmok = 0;
+				ep += 2;	
+			}else{
+				( *minl )++;
+			}
+			ep += 16;
+			break;
+		case CDOL :
+/*
+			*exact = circf;
+*/
+			dol = 1;
+			break;
+		default :
+			printf( " %2d", *ep );
+			break;
+		}
+	}
+	if( *stp->s_seq == '^' && dol && !star )
+		*maxl = rng == UNDEF ? *minl : *minl + rng;
+}
 
 void	mm_dumppat( fp, expbuf, e_expbuf )
 FILE	*fp;
@@ -251,9 +365,12 @@ int	*n_mm;
 			if( *ep++ == *lp++ )
 				continue;
 			else{
-				( *n_mm )++;
-				if( *n_mm > l_mm )
+				if( lp[-1] == '\0' )
 					return( 0 );
+				( *n_mm )++;
+				if( *n_mm > l_mm ){
+					return( 0 );
+				}
 			}
 			break;
 
@@ -262,6 +379,8 @@ int	*n_mm;
 			low = *ep;
 			while( low-- ){
 				if(*lp++ != c){
+					if( lp[ -1 ] == '\0' )
+						return( 0 );
 					( *n_mm )++;
 					if( *n_mm > l_mm )
 						return( 0 ); 
@@ -299,7 +418,8 @@ int	*n_mm;
 		case NCCL :
 			neg = 1;
 		case CCL :
-			c = *lp++;
+			if( ( c = *lp++ ) == '\0' )
+				return( 0 );
 			if( ( ( c & 0200 ) == 0 && ISTHERE( c ) ) ^ neg ){
 				ep += 16;
 				continue;
@@ -315,7 +435,8 @@ int	*n_mm;
 		case CCL | RANGE :
 			low = ep[16];
 			while( low-- ){
-				c = *lp++;
+				if( ( c = *lp++ ) == '\0' )
+					return( 0 );
 				if((( c & 0200 ) || !ISTHERE(c)) ^ neg ){
 					( *n_mm )++;
 					if( *n_mm > l_mm )

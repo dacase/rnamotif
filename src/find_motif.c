@@ -930,6 +930,30 @@ int	n_mpr[];
 	nh = 0;
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
+	if( stp->s_minlen == 0 ){
+		hl = 0;
+		mpr = 0;
+		if( stp->s_seq != NULL ){
+			if( !chk_seq( stp, &fm_sbuf[ s5 ], hl ) )
+				goto REAL_HELIX;
+		}
+		if( stp3->s_seq != NULL ){
+			if( chk_seq(stp3, &fm_sbuf[s3-hl+1], hl ) ){
+				h3[ nh ] = s3;
+				hlen[ nh ] = hl;
+				n_mpr[ nh ] = mpr;
+				nh++;
+			}
+		}else{
+			h3[ nh ] = s3;
+			hlen[ nh ] = hl;
+			n_mpr[ nh ] = mpr;
+			nh++;
+		}
+	}
+
+REAL_HELIX : ;
+
 	if( RM_paired( stp->s_pairset, b5, b3 ) ){
 		hl = 1;
 		mpr = 0;
@@ -938,9 +962,10 @@ int	n_mpr[];
 		hl = 1;
 		mpr = 1;
 		l_bpr = 0;
-	}else{
+	}else if( stp->s_minlen == 0 )
+		return( 1 );
+	else
 		return( 0 );
-	}
 
 	if( stp->s_mispair > 0 ){
 		mplim = stp->s_mispair;
