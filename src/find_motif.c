@@ -163,10 +163,7 @@ int	sdollar;
 	int	s, s3lim, slen;
 	int	h_minl, h_maxl;
 	int	i_minl;
-
-/*
-fprintf( stderr, "fwch:\n" );
-*/
+	int	h3, hlen;
 
 	srp = searches[ slev ];
 	stp = srp->s_descr;
@@ -175,27 +172,16 @@ fprintf( stderr, "fwch:\n" );
 	h_maxl = stp->s_maxlen;
 	i_minl = stp->s_minilen;
 
-/*
-fprintf( stderr, "fwch: szero  = %4d, sdollar = %4d\n", szero, sdollar );
-fprintf( stderr, "fwch: slen   = %4d\n", slen );
-fprintf( stderr, "fwch: h_minl = %4d, h_maxl  = %4d\n", h_minl, h_maxl );
-fprintf( stderr, "fwch: i_minl = %4d\n", i_minl );
-*/
-
 	s3lim = ( i_minl + 2 * h_minl );
-
-/*
-fprintf( stderr, "fwch: s3lim = ( i_minl + 2 * h_minl ) = %d\n", s3lim );
-*/
-
 	s3lim = szero + s3lim - 1;
 
-/*
-fprintf( stderr, "fwch: s3lim = szero + s3lim - 1 = %d\n", s3lim );
-*/
-
 	for( s = sdollar; s >= s3lim; s-- ){
-		if( match_helix( stp, szero, s, s3lim ) ){
+		if( match_helix( stp, szero, s, s3lim, &h3, &hlen ) ){
+
+fprintf( stderr, "fwch: %4d %.*s %4d %.*s\n",
+	szero+1, hlen, &fm_sbuf[ szero ],
+	h3 - hlen + 2, hlen, &fm_sbuf[ h3 - hlen + 1 ] ); 
+
 		}
 	}
 }
@@ -209,69 +195,45 @@ int	sdollar;
 {
 
 }
-static	int	match_helix( stp, s5, s3, s3lim )
+static	int	match_helix( stp, s5, s3, s3lim, h3, hlen )
 STREL_T	*stp;
 int	s5;
 int	s3;
 int	s3lim;
+int	*h3;
+int	*hlen;
 {
 	int	s, s3_5plim;
 	int	b5, b3;
-	int	bpcnt, hlen, mpr;
+	int	bpcnt, mpr;
 
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
 	if( !paired( stp, b5, b3 ) )
 		return( 0 );
 
+	*h3 = s3;
 	s3_5plim = s3lim - stp->s_minlen + 1;
 	s3_5plim = MAX( s3_5plim, s3 - stp->s_maxlen + 1 );
 
-/*
-fprintf( stderr, "mhlx: s3_5plim = %4d\n", s3_5plim );
-fprintf( stderr,
-	"mhlx.1: s5 = %4d, s3 = %4d, s3lim =    %3d, b5 = %c, b3 = %c\n",
-	s5, s3, s3lim, b5, b3 );
-*/
-
 	bpcnt = 1;
-	hlen = 1;
+	*hlen = 1;
 	mpr = 0;
-	for( bpcnt = 1, hlen = 1, s = s3 - 1; s >= s3_5plim; s--, hlen++ ){
-		b5 = fm_sbuf[ s5 + hlen ];
-		b3 = fm_sbuf[ s3 - hlen ];
-/*
-fprintf( stderr,
-	"mhlx.2: s5 = %4d, s3 = %4d, s3_5plim = %3d, b5 = %c, b3 = %c\n",
-	s5 + hlen, s3 - hlen, s3_5plim, b5, b3 );
-*/
-
+	for( bpcnt = 1, *hlen = 1, s = s3 - 1; s >= s3_5plim; s--, (*hlen)++ ){
+		b5 = fm_sbuf[ s5 + *hlen ];
+		b3 = fm_sbuf[ s3 - *hlen ];
 		if( paired( stp, b5, b3 ) ){
 			bpcnt++;
 		}else{
 			mpr++;
 			if( mpr > stp->s_mispair ){
-				if( hlen < stp->s_minlen ){
-
-/*
-fprintf( stderr, "mhlx.3: #mpr = %4d, > stp->s_mispair (%4d)\n",
-	mpr, stp->s_mispair );
-*/
-
+				if( *hlen < stp->s_minlen ){
 					return( 0 );
 				}else
 					break;
 			}
 		}
 	}
-
-fprintf( stderr, "mhlx.4: hlx!\n" );
-for( s = 0; s < hlen; s++ ){ 
-	b5 = fm_sbuf[ s5 + s ];
-	b3 = fm_sbuf[ s3 - s ];
-	fprintf( stderr, " %4d-%4d: %c-%c\n", s5+s, s3-s, b5, b3 );
-}
-
 	return( 1 );
 }
 
