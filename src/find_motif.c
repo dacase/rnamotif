@@ -622,7 +622,7 @@ int	comp;
 int	n_descr;
 STREL_T	descr[];
 {
-	int	d, len;
+	int	d, len, offset;
 	STREL_T	*stp;
 	char	mbuf[ 256 ];
 
@@ -632,7 +632,19 @@ STREL_T	descr[];
 	fprintf( fp, "%-12s %d", locus, comp );
 	stp = descr; 
 	set_mbuf( stp->s_matchoff, stp->s_matchlen, mbuf );
+
+	if( fm_comp ){
+/*
+		offset = fm_slen - stp->s_matchoff - len + 1;
+*/
+		offset = fm_slen - stp->s_matchoff;
+	}else
+		offset = stp->s_matchoff + 1;
+
+/*
 	fprintf( fp, " %7d %4d %s", stp->s_matchoff + 1, len, mbuf );
+*/
+	fprintf( fp, " %7d %4d %s", offset, len, mbuf );
 
 	for( ++stp, d = 1; d < n_descr; d++, stp++ ){
 		if( stp->s_matchlen > 0 ){
