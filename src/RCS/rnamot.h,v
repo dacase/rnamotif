@@ -1,9 +1,14 @@
-head	1.83;
+head	1.84;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.84
+date	2001.07.31.17.13.36;	author macke;	state Exp;
+branches;
+next	1.83;
 
 1.83
 date	2001.07.30.19.52.33;	author macke;	state Exp;
@@ -426,17 +431,15 @@ desc
 @
 
 
-1.83
+1.84
 log
-@updated msg to show context changed field of STREL_T that
-used an index to the current descr to use a pointer.  Updated
-version & date.
+@updated version and time to 1.6.0
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.5.98 2001-jun-29"
+#define	VERSION	"v1.6.0 2001-jul-31"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ seq-file ... ]\n\n\
@@ -628,6 +631,19 @@ typedef	struct	incdir_t	{
 } INCDIR_T;
 
 #endif
+@
+
+
+1.83
+log
+@updated msg to show context changed field of STREL_T that
+used an index to the current descr to use a pointer.  Updated
+version & date.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.5.98 2001-jun-29"
 @
 
 

@@ -1509,7 +1509,7 @@ static	int	chk_4plex( STREL_T *stp, int n_descr, STREL_T descr[] )
 static	int	set_context( int n_descr, STREL_T descr[] )
 {
 	STREL_T	*stp;
-	int	offset;
+	int	offset, length;
 	int	rv = 1;
 
 	if( rm_lctx == NULL ){
@@ -1517,16 +1517,28 @@ static	int	set_context( int n_descr, STREL_T descr[] )
 			return( 1 );
 	}else{
 		stp = &descr[ 0 ];
-		rm_lctx->s_matchoff =
+		offset = rm_lctx->s_matchoff =
 			MAX( stp->s_matchoff - rm_lctx->s_maxlen, 0 );
-		rm_lctx->s_matchlen = 
+		length = rm_lctx->s_matchlen = 
 			stp->s_matchoff - rm_lctx->s_matchoff;
+		if( length < rm_lctx->s_minlen )
+			return( 0 );
+		if( rm_lctx->s_seq != NULL ){
+			if( !chk_seq( rm_lctx, &fm_sbuf[ offset ], length ) )
+				return( 0 );
+		}
 	}
 	if( rm_rctx != NULL ){
 		stp = &descr[ n_descr - 1 ];
 		rm_rctx->s_matchoff = stp->s_matchoff + stp->s_matchlen;
 		offset = MIN( rm_rctx->s_matchoff+rm_rctx->s_maxlen, fm_slen );
-		rm_rctx->s_matchlen = offset - rm_rctx->s_matchoff;
+		length = rm_rctx->s_matchlen = offset - rm_rctx->s_matchoff;
+		if( length < rm_rctx->s_minlen )
+			return( 0 );
+		if( rm_rctx->s_seq != NULL ){
+			if( !chk_seq( rm_rctx, &fm_sbuf[ offset ], length ) )
+				return( 0 );
+		}
 	}
 
 	return( rv );
