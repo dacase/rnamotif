@@ -54,20 +54,6 @@ NODE_T	*right;
 	return( np );
 }
 
-NODE_T	*RM_updnode( np, vp, left, right )
-NODE_T	*np;
-VALUE_T	*vp;
-NODE_T	*left;
-NODE_T	*right;
-{
-
-	if( left != NULL )
-		np->n_left = left;
-	if( right != NULL )
-		np->n_right = right;
-	return( np );
-}
-
 void	RM_dumpexpr( fp, np, indent )
 FILE	*fp;
 NODE_T	*np;
@@ -94,7 +80,7 @@ int	indent;
 		np->n_lineno, np->n_type, np->n_class );
 	switch( np->n_sym ){
 
-#include "RM_dumpnode.h"
+#include "dumpnode.h"
 
 	}
 }
