@@ -64,7 +64,6 @@ q4		return( SYM_Q4 );
 			sp[ yyleng - 2 ] = '\0';
 			rmval.v_type = T_STRING;
 			rmval.v_value.v_cval = sp;
-fprintf( stderr, "STRING = '%s'\n", sp );
 			return( SYM_STRING );
 		  }
 		}
