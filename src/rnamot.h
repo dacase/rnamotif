@@ -9,6 +9,7 @@
 #define	T_FLOAT		2
 #define	T_STRING	3
 #define	T_PAIR		4
+#define	T_IDENT		5
 
 #define	C_UNDEF		0
 #define	C_LIT		1
