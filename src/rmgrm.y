@@ -61,7 +61,8 @@ assign		: ident assign_op expr
 				{ $$ = updnode( $2, 0, $1, $3 );
 				  if( context == CTX_PARMS )
 					PARM_add( $$ );
-				  else if( context == CTX_DESCR )
+				  else if( context == CTX_DESCR ||
+					context == CTX_SITES )
 					SE_addval( $$ ); } ;
 assign_op	: SYM_ASSIGN	{ $$ = node( SYM_ASSIGN, 0, 0, 0 ); }
 		| SYM_PLUS_ASSIGN
@@ -94,9 +95,13 @@ strel_list	: strel
 		| strel strel_list ;
 strel		: strhdr SYM_LPAREN strparm_list SYM_RPAREN
 				{ if( context == CTX_DESCR )
-					SE_close() ; } ;
+					SE_close();
+				  else if( context == CTX_SITES )
+					POS_close(); } ;
 strhdr		: strtype	{ if( context == CTX_DESCR )
-					SE_open( $1 ) ; } ;
+					SE_open( $1 );
+				  else if( context == CTX_SITES )
+					POS_open( $1 ); } ;
 strtype		: SYM_SS	{ $$ = SYM_SS; }
 		| SYM_H5	{ $$ = SYM_H5; }
 		| SYM_H3	{ $$ = SYM_H3; }
@@ -115,10 +120,11 @@ strparm_list	: assign
 site_part	: SYM_SITES { context = CTX_SITES; } site_list
 		| ;
 site_list	: site
-		| site site_list ;
-site		: siteaddr_list SYM_ASSIGN pairval ;
+		| site_list site ;
+site		: siteaddr_list SYM_ASSIGN pairval
+				{ SI_close(); } ;
 siteaddr_list	: strel
-		| strel SYM_COLON siteaddr_list ;
+		| siteaddr_list SYM_COLON strel ;
 %%
 
 #include "lex.yy.c"
