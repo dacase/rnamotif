@@ -42,8 +42,8 @@ int	n_curpair;
 
 PAIRLIST_T	*pairlists[ 5 ];	/* #str = (0,1,) 2,3,4	*/
 
-extern	int	rm_tminlen;
-extern	int	rm_tmaxlen;
+extern	int	rm_dminlen;
+extern	int	rm_dmaxlen;
 extern	STREL_T	rm_descr[];
 extern	int	rm_s_descr;
 extern	int	rm_n_descr;
@@ -444,7 +444,7 @@ STREL_T	descr[];
 	if( err )
 		return( err );
 
-	find_gi_len( 0, descr, &rm_tminlen, &rm_tmaxlen );
+	find_gi_len( 0, descr, &rm_dminlen, &rm_dmaxlen );
 
 	find_limits( 0, descr );
 
