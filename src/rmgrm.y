@@ -32,21 +32,24 @@ extern	VALUE_T	rmval;
 %token	SYM_STRING
 
 %token	SYM_EQUAL
+%token	SYM_PLUS_EQUAL
+%token	SYM_MINUS_EQUAL
+%token	SYM_PLUS
+%token	SYM_MINUS
+%token	SYM_DOLLAR
 %token	SYM_LPAREN
 %token	SYM_RPAREN
 %token	SYM_LCURLY
 %token	SYM_RCURLY
-%token	SYM_COMMA
-%token	SYM_MINUS
-%token	SYM_DOLLAR
 %token	SYM_PERIOD
+%token	SYM_COMMA
 %token	SYM_COLON
 %token	SYM_ERROR
 
 %%
 program		: pair_part parm_part descr_part site_part ;
 
-pair_part	: SYM_PAIR pairdef_list
+pair_part	: SYM_PAIR { RMC_context( SYM_PAIR ); } pairdef_list
 		| ;
 pairdef_list	: pairdef
 		| pairdef pairdef_list ;
@@ -56,7 +59,7 @@ pair_list	: pair
 		| pair SYM_COMMA pair_list ;
 pair		: SYM_STRING ;
 
-parm_part	: SYM_PARM keyval_list 
+parm_part	: SYM_PARM { RMC_context( SYM_PARM ); } keyval_list 
 		| ;
 keyval_list	: keyval 
 		| keyval keyval_list ;
@@ -74,13 +77,13 @@ lastval		: SYM_DOLLAR 	{ rmval.v_sym = SYM_DOLLAR;
 strval		: SYM_STRING 	{ SE_saveval( &rmval ); } ;
 ident		: SYM_IDENT 	{ SE_saveval( &rmval ); } ;
 rngval		: intval SYM_MINUS intval
-		| lastval SYM_MINUS intval ;
+		| lastval SYM_MINUS intval 
+		| intval SYM_MINUS lastval ;
 
-descr_part	: SYM_DESCR strel_list ;
+descr_part	: SYM_DESCR { RMC_context( SYM_DESCR ); } strel_list ;
 strel_list	: strel
 		| strel strel_list ;
-strel		: strtype strtag SYM_LPAREN strparm_list SYM_RPAREN 
-				{ SE_close(); } ;
+strel		: strtype strtag SYM_LPAREN strparm_list SYM_RPAREN ;
 strtype		: SYM_SS	{ SE_new( SYM_SS ); }
 		| SYM_H5	{ SE_new( SYM_H5 ); }
 		| SYM_H3	{ SE_new( SYM_H3 ); }
@@ -110,7 +113,7 @@ strkvparm	: SYM_MISPAIR SYM_EQUAL intval
 		| SYM_PAIR SYM_EQUAL ident
 		| SYM_PAIR SYM_EQUAL pairval ;
 
-site_part	: SYM_SITE site_list
+site_part	: SYM_SITE { RMC_context( SYM_SITE ); } site_list
 		| ;
 site_list	: site
 		| site site_list ;
