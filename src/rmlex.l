@@ -41,11 +41,11 @@ q4		return( SYM_Q4 );
 			exit( 1 );
 		  }
 		  strcpy( sp, yytext );
-		  rmval.v_type = T_STRING;
+		  rmval.v_sym = SYM_IDENT;
 		  rmval.v_value.v_cval = sp;
 		  return( SYM_IDENT );
 		}
-[0-9]+		{ rmval.v_type = T_INT;
+[0-9]+		{ rmval.v_sym = SYM_INT;
 		  rmval.v_value.v_ival = atoi( yytext );
 		  return( SYM_INT );
 		}
@@ -62,7 +62,7 @@ q4		return( SYM_Q4 );
 			}
 			strncpy( sp, &yytext[1], yyleng - 2 );
 			sp[ yyleng - 2 ] = '\0';
-			rmval.v_type = T_STRING;
+			rmval.v_sym = SYM_STRING;
 			rmval.v_value.v_cval = sp;
 			return( SYM_STRING );
 		  }
