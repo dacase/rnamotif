@@ -47,6 +47,7 @@ static	int	chk_wchlx0();
 static	int	chk_motif();
 static	int	chk_wchlx();
 static	int	chk_phlx();
+static	int	chk_triplex();
 
 static	void	print_match();
 static	void	set_mbuf();
@@ -826,6 +827,8 @@ STREL_T	descr[];
 				return( 0 );
 			break;
 		case SYM_T1 :
+			if( !chk_triplex( stp, n_descr, descr ) )
+				return( 0 );
 			break;
 		case SYM_Q1 :
 			break;
@@ -906,24 +909,6 @@ STREL_T	descr[];
 	h3_5 = stp3->s_matchoff;
 	h3_3 = h3_5 + stp3->s_matchlen - 1;
 
-/*
-	if( h5_5 > 0 ){
-		if( h3_3 < fm_slen - 1 ){
-			h5 = h5_5 - 1;
-			h3 = h3_3 + 1;
-			d5 = fm_window[ h5 - fm_szero ];
-			d3 = fm_window[ h3 - fm_szero ];
-			stpd5 = &descr[ d5 ];
-			stpd3 = &descr[ d3 ];
-			if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
-				b5 = fm_sbuf[ h5 ];
-				b3 = fm_sbuf[ h3 ];
-				if( paired( stp, b5, b3 ) )
-					return( 0 );
-			}
-		}
-	}
-*/
 	if( h5_5 > 0 ){
 		h5 = h5_5 - 1;
 		h3 = h3_5 - 1;
@@ -950,6 +935,72 @@ STREL_T	descr[];
 			b5 = fm_sbuf[ h5 ];
 			b3 = fm_sbuf[ h3 ];
 			if( paired( stp, b5, b3 ) )
+				return( 0 );
+		}
+	}
+
+	return( 1 );
+}
+static	int	chk_triplex( stp, n_descr,descr )
+STREL_T	*stp;
+int	n_descr;
+STREL_T	descr[];
+{
+	STREL_T	*stp1, *stp2;
+	int	t1_5, t2_3, t3_5;
+	int	t1_3, t2_5, t3_3;
+	int	t1, t2, t3;
+	int	d1, d2, d3;
+	int	b1, b2, b3;
+	STREL_T	*stpd1, *stpd2, *stpd3;
+
+	t1_5 = stp->s_matchoff;
+	t1_3 = t1_5 + stp->s_matchlen - 1;
+
+	stp1 = stp->s_mates[ 0 ];
+	t2_5 = stp1->s_matchoff;
+	t2_3 = t2_5 + stp1->s_matchlen - 1;
+
+	stp2 = stp->s_mates[ 1 ];
+	t3_5 = stp2->s_matchoff;
+	t3_3 = t3_5 + stp2->s_matchlen - 1;
+
+	if( t1_5 > 0 ){
+		t1 = t1_5 - 1; 
+		t2 = t2_3 + 1;
+		t3 = t3_5 - 1;
+		d1 = fm_window[ t1 - fm_szero ];
+		d2 = fm_window[ t2 - fm_szero ];
+		d3 = fm_window[ t3 - fm_szero ];
+		stpd1 = &descr[ d1 ];
+		stpd2 = &descr[ d2 ];
+		stpd3 = &descr[ d3 ];
+		if( stpd1->s_type==SYM_SS && stpd2->s_type==SYM_SS && 
+				stpd3->s_type==SYM_SS){
+			b1 = fm_sbuf[ d1 ];
+			b2 = fm_sbuf[ d2 ];
+			b3 = fm_sbuf[ d3 ];
+			if( triple( stp, b1, b2, b3 ) )
+				return( 0 );
+		}
+	}
+
+	if( t3_3 < fm_slen - 1 ){
+		t1 = t1_3 + 1; 
+		t2 = t2_5 - 1;
+		t3 = t3_3 + 1;
+		d1 = fm_window[ t1 - fm_szero ];
+		d2 = fm_window[ t2 - fm_szero ];
+		d3 = fm_window[ t3 - fm_szero ];
+		stpd1 = &descr[ d1 ];
+		stpd2 = &descr[ d2 ];
+		stpd3 = &descr[ d3 ];
+		if( stpd1->s_type==SYM_SS && stpd2->s_type==SYM_SS && 
+				stpd3->s_type==SYM_SS){
+			b1 = fm_sbuf[ d1 ];
+			b2 = fm_sbuf[ d2 ];
+			b3 = fm_sbuf[ d3 ];
+			if( triple( stp, b1, b2, b3 ) )
 				return( 0 );
 		}
 	}
