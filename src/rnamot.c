@@ -2,8 +2,6 @@
 
 #include "rnamot.h"
 
-#include "dbase.h"
-
 extern	int	rm_error;
 extern	char	rm_dfname[];
 extern	int	rm_copt;
@@ -29,6 +27,11 @@ static	char	csbuf[ SBUF_SIZE ];
 
 IDENT_T	*find_id();
 
+#ifdef	USE_GENBANK
+typedef	void	DBASE_T;
+DBASE_T	*dbp, *GB_opendb();
+#endif
+
 static	void	mk_rcmp();
 
 main( argc, argv )
@@ -39,6 +42,7 @@ char	*argv[];
 	IDENT_T	*ip;
 	char	*dbnp;
 	char	locus[ 20 ];
+	int	chk_both_strs;
 
 	if( RM_init( argc, argv ) )
 		exit( 1 );
@@ -66,6 +70,7 @@ char	*argv[];
 	if( rm_copt )
 		exit( 0 );
 
+/*
 	ip = find_id( "database" );
 	if( ip == NULL ){
 		fprintf( stderr, "rnamot: 'database' not defined.\n" );
@@ -83,7 +88,7 @@ char	*argv[];
 		}
 		dbp = DB_next( dbp );
 	}
-/*
+
 	while( slen = DB_getseq( stdin, locus, SBUF_SIZE, sbuf ) ){
 		find_motif_driver( rm_n_searches, rm_searches, rm_sites,
 			locus, 0, slen, sbuf );
@@ -92,14 +97,37 @@ char	*argv[];
 			locus, 1, slen, csbuf );
 	}
 */
+	ip = find_id( "chk_both_strs" );
+	if( ip == NULL ){
+		chk_both_strs = 1;
+	}else
+		chk_both_strs = ip->i_val.v_value.v_ival;
+
+#ifdef	USE_GENBANK
+	if( ( dbp = GB_opendb( rm_dbfp ) ) == NULL )
+		exit( 1 );
+#endif
+
+	for( ; ; ){
+		if( rm_dtype == DT_FASTN ) 
+			slen = FN_fgetseq( rm_dbfp, locus, SBUF_SIZE, sbuf );
+#ifdef	USE_GENBANK
+		else
+			slen = GB_fgetseq( dbp, locus, SBUF_SIZE, sbuf );
+#endif
+		if( slen == 0 )
+			break;
+
+		find_motif_driver( rm_n_searches, rm_searches, rm_sites,
+			locus, 0, slen, sbuf );
+		if( chk_both_strs ){
+			mk_rcmp( slen, sbuf, csbuf );
+			find_motif_driver( rm_n_searches, rm_searches, rm_sites,
+				locus, 1, slen, csbuf );
+		}
+	}
 
 	exit( 0 );
-}
-
-static	void	init_rcmp()
-{
-	int	i;
-
 }
 
 static	void	mk_rcmp( slen, sbuf, csbuf )
