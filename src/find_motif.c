@@ -1365,10 +1365,21 @@ int	comp;
 int	n_descr;
 STREL_T	descr[];
 {
+	static	int	first = 1;
+	char	name[ 20 ];
 	int	d, len, offset;
 	STREL_T	*stp;
 	char	mbuf[ 256 ];
 
+	if( first ){
+		first = 0;
+		fprintf( fp, "#RM fmt" );
+		for( stp = descr, d = 0; d < n_descr; d++, stp++ ){
+			RM_strel_name( stp, name );
+			fprintf( fp, " %s", name );
+		}
+		fprintf( fp, "\n" );
+	}
 	for( stp = descr, len = 0, d = 0; d < n_descr; d++, stp++ )
 		len += stp->s_matchlen;
 
