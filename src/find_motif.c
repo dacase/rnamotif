@@ -1506,6 +1506,8 @@ STREL_T	descr[];
 	}else
 		offset = stp->s_matchoff + 1;
 
+	if( fm_dtype == DT_FASTN )
+		fprintf( fp, ">%s %s\n", sid, fm_sdef );
 	fprintf( fp, "%-12s %d", sid, comp );
 	fprintf( fp, " %7d %4d", offset, len );
 
