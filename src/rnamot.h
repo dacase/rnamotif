@@ -2,14 +2,14 @@
 #define	__RNAMOT__
 
 #define	UNDEF	(-1)
-#define	LASTVAL	(-2)
 
 #define	T_UNDEF		0
 #define	T_INT		1
 #define	T_FLOAT		2
 #define	T_STRING	3
 #define	T_PAIR		4
-#define	T_IDENT		5
+#define	T_POS		5
+#define	T_IDENT		6
 
 #define	C_UNDEF		0
 #define	C_LIT		1
@@ -63,6 +63,20 @@ typedef	struct	node_t	{
 	struct	node_t	*n_right;
 } NODE_T;
 
+typedef	struct	pos_t	{
+	int	p_type;
+	int	p_lineno;
+	char	*p_tag;
+	int	p_l2r;
+	int	p_offset;
+} POS_T;
+
+typedef	struct	site_t	{
+	POS_T	*s_pos;
+	int	s_n_pos;
+	PAIRSET_T	*s_pairset;
+} SITE_T;
+
 typedef	struct	strel_t	{
 	int	s_checked;	/* used during linking	*/
 	int	s_type;
@@ -78,7 +92,8 @@ typedef	struct	strel_t	{
 	int	s_mismatch;
 	int	s_mispair;
 	PAIRSET_T	*s_pairset;
-	char	*s_sites;
+	SITE_T	*s_sites;
+	int	s_n_sites;
 } STREL_T;
 
 #endif
