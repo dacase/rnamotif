@@ -4,7 +4,7 @@ extern	int	rm_error;
 extern	char	rm_dfname[];
 extern	int	rm_emsg_lineno;
 
-void	errormsg( fatal, msg )
+void	RM_errormsg( fatal, msg )
 int	fatal;
 char	msg[];
 {
