@@ -668,7 +668,7 @@ dumpstk( stdout, "before op" );
 			do_lod( ip );
 			break;
 		case OP_LDC :
-			do_ldc();
+			do_ldc( ip );
 			break;
 		case OP_STO :
 			do_sto();
