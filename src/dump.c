@@ -11,10 +11,13 @@ extern	int	rm_n_global_ids;
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
 
+extern	SITE_T	*rm_sites;
+
 void	RM_dump_id();
 void	RM_dump_pairset();
 void	RM_dump_pair();
 void	RM_dump_descr();
+void	RM_dump_sites();
 
 void	RM_dump( fp, d_parms, d_descr, d_sites )
 FILE	*fp;
@@ -36,6 +39,9 @@ int	d_sites;
 		fprintf( fp, "DESCR: %3d structure elements.\n", rm_n_descr );
 		for( stp = rm_descr, i = 0; i < rm_n_descr; i++, stp++ )
 			RM_dump_descr( fp, stp );
+	}
+	if( d_sites ){
+		RM_dump_sites( fp );
 	}
 }
 
@@ -272,12 +278,14 @@ STREL_T	*stp;
 	fprintf( fp, "}\n" );
 }
 
-RM_dump_pos( fp, posp )
+RM_dump_pos( fp, p, posp )
 FILE	*fp;
+int	p;
 POS_T	*posp;
 {
 
-	fprintf( fp, "\ttype     = " );
+	fprintf( fp, "\tpos[%2d] = {\n", p + 1 );
+	fprintf( fp, "\t\ttype     = " );
 	switch( posp->p_type ){
 	case SYM_SS :
 		fprintf( fp, "ss" );
@@ -321,9 +329,33 @@ POS_T	*posp;
 	}
 	fprintf( fp, "\n" );
 
-	fprintf( fp, "\tlineno   = %d\n", posp->p_lineno );
-	fprintf( fp, "\ttag      = '%s'\n",
+	fprintf( fp, "\t\tlineno   = %d\n", posp->p_lineno );
+	fprintf( fp, "\t\ttag      = '%s'\n",
 		posp->p_tag ? posp->p_tag : "(No tag)" );
-	fprintf( fp, "\tl2r      = %s\n", posp->p_l2r ? "TRUE" : "FALSE" );
-	fprintf( fp, "\toffset   = %d\n", posp->p_offset );
+	fprintf( fp, "\t\tl2r      = %s\n", posp->p_l2r ? "TRUE" : "FALSE" );
+	fprintf( fp, "\t\toffset   = %d\n", posp->p_offset );
+	fprintf( fp, "\t}\n" );
+}
+
+void	RM_dump_sites( fp )
+FILE	*fp;
+{
+	int	i, j, n_sites;
+	SITE_T	*sp;
+	POS_T	*posp;
+	PAIRSET_T	*ps;
+
+	for( n_sites = 0, sp = rm_sites; sp; sp = sp->s_next )
+		n_sites++;
+	fprintf( fp, "SITES: %3d sites.\n", n_sites );
+	for( i = 0, sp = rm_sites; sp; sp = sp->s_next, i++ ){
+		fprintf( fp, "site[%2d] = {\n", i + 1 );
+		fprintf( fp, "\tnpos    = %3d\n", sp->s_n_pos );
+		for( posp = sp->s_pos, j = 0; j < sp->s_n_pos; j++, posp++ )
+			RM_dump_pos( fp, j, posp );	
+		fprintf( fp, "\tpairset = " );
+		RM_dump_pairset( fp, sp->s_pairset );
+		fprintf( fp, "\n" );
+		fprintf( fp, "}\n" );
+	}
 }
