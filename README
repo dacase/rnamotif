@@ -42,10 +42,19 @@ Quick-start guide to installation and testing of rnamotif:
      test suite) you can manually move "rnamotif", "rmfmt", "rm2ct" and 
      "rmprune" to someplace in your PATH if you wish.
 
-(c)  Set the environment variable EFNDATA to point to the efndata
+(c)  Set and export the environment variable EFNDATA to point to the efndata
      subdirectory under this one.  Then "make test" will run some test
      calculations and report results.  (Warning: running the tests
      may take some time.)
+
+     For example: if you installed under /usr/local, and you use sh,
+     bash, or zsh:
+
+        export EFNDATA=/usr/local/rnamotif-2.4.0/efndata/
+
+     If you use csh or tcsh:
+
+        setenv EFNDATA /usr/local/rnamotif-2.4.0/efndata/
 
 Please send comments and questions to Tom Macke <macke@scripps.edu>.
 
