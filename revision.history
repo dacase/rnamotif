@@ -1,3 +1,10 @@
+2.1.3	2002-apr-11
+	Added new score builtin: loc() which takes a single str-element
+	paramter and returns the actual position (5' = 1) of the 1st
+	nt in that str-element.  The element must have matched a non-zero
+	len string.  The position is always wrt to the current 5' end,
+	which is reversed when the the comp. seq is searched.
+
 2.1.2	2002-mar-08
 	Fixed bug in strict2attr() that used the same attribute for both 3
 	and 5 strictness.
