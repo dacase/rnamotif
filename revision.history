@@ -1,3 +1,13 @@
+1.6.1	2001-aug-24
+	Added new function bits() to the score.  Function computes the 
+	compositional complexity of a subsequence of the current match.
+	Was suggested by a reviewer who thought it might be a useful
+	proxy for `fitness'
+		
+	Redid sequence file handling, replacing fastn.c with dbutil.c
+	New code also permits pir input (ie title line between the >-line
+	and the first seq. line.)
+
 1.6.0	2001-jul-31
 	Finished first version of context.  ctx() behaves like any ss()
 	with the same parms, except they are checked after the motif has
