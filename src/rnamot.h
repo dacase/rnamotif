@@ -43,9 +43,14 @@ typedef	struct	pair_t	{
 	char	p_bases[ 4 ];
 } PAIR_T;
 
+typedef	struct	pairset_t	{
+	int	ps_n_pairs;
+	PAIR_T	*ps_pairs;
+} PAIRSET_T;
+
 typedef	struct	pairlist_t	{
-	int	pl_n_pairs;
-	PAIR_T	*pl_pairs;
+	struct	pairlist_t	*pl_next;
+	PAIRSET_T	*pl_pset;
 } PAIRLIST_T;
 
 typedef	struct	node_t	{
