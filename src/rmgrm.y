@@ -4,14 +4,7 @@
 #include "rnamot.h"
 
 extern	VALUE_T	rm_tokval;
-
-#define	CTX_START	0
-#define	CTX_PARMS	1
-#define	CTX_DESCR	2
-#define	CTX_SITES	3
-#define	CTX_SCORE	4
-
-static	int	context = CTX_START;
+extern	int	rm_context;
 
 static	NODE_T	*np;
 
@@ -36,11 +29,13 @@ static	NODE_T	*np;
 %token	SYM_Q4
 
 %token	SYM_ACCEPT
-%token	SYM_REJECT
+%token	SYM_BREAK
+%token	SYM_CONTINUE
 %token	SYM_ELSE
 %token	SYM_FOR
 %token	SYM_IF
 %token	SYM_IN
+%token	SYM_REJECT
 %token	SYM_WHILE
 
 %token	SYM_IDENT
@@ -77,6 +72,8 @@ static	NODE_T	*np;
 
 %token	SYM_LPAREN
 %token	SYM_RPAREN
+%token	SYM_LBRACK
+%token	SYM_RBRACK
 %token	SYM_LCURLY
 %token	SYM_RCURLY
 %token	SYM_COLON
@@ -90,63 +87,35 @@ static	NODE_T	*np;
 %token	SYM_ERROR
 
 %%
-program		: parm_part descr_part site_part ;
+program		: parm_part descr_part site_part score_part ;
 
-parm_part	: SYM_PARMS { context = CTX_PARMS; } pdef_list
+parm_part	: SYM_PARMS { rm_context = CTX_PARMS; } pd_list
 		| ;
-pdef_list	: assign
-		| pdef_list assign;
-assign		: ident assign_op expr
-				{ $$ = node( $2, 0, $1, $3 );
-				  if( context == CTX_PARMS )
-					PARM_add( $$ );
-				  else if( context == CTX_DESCR ||
-					context == CTX_SITES )
-					SE_addval( $$ ); } ;
-assign_op	: SYM_ASSIGN	{ $$ = SYM_ASSIGN; }
-		| SYM_PLUS_ASSIGN
-				{ $$ = SYM_PLUS_ASSIGN; }
-		| SYM_MINUS_ASSIGN
-				{ $$ = SYM_MINUS_ASSIGN; } ;
-expr		: val 		{ $$ = $1; }
-		| expr add_op val
-				{ $$ = node( $2, 0, $1, $3 ); } ;
-add_op		: SYM_PLUS	{ $$ = SYM_PLUS; }
-		| SYM_MINUS 	{ $$ = SYM_MINUS; } ;
+descr_part	: SYM_DESCR { rm_context = CTX_DESCR; } se_list ;
+site_part	: SYM_SITES { rm_context = CTX_SITES; } site_list
+		| ;
+score_part	: SYM_SCORE { rm_context = CTX_SCORE; } rule_list
+		| ;
 
-val		: ident		{ $$ = $1; }
-		| pairval 	{ $$ = $1; }
-		| SYM_INT	{ $$ = node( SYM_INT, &rm_tokval, 0, 0 ); }
-		| SYM_FLOAT	{ $$ = node( SYM_FLOAT, &rm_tokval, 0, 0 ); }
-		| SYM_DOLLAR	{ $$ = node( SYM_DOLLAR, &rm_tokval, 0, 0 ); }
-		| SYM_STRING	{ $$ = node( SYM_STRING, &rm_tokval, 0, 0 ); } ;
+pd_list		: pdef
+		| pdef pd_list ;
+pdef		: asgn SYM_SEMICOLON ;
 
-ident		: SYM_IDENT 	{ $$ = node( SYM_IDENT, &rm_tokval, 0, 0 ); } ;
-
-pairval		: SYM_LCURLY 	{ PR_open(); } pair_list SYM_RCURLY
-				{ $$ = PR_close(); } ;
-pair_list	: pair		{ PR_add( $1 ); }
-		| pair_list SYM_COMMA pair
-				{ PR_add( $3 ); } ;
-pair		: SYM_STRING 	{ $$ = node( SYM_STRING, &rm_tokval, 0, 0 ); };
-
-descr_part	: SYM_DESCR { context = CTX_DESCR; } strel_list ;
-strel_list	: strel
-		| strel strel_list ;
-strel		: strhdr	{ if( context == CTX_DESCR )
+se_list		: strel
+		| strel se_list ;
+strel		: strhdr	{ if( rm_context == CTX_DESCR )
 					SE_close();
-				  else if( context == CTX_SITES )
-					POS_close( 0 ); }
+				  else if( rm_context == CTX_SITES )
+					POS_close();
+				}
 		| stref ;
-stref		: strhdr SYM_LPAREN strparm_list SYM_RPAREN ;
-				{ if( context == CTX_DESCR )
-					SE_close();
-				  else if( context == CTX_SITES )
-					POS_close( 1 ); } ;
-strhdr		: strtype	{ if( context == CTX_DESCR )
+strhdr		: strtype	{ if( rm_context == CTX_DESCR )
 					SE_open( $1 );
-				  else if( context == CTX_SITES )
-					POS_open( $1 ); } ;
+				  else if( rm_context == CTX_SITES )
+					POS_open( $1 );
+				  else
+					$$ = node( $1, 0, 0, 0 );
+				} ;
 strtype		: SYM_SS	{ $$ = SYM_SS; }
 		| SYM_H5	{ $$ = SYM_H5; }
 		| SYM_H3	{ $$ = SYM_H3; }
@@ -159,17 +128,174 @@ strtype		: SYM_SS	{ $$ = SYM_SS; }
 		| SYM_Q2	{ $$ = SYM_Q2; }
 		| SYM_Q3	{ $$ = SYM_Q3; }
 		| SYM_Q4	{ $$ = SYM_Q4; } ;
-strparm_list	: assign
-		| assign SYM_COMMA strparm_list ;
 
-site_part	: SYM_SITES { context = CTX_SITES; } site_list
-		| ;
 site_list	: site
 		| site_list site ;
-site		: siteaddr_list SYM_IN pairval
+site		: pairing SYM_IN expr 
 				{ SI_close( $3 ); } ;
-siteaddr_list	: stref
-		| siteaddr_list SYM_COLON stref ;
+
+rule_list	: rule
+		| rule rule_list ;
+rule		: expr action
+		| action ;
+action		: SYM_LCURLY stmt_list SYM_RCURLY ;
+stmt_list	: stmt
+		| stmt stmt_list ;
+stmt		: accept_stmt
+		| asgn_stmt
+		| break_stmt
+		| call_stmt
+		| cmpd_stmt
+		| continue_stmt
+		| empty_stmt
+		| for_stmt
+		| if_stmt
+		| reject_stmt
+		| while_stmt ;
+accept_stmt	: SYM_ACCEPT SYM_SEMICOLON
+asgn_stmt	: asgn SYM_SEMICOLON ;
+break_stmt	: SYM_BREAK SYM_SEMICOLON ;
+call_stmt	: fcall SYM_SEMICOLON ;
+cmpd_stmt	: SYM_LCURLY stmt_list SYM_RCURLY ;
+continue_stmt	: SYM_CONTINUE SYM_SEMICOLON ;
+empty_stmt	: empty SYM_SEMICOLON ;
+for_stmt	: for_hdr stmt
+if_stmt		: if_hdr stmt
+		| if_hdr stmt SYM_ELSE stmt ;
+reject_stmt	: SYM_REJECT SYM_SEMICOLON ;
+while_stmt	: SYM_WHILE SYM_LPAREN expr SYM_RPAREN stmt ;
+if_hdr		: SYM_IF SYM_LPAREN expr SYM_RPAREN ;
+for_hdr		: SYM_FOR SYM_LPAREN for_ctrl SYM_RPAREN ;
+for_ctrl	: for_expr SYM_SEMICOLON for_expr SYM_SEMICOLON for_expr ;
+for_expr	: expr
+		| empty ;
+
+asgn		: lval asgn_op asgn
+				{ $$ = node( $2, 0, $1, $3 );
+				  if( rm_context == CTX_PARMS )
+					PARM_add( $$ );
+				  else if( rm_context == CTX_DESCR ||
+					rm_context == CTX_SITES )
+					SE_addval( $$ );
+				}
+		| lval asgn_op expr
+				{ $$ = node( $2, 0, $1, $3 );
+				  if( rm_context == CTX_PARMS )
+					PARM_add( $$ );
+				  else if( rm_context == CTX_DESCR ||
+					rm_context == CTX_SITES )
+					SE_addval( $$ );
+				} ;
+asgn_op		: SYM_ASSIGN	{ $$ = SYM_ASSIGN; }
+		| SYM_MINUS_ASSIGN
+				{ $$ = SYM_MINUS_ASSIGN; }
+		| SYM_PLUS_ASSIGN
+				{ $$ = SYM_PLUS_ASSIGN; }
+		| SYM_PERCENT_ASSIGN
+				{ $$ = SYM_PERCENT_ASSIGN; }
+		| SYM_SLASH_ASSIGN
+				{ $$ = SYM_SLASH_ASSIGN; }
+		| SYM_STAR_ASSIGN
+				{ $$ = SYM_STAR_ASSIGN; } ;
+expr		: conj		{ $$ = $1; }
+		| expr SYM_OR conj
+				{ $$ = node( SYM_OR, 0, $1, $3 ); } ;
+conj		: compare	{ $$ = $1; }
+		| compare SYM_AND conj
+				{ $$ = node( SYM_AND, 0, $1, $3 ); } ;
+compare		: a_expr	{ $$ = $1; }
+		| a_expr comp_op a_expr
+				{ $$ = node( $2, 0, $1, $3 ); } ;
+comp_op		: SYM_DONT_MATCH
+				{ $$ = SYM_DONT_MATCH; }
+		| SYM_EQUAL	{ $$ = SYM_EQUAL; }
+		| SYM_GREATER	{ $$ = SYM_GREATER; }
+		| SYM_GREATER_EQUAL
+				{ $$ = SYM_GREATER_EQUAL; }
+		| SYM_IN	{ $$ = SYM_IN; }
+		| SYM_LESS	{ $$ = SYM_LESS; }
+		| SYM_LESS_EQUAL
+				{ $$ = SYM_LESS_EQUAL; }
+		| SYM_MATCH	{ $$ = SYM_MATCH; }
+		| SYM_NOT_EQUAL	{ $$ = SYM_NOT_EQUAL; } ;
+a_expr		: term		{ $$ = $1; }
+		| a_expr add_op term
+				{ $$ = node( $2, 0, $1, $3 ); } ;
+add_op		: SYM_PLUS	{ $$ = SYM_PLUS; }
+		| SYM_MINUS 	{ $$ = SYM_MINUS; } ;
+term		: factor	{ $$ = $1; }
+		| term mul_op factor
+				{ $$ = node( $2, 0, $1, $3 ); } ;
+mul_op		: SYM_PERCENT	{ $$ = SYM_PERCENT; }
+		| SYM_SLASH	{ $$ = SYM_SLASH; }
+		| SYM_STAR	{ $$ = SYM_STAR; } ;
+factor		: primary	{ $$ = $1; }
+		| SYM_MINUS primary
+				{ $$ = node( SYM_NEGATE, 0, 0, $2 ); }
+		| SYM_NOT primary
+				{ $$ = node( SYM_NOT, 0, 0, $2 ); }
+		| pairing	{ $$ = $1; } ;
+pairing 	: stref		{ if( rm_context == CTX_SCORE )
+					$$ = $1;
+				}
+		| stref SYM_COLON pairing
+				{ if( rm_context == CTX_SCORE )
+					$$ = node( SYM_COLON, 0, $1, $3 );
+				} ;
+primary		: lval		{ $$ = $1; }
+		| literal	{ $$ = $1; }
+		| fcall		{ $$ = $1; }
+		| SYM_LPAREN expr SYM_RPAREN
+				{ $$ = $2; } ;
+fcall		: ident SYM_LPAREN e_list SYM_RPAREN
+				{ $$ = node( SYM_CALL, 0, $1, $3 ); } ;
+stref		: strhdr SYM_LPAREN a_list SYM_RPAREN
+				{ if( rm_context == CTX_DESCR )
+					SE_close();
+				  else if( rm_context == CTX_SITES )
+					POS_close();
+				  else if( rm_context == CTX_SCORE )
+					$$ = node( SYM_STREF, 0, $1, $3 );
+				} ;
+lval		: ident		{ $$ = $1; }
+		| incr_op ident	{ $$ = node( $1, 0, 0, $2 ); }
+		| ident incr_op	{ $$ = node( $2, 0, $1, 0 ); } ;
+literal		: SYM_INT	{ $$ = node( SYM_INT, &rm_tokval, 0, 0 ); }
+		| SYM_FLOAT	{ $$ = node( SYM_FLOAT, &rm_tokval, 0, 0 ); }
+		| SYM_STRING	{ $$ = node( SYM_STRING, &rm_tokval, 0, 0 ); } 
+		| SYM_DOLLAR	{ $$ = node( SYM_DOLLAR, &rm_tokval, 0, 0 ); }
+		| pairset	{ $$ = $1; } ;
+ident		: SYM_IDENT 	{ $$ = node( SYM_IDENT, &rm_tokval, 0, 0 ); } ;
+incr_op		: SYM_MINUS_MINUS
+				{ $$ = SYM_MINUS_MINUS; }
+		| SYM_PLUS_PLUS	{ $$ = SYM_PLUS_PLUS; } ;
+e_list		: expr		{ if( rm_context != CTX_SCORE )
+					PR_add( $1 );
+				  else
+					$$ = node( SYM_LIST, 0, $1, 0 );
+				}
+		| expr SYM_COMMA e_list
+				{ if( rm_context != CTX_SCORE )
+					PR_add( $1 );
+				  else
+					$$ = node( SYM_LIST, 0, $1, $3 );
+				} ;
+a_list		: asgn		{ if( rm_context == CTX_SCORE )
+					$$ = node( SYM_LIST, 0, $1, 0 );
+				}
+		| asgn SYM_COMMA a_list
+				{ if( rm_context == CTX_SCORE )
+					$$ = node( SYM_LIST, 0, $1, $3 );
+				} ;
+pairset		: SYM_LCURLY 	{ if( rm_context != CTX_SCORE )
+					PR_open();
+				} e_list SYM_RCURLY
+				{ if( rm_context != CTX_SCORE )
+					$$ = PR_close();
+				  else
+					$$ = node( SYM_LCURLY, 0, 0, $2 );
+				} ;
+empty		: ;
 %%
 
 #include "lex.yy.c"
