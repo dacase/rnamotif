@@ -7,24 +7,33 @@
 
 extern	FILE	*yyin;
 
-extern	int	rm_error;
-extern	VALUE_T	rm_tokval;
-extern	int	rm_lineno;
-extern	int	rm_emsg_lineno;
-extern	char	rm_fname[];
-extern	int	rm_copt;
-extern	int	rm_dopt;
-extern	int	rm_hopt;
-
-static	char	emsg[ 256 ];
+int	rm_error;
+VALUE_T	rm_tokval;
+int	rm_lineno;
+int	rm_emsg_lineno;
+char	rm_fname[ 256 ] = "--stdin--";
+int	rm_copt = 0;
+int	rm_dopt = 0;
+int	rm_hopt = 0;
 
 #define	VALSTKSIZE	20
 static	VALUE_T	valstk[ VALSTKSIZE ];
 static	int	n_valstk;
 
-extern	IDENT_T	rm_global_ids[];
-extern	int	rm_s_global_ids;
-extern	int	rm_n_global_ids;
+#define	RM_GLOBAL_IDS_SIZE	50
+IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ] = {
+	{ "wc", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
+	{ "gu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
+	{ "tr", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
+	{ "qu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
+ /*5*/	{ "database", T_STRING, C_VAR, S_GLOBAL, { T_STRING, "RNA" } },
+	{ "overlap", T_INT, C_VAR, S_GLOBAL, { T_INT, 0 } },
+	{ "wc_minlen", T_INT, C_VAR, S_GLOBAL, { T_INT, 3 } },
+	{ "wc_maxlen", T_INT, C_VAR, S_GLOBAL, { T_INT, 30 } },
+ /*9*/	{ "windowsize", T_INT, C_VAR, S_GLOBAL, { T_INT, 6000 } }
+};
+int	rm_s_global_ids = RM_GLOBAL_IDS_SIZE;
+int	rm_n_global_ids = 9;
 
 #define	LOCAL_IDS_SIZE	20
 static	IDENT_T	*local_ids[ LOCAL_IDS_SIZE ];
@@ -40,31 +49,35 @@ static	int	n_local_ids;
 static	char	*curpair[ CURPAIR_SIZE ];
 int	n_curpair;
 
-PAIRLIST_T	*pairlists[ 5 ];	/* #str = (0,1,) 2,3,4	*/
-
-extern	int	rm_dminlen;
-extern	int	rm_dmaxlen;
-extern	STREL_T	rm_descr[];
-extern	int	rm_s_descr;
-extern	int	rm_n_descr;
+#define	RM_DESCR_SIZE	100
+STREL_T	rm_descr[ RM_DESCR_SIZE ];
+int	rm_s_descr = RM_DESCR_SIZE;
+int	rm_n_descr;
+int	rm_dminlen;	/* min len. of entire motif	*/
+int	rm_dmaxlen;	/* max len. of entire motif	*/
 static	STREL_T	*stp;
 #define	SCOPE_STK_SIZE	100
 static	STREL_T	*scope_stk[ SCOPE_STK_SIZE ];
 static	int	t_scope_stk;
 static	PAIRSET_T	*def_pairset = NULL;
 
-extern	POS_T	rm_pos[];
-extern	int	rm_s_pos;
-extern	int	rm_n_pos;
+#define	RM_POS_SIZE	10
+POS_T	rm_pos[ RM_POS_SIZE ];
+int	rm_s_pos = RM_POS_SIZE;
+int	rm_n_pos;
 static	POS_T	*posp;
 
-extern	SITE_T	*rm_sites;
+SITE_T	*rm_sites = NULL;
 
-extern	int	rm_b2bc[];
-extern	int	rm_s_b2bc;
+#define	RM_B2BC_SIZE	256
+int	rm_b2bc[ RM_B2BC_SIZE ];
+int	rm_s_b2bc = RM_B2BC_SIZE;
+char	rm_bc2b[ N_BCODES ] = { 'a', 'c', 'g', 't', 'n' };
 
-extern	SEARCH_T	**rm_searches;
-extern	int	rm_n_searches;
+SEARCH_T	**rm_searches;
+int	rm_n_searches;
+
+static	char	emsg[ 256 ];
 
 NODE_T	*PR_close();
 
