@@ -37,6 +37,7 @@ static	int	chk_motif();
 static	int	chk_wchlx();
 
 static	void	print_match();
+static	void	set_mbuf();
 
 IDENT_T	*find_id();
 
@@ -498,21 +499,39 @@ STREL_T	descr[];
 {
 	int	d, len;
 	STREL_T	*stp;
+	char	mbuf[ 256 ];
 
 	for( stp = descr, len = 0, d = 0; d < n_descr; d++, stp++ )
 		len += stp->s_matchlen;
 
 	fprintf( fp, "%-12s %d", locus, comp );
 	stp = descr; 
-	fprintf( fp, " %4d %4d %.*s", stp->s_matchoff + 1, len,
-		stp->s_matchlen, &fm_sbuf[ stp->s_matchoff ] );
+	set_mbuf( stp->s_matchoff, stp->s_matchlen, mbuf );
+	fprintf( fp, " %4d %4d %s", stp->s_matchoff + 1, len, mbuf );
 
 	for( ++stp, d = 1; d < n_descr; d++, stp++ ){
-		if( stp->s_matchlen > 0 )
-			fprintf( fp, " %.*s", stp->s_matchlen,
-				&fm_sbuf[ stp->s_matchoff ] );
-		else
+		if( stp->s_matchlen > 0 ){
+			set_mbuf( stp->s_matchoff, stp->s_matchlen, mbuf );
+			fprintf( fp, " %s", mbuf );
+		}else
 			fprintf( fp, " ." );
 	}
 	fprintf( fp, "\n" );
+}
+
+static	void	set_mbuf( off, len, mbuf )
+int	off;
+int	len;
+char	mbuf[];
+{
+
+	if( len <= 20 ){
+		strncpy( mbuf, &fm_sbuf[ off ], len );
+		mbuf[ len ] = '\0';
+	}else{
+		sprintf( mbuf, "%.*s...(%d)...%.*s",
+			3, &fm_sbuf[ off ], len,
+			3, &fm_sbuf[ off + len - 3 ] );
+	}
+
 }
