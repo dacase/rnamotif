@@ -4,8 +4,8 @@
 #include "y.tab.h"
 double	atof();		/* get it it if we ever need reals	*/
 
-extern	int	rmlineno;
-extern	VALUE_T	rmval;
+extern	int	rm_lineno;
+extern	VALUE_T	rm_tokval;
 static	char	*sp;
 
 %}
@@ -13,7 +13,7 @@ static	char	*sp;
 
 #.*		;
 
-\n		rmlineno++;
+\n		rm_lineno++;
 
 [\ \t\f]+	;
 
@@ -41,12 +41,12 @@ q4		return( SYM_Q4 );
 			exit( 1 );
 		  }
 		  strcpy( sp, yytext );
-		  rmval.v_type = T_STRING;
-		  rmval.v_value.v_pval = sp;
+		  rm_tokval.v_type = T_STRING;
+		  rm_tokval.v_value.v_pval = sp;
 		  return( SYM_IDENT );
 		}
-[0-9]+		{ rmval.v_type = T_INT;
-		  rmval.v_value.v_ival = atoi( yytext );
+[0-9]+		{ rm_tokval.v_type = T_INT;
+		  rm_tokval.v_value.v_ival = atoi( yytext );
 		  return( SYM_INT );
 		}
 \"[^"\n]*	{ if( yytext[ yyleng - 1 ] == '\\' )
@@ -62,8 +62,8 @@ q4		return( SYM_Q4 );
 			}
 			strncpy( sp, &yytext[1], yyleng - 2 );
 			sp[ yyleng - 2 ] = '\0';
-			rmval.v_type = T_STRING;
-			rmval.v_value.v_pval = sp;
+			rm_tokval.v_type = T_STRING;
+			rm_tokval.v_value.v_pval = sp;
 			return( SYM_STRING );
 		  }
 		}
