@@ -300,6 +300,8 @@ int	stype;
 	stp->s_index = rm_n_descr - 1;
 	stp->s_lineno = rm_lineno;
 	stp->s_searchno = UNDEF;
+	stp->s_matchoff = UNDEF;
+	stp->s_matchlen = UNDEF;
 	stp->s_tag = NULL;
 	stp->s_next = NULL;
 	stp->s_prev = NULL;
