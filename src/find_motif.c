@@ -246,12 +246,16 @@ SEARCH_T	*srp;
 		n_srp = rm_searches[ n_stp->s_searchno ];
 		rv = find_motif( n_srp );
 	}else{
+		rv = 1;
+		print_match( stdout, fm_locus, fm_comp, rm_n_descr, rm_descr );
+/*
 		if( chk_motif( rm_n_descr, rm_descr, rm_sites ) ){
+			rv = 1;
 			print_match( stdout, fm_locus, fm_comp,
 				rm_n_descr, rm_descr );
-			rv = 1;
 		}else
 			rv = 0;
+*/
 	}
 	unmark_ss( stp, szero, slen );
 	return( rv );
