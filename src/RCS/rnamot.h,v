@@ -1,9 +1,14 @@
-head	1.102;
+head	1.103;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.103
+date	2002.08.11.15.32.15;	author macke;	state Exp;
+branches;
+next	1.102;
 
 1.102
 date	2002.06.12.19.03.14;	author macke;	state Exp;
@@ -521,15 +526,16 @@ desc
 @
 
 
-1.102
+1.103
 log
-@updated date to reflect release of 2.2.0
+@updated version to 2.2.1.  Only changes to rm2ct, but this is the onlyu
+version string.
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.2.0 2002-jun-12"
+#define	VERSION	"v2.2.1 2002-aug-11"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
@@ -754,6 +760,17 @@ typedef	struct	incdir_t	{
 } INCDIR_T;
 
 #endif
+@
+
+
+1.102
+log
+@updated date to reflect release of 2.2.0
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.2.0 2002-jun-12"
 @
 
 

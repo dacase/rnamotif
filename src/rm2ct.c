@@ -2,7 +2,18 @@
 #include <ctype.h>
 #include <string.h>
 
-#define	U_MSG_S	"usage: %s [ rnamotif-out-file ]\n"
+double	atof();
+
+#define	U_MSG_S	\
+"usage: %s [ options ] [ output-type ] [ rnamotif-out-file ]\n\
+\n\
+options:\n\
+\t-help\t\t\tPrint this message\n\
+\n\
+output-type: (Optional) Use one\n\
+	-t rnamotif\t\tNormal ct-format (default)\n\
+	-t rnaviz\t\tStrict ct-format for rnaviz input\n\
+"
 
 #define	UNDEF	(-1)
 
@@ -13,6 +24,10 @@ static	int	n_fields;
 #define	LINE_SIZE 50000
 static	char	ra_line[ LINE_SIZE ];
 static	char	line[ LINE_SIZE ];
+
+#define	OT_RNAMOTIF	0
+#define	OT_RNAVIZ	1
+static	int	o_type = OT_RNAMOTIF;
 
 #define	DT_CTX	0
 #define	DT_SS	1
@@ -67,14 +82,16 @@ static	void	ungetline( char [] );
 static	DESCR_T	*getdescr();
 static	int	getdtype();
 static	int	getsinfo( char [], int, DESCR_T [],
-	char [], int *, int *, int *, char ** );
-static	void	wr_ctfile( FILE *, DESCR_T [], char [], int, int, int, char * );
+	char [], float *, int *, int *, int *, char ** );
+static	void	wr_ctfile( FILE *, int, DESCR_T [],
+	char [], float, int, int, int, char * );
 static	int	getpn( DESCR_T *, int, DESCR_T [] );
 
 main( int argc, char *argv[] )
 {
 	int	ac;
 	char	*fname;
+	float	energy;
 	FILE	*fp;
 	int	d, f;
 	char	sname[ 256 ], *seqp;
@@ -84,7 +101,30 @@ main( int argc, char *argv[] )
 	fname = NULL;
 	fp = NULL;
 	for( ac = 1; ac < argc; ac++ ){
-		if( fname != NULL ){
+		if( !strcmp( argv[ ac ], "-help" ) ){
+			fprintf( stderr, U_MSG_S, argv[ 0 ] );
+			rval = 0;
+			goto CLEAN_UP;
+		}else if( !strcmp( argv[ ac ], "-t" ) ){
+			ac++;
+			if( ac >= argc ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				rval = 1;
+				goto CLEAN_UP;
+			}else if( !strcmp( argv[ ac ], "rnamotif" ) ){
+				o_type = OT_RNAMOTIF;
+			}else if( !strcmp( argv[ ac ], "rnaviz" ) ){
+				o_type = OT_RNAVIZ;
+			}else{
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				rval = 1;
+				goto CLEAN_UP;
+			}
+		}else if( *argv[ ac ] == '-' ){
+			fprintf( stderr, U_MSG_S, argv[ 0 ] );
+			rval = 1;
+			goto CLEAN_UP;
+		}else if( fname != NULL ){
 			fprintf( stderr, U_MSG_S, argv[ 0 ] );
 			rval = 1;
 			goto CLEAN_UP;
@@ -147,12 +187,13 @@ main( int argc, char *argv[] )
 		if( *line == '>' )
 			getline( line, fp );
 		if(!getsinfo( line, n_descr, descr,
-			sname, &comp, &off, &len, &seqp ))
+			sname, &energy, &comp, &off, &len, &seqp ))
 		{
 			getline( line, fp );
 			continue;
 		}
-		wr_ctfile( stdout, descr, sname, comp, off, len, seqp );
+		wr_ctfile( stdout, o_type, descr,
+			sname, energy, comp, off, len, seqp );
 	}
 
 CLEAN_UP : ;
@@ -276,13 +317,14 @@ static	int	getdtype( char dname[], int n_dntab, DN2DT_T dntab[] )
 }
 
 static	int	getsinfo( char line[], int n_descr, DESCR_T descr[],
-	char name[], int *comp, int *off, int *len, char **sp )
+	char name[], float *energy, int *comp, int *off, int *len, char **sp )
 {
 	char	*lp, *np;
 	int	d, scnt, llen, ocnt;
 	DESCR_T	*dp;
 
 	*name = '\0';
+	*energy = 0.0;
 	*comp = *off = *len = 0;
 	*sp = NULL;
 	llen = strlen( line );
@@ -317,6 +359,8 @@ static	int	getsinfo( char line[], int n_descr, DESCR_T descr[],
 		*np++ = *lp;
 	*np = '\0';
 
+	*energy = atof( lp );
+
 	ocnt = 0;
 	for( dp = descr, lp = *sp, d = 0; d < n_descr; d++, dp++ ){
 		while( isspace( *lp ) )
@@ -334,8 +378,8 @@ static	int	getsinfo( char line[], int n_descr, DESCR_T descr[],
 	return( 1 );
 }
 
-static	void	wr_ctfile( FILE *fp, DESCR_T descr[], char name[],
-	int comp, int off, int len, char *seq )
+static	void	wr_ctfile( FILE *fp, int o_type, DESCR_T descr[],
+	char name[], float energy, int comp, int off, int len, char *seq )
 {
 	int	nb;
 	char	*sp;
@@ -346,15 +390,35 @@ static	void	wr_ctfile( FILE *fp, DESCR_T descr[], char name[],
 		if( isalpha( *sp ) )
 			nb++;
 	}
-	fprintf( fp, "%4d %s %d %d %d\n", nb, name, comp, off, len );
+	switch( o_type ){
+	case OT_RNAMOTIF :
+		fprintf( fp, "%4d %s %d %d %d\n", nb, name, comp, off, len );
+		break;
+	case OT_RNAVIZ :
+		fprintf( fp, "%5d dG = %.3f \"%s %d %d %d\"\n", nb, energy,
+			name, comp, off, len );
+		break;
+	default :
+		fprintf( fp, "wr_ctfile: unknown o_type = %d\n", o_type );
+		exit( 1 );
+	}
 
 	for( d0 = 0, dp = descr, d = 0; d < n_descr; d++, dp++ ){
 		if( dp->d_start[ 0 ] == '.' )
 			continue;
 		for( d1 = 0; d1 < dp->d_stop - dp->d_start + 1; d1++ ){
 			bn = d0 + d1 + 1;
-			fprintf( fp, "%4d %c", bn, dp->d_start[ d1 ] );
-			fprintf( fp, " %4d", bn - 1 );
+			switch( o_type ){
+			case OT_RNAMOTIF :
+				fprintf( fp, "%4d %c", bn, dp->d_start[ d1 ] );
+				fprintf( fp, " %4d", bn - 1 );
+				break;
+			case OT_RNAVIZ :
+				fprintf( fp, "%5d %c", bn,
+					toupper( dp->d_start[ d1 ] ) );
+				fprintf( fp, " %7d", bn - 1 );
+				break;
+			}
 			fprintf( fp, " %4d", bn == nb ? 0 : bn + 1 );
 			pn = getpn( dp, d1, descr );
 			fprintf( fp, " %4d", pn );
