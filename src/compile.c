@@ -1597,6 +1597,12 @@ int	d_ok;
 			storeexprval( ip, &valstk[ n_valstk - 2 ] );
 			n_valstk -= 2;
 			break;
+		default :
+			sprintf( emsg,
+				"eval: operator %d not implemented.",
+				expr->n_sym );
+			errormsg( 1, emsg );
+			break;
 		}
 	}
 }
