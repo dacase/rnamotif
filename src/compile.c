@@ -49,7 +49,7 @@ void	SE_dump_descr();
 
 NODE_T	*PR_close();
 
-static	void	enter_id();
+static	IDENT_T	*enter_id();
 static	IDENT_T	*find_id();
 static	void	eval();
 static	int	loadidval();
@@ -99,7 +99,7 @@ NODE_T	*expr;
 {
 
 	n_valstk = 0;
-	eval( expr, 0 );
+	eval( expr, 1 );
 }
 
 void	PR_open()
@@ -187,7 +187,7 @@ NODE_T	*PR_close()
 	np->n_sym = SYM_LCURLY;
 	np->n_type = T_PAIR;
 	np->n_class = C_LIT;
-	np->n_lineno = 0;
+	np->n_lineno = rmlineno;
 	np->n_val.v_value.v_pval = ps;
 	np->n_left = NULL;
 	np->n_right = NULL;
@@ -198,6 +198,7 @@ void	SE_open( stype )
 int	stype;
 {
 	VALUE_T	val;
+	IDENT_T	*ip;
 
 	n_valstk = 0;
 	if( n_descr == DESCRSIZE ){
@@ -225,31 +226,31 @@ int	stype;
 	n_local_ids = 0;
 	val.v_type = T_STRING;
 	val.v_value.v_pval = NULL;
-	enter_id( "tag", T_STRING, C_VAR, S_STREL, &val );
+	ip = enter_id( "tag", T_STRING, C_VAR, S_STREL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = UNDEF;
-	enter_id( "minlen", T_INT, C_VAR, S_STREL, &val );
+	ip = enter_id( "minlen", T_INT, C_VAR, S_STREL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = UNDEF;
-	enter_id( "maxlen", T_INT, C_VAR, S_STREL, &val );
+	ip = enter_id( "maxlen", T_INT, C_VAR, S_STREL, &val );
 
 	val.v_type = T_STRING;
 	val.v_value.v_pval = NULL;
-	enter_id( "seq", T_STRING, C_VAR, S_STREL, &val );
+	ip = enter_id( "seq", T_STRING, C_VAR, S_STREL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 0;
-	enter_id( "mismatch", T_INT, C_VAR, S_STREL, &val );
+	ip = enter_id( "mismatch", T_INT, C_VAR, S_STREL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 0;
-	enter_id( "mispair", T_INT, C_VAR, S_STREL, &val );
+	ip = enter_id( "mispair", T_INT, C_VAR, S_STREL, &val );
 
 	val.v_type = T_PAIR;
 	val.v_value.v_pval = NULL;
-	enter_id( "pair", T_PAIR, C_VAR, S_STREL, &val );
+	ip = enter_id( "pair", T_PAIR, C_VAR, S_STREL, &val );
 }
 
 void	SE_addval( expr )
@@ -400,7 +401,7 @@ STREL_T	*stp;
 	fprintf( fp, "}\n" );
 }
 
-static	void	enter_id( name, type, class, scope, vp )
+static	IDENT_T	*enter_id( name, type, class, scope, vp )
 char	name[];
 int	type;
 int	class;
@@ -437,7 +438,9 @@ VALUE_T	*vp;
 	ip->i_class = class;
 	ip->i_scope = scope;
 	ip->i_val.v_type = type;
-	if( type == T_INT ){
+	if( type == T_UNDEF )
+		ip->i_val.v_value.v_pval = NULL;
+	else if( type == T_INT ){
 		ip->i_val.v_value.v_ival = vp->v_value.v_ival;
 	}else if( type == T_STRING ){
 		if( vp->v_value.v_pval == NULL ) 
@@ -455,15 +458,16 @@ VALUE_T	*vp;
 	}else if( type == T_PAIR ){
 		ip->i_val.v_value.v_pval = NULL;
 	}
+	return( ip );
 }
 
-static	IDENT_T	*find_id( name )
-char	name[];
-{
-	int	i;
-	IDENT_T	*ip;
-	
-	for( i = 0; i < n_local_ids; i++ ){
+	static	IDENT_T	*find_id( name )
+	char	name[];
+	{
+		int	i;
+		IDENT_T	*ip;
+		
+		for( i = 0; i < n_local_ids; i++ ){
 		ip = local_ids[ i ];
 		if( !strcmp( name, ip->i_name ) )
 			return( ip );
@@ -482,11 +486,13 @@ int	d_ok;
 	char	*sp, *l_sp, *r_sp;
 	IDENT_T	*ip, *ip1;
 	int	l_type, r_type;
+	VALUE_T	*vp;
 
 	if( expr ){
-		eval( expr->n_left );
-		eval( expr->n_right );
-		rmemsglineno - expr->n_lineno;
+dumpexpr( stderr, expr, 0 );
+		eval( expr->n_left, d_ok );
+		eval( expr->n_right, d_ok );
+		rmemsglineno = expr->n_lineno;
 		switch( expr->n_sym ){
 		case SYM_INT :
 			valstk[ n_valstk ].v_type = T_INT;
@@ -506,12 +512,24 @@ int	d_ok;
 			valstk[ n_valstk ].v_value.v_pval = sp;
 			n_valstk++;
 			break;
+		case SYM_LCURLY :
+			valstk[ n_valstk ].v_type = T_PAIR;
+			valstk[ n_valstk ].v_value.v_pval = 
+				expr->n_val.v_value.v_pval;
+			n_valstk++;
+			break;
 		case SYM_IDENT :
 			ip = find_id( expr->n_val.v_value.v_pval );
 			if( ip == NULL ){
-				sprintf( emsg, "eval: unknown id '%s'.\n",
-					expr->n_val.v_value.v_pval );
-				errormsg( 1, emsg );
+				if( d_ok ){
+					ip=enter_id(expr->n_val.v_value.v_pval,
+						T_UNDEF, C_VAR, S_GLOBAL, NULL);
+				}else{
+					sprintf( emsg,
+						"eval: unknown id '%s'.\n",
+						expr->n_val.v_value.v_pval );
+					errormsg( 1, emsg );
+				}
 			}
 			valstk[ n_valstk ].v_type = T_IDENT;
 			valstk[ n_valstk ].v_value.v_pval = ip;
