@@ -35,6 +35,8 @@ int	n_curpair;
 
 PAIRLIST_T	*pairlists[ 5 ];	/* #str = (0,1,) 2,3,4	*/
 
+extern	int	rm_tminlen;
+extern	int	rm_tmaxlen;
 extern	STREL_T	rm_descr[];
 extern	int	rm_s_descr;
 extern	int	rm_n_descr;
@@ -70,6 +72,7 @@ static	int	chk_1_strel_parms();
 static	int	chk_len_seq();
 static	int	chk_site();
 static	STREL_T	*set_scopes();
+static	void	find_tlen();
 
 int	RM_init( argc, argv )
 int	argc;
@@ -387,7 +390,12 @@ STREL_T	descr[];
 	for( err = 0, sip = rm_sites; sip; sip = sip->s_next )
 		err |= chk_site( sip );
 
-	return( 0 );
+	if( err )
+		return( err );
+
+	find_tlen( 0, descr, &rm_tminlen, &rm_tmaxlen );
+
+	return( err );
 }
 
 static	int	link_tags( n_descr, descr )
@@ -1952,4 +1960,63 @@ STREL_T	descr[];
 			stp->s_next = &descr[ nd ];
 	}
 	return( &descr[ fd ] );
+}
+
+static	void	find_tlen( fd, descr, tminlen, tmaxlen )
+int	fd;
+STREL_T	descr[];
+int	*tminlen;
+int	*tmaxlen;
+{
+	int	d, d1, d2, nd;
+	int	gminlen, gmaxlen;
+	int	minlen2, minlen3;
+	int	maxlen2, maxlen3;
+	STREL_T	*stp, *stp1, *stp2, *stp3;
+
+	*tminlen = 0;
+	*tmaxlen = 0;
+	for( d = fd; ; d = nd ){
+		stp = &descr[ d ];
+		gminlen = stp->s_minlen;
+		gmaxlen = stp->s_maxlen;
+		for( d1 = 0; d1 < stp->s_n_scopes - 1; d1++ ){
+			stp1 = stp->s_scopes[ d1 ];
+			stp2 = stp->s_scopes[ d1+1 ];
+			if( stp1->s_inner ){
+				stp3 = stp1->s_inner;
+				find_tlen( stp3->s_index,
+					descr, &minlen3, &maxlen3 );
+				stp1->s_minilen = minlen3;
+				stp1->s_maxilen = maxlen3;
+				gminlen += minlen3;
+				if( gmaxlen != UNBOUNDED ){
+					if( maxlen3 == UNBOUNDED )
+						gmaxlen = UNBOUNDED;
+					else
+						gmaxlen += maxlen3;
+				}
+			}
+			gminlen += stp2->s_minlen;
+			if( gmaxlen != UNBOUNDED ){
+				if( stp2->s_maxlen == UNBOUNDED )
+					gmaxlen = UNBOUNDED;
+				else
+					gmaxlen += stp2->s_maxlen;
+			}
+		} 
+		stp->s_minglen = gminlen;
+		stp->s_maxglen = gmaxlen;
+		*tminlen += gminlen;
+		if( *tmaxlen != UNBOUNDED ){
+			if( gmaxlen == UNBOUNDED )
+				*tmaxlen = UNBOUNDED;
+			else
+				*tmaxlen += gmaxlen; 
+		}
+		if( stp->s_next )
+			nd = stp->s_next->s_index;
+		else
+			break;
+	} 
 }
