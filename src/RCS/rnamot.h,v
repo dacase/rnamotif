@@ -1,9 +1,64 @@
-head	1.103;
+head	1.114;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.114
+date	2002.10.07.14.13.50;	author macke;	state Exp;
+branches;
+next	1.113;
+
+1.113
+date	2002.10.06.03.03.11;	author macke;	state Exp;
+branches;
+next	1.112;
+
+1.112
+date	2002.10.04.03.08.49;	author macke;	state Exp;
+branches;
+next	1.111;
+
+1.111
+date	2002.09.26.20.05.56;	author macke;	state Exp;
+branches;
+next	1.110;
+
+1.110
+date	2002.09.13.17.41.48;	author macke;	state Exp;
+branches;
+next	1.109;
+
+1.109
+date	2002.09.09.19.31.11;	author macke;	state Exp;
+branches;
+next	1.108;
+
+1.108
+date	2002.09.06.02.49.17;	author macke;	state Exp;
+branches;
+next	1.107;
+
+1.107
+date	2002.09.03.17.56.07;	author macke;	state Exp;
+branches;
+next	1.106;
+
+1.106
+date	2002.09.02.23.28.58;	author macke;	state Exp;
+branches;
+next	1.105;
+
+1.105
+date	2002.08.17.18.47.35;	author macke;	state Exp;
+branches;
+next	1.104;
+
+1.104
+date	2002.08.14.03.55.26;	author macke;	state Exp;
+branches;
+next	1.103;
 
 1.103
 date	2002.08.11.15.32.15;	author macke;	state Exp;
@@ -526,19 +581,18 @@ desc
 @
 
 
-1.103
+1.114
 log
-@updated version to 2.2.1.  Only changes to rm2ct, but this is the onlyu
-version string.
+@updated date for new release (2.3.1)
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.2.1 2002-aug-11"
+#define	VERSION	"v2.3.1 2002-oct-07"
 
 #define	U_MSG_S	\
-"usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
+"usage: %s [ options ] descr [ fmt ] [ data ]\n\n\
 options:\n\
 \t-c\t\t\tCompile only, no search\n\
 \t-d\t\t\tDump internal data structures\n\
@@ -562,7 +616,11 @@ descr:\tUse one:\n\
 fmt:\t(Optional) Use one:\n\
 \t-fmt fastn\t\tfastn (default)\n\
 \t-fmt pir\t\tpir\n\
-\t-fmt gb\t\t\tGB flatfile\n"
+\t-fmt gb\t\t\tGB flatfile\n\
+\n\
+data:\t(Optional) Use one:\n\
+\tfile1 ...\t\tSerial version; no files search stdin (default)\n\
+\t-fmap file-map db1 ...\tParallel version; no dbs search whole map\n"
 
 #define	UNBOUNDED	0x7fffffff
 #define	EFN_INFINITY	16000	/* ? */
@@ -759,7 +817,164 @@ typedef	struct	incdir_t	{
 	char	*i_name;
 } INCDIR_T;
 
+typedef	struct	args_t	{
+	int	a_copt;
+	int	a_dopt;
+	int	a_hopt;
+	float	a_o_emin;
+	int	a_popt;
+	int	a_sopt;
+	int	a_vopt;
+	int	a_show_context;
+	int	a_strict_helices;
+	INCDIR_T	*a_idlist;
+	char	*a_dfname;
+	char	*a_xdfname;
+	char	*a_cldefs;
+	char	*a_dbfmt;
+	char	*a_fmfname;
+	char	**a_dbfname;
+	int	a_n_dbfname;
+	int	a_c_dbfname;
+} ARGS_T;
+
 #endif
+@
+
+
+1.113
+log
+@updated date
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.3.1 2002-oct-05"
+@
+
+
+1.112
+log
+@new version 2.3.1. (start in on)
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.3.1 2002-oct-03"
+@
+
+
+1.111
+log
+@update version to 2.3.0.  mrnamotif works!
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.3.0 2002-sep-26"
+@
+
+
+1.110
+log
+@update date.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.2.3 2002-sep-13"
+@
+
+
+1.109
+log
+@updated version date.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.2.3 2002-sep-09"
+@
+
+
+1.108
+log
+@fixed ARGS_T to hold the string arg of -fmt.  Interpretation is done
+as strings in rnamot.c  This makes it much easier to coordinate the
+same set of file types used via a file map in the parallel version.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.2.3 2002-sep-05"
+@
+
+
+1.107
+log
+@updated date to 2002-sep-03
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.2.3 2002-sep-03"
+d246 1
+a246 1
+	int	a_dbfmt;
+@
+
+
+1.106
+log
+@added field a_fmfname to ARGS_T to hold the name of the file map.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.2.3 2002-sep-02"
+@
+
+
+1.105
+log
+@updated version to 2.2.2
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.2.2 2002-aug-17"
+d7 1
+a7 1
+"usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
+d31 5
+a35 1
+\t-fmt gb\t\t\tGB flatfile\n"
+d247 1
+@
+
+
+1.104
+log
+@new type, ARGS_T that holds all cmd line args.  Update version to
+2.2.1a
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.2.1a 2002-aug-13"
+@
+
+
+1.103
+log
+@updated version to 2.2.1.  Only changes to rm2ct, but this is the onlyu
+version string.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.2.1 2002-aug-11"
+d227 20
 @
 
 

@@ -1,9 +1,14 @@
-head	1.22;
+head	1.23;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.23
+date	2002.08.17.18.06.57;	author macke;	state Exp;
+branches;
+next	1.22;
 
 1.22
 date	2002.05.15.04.30.18;	author macke;	state Exp;
@@ -122,9 +127,9 @@ enough to begin integration into rnamotif.
 @
 
 
-1.22
+1.23
 log
-@converted many Boolean 0's into FALSE
+@removed new line from RM_knotted errmsg.
 @
 text
 @/*
@@ -1321,7 +1326,7 @@ int	RM_knotted( void )
 					if( l <= ip || l >= j ){
 						rval = 1;
 						sprintf( emsg,
-	"RM_knotted: Base pairs %5d.%5d and %5d.%5d are improperly nested.\n",
+	"RM_knotted: Base pairs %5d.%5d and %5d.%5d are improperly nested.",
 						rm_hstnum[ip], rm_hstnum[j],
 						rm_hstnum[k], rm_hstnum[l] );
 						RM_errormsg( FALSE, emsg );
@@ -1811,6 +1816,17 @@ static	int	pull( int *a, int *b, int *c )
 	stkp--;
 	return( 0 );
 }
+@
+
+
+1.22
+log
+@converted many Boolean 0's into FALSE
+@
+text
+@d1195 1
+a1195 1
+	"RM_knotted: Base pairs %5d.%5d and %5d.%5d are improperly nested.\n",
 @
 
 

@@ -11,8 +11,9 @@
 #define	ODD(i)		((i)&0x1)
 #define	EPS		1e-6
 
+extern	ARGS_T	*rm_args;
+
 extern	int	rm_emsg_lineno;
-extern	int	rm_strict_helices;
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
 extern	STREL_T	*rm_o_stp;	/* search for this first	*/
@@ -317,7 +318,7 @@ static	int	find_ss( SEARCH_T *srp )
 		rv = find_motif( n_srp );
 	}else{
 		rv = 1;
-		if( rm_strict_helices && 
+		if( rm_args->a_strict_helices && 
 			!chk_motif( rm_n_descr, rm_descr, rm_sites ) )
 		{
 				rv = FALSE;

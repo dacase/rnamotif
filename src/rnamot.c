@@ -6,21 +6,11 @@
 extern	FILE	*yyin;
 
 extern	int	rm_error;
-extern	char	*rm_dfname;
-extern	char	*rm_xdfname;
+
+extern	ARGS_T	*rm_args;
 extern	int	rm_preprocess;
 extern	int	rm_unlink_xdf;
-extern	int	rm_copt;
-extern	int	rm_dopt;
-extern	int	rm_hopt;
-extern	int	rm_popt;
-extern	int	rm_sopt;
-extern	int	rm_vopt;
-extern	int	rm_dbfmt;
 extern	FILE	*rm_dbfp;
-extern	char	**rm_dbfname;
-extern	int	rm_n_dbfname;
-extern	int	rm_c_dbfname;
 
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
@@ -63,11 +53,11 @@ main( int argc, char *argv[] )
 	if( RM_init( argc, argv ) )
 		exit( 1 );
 
-	if( rm_vopt ){
+	if( rm_args->a_vopt ){
 		fprintf( stderr, "%s: %s.\n", argv[ 0 ], VERSION );
 		done = 1;
 	}
-	if( rm_sopt ){
+	if( rm_args->a_sopt ){
 		RM_dump( stderr, 2, 0, 0, 0 );
 		done = 1;
 	}
@@ -75,13 +65,13 @@ main( int argc, char *argv[] )
 		exit( 0 );
 
 	if( rm_preprocess ){
-		if( ( rm_xdfname = RM_preprocessor() ) == NULL )
+		if( ( rm_args->a_xdfname = RM_preprocessor() ) == NULL )
 			exit( 1 );
 	}
 
-	if( ( yyin = fopen( rm_xdfname, "r" ) ) == NULL ){
+	if( ( yyin = fopen( rm_args->a_xdfname, "r" ) ) == NULL ){
 		fprintf( stderr, "%s: can't read xd-file %s.\n",
-			argv[ 0 ], rm_xdfname );
+			argv[ 0 ], rm_args->a_xdfname );
 		exit( 1 );
 	}
 
@@ -90,16 +80,16 @@ main( int argc, char *argv[] )
 	}
 
 	if( rm_unlink_xdf )
-		unlink( rm_xdfname );
+		unlink( rm_args->a_xdfname );
 
 	if( !rm_error ){
 		if( SE_link( rm_n_descr, rm_descr ) )
 			exit( 1 );
 		RM_linkscore();
-		if( rm_dfname != NULL ){
+		if( rm_args->a_dfname != NULL ){
 			fprintf( stderr,
 				"%s: complete descr length: min/max = %d/",
-				rm_dfname, rm_dminlen );
+				rm_args->a_dfname, rm_dminlen );
 			if( rm_dmaxlen == UNBOUNDED )
 				fprintf( stderr, "UNBND\n" );
 			else
@@ -107,16 +97,17 @@ main( int argc, char *argv[] )
 		}
 	}
 
-	if( rm_dopt || rm_hopt )
-		RM_dump( stderr, rm_dopt, rm_dopt, rm_dopt, rm_hopt );
+	if( rm_args->a_dopt || rm_args->a_hopt )
+		RM_dump( stderr, rm_args->a_dopt, rm_args->a_dopt,
+			rm_args->a_dopt, rm_args->a_hopt );
 
-	if( rm_dopt || rm_popt )
+	if( rm_args->a_dopt || rm_args->a_popt )
 		RM_dumpscore( stderr );
 
 	if( rm_error )
 		exit( 1 );
 
-	if( rm_copt )
+	if( rm_args->a_copt )
 		exit( 0 );
 
 	ip = RM_find_id( "chk_both_strs" );
@@ -131,18 +122,21 @@ main( int argc, char *argv[] )
 	else
 		show_progress = ip->i_val.v_value.v_ival;
 
-	if( rm_dbfmt == DT_FASTN )
+	if( rm_args->a_dbfmt == NULL )
 		fgetseq = FN_fgetseq;
-	else if( rm_dbfmt == DT_PIR )
+	else if( !strcmp( rm_args->a_dbfmt, DT_FASTN ) )
+		fgetseq = FN_fgetseq;
+	else if( !strcmp( rm_args->a_dbfmt, DT_PIR ) )
 		fgetseq = PIR_fgetseq;
-	else if( rm_dbfmt == DT_GENBANK )
+	else if( !strcmp( rm_args->a_dbfmt, DT_GENBANK ) )
 		fgetseq = GB_fgetseq;
 	else{
 		fprintf( stderr, "%s: unknown data format %d.\n",
-			argv[ 0 ], rm_dbfmt );
+			argv[ 0 ], rm_args->a_dbfmt );
 		exit( 1 );
 	}
-	rm_dbfp = DB_fnext( rm_dbfp, &rm_c_dbfname, rm_n_dbfname, rm_dbfname );
+	rm_dbfp = DB_fnext( rm_dbfp, &rm_args->a_c_dbfname,
+		rm_args->a_n_dbfname, rm_args->a_dbfname );
 	if( rm_dbfp == NULL )
 		exit( 1 );
 
@@ -151,7 +145,8 @@ main( int argc, char *argv[] )
 			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
 		if( slen == EOF ){
 			rm_dbfp = DB_fnext( rm_dbfp,
-				&rm_c_dbfname, rm_n_dbfname, rm_dbfname );
+				&rm_args->a_c_dbfname, rm_args->a_n_dbfname,
+				rm_args->a_dbfname );
 			if( rm_dbfp == NULL )
 				break;
 		}

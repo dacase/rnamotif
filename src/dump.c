@@ -6,7 +6,7 @@
 #include "rnamot.h"
 #include "y.tab.h"
 
-extern	INCDIR_T	*rm_idlist;
+extern	ARGS_T	*rm_args;
 
 extern	IDENT_T	*rm_global_ids;
 extern	int	rm_n_global_ids;
@@ -49,11 +49,11 @@ void	RM_dump( FILE *fp,
 	char	prefix[ 100 ];
 	INCDIR_T	*id1;
 
-	if( rm_idlist != NULL ){
-		for( i = 0, id1 = rm_idlist; id1; id1 = id1->i_next )
+	if( rm_args->a_idlist != NULL ){
+		for( i = 0, id1 = rm_args->a_idlist; id1; id1 = id1->i_next )
 			i++;
 		fprintf( fp, "INCLUDES: %3d dirs.\n", i );
-		for( id1 = rm_idlist; id1; id1 = id1->i_next )
+		for( id1 = rm_args->a_idlist; id1; id1 = id1->i_next )
 			fprintf( fp, "\t%s\n", id1->i_name );
 	}
 

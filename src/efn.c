@@ -1192,7 +1192,7 @@ int	RM_knotted( void )
 					if( l <= ip || l >= j ){
 						rval = 1;
 						sprintf( emsg,
-	"RM_knotted: Base pairs %5d.%5d and %5d.%5d are improperly nested.\n",
+	"RM_knotted: Base pairs %5d.%5d and %5d.%5d are improperly nested.",
 						rm_hstnum[ip], rm_hstnum[j],
 						rm_hstnum[k], rm_hstnum[l] );
 						RM_errormsg( FALSE, emsg );

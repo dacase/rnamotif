@@ -8,34 +8,19 @@ double	atof();
 #include "rnamot.h"
 #include "y.tab.h"
 
+ARGS_T	*rm_args;
+
 int	rm_context = CTX_PARMS;
 VALUE_T	rm_tokval;
-char	*rm_dfname;
-char	rm_wdfname[ 256 ];
-char	*rm_xdfname;
-int	rm_preprocess = 1;
-int	rm_unlink_xdf = 1;
+
+char	*rm_wdfname;
+int	rm_preprocess = TRUE;
+int	rm_unlink_xdf = TRUE;
 int	rm_lineno;
 int	rm_error;
 int	rm_emsg_lineno;
 
-INCDIR_T	*rm_idlist;
-
-char	*rm_cldefs;
-
-int	rm_copt = FALSE;
-int	rm_dopt = FALSE;
-int	rm_hopt = FALSE;
-int	rm_popt = FALSE;
-int	rm_sopt = FALSE;
-int	rm_strict_helices = FALSE;
-int	rm_vopt = FALSE;
-int	rm_show_context = FALSE;
-int	rm_dbfmt = DT_FASTN;
 FILE	*rm_dbfp = NULL;
-char	**rm_dbfname;
-int	rm_n_dbfname;
-int	rm_c_dbfname;
 
 #define	VALSTKSIZE	20
 static	VALUE_T	valstk[ VALSTKSIZE ];
@@ -64,7 +49,6 @@ int	rm_s_descr = RM_DESCR_SIZE;
 int	rm_n_descr;
 int	rm_dminlen;		/* min len. of entire motif	*/
 int	rm_dmaxlen;		/* max len. of entire motif	*/
-static	float	rm_o_emin = 2.5;/* min len of subpat for opt	*/
 STREL_T	*rm_o_stp = NULL;	/* "optimized" sub-query	*/
 char	*rm_o_expbuf = NULL;	/* RE buf for optimized stp	*/
 int	rm_o_lctx = UNDEF;	/* required #nt 5' of o_stp	*/
@@ -117,6 +101,8 @@ extern	int	circf;		/* RE ^ kludge	*/
 
 static	char	emsg[ 256 ];
 
+ARGS_T	*RM_getargs( int, char *[] );
+
 NODE_T	*PR_close( void );
 
 IDENT_T	*RM_enter_id( char [], int, int, int, int, VALUE_T * );
@@ -168,178 +154,25 @@ static	void	dump_bestpat();
 
 int	RM_init( int argc, char *argv[] )
 {
-	int	ac, i, err, len, cldsize;
+	int	i;
 	NODE_T	*np;
-	char	*sp;
 	VALUE_T	val;
 	IDENT_T	*ip;
-	INCDIR_T	*id1, *idt;
 
-	rm_dbfname = ( char ** )malloc( argc * sizeof( char * ) );
-	if( rm_dbfname == NULL ){
-		fprintf( stderr, "%s: can't allocate rm_dbfname.\n",
-			argv[ 0 ] );
+	if( ( rm_args = RM_getargs( argc, argv ) ) == NULL )
 		return( 1 );
-	}
-	rm_n_dbfname = 0;
-	rm_c_dbfname = UNDEF;
 
-	id1 = idt = NULL;	/* list of include dirs */
-	for( err = FALSE, cldsize = 0, ac = 1; ac < argc; ac++ ){
-		if( !strcmp( argv[ ac ], "-c" ) )
-			rm_copt = 1;
-		else if( !strcmp( argv[ ac ], "-d" ) )
-			rm_dopt = 1;
-		else if( !strcmp( argv[ ac ], "-h" ) )
-			rm_hopt = 1;
-		else if( !strncmp( argv[ ac ], "-O", 2 ) ){
-			sp = &argv[ ac ][ 2 ];
-			if( *sp == '\0' ){
-				fprintf( stderr, U_MSG_S, argv[ 0 ] );
-				err = 1;
-				break;
-			}else{
-				rm_o_emin = atof( sp );
-				if( rm_o_emin < 0.25 )
-					rm_o_emin = 0.0;
-			}
-		}else if( !strcmp( argv[ ac ], "-p" ) )
-			rm_popt = 1;
-		else if( !strcmp( argv[ ac ], "-s" ) )
-			rm_sopt = 1;
-		else if( !strcmp( argv[ ac ], "-v" ) )
-			rm_vopt = 1;
-		else if( !strcmp( argv[ ac ], "-context" ) )
-			rm_show_context = 1;
-		else if( !strcmp( argv[ ac ], "-sh" ) )
-			rm_strict_helices = 1;
-		else if( !strcmp( argv[ ac ], "-descr" ) ){
-			if( ac == argc - 1 ){
-				fprintf( stderr, U_MSG_S, argv[ 0 ] );
-				err = 1;
-				break;
-			}else if( rm_dfname != NULL ){
-				fprintf( stderr, U_MSG_S, argv[ 0 ] );
-				err = 1;
-				break;
-			}else{
-				ac++;
-				rm_dfname = argv[ ac ];
-			}
-		}else if( !strcmp( argv[ ac ], "-xdescr" ) ){
-			rm_preprocess = FALSE;
-			rm_unlink_xdf = FALSE;
-			if( ac == argc - 1 ){
-				fprintf( stderr, U_MSG_S, argv[ 0 ] );
-				err = 1;
-				break;
-			}else if( rm_xdfname != NULL ){
-				fprintf( stderr, U_MSG_S, argv[ 0 ] );
-				err = 1;
-				break;
-			}else{
-				ac++;
-				rm_xdfname = argv[ ac ];
-			}
-		}else if( !strncmp( argv[ ac ], "-D", 2 ) ){
-			cldsize += strlen( &argv[ ac ][ 2 ] ) + 2;
-		}else if( !strncmp( argv[ ac ], "-I", 2 ) ){
-			id1 = ( INCDIR_T * )malloc( sizeof( INCDIR_T ) );
-			if( id1 == NULL ){
-				fprintf( stderr,
-				"%s: can't allocate space for incdir %s.",
-					argv[ 0 ], argv[ ac ] );
-				err = 1;
-				break;
-			}
-			len = strlen( &argv[ ac ][ 2 ] ) + 1;
-			sp = ( char * ) malloc( len * sizeof( char ) );
-			if( sp == NULL ){
-				fprintf( stderr,
-					"%s: can't allocate sp for incdir %s.",
-					argv[ 0 ], argv[ ac ] );
-				err = 1;
-				break;
-			}
-			strcpy( sp, &argv[ ac ][ 2 ] );
-			id1->i_next = NULL;
-			id1->i_name = sp;
-			if( rm_idlist == NULL )
-				rm_idlist = id1;
-			else
-				idt->i_next = id1;
-			idt = id1;
-		}else if( !strcmp( argv[ ac ], "-xdfname" ) ){
-			rm_unlink_xdf = FALSE;
-			if( ac == argc - 1 ){
-				fprintf( stderr, U_MSG_S, argv[ 0 ] );
-				err = 1;
-				break;
-			}else if( rm_xdfname != NULL ){
-				fprintf( stderr, U_MSG_S, argv[ 0 ] );
-				err = 1;
-				break;
-			}else{
-				ac++;
-				rm_xdfname = argv[ ac ];
-			}
-		}else if( !strcmp( argv[ ac ], "-fmt" ) ){
-			if( ac == argc - 1 ){
-				fprintf( stderr, U_MSG_S, argv[ 0 ] );
-				err = 1;
-				break;
-			}
-			ac++;
-			if( !strcmp( argv[ ac ], "fastn" ) )
-				rm_dbfmt = DT_FASTN;
-			else if( !strcmp( argv[ ac ], "pir" ) )
-				rm_dbfmt = DT_PIR;
-			else if( !strcmp( argv[ ac ], "gb" ) )
-				rm_dbfmt = DT_GENBANK;
-			else{
-				fprintf( stderr, U_MSG_S, argv[ 0 ] );
-				err = 1;
-				break;
-			}
-		}else if( *argv[ ac ] == '-' ){
-			fprintf( stderr, U_MSG_S, argv[ 0 ] );
-			err = 1;
-			break;
-		}else{
-			rm_dbfname[ rm_n_dbfname ] = argv[ ac ];
-			rm_n_dbfname++;
-		}
-	}
-	if( err )
-		return( 1 );
-	if( rm_vopt && !rm_sopt )
+	if( rm_args->a_vopt && !rm_args->a_sopt )
 		return( 0 );
-	if( rm_dfname == NULL && rm_xdfname == NULL ){
-		if( !rm_sopt ){
+
+	if( rm_args->a_dfname == NULL && rm_args->a_xdfname == NULL ){
+		if( !rm_args->a_sopt ){
 			fprintf( stderr, U_MSG_S, argv[ 0 ] );
 			return( 1 );
 		}
-	}
-
-	if( cldsize > 0 ){
-		cldsize++;	/* add space for '\0'	*/
-		rm_cldefs = ( char * )malloc( cldsize * sizeof( char ) );
-		if( rm_cldefs == NULL ){
-			fprintf( stderr,
-				"%s: can't allocate space for cmd-line defs.\n",
-				argv[ 0 ] );
-			return( 1 );
-		}
-		for( sp = rm_cldefs, ac = 1; ac < argc; ac++ ){
-			if( !strncmp( argv[ ac ], "-D", 2 ) ){ 
-				strcpy( sp, &argv[ ac ][ 2 ] );
-				sp += strlen( sp );
-				*sp++ =  ';';
-				*sp++ =  ' ';
-			}
-		}
-		sp[-1] = '\n';
-		*sp = '\0';
+	}else if( rm_args->a_xdfname != NULL ){
+		rm_unlink_xdf = FALSE;
+		rm_preprocess = rm_args->a_dfname != NULL;
 	}
 
 	for( i = 0; i < rm_s_b2bc; i++ )
@@ -432,7 +265,7 @@ int	RM_init( int argc, char *argv[] )
 	RM_enter_id( "wc_ends", T_STRING, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_INT;
-	val.v_value.v_ival = rm_strict_helices;
+	val.v_value.v_ival = rm_args->a_strict_helices;
 	RM_enter_id( "wc_strict", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_STRING;
@@ -440,7 +273,7 @@ int	RM_init( int argc, char *argv[] )
 	RM_enter_id( "phlx_ends", T_STRING, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_INT;
-	val.v_value.v_ival = rm_strict_helices;
+	val.v_value.v_ival = rm_args->a_strict_helices;
 	RM_enter_id( "phlx_strict", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_STRING;
@@ -448,7 +281,7 @@ int	RM_init( int argc, char *argv[] )
 	RM_enter_id( "tr_ends", T_STRING, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_INT;
-	val.v_value.v_ival = rm_strict_helices;
+	val.v_value.v_ival = rm_args->a_strict_helices;
 	RM_enter_id( "tr_strict", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_STRING;
@@ -456,7 +289,7 @@ int	RM_init( int argc, char *argv[] )
 	RM_enter_id( "qu_ends", T_STRING, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_INT;
-	val.v_value.v_ival = rm_strict_helices;
+	val.v_value.v_ival = rm_args->a_strict_helices;
 	RM_enter_id( "qu_strict", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_INT;
@@ -490,8 +323,8 @@ int	RM_init( int argc, char *argv[] )
 
 	rm_lineno = 0;
 
-	if( rm_sopt )
-		rm_vopt = 1;
+	if( rm_args->a_sopt )
+		rm_args->a_vopt = TRUE;
 
 	return( 0 );
 }
@@ -902,7 +735,7 @@ int	SE_link( int n_descr, STREL_T descr[] )
 	find_search_order( 0, descr );
 	set_search_order_links( rm_n_searches, rm_searches );
 
-	if( rm_o_emin > 0.0 )
+	if( rm_args->a_o_emin > 0.0 )
 		optimize_query();
 
 	return( err );
@@ -911,7 +744,7 @@ int	SE_link( int n_descr, STREL_T descr[] )
 static	int	chk_context( void )
 {
 
-	if( !rm_show_context )
+	if( !rm_args->a_show_context )
 		return( 0 );
 
 	if( rm_lctx == NULL ){
@@ -1921,7 +1754,7 @@ static	void	chk_strict_helices( int n_descr, STREL_T descr[] )
 			}
 		}
 	}
-	rm_strict_helices = sh;
+	rm_args->a_strict_helices = sh;
 }
 
 IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
@@ -3518,7 +3351,7 @@ static	void	optimize_query( void )
 		stp = &rm_descr[ d ];
 		if( stp->s_seq != NULL ){
 			ecnt = stp->s_bestpat.b_ecnt - stp->s_mismatch;
-			if( ecnt < rm_o_emin )
+			if( ecnt < rm_args->a_o_emin )
 				continue;
 			if( ecnt > o_ecnt ){
 				o_ecnt = ecnt;

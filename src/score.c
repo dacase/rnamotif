@@ -267,7 +267,7 @@ static	void	do_mm_i( INST_T * );
 
 static	float	RM_bits( INST_T *, int, int, int, int );
 static	int	setupefn( INST_T *, int, int, int, int );
-static	int	setbp( STREL_T *, int, int, int, int, int [] );
+static	int	setbp( INST_T *, STREL_T *, int, int, int, int, int [] );
 static	void	mk_stref_name( int, char []);
 static	void	addnode( int, NODE_T *, int );
 static	void	addinst( NODE_T *, int, VALUE_T * );
@@ -3214,7 +3214,8 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 	for( p = pos; p < stp5->s_matchlen; p++, i++ ){
 		rm_bcseq[ i ] = rm_b2bc[ *bp++ ];
 		if( stp5->s_type == SYM_H5 ){
-			if( !setbp( stp5, p, i, off5, len, rm_basepr ) ){
+			if( !setbp( ip, stp5, p, i, off5, len, rm_basepr ) ){
+				return( 0 );
 			}
 		}else if( stp5->s_type == SYM_H3 ){	/* treat as ss() */
 			rm_basepr[ i ] = UNDEF;
@@ -3224,7 +3225,7 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( TRUE, 
-			"setupefn: efn() only works on h5/ss/h3 elements." );
+		"setupefn: efn()/efn2() only works on h5/ss/h3 elements." );
 			return( 0 );
 		} 
 		rm_hstnum[ i ] = off + i * inc;
@@ -3234,10 +3235,16 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 		for( p = 0; p < stp->s_matchlen; p++, i++ ){
 			rm_bcseq[ i ] = rm_b2bc[ *bp++ ];
 			if( stp->s_type == SYM_H5 ){
-				if( !setbp( stp, p, i, off5, len, rm_basepr ) ){
+				if( !setbp( ip,
+					stp, p, i, off5, len, rm_basepr ) )
+				{
+					return( 0 );
 				}
 			}else if( stp->s_type == SYM_H3 ){
-				if( !setbp( stp, p, i, off5, len, rm_basepr ) ){
+				if( !setbp( ip,
+					stp, p, i, off5, len, rm_basepr ) )
+				{
+					return( 0 );
 				}
 			}else if( stp->s_type == SYM_SS ){
 				rm_basepr[ i ] = UNDEF;
@@ -3245,7 +3252,7 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 				rm_wdfname = ip->i_filename;
 				rm_emsg_lineno = ip->i_lineno;
 				RM_errormsg( TRUE, 
-			"setupefn: efn() only works on h5/ss/h3 elements." );
+		"setupefn: efn()/efn2() only works on h5/ss/h3 elements." );
 				return( 0 );
 			}
 			rm_hstnum[ i ] = off + i * inc;
@@ -3257,7 +3264,8 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 		if( stp3->s_type == SYM_H5 ){	/* treat as ss() */
 			rm_basepr[ i ] = UNDEF;
 		}else if( stp3->s_type == SYM_H3 ){
-			if( !setbp( stp3, p, i, off5, len, rm_basepr ) ){
+			if( !setbp( ip, stp3, p, i, off5, len, rm_basepr ) ){
+				return( 0 );
 			}
 		}else if( stp3->s_type == SYM_SS ){
 			rm_basepr[ i ] = UNDEF;
@@ -3265,7 +3273,7 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( TRUE, 
-			"setupefn: efn() only works on h5/ss/h3 elements." );
+		"setupefn: efn()/efn2() only works on h5/ss/h3 elements." );
 			return( 0 );
 		} 
 		rm_hstnum[ i ] = off + i * inc;
@@ -3275,7 +3283,7 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 	return( 1 );
 }
 
-static	int	setbp( STREL_T *stp, int p, int i, int off, int len,
+static	int	setbp( INST_T *ip, STREL_T *stp, int p, int i, int off, int len,
 	int basepr[] )
 {
 	STREL_T	*stp1;
@@ -3284,6 +3292,13 @@ static	int	setbp( STREL_T *stp, int p, int i, int off, int len,
 	int	b, b1;
 	PAIRSET_T	*ps;
 
+	if( !stp->s_attr[ SA_PROPER ] ){
+		rm_wdfname = ip->i_filename;
+		rm_emsg_lineno = ip->i_lineno;
+		RM_errormsg( TRUE, 
+			"setbp: efn()/efn2() does not work on pknots." );
+		return( 0 );
+	}
 	bp = p + stp->s_matchoff - off;
 	b = sc_sbuf[ p + stp->s_matchoff ];
 
@@ -3293,7 +3308,10 @@ static	int	setbp( STREL_T *stp, int p, int i, int off, int len,
 	b1 = sc_sbuf[ p1 + stp1->s_matchoff ];
 
 	if( bp1 < 0 || bp1 >= len ){
-fprintf( stderr, "out of bounds bp: %4d.%4d\n", bp, bp1 ); 
+		rm_wdfname = ip->i_filename;
+		rm_emsg_lineno = ip->i_lineno;
+		sprintf( emsg, "setbp: out of bounds bp: %4d.%4d\n", bp, bp1 ); 
+		RM_errormsg( TRUE, emsg );
 		return( 0 );
 	}else{
 		ps = rm_efnusestdbp ? rm_efnstdbp : stp->s_pairset;

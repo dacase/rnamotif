@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.08.15.02.54.48;	author macke;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.05.14.19.14.08;	author macke;	state Exp;
@@ -21,9 +26,9 @@ desc
 @
 
 
-1.2
+1.3
 log
-@added new include file rmdefs.h; defines UNDEF, FALSE, TRUE; only UNDEF used.
+@cleaned up input file processing.
 @
 text
 @#include <stdio.h>
@@ -32,11 +37,12 @@ text
 #include "rmdefs.h"
 #include "rnamot.h"
 
+int	rm_error;
+char	*rm_wdfname;
+int	rm_emsg_lineno;
+
 #define	SIZE	6000
 char	rm_efndatadir[ 256 ] = "";
-int	rm_error;
-char	rm_wdfname[ 256 ];
-int	rm_emsg_lineno;
 int	rm_l_base;
 int	*rm_hstnum;
 int	*rm_bcseq;
@@ -54,7 +60,6 @@ static	int	CT_b2i( int );
 
 main( int argc, char* argv[] )
 {
-	char		*cfname = NULL;
 	FILE		*cfp;
 	char		*dhp;
 	int		n_struct;
@@ -62,30 +67,30 @@ main( int argc, char* argv[] )
 
 	if( ( dhp = getenv( "EFNDATA" ) ) == NULL ){
 		fprintf( stderr, "%s: EFNDATA not defined.\n", argv[ 0 ] );
-		exit( 1 );
+		rval = 1;
+		goto CLEAN_UP;
 	}else
 		strcpy( rm_efndatadir, dhp );
 
-	if( argc == 1 )
-		cfname = NULL;
-	else if( argc > 3 ){
-		fprintf( stderr, U_MSG_S, argv[ 0 ] );
-		exit( 1 );
+	if( argc == 1 ){
+		cfp = stdin;
+		rm_wdfname = " --stdin-- ";
+	}else if( argc > 2 ){
+		fprintf( stderr, "usage: %s [ ct-file ]\n", argv[ 0 ] );
+		rval = 1;
+		goto CLEAN_UP;
+	}else if( ( cfp = fopen( argv[ 1 ], "r" ) ) == NULL ){
+		fprintf( stderr, "%s: can't read ct-file %s\n",
+			argv[ 0 ], argv[ 1 ] );
+		rval = 1;
+		goto CLEAN_UP;
 	}else
-		cfname = argv[ 1 ];
+		rm_wdfname = argv[ 1 ];
 
 	rm_hstnum = ( int * )malloc( SIZE * sizeof( int ) );
 	rm_bcseq = ( int * )malloc( SIZE * sizeof( int ) );
 	rm_basepr = ( int * )malloc( SIZE * sizeof( int ) );
 	efn2_nucs = ( char * )malloc( SIZE * sizeof( char ) );
-
-	if( cfname == NULL )
-		cfp = stdin;
-	else if( ( cfp = fopen( cfname, "r" ) ) == NULL ){
-		fprintf( stderr, "%s: can't read ct-file '%s'.\n",
-			argv[ 0 ], cfname );
-		exit( 1 );
-	}
 
 	if( !RM_getefn2data() ) {
 		fprintf( stderr, "%s: opendat errors.\n", argv[ 0 ] );
@@ -102,6 +107,8 @@ main( int argc, char* argv[] )
 		fclose( cfp );
 		cfp = NULL;
 	}
+
+CLEAN_UP : ;
 
 	exit( rval );
 }
@@ -216,6 +223,44 @@ static	int	CT_b2i( int b )
 		break;
 	}
 }
+@
+
+
+1.2
+log
+@added new include file rmdefs.h; defines UNDEF, FALSE, TRUE; only UNDEF used.
+@
+text
+@d7 4
+a12 3
+int	rm_error;
+char	rm_wdfname[ 256 ];
+int	rm_emsg_lineno;
+a29 1
+	char		*cfname = NULL;
+d37 2
+a38 1
+		exit( 1 );
+d42 12
+a53 5
+	if( argc == 1 )
+		cfname = NULL;
+	else if( argc > 3 ){
+		fprintf( stderr, U_MSG_S, argv[ 0 ] );
+		exit( 1 );
+d55 1
+a55 1
+		cfname = argv[ 1 ];
+a61 8
+	if( cfname == NULL )
+		cfp = stdin;
+	else if( ( cfp = fopen( cfname, "r" ) ) == NULL ){
+		fprintf( stderr, "%s: can't read ct-file '%s'.\n",
+			argv[ 0 ], cfname );
+		exit( 1 );
+	}
+
+d77 2
 @
 
 

@@ -1,9 +1,14 @@
-head	1.110;
+head	1.111;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.111
+date	2002.08.14.03.57.49;	author macke;	state Exp;
+branches;
+next	1.110;
 
 1.110
 date	2002.05.15.23.04.54;	author macke;	state Exp;
@@ -563,9 +568,9 @@ map.  Need to fix this.
 @
 
 
-1.110
+1.111
 log
-@replaced many boolean, 0/1 with FALSE/TRUE
+@moved all cmd line args to ARGS_T *rm_args.
 @
 text
 @#include <stdio.h>
@@ -581,8 +586,9 @@ text
 #define	ODD(i)		((i)&0x1)
 #define	EPS		1e-6
 
+extern	ARGS_T	*rm_args;
+
 extern	int	rm_emsg_lineno;
-extern	int	rm_strict_helices;
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
 extern	STREL_T	*rm_o_stp;	/* search for this first	*/
@@ -887,7 +893,7 @@ static	int	find_ss( SEARCH_T *srp )
 		rv = find_motif( n_srp );
 	}else{
 		rv = 1;
-		if( rm_strict_helices && 
+		if( rm_args->a_strict_helices && 
 			!chk_motif( rm_n_descr, rm_descr, rm_sites ) )
 		{
 				rv = FALSE;
@@ -2400,6 +2406,20 @@ static	void	mk_cstr( char str[], char cstr[] )
 	}
 	*cp = '\0';
 }
+@
+
+
+1.110
+log
+@replaced many boolean, 0/1 with FALSE/TRUE
+@
+text
+@d14 2
+a16 1
+extern	int	rm_strict_helices;
+d321 1
+a321 1
+		if( rm_strict_helices && 
 @
 
 

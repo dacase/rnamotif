@@ -6,13 +6,14 @@
 #include "rnamot.h"
 
 extern	int	rm_error;
-extern	char	*rm_dfname;
+
+extern	ARGS_T	*rm_args;
 extern	char	*rm_wdfname;
-extern	char	*rm_xdfname;
 extern	int	rm_lineno;
 extern	int	rm_emsg_lineno;
-extern	char	*rm_cldefs;
+/*
 extern	INCDIR_T	*rm_idlist;
+*/
 
 typedef	struct	fstk_t	{
 	char	*f_fname;
@@ -45,19 +46,19 @@ char	*RM_preprocessor( void )
 	char	work[ 1024 ];
 	char	*dp, *lp;
 
-	rm_wdfname = rm_dfname;
+	rm_wdfname = rm_args->a_dfname;
 	if( ( dfp = pushfile( rm_wdfname ) ) == NULL ){
 		fprintf( stderr,
 			"RM_preprocessor: can't read descr file '%s'.\n",
-			rm_dfname );
+			rm_args->a_dfname );
 		return( NULL );
 	}
-	if( rm_xdfname == NULL )
-		rm_xdfname = tempnam( NULL, "rmxd" );
-	if( ( ofp = fopen( rm_xdfname, "w" ) ) == NULL ){
+	if( rm_args->a_xdfname == NULL )
+		rm_args->a_xdfname = tempnam( NULL, "rmxd" );
+	if( ( ofp = fopen( rm_args->a_xdfname, "w" ) ) == NULL ){
 		fprintf( stderr,
 			"RM_preprocessor: can't write temp file '%s'.\n",
-			rm_xdfname );
+			rm_args->a_xdfname );
 		return( NULL );
 	}
 
@@ -69,14 +70,15 @@ char	*RM_preprocessor( void )
 			if( !strncmp( lp, "include", 7 ) )
 				dfp = include( line );		
 		}else if( dp = isdescr( line ) ){
-			if( rm_cldefs != NULL ){
+			if( rm_args->a_cldefs != NULL ){
 				if( dp > line ){
 					strncpy( work, line, dp - line );
 					work[ dp - line ] = '\0';
 					putline( ofp,
 						rm_wdfname, rm_lineno, work );
 				}
-				putline( ofp, "cmd line defs", 1, rm_cldefs );
+				putline( ofp, "cmd line defs", 1,
+					rm_args->a_cldefs );
 				putline( ofp, rm_wdfname, rm_lineno, dp );
 			}else
 				putline( ofp, rm_wdfname, rm_lineno, line );
@@ -86,7 +88,7 @@ char	*RM_preprocessor( void )
 	} 
 	fclose( ofp );
 
-	return( rm_xdfname );
+	return( rm_args->a_xdfname );
 }
 
 static	FILE	*pushfile( char fname[] )
@@ -189,10 +191,13 @@ static	FILE	*include( char str[] )
 	}else
 		strcpy( fname, work );
 
+/*
 	if( rm_idlist == NULL )
+*/
+	if( rm_args->a_idlist == NULL )
 		fp = pushfile( fname );
 	else{
-		for( idp = rm_idlist; idp; idp = idp->i_next ){
+		for( idp = rm_args->a_idlist; idp; idp = idp->i_next ){
 			sprintf( path, "%s/%s", idp->i_name, fname );
 			if( fp = pushfile( path ) )
 				break;

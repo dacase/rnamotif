@@ -1,9 +1,14 @@
-head	1.14;
+head	1.15;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.15
+date	2002.08.15.02.54.02;	author macke;	state Exp;
+branches;
+next	1.14;
 
 1.14
 date	2002.05.15.04.38.45;	author macke;	state Exp;
@@ -81,9 +86,10 @@ desc
 @
 
 
-1.14
+1.15
 log
-@converted boolean 0,1 -> FALSE,TRUE
+@changed rm_wdfname to char * from char [256], as it is used by all other
+rnamotif code as char *, and thus was causing a core dump via RM_errormsg().
 @
 text
 @/*
@@ -108,7 +114,7 @@ text
 #include "rnamot.h"
 
 int	rm_error;
-char	rm_wdfname[ 256 ];
+char	*rm_wdfname;
 int	rm_emsg_lineno = UNDEF;
 
 char	rm_bc2b[ N_BCODES ] = { 'a', 'c', 'g', 't', 'n' };
@@ -127,6 +133,7 @@ static	int	getct( FILE * );
 static	int	base2num( int );
 
 int	RM_getefndata( void );
+int	RM_knotted( void );
 int	RM_efn( int, int, int );
 
 main( argc, argv )
@@ -154,7 +161,7 @@ char	*argv[];
 
 	if( argc == 1 ){
 		cfp = stdin;
-		strcpy( rm_wdfname, " -- stdin -- " );
+		rm_wdfname = " -- stdin -- ";
 	}else if( argc > 2 ){
 		fprintf( stderr, "usage: %s [ ct-file ]\n", argv[ 0 ] );
 		rval = 1;
@@ -165,7 +172,7 @@ char	*argv[];
 		rval = 1;
 		goto CLEAN_UP;
 	}else
-		strcpy( rm_wdfname, argv[ 1 ] );
+		rm_wdfname = argv[ 1 ];
 
 	if( ( n_bases = getct( cfp ) ) == 0 ){
 		rval = 1;
@@ -245,6 +252,24 @@ static	int	base2num( int b )
 		break;
 	}
 }
+@
+
+
+1.14
+log
+@converted boolean 0,1 -> FALSE,TRUE
+@
+text
+@d23 1
+a23 1
+char	rm_wdfname[ 256 ];
+d42 1
+d70 1
+a70 1
+		strcpy( rm_wdfname, " -- stdin -- " );
+d81 1
+a81 1
+		strcpy( rm_wdfname, argv[ 1 ] );
 @
 
 

@@ -1,9 +1,14 @@
-head	1.49;
+head	1.50;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.50
+date	2002.08.14.03.58.23;	author macke;	state Exp;
+branches;
+next	1.49;
 
 1.49
 date	2002.05.15.04.17.50;	author macke;	state Exp;
@@ -256,9 +261,9 @@ desc
 @
 
 
-1.49
+1.50
 log
-@replaced boolean '0' with FALSE
+@moved all cmd line args to ARGS_T *rm_args.
 @
 text
 @#include <stdio.h>
@@ -269,7 +274,7 @@ text
 #include "rnamot.h"
 #include "y.tab.h"
 
-extern	INCDIR_T	*rm_idlist;
+extern	ARGS_T	*rm_args;
 
 extern	IDENT_T	*rm_global_ids;
 extern	int	rm_n_global_ids;
@@ -312,11 +317,11 @@ void	RM_dump( FILE *fp,
 	char	prefix[ 100 ];
 	INCDIR_T	*id1;
 
-	if( rm_idlist != NULL ){
-		for( i = 0, id1 = rm_idlist; id1; id1 = id1->i_next )
+	if( rm_args->a_idlist != NULL ){
+		for( i = 0, id1 = rm_args->a_idlist; id1; id1 = id1->i_next )
 			i++;
 		fprintf( fp, "INCLUDES: %3d dirs.\n", i );
-		for( id1 = rm_idlist; id1; id1 = id1->i_next )
+		for( id1 = rm_args->a_idlist; id1; id1 = id1->i_next )
 			fprintf( fp, "\t%s\n", id1->i_name );
 	}
 
@@ -1112,6 +1117,24 @@ static	void	print_searches( FILE *fp, int n_searches, SEARCH_T *searches[] )
 		fprintf( fp, "\n" );
 	}
 }
+@
+
+
+1.49
+log
+@replaced boolean '0' with FALSE
+@
+text
+@d9 1
+a9 1
+extern	INCDIR_T	*rm_idlist;
+d52 2
+a53 2
+	if( rm_idlist != NULL ){
+		for( i = 0, id1 = rm_idlist; id1; id1 = id1->i_next )
+d56 1
+a56 1
+		for( id1 = rm_idlist; id1; id1 = id1->i_next )
 @
 
 

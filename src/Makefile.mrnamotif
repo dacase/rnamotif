@@ -1,0 +1,13 @@
+MRM_OBJS=	mrnamotif.o fmap.o getargs.o split.o
+
+CC=		mpicc
+CFLAGS=		-g
+
+mrnamotif:	$(MRM_OBJS)
+	$(CC) $(CFLAGS) -o mrnamotif $(MRM_OBJS)
+
+clean:
+	rm -f *.o		\
+		mrmrnamotif	\
+		core		\
+		junk*

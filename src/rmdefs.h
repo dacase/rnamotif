@@ -8,8 +8,8 @@
 #define	MIN(a,b)	((a)<(b)?(a):(b))
 #define	MAX(a,b)	((a)>(b)?(a):(b))
 
-#define	DT_FASTN	0
-#define	DT_PIR		1
-#define	DT_GENBANK	2
+#define	DT_FASTN	"fastn"
+#define	DT_PIR		"pir"
+#define	DT_GENBANK	"gb"
 
 #endif

@@ -9,6 +9,7 @@ RNAMOTOBJS=	\
 	efn2.o		\
 	errormsg.o	\
 	find_motif.o	\
+	getargs.o	\
 	mm_regexp.o	\
 	node.o		\
 	preprocessor.o	\
@@ -45,6 +46,8 @@ efn2.o:		rmdefs.h rnamot.h
 errormsg.o:	rmdefs.h
 
 find_motif.o:	rmdefs.h rnamot.h y.tab.h
+
+getargs.o:	rmdefs.h rnamot.h
 
 mm_regexp.o:	rmdefs.h rnamot.h mm_regexp.h
 

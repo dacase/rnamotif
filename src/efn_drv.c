@@ -20,7 +20,7 @@
 #include "rnamot.h"
 
 int	rm_error;
-char	rm_wdfname[ 256 ];
+char	*rm_wdfname;
 int	rm_emsg_lineno = UNDEF;
 
 char	rm_bc2b[ N_BCODES ] = { 'a', 'c', 'g', 't', 'n' };
@@ -39,6 +39,7 @@ static	int	getct( FILE * );
 static	int	base2num( int );
 
 int	RM_getefndata( void );
+int	RM_knotted( void );
 int	RM_efn( int, int, int );
 
 main( argc, argv )
@@ -66,7 +67,7 @@ char	*argv[];
 
 	if( argc == 1 ){
 		cfp = stdin;
-		strcpy( rm_wdfname, " -- stdin -- " );
+		rm_wdfname = " -- stdin -- ";
 	}else if( argc > 2 ){
 		fprintf( stderr, "usage: %s [ ct-file ]\n", argv[ 0 ] );
 		rval = 1;
@@ -77,7 +78,7 @@ char	*argv[];
 		rval = 1;
 		goto CLEAN_UP;
 	}else
-		strcpy( rm_wdfname, argv[ 1 ] );
+		rm_wdfname = argv[ 1 ];
 
 	if( ( n_bases = getct( cfp ) ) == 0 ){
 		rval = 1;

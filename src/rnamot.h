@@ -1,10 +1,10 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.2.1 2002-aug-11"
+#define	VERSION	"v2.3.1 2002-oct-07"
 
 #define	U_MSG_S	\
-"usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
+"usage: %s [ options ] descr [ fmt ] [ data ]\n\n\
 options:\n\
 \t-c\t\t\tCompile only, no search\n\
 \t-d\t\t\tDump internal data structures\n\
@@ -28,7 +28,11 @@ descr:\tUse one:\n\
 fmt:\t(Optional) Use one:\n\
 \t-fmt fastn\t\tfastn (default)\n\
 \t-fmt pir\t\tpir\n\
-\t-fmt gb\t\t\tGB flatfile\n"
+\t-fmt gb\t\t\tGB flatfile\n\
+\n\
+data:\t(Optional) Use one:\n\
+\tfile1 ...\t\tSerial version; no files search stdin (default)\n\
+\t-fmap file-map db1 ...\tParallel version; no dbs search whole map\n"
 
 #define	UNBOUNDED	0x7fffffff
 #define	EFN_INFINITY	16000	/* ? */
@@ -224,5 +228,26 @@ typedef	struct	incdir_t	{
 	struct	incdir_t	*i_next;
 	char	*i_name;
 } INCDIR_T;
+
+typedef	struct	args_t	{
+	int	a_copt;
+	int	a_dopt;
+	int	a_hopt;
+	float	a_o_emin;
+	int	a_popt;
+	int	a_sopt;
+	int	a_vopt;
+	int	a_show_context;
+	int	a_strict_helices;
+	INCDIR_T	*a_idlist;
+	char	*a_dfname;
+	char	*a_xdfname;
+	char	*a_cldefs;
+	char	*a_dbfmt;
+	char	*a_fmfname;
+	char	**a_dbfname;
+	int	a_n_dbfname;
+	int	a_c_dbfname;
+} ARGS_T;
 
 #endif
