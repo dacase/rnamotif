@@ -38,6 +38,7 @@ static	NODE_T	*loopincrstk[ 100 ];
 static	int	loopstkp = 0;
 
 static	char	*sc_sbuf;
+static	float	*sc_score;
 
 #define	OP_NOOP		0	/* No Op	 	*/
 #define	OP_ACPT		1	/* Accept the candidate	*/
@@ -254,7 +255,10 @@ void	RM_else()
 {
 
 	v_lab.v_type = T_INT;
+/*
 	v_lab.v_value.v_ival = ifstk[ ifstkp - 1 ];
+*/
+	v_lab.v_value.v_ival = ifstk[ 0 ] + 1;
 	addinst( OP_JMP, &v_lab );
 	labtab[ ifstk[ ifstkp - 1 ] ] = l_prog;
 }
@@ -396,7 +400,8 @@ void	RM_linkscore()
 {
 	int	i;
 	INST_T	*ip;
-	VALUE_T	v_NSE;
+	IDENT_T	*idp;
+	VALUE_T	v_svars;
 
 	for( ip = prog, i = 0; i < l_prog; i++, ip++ ){
 		if( ip->i_op == OP_FJP || ip->i_op == OP_JMP ){
@@ -407,9 +412,13 @@ void	RM_linkscore()
 				labtab[ ip->i_val.v_value.v_ival ];
 		}
 	}
-	v_NSE.v_type = T_INT;
-	v_NSE.v_value.v_ival = rm_n_descr;
-	RM_enter_id( "NSE", T_INT, C_VAR, S_GLOBAL, 1, &v_NSE );
+	v_svars.v_type = T_INT;
+	v_svars.v_value.v_ival = rm_n_descr;
+	RM_enter_id( "NSE", T_INT, C_VAR, S_GLOBAL, 1, &v_svars );
+	v_svars.v_type = T_FLOAT;
+	v_svars.v_value.v_fval = 0.0;
+	idp = RM_enter_id( "SCORE", T_FLOAT, C_VAR, S_GLOBAL, 1, &v_svars );
+	sc_score = &idp->i_val.v_value.v_fval;
 }
 
 void	RM_dumpscore( fp )
@@ -424,11 +433,13 @@ FILE	*fp;
 	}
 }
 
-int	RM_score( sbuf )
+int	RM_score( sbuf, score )
 char	sbuf[];
+float	*score;
 {
 	INST_T	*ip;
 	
+	*score = 0.0;
 	if( l_prog <= 0 )
 		return( 1 );
 
@@ -453,6 +464,7 @@ dumpstk( stdout, "before op" );
 			break;
 
 		case OP_ACPT :
+			*score = *sc_score;
 			return( 1 );
 			break;
 		case OP_RJCT :
@@ -583,6 +595,7 @@ dumpstk( stdout, "before op" );
 dumpstk( stdout, "after op " );
 */
 	}
+	*score = *sc_score;
 }
 
 static	void	fixexpr( np )
