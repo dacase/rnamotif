@@ -1,9 +1,18 @@
+%{
+#include "y.tab.h"
+%}
 %%
 
 #.*		;
 
 [\ \t\f\n]+	;
 
+pairings	return( SYM_PAIRINGS );
+parameters	return( SYM_PARAMETERS );
+descriptor	return( SYM_DESCRIPTOR );
+mismatch	return( SYM_MISMATCH );
+mispair		return( SYM_MISPAIR );
+positions	return( SYM_POSITIONS );
 ss		return( SYM_SINGLE );
 h5		return( SYM_HELIX5 );
 h3		return( SYM_HELIX3 );
@@ -29,11 +38,15 @@ q4		reteun( SYM_QUAD4 );
 		  }
 		}
 
+=		return( SYM_EQUAL );
 \(		return( SYM_LPAREN );
 \)		return( SYM_RPAREN );
+\{		return( SYM_LCURLY );
+\}		return( SYM_RCURLY );
 \,		return( SYM_COMMA );
 \-		return( SYM_MINUS );
 \$		return( SYM_DOLLAR );
+\.		return( SYM_PERIOD );
 :		return( SYM_COLON );
 
 .		return( SYM_ERROR );
