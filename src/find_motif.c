@@ -34,6 +34,8 @@ static	int	find_ss();
 static	int	find_wchlx();
 static	int	find_pknot();
 static	int	find_phlx();
+static	int	find_triplex();
+static	int	find_4plex();
 static	int	match_wchlx();
 static	int	match_phlx();
 static	int	paired();
@@ -182,12 +184,10 @@ SEARCH_T	*srp;
 		rv = find_phlx( srp );
 		break;
 	case SYM_T1 :
-		rm_emsg_lineno = stp->s_lineno;
-		errormsg( 1, "triple helix finder not implemented." );
+		rv = find_triplex( srp );
 		break;
 	case SYM_Q1 :
-		rm_emsg_lineno = stp->s_lineno;
-		errormsg( 1, "quad helix finder not implemented." );
+		rv = find_4plex( srp );
 		break;
 	case SYM_H3 :
 	case SYM_P3 :
@@ -462,6 +462,75 @@ SEARCH_T	*srp;
 		return( 0 );
 }
 
+static	int	find_triplex( srp )
+SEARCH_T	*srp;
+{
+	STREL_T	*stp, *stp3, *i_stp;
+	int	ilen, slen, szero, sdollar;
+	int	s, s3lim, s5hi, s5lo;
+	int	h_minl, h_maxl;
+	int	i_minl, i_maxl, i_len;
+	int	h, hlen;
+	SEARCH_T	*i_srp;
+
+	szero = srp->s_zero;
+	sdollar = srp->s_dollar;
+	slen = sdollar - szero + 1;
+	stp = srp->s_descr;
+
+	h_minl = stp->s_minlen;
+	h_maxl = stp->s_maxlen;
+	i_minl = stp->s_minilen;
+	i_maxl = stp->s_maxilen;
+
+	s5hi = MIN( ( slen - i_minl ) / 2, h_maxl );
+	s5hi = szero + s5hi - 1;
+
+	ilen = slen - 2 * h_minl;
+	ilen = MIN( ilen, i_maxl );
+	s5lo = slen - ilen;
+	if( ODD( s5lo ) )
+		s5lo++;
+	s5lo = MIN( s5lo / 2, h_maxl );
+	s5lo = szero + s5lo - 1;
+
+	if( match_phlx( stp, szero, sdollar, s5hi, s5lo, &hlen ) ){
+
+fprintf( stderr, "ft: %-12s %4d %4d, %4d: %.*s %.*s\n",
+	fm_locus, szero, sdollar - hlen + 1, hlen,
+	hlen, &fm_sbuf[ szero ], hlen, &fm_sbuf[ sdollar - hlen + 1 ] );
+
+/*
+		i_len = sdollar - szero - 2 * hlen + 1;
+		if( i_len > i_maxl  )
+			return( 0 );
+
+		stp3 = stp->s_mates[ 0 ];
+		mark_duplex( stp, szero, stp3, sdollar, hlen );
+
+		i_stp = stp->s_inner;
+		i_srp = rm_searches[ i_stp->s_searchno ];
+		i_srp->s_zero = szero + hlen;
+		i_srp->s_dollar = sdollar - hlen;
+
+		if( find_motif( i_srp ) ){
+			return( 1 );
+		}else{
+			unmark_duplex( stp, szero, stp3, sdollar, hlen );
+			return( 0 );
+		}
+*/
+
+	}else
+		return( 0 );
+}
+
+static	int	find_4plex( srp )
+SEARCH_T	*srp;
+{
+
+}
+
 static	int	match_wchlx( stp, s5, s3, s3lim, h3, hlen )
 STREL_T	*stp;
 int	s5;
@@ -534,7 +603,6 @@ int	*hlen;
 	int	bpcnt, mpr;
 
 	b50 = fm_sbuf[ s5 ];
-	stp3 = stp->s_scopes[ 1 ];
 	b3 = fm_sbuf[ s3 ];
 
 	for( prd = 0, s = s5hi; s >= s5lo; s-- ){
