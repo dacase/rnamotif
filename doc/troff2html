@@ -1,0 +1,884 @@
+#!/usr/bin/perl 
+
+# troff2html 
+# John Troyer troyer@cgl.ucsf.edu
+#
+# a semi-translator from troff me and ms macros to HyperText Markup Language
+#  contains some code from Oscar Nierstrasz's mstohtml
+#  rewritten almost from scratch from v0.1
+# see the README and troff2html.doc for more details
+
+# Copyright 1994 The Regents of the University of California
+# please see the file named COPYRIGHT
+
+$version = "troff2html v0.2";
+
+###### Usage statment
+
+$usg = '
+
+usage: troff2html [arguments] input files ...
+    troff2html translates [tng]roff to HTML
+    -name string	basename for output html files [inputfilename]
+    -title string	main title (not header) added to all pages []
+    -split number	section at which to split HTML files [999]
+                        -nosplit or -split 0 gives a single page
+    -numbersection	section titles will have roff-like numbers 
+    -nonumbersection    no section numbers [default]
+    -nofill <method>    what to do with nofill regions [pre]
+                        (supported methods are \'pre\',\'br\')
+    -toc		Table of Contents generated  [default]
+    -notoc		no Table of Contents generated
+    -toc page		ToC gets separate page, even if -split 0
+    -toc bottom         ToC is on bottom of first page [top]
+    -headerlink         headers are links back to ToC [default if split = 0]
+    -headerlink explicit explicit links are put near headers back to ToC
+    -index		include link to index in navigation bar [no]
+    -notes		include link to endnotes in navigation bar [no]
+    -notes <string>     the link to notes will be labelled ["Notes"]
+    -nav               	include a navigation bar [default if split > 0]
+    -nonav		no navigation bar included [default if split = 0]
+    -nav words		navigation bar will use word links [default]
+    -nav icons		navigation bar will use icons
+    -tbl <method>	how to handle tables [pre]
+    -eqn <method>	how to handle equations [pre]
+    -pic <method>       how to handle pictures [pre]
+                        (currently supported: \'omit\',\'pre\',\'nroff\', \'ps\')
+    -warn		warn about all ignored macros [yes]
+    -macros		print names of all non-ignored macros and exit
+    -perl <file>	additional macros defined in perl file
+    -entity		use entity names, not numbers, for isolatin chars [no]
+
+    arguments can be abbreviated, defaults in square brackets
+';
+
+# it's necessary to do the date first so that the page $sig comes out ok
+
+($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime;
+$year += 1900;
+$weekday = (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday)[$wday];
+$month = (January, February, March, April, May, June, July, August,
+	  September, October, November, December)[$mon];
+$date = "$month $mday, $year"; # yeah, I know
+
+###### Start configuration information
+
+# mandatory 
+# Change this to the directory where troff2html and macro files reside
+$troff2htmldir = "/thr/frege/text/troff2html";
+
+# optional
+# If you have a file of local macro->html subroutines, 
+# uncomment (remove the # mark) and replace the filename below.
+# If you have more than one, add the filename to this list with a syntax like:
+# @localmacros = ("localmacros.pl","thesismacros.pl","groffmacros.pl");
+
+# @localmacros = ("localmacros.pl");
+
+# signature that is printed on every page
+# I recommend that you put your name on it.
+$sig = "<I>Updated on $date.  Comments to case\@scripps.edu</I>\n<P>\n";
+
+# form of -l explicit links
+$explicit_toc_link = "[To Table of Contents]";
+
+# navigation bar
+# this is the order of links/buttons in the navigation bar
+# anything starting with < is considered raw html
+@navigatelist = ("<hr>", 'contents', 'previous', 'next', 'notes', 'index');
+
+# form of word navigation links
+%navlabels  = ('contents', '[Contents]',
+	       'previous', '[Previous]',
+	       'next','[Next]',
+	       'notes','[Notes]',        # can be changed with -notes string
+	       'index','[Index]');
+
+# icons are found through these filenames
+%navicons  = ('contents', 'contents.gif',
+	      'previous', 'previous.gif',
+	      'next','next.gif',
+	      'notes','notes.gif',
+	      'index','index.gif');
+
+# this directory should be the URL directory of the icons!
+$icondir = 'icons';
+
+# the following are necessary to make inline gifs of tables, equations
+
+# define the programs on your system
+$nroff = "gnroff";
+
+# a psroff that writes to stdout!
+$psroff = "groff";
+
+# internal troff2html name, name of program on your system
+%preprocname = ("eqn","geqn",
+		"tbl","gtbl",
+		"refer","grefer",
+		"pic","gpic");
+
+# necessary for gif files of eqn, tbl, etc!
+$gs= "/usr/local/bin/X11/gs2.61"; # ghostscript 
+$pnmcrop = "pnmcrop";
+$ppmtogif = "ppmtogif";
+
+###### End customization
+
+### you shouldn't have to edit anything beyond this point
+
+unshift(@INC,$troff2htmldir);
+
+require "newgetopt.pl";		# Vromans Feb 94 version, included in my distr.
+require "macrotable.pl";	# .command -> subroutine associative array
+require "macros.pl";	
+require "charsubs.pl";		# iso8859-1 characters entities, substitutions
+foreach (@localmacros) {require if -r;}
+
+###### Main program
+
+&handle_args;
+
+&set_defaults;
+
+&opennewpage($URL{'current'},$maintitle);
+
+# The record separator is a carriage return followed by a dot
+$/ = "\n\." ;
+
+# expects all roff text in order as file on command line or stdin
+while (<>) {
+    &handle_record;
+}
+
+&output(&pop_all_fonts,1);
+&output(&pop_all_lists,1);
+
+&endmatter;
+
+&dotoc;
+
+exit 0;
+
+###### Subroutines
+
+# this needs to be a subroutine for .so
+sub handle_record {
+
+    if (@macro) {
+	if (/^$macro[$#macro]/) {
+	    warn("ending macro definition..\n");
+	    pop @macro;
+	} else {
+	    return;
+	}
+    }
+
+    s/\n\.$//;			# delete record separator (newline dot)
+
+    s/^\.//;			# delete initial '.' on 1st line
+    0 while s/\n\\\./\n./g;	# unescape leading dots
+
+    s/\\".*//;   # strip comments "
+    # a blank line was a comment
+    if (/^$/) {return;} 
+
+    # do trailing blanks here 
+    if (!$intable) {
+        &htmlescape;		# <, >, &
+	0 while s/\n\s*$/\n<p>/g;
+	0 while s/\n\s*\n/\n<p>\n/g;
+	0 while s/\n$/\n<p>\n/g;
+    }
+
+    # records are a command, optional args, newline, optional text
+    # This leaves $args with all extra 1st line spaces
+    ($command, $args, $text) = /^(\S+)(.*)\n?((.|\n)*)$/;
+
+    # these need to be done before footnote, delayed text processing
+    # these could screw up footenotes in tables
+    &footnotemarks;
+
+    # we can't just split $args, since "foo bar" is one argument
+    @args = &troffshellwords($args);
+
+    # if only 1 argument, take it back now that it's been whitespace chopped
+    $args = $args[0] if ($#args == 0);
+
+    $pretextprints = 0;
+    $pretext = "";
+
+    # what subroutine should we execute?
+    if (!defined($macrosubs{$command})) {
+	warn("undefined command: $command\n");
+    } else {
+
+	$action = $macrosubs{$command};
+    
+	# some entries have substitute parameters to use
+	# these can be strings or variables which are evaled
+	# name:$var1:$var2:$var3 would send the values of the 3 variables 
+	# to &name. if only one argument legal, you can use $args
+	if ($action =~ /\:/) {
+	    ($action, @subs) = split(':',$action);
+	    @subvals = ();
+	    foreach $expression (@subs) {
+		$temp = eval($expression);
+		push(@subvals,$temp);
+	    }
+	    &$action(@subvals);
+	} else {
+	    &$action();
+	}
+    }
+
+    # if $pretext, it must be something that prints (just <b>, for instance,
+    # does not print)
+    # this marker is to prevent empty files from have multiple section headers
+    # with no text between them
+    $textonpage = 1 if ($text =~ /\S/ || $pretextprints);
+
+    $text = $pretext . $text;
+
+    # in case we happen to be sourcing, since $pretext isn't local
+    $pretext = ""; 
+
+    &output($text);
+}
+
+sub set_defaults {
+
+    # used to fill/nofill
+    $breaklines = 0;  # temporary -- centering
+    # used for centering, temp indent
+    $indentlines = 0;
+    
+    # set to 1 for tbl, eqn, etc. Turns off inline subs.
+    $intable = 0;
+
+    $nofill = 0;      # permanent -- till fill turned on
+
+    $quotedpara = 0;
+
+    # we ignore section level 0 to match up with troff usage
+    @currentsection = (0, 0, 0, 0, 0, 0, 0);
+    $currentunnumberedsection = 0;
+    $headerlevel = 1;
+
+    $toclevel = 0;
+
+    # used to avoid empty page breaks
+    #  0 means only headers have been put on page
+    #  1 at beginning, so first section header can move to new page
+    #    if there's no ToC, stay here, though.
+    $opt_toc ? ($textonpage = 1) : ($textonpage = 0);
+    $pretextprints = 0;
+
+    # use this to check actual splitting 
+    # and to make TOC
+    $firstfileaftertoc = "";
+
+    # counters
+    $currentnum = 0;
+    $currentfoot = 1;
+
+    $toctext = $reftext = $text = $pretext = "";
+
+    $URL{'contents'} = "$basename.html";
+    if ($opt_split) {
+	$URL{'notes'} = "$basename-ref.html";
+	$URL{'index'} = "$basename-index.html";
+    } else {
+	$URL{'notes'} = "$basename.html";
+	$URL{'index'} = "$basename.html";
+    }
+
+    # start printing into the root file. 
+    # Into this will go any initial matter and table of contents
+    $URL{'current'} = "$basename.html";
+
+    # this just goes in <title> of main page
+
+    if ($opt_toc && $opt_split) {
+ 	$maintitle = "Table of Contents";
+    } else {
+	# $opt_title is added in &opennewpage
+	$maintitle = $opt_title ? "" : $basename;	
+    }
+
+    # should probably be configurable: nroff []<> or math ^_
+    $superscripts = "nroff";
+ }
+
+# all printing must go through here so we can do inline_substitutions
+#  even titles, etc.
+# if we're inside a table/eqn, don't do inline substitutions.
+# the downside of that is an nroff'd table will lose font info
+sub output {
+    local($text,$extra) = @_;
+    return if ($text !~ /\S/);
+    if (!$intable) {
+	$text = &inline_substitutions($text);
+	&break_indentlines unless $extra;
+    }
+
+    print $text,"\n";
+}
+
+
+# nukes $_
+sub inline_substitutions {
+    ($_) = @_ if @_;
+
+    # expand user-defined strings
+    eval $stringeval;
+
+    # expand eqn inlines 
+    if ($eqnopendelim && /$eqnopendelim/) {
+	$_ = &eqn_inline($_);
+    }
+
+    # formatting
+    # this has to be one pattern, or it doesn't get searched in order, '
+    #  which causes problems if there are two switches on one line
+    s/\\f([IBRCP123])/&switch_font($1)/ge;
+    /\\f[S4]/ && do {warn("Don't know how to switch to math font\n");};
+
+    &escapechars;
+
+    return $_;
+}
+
+# manipulates $_
+sub eqn_inline {
+    local($text) = $_;
+    local($eqn);
+    while ($text =~ s/$eqnopendelim([^$eqnclosedelim]+)$eqnopendelim/\000/) {
+	$eqn = $1;
+	
+	$eqn = &unescape($eqn);
+
+	# at this point, $pretext has already been appended to text
+	# since popdelayed thinks it needs to print it before we do the
+	# delayed text
+	# (it doesn't know we're doing an inline), nuke $pretext
+	$pretext = "";
+	&pushdelayed('eqn'); # set up file
+	&output('.EQ',1);
+	&output($eqn,1);
+	&output('.EN',1);
+	$intable = 0;
+	$eqn = &popdelayed('eqn','inline');
+	$text =~ s/\000/$eqn/;
+    }
+    return $text;
+}
+	   
+sub unescape {
+	local($eqn) = @_;
+
+	s/&lt;/</g;
+	s/&gt;/>/g;
+	s/&amp;/&/g;
+
+	return $eqn;
+}
+
+# troffshellwords.pl
+#
+# troyer hack -- this is exactly like shellwords, except
+# eliminate fussyness about backslashes
+#    .ip "\fINucleic Acids\fR" doesn't pass in native version
+# also eliminated ' checks for now since troff doesn't use em
+# believe it or not, most troff args don't check for unmatched quote,
+#  so eliminated, that check as well...sigh
+# Usage:
+#	require 'shellwords.pl';
+#	@words = &shellwords($line);
+#	or
+#	@words = &shellwords(@lines);
+#	or
+#	@words = &shellwords;		# defaults to $_ (and clobbers it)
+
+sub troffshellwords {
+    package troffshellwords;
+    local($_) = join('', @_) if @_;
+    local(@words,$snippet,$field);
+
+    s/^\s+//;
+    /\001|\000/ && die "Bad characters in shellword: $_\n";
+    while ($_ ne '') {
+	$field = '';
+	# escape all \" to \000
+	s/\\\"/\000/g;
+	s/\\\'/\001/g;
+	for (;;) {
+	    if (s/^"([^"]*)"//) {
+		$snippet = $1; # =~ s#\\(.)#$1#g; don't elim slashes!
+	    }
+# 	    elsif (/^"/) {
+# 		die "Unmatched double quote: $_\n";
+# 	    }
+        # don't eliminate single quotes
+	#    elsif (s/^'([^']*)'//) {
+	#	($snippet = $1) =~ s#\\(.)#$1#g;
+	#    }
+	#    elsif (/^'/) {
+	#	die "Unmatched single quote: $_\n";
+	#    }
+
+        # don't eliminate \slashes
+	#    elsif (s/^\\(.)//) {
+	#	$snippet = $1;
+	#    }
+	#    elsif (s/^([^\s\\'"]+)//) {
+	#    elsif (s/^([^\s\"]+)//) {
+	    elsif (s/^([^\s]+)//) {
+		$snippet = $1;
+	    }
+	    else {
+		s/^\s+//;
+		last;
+	    }
+	    $snippet =~ s/\000/\\\"/g;
+   	    $snippet =~ s/\001/\\\'/g;
+	    $field .= $snippet;
+	}
+	push(@words, $field);
+    }
+    @words;
+}
+
+
+
+# do both breaklines checking and some hackery for .ce
+
+# for now, all deferred lines are in <dl> list. Let's hope it never 
+# becomes more complicated (although it will when you can center)
+sub break_indentlines {
+    if ($indentlines) {
+	local(@lines) = split('\n',$text);
+	if ($indentlines <= $#lines + 1) {
+	    # found end of deferred lines. 
+	    $lines[$indentlines - 1] .= "</dl>";
+
+	    # if this was a .ce, will have .breaklines on
+	    if ($breaklines) {
+		if ($breakstack[$#breakstack]) {
+		    # if we have extra lines, but inside a break block anyway,
+		    # break all lines
+		    $text = join("<br>\n", @lines) . "<br>\n";
+		} else {
+		    # join all the lines that were deferred with <br>s
+		    $text = join("<br>\n", @lines[0..$indentlines-1])."<br>\n";
+		    if ($indentlines-1 < $#lines) {
+			# if theres more lines, join them back with no <br>s
+			$text .= join("\n",@lines[$indentlines..$#lines]);
+		    }
+		}
+		$breaklines = pop(@breakstack);
+	    }
+	    $indentlines = 0;
+	} else {
+	    # more to go
+	    $indentlines -= $#lines + 1;
+	    if ($breaklines) {
+		$text = join("<br>\n",@lines) . "<br>\n";
+	    } else {
+		$text = join("\n",@lines);
+	    }
+	}
+    } else {
+	# no indent_lines
+	if ($breaklines) {
+	    $text = join("<br>\n",split('\n',$text)) . "<br>\n";
+	}
+    }
+}
+
+# title is used in title and header, unique id in links
+sub startnewsection {
+    local($headerlevel, $newurl, $title, $id) = @_;
+
+    # do we start a new page?
+    # start one if we have splitting and we printed something OR
+    # if this is the first section header we've seen and we want a TOC page
+    if (($headerlevel <= $opt_split && $textonpage) ||
+	($opt_toc && ($opt_split || $opt_toc eq "page") && 
+	 !$firstfileaftertoc)) {
+	&startnewpage($newurl, $title);
+	$firstfileaftertoc = $newurl if !$firstfileaftertoc;
+    }
+
+    $pretext .= &newheader($headerlevel, $title, $id);
+
+    # don't set $pretextprints here; 
+    # headers don't count; that's the whole point
+    # update toc level
+    while ($toclevel < $headerlevel) {$toctext .= "<ul>\n"; $toclevel++;}
+    while ($toclevel > $headerlevel) {$toctext .= "</ul>\n"; $toclevel--;}
+
+	#  dac: make table of contents look a little better by adding a
+	#    blank line at top level entries:
+	if ($headerlevel == 1) { $toctext .= "<p>\n"; }
+	#
+    $toctext .= "<li><a href=\"$URL{'current'}#$id\" name=\"toc-$id\">$title</a>\n";
+
+}
+
+# closes current page and starts a new one
+sub startnewpage {
+    local($url, $header) = @_;
+    
+    # sets global pointers for navigate
+    # (we could set titles here if you wanted)
+    $URL{"next"} = $url;
+
+    # if this is the first page and we're going to put a TOC here,
+    # don't do the sig yet
+    if ($firstfileaftertoc ne "" && $opt_toc) {
+	&do_sig;
+    }
+    $URL{"previous"} = $URL{"current"};
+    $URL{"current"} = $url;
+    
+    close(OUTPUT);
+    &opennewpage($url, $header);
+}
+
+sub closelastpage {
+
+    $URL{"next"} = '';
+    &do_sig;
+    close(OUTPUT);
+}
+    
+
+sub do_sig {
+
+    # should probably check other stacks, like @breakstack, to make sure
+    #  didn't start a block without finishing, but I'll assume corrent roff
+    #  for now...
+
+    $pretext .= &pop_all_fonts;
+    $pretext .= &pop_all_lists;
+
+    # flush output buffer
+    &output($pretext,1);
+    $pretext ="";
+
+    &output("</pre>",1) if $nofill;
+
+
+    if ($opt_nav) {
+	&output(&navigate,1);
+    } else {
+	# put in a line to separate the sig from body only if no navigation bar
+	# kind of a hack, since it's not configurable
+	&output("<hr>",1);
+    }
+    &output("$sig</body></html>",1);
+}
+
+# opens page, prints HTML head
+sub opennewpage {
+    local($page, $header) = @_;
+
+    open(OUTPUT, ">$page") ||
+	die("Can't create file $page:$!\n");
+    warn("created $page\n");
+    select(OUTPUT);
+
+    $header = $opt_title ? "$opt_title -- $header" : $header;
+    &output("<html><head><title>\n$header\n</title></head><body background=\"paper.gif\">",1);
+    &output("<pre>",1) if $nofill; # keep nofill status from last page
+    $textonpage = 0;
+
+}
+
+sub newheader {		
+    local($h, $title, $id) = @_;
+    local($results);
+
+    local($url) = "<a name=\"$id\" href=\"$URL{'contents'}#toc-$id\">";
+
+    if ($opt_headerlink eq 'implicit') {
+	return "<h$h>${url}$title</a></h$h>";
+    } elsif ($opt_headerlink eq 'explicit') {
+	return "<p>${url}$explicit_toc_link</a>\n"
+	    . "<h$h>$title</h$h>\n";
+    } else {
+	return "<h$h><a name=\"$id\">$title</a></h$h>\n";
+    }
+}
+	
+
+# this returns the navigation bar.
+# here is where it decides to print toc, notes, index
+sub navigate {
+    local($results) = '';
+
+    foreach $element (@navigatelist) {
+	next if ($element eq $location);
+	next if ($element eq 'contents' && (!$opt_toc));
+	next if ($element eq 'notes' && !$opt_notes);
+	next if ($element eq 'index' && !$opt_index);
+	next if ($element eq 'next' && !$URL{'next'});
+	# always a previous UNLESS it's first page'
+	next if ($element eq 'previous' && 
+		     $URL{'current'} eq "$basename.html");
+
+	# if an element starts with <, assume it is raw HTML
+	if ($element =~ /^\</) {
+	    $results .= "$element ";
+	} else {
+	    $results .= "<a href=\"$URL{$element}\">";
+	    if ($opt_nav eq "icons") {
+		$results .= "<img src=\"${icondir}/$navicons{$element}\">";
+	    } else { # words
+		$results .= $navlabels{$element};
+	    }
+	    $results .= "</a> ";
+	}
+    }
+    $results .= "<br>";
+    return($results);
+}
+
+
+sub handle_args {
+
+    die($usg) if ($#ARGV == -1);
+    # Jonathan Vroman's newgetopt Feb 94'
+    if (!&NGetOpt("name=s","title=s","split=i","nosplit", 
+		  "numbersection!","toc:s",
+		 "notoc","nonav","entity","nofill=s",
+		 "headerlink:s","index","notes:s","nav:s","warn","macros",
+		 "perl=s@","tbl=s","eqn=s","pic=s")) { die($usg); }
+
+    if ($opt_macros) {
+	&dump_defined_macros;
+	exit 0;
+    }
+
+    # if reading from stdin, must have an explicit basename
+    if ($#ARGV == -1 && !$opt_name) {
+	die("if reading stdin, must specify -name basename\n");
+    }
+
+    # the basename is either given or the first filename
+    if ($opt_name) {
+	$basename = $opt_name;
+    } else {
+	($basename = $ARGV[0]) =~ s/\.[^\.\d]*$//;
+    }
+
+    $opt_split = 0 if $opt_nosplit;
+    $opt_split = 999 if !defined($opt_split);
+
+    $opt_numbersection = 0 if (!defined($opt_numbersection));
+
+    $opt_toc = 1 if (!$opt_toc); # undefined or ''
+    $opt_toc = 0 if ($opt_notoc);
+    if ($opt_toc != 1 && $opt_toc != 0 && $opt_toc ne "page" && 
+	$opt_toc ne "top" && $opt_toc ne "bottom") {
+    	die("unknown argument for -toc: $opt_toc\n");
+    }
+
+
+    #
+    if (!defined($opt_headerlink) && $opt_split) {
+	$opt_headerlink = '';
+    } elsif ($opt_headerlink eq '' && !$opt_split) {
+	$opt_headerlink = 'implicit';
+    }
+
+    if ($opt_headerlink ne '' && 
+	 $opt_headerlink ne 'implicit' && $opt_headerlink ne "explicit") {
+	die("unknown argument for -headerlink: $opt_headerlink\n");
+    }
+
+    $opt_headerlink = '' if !$opt_toc;
+    
+    if (defined($opt_notes)) {
+	if ($opt_notes != '') {
+	    $navlabels{"notes"} = $opt_notes;
+	} else {
+	    $opt_notes = 1;
+	}
+    }
+
+
+    # if no -nav, default is words if we're splitting
+    # if we're not splitting, then don't make a nav
+    # also don't make one if give -nonav
+    if (!defined($opt_nav)) {
+	if ($opt_split) {
+	    $opt_nav = "words";	
+	} else {
+	    $opt_nav = 0;
+	}
+    }
+    $opt_nav = 1 if $opt_nav eq '';
+    $opt_nav = 0 if $opt_nonav;
+
+    if ($opt_nav != 0 && $opt_nav != 1 && $opt_nav ne "words" &&
+	$opt_nav ne "icons") {
+	die("unknown argument for -nav: $opt_nav\n");
+    }
+
+    @acceptable_formats = ("pre","omit","nroff","ps");
+
+    $opt_tbl = $opt_tbl ? $opt_tbl : "pre";
+    $preproc{"tbl"} = $opt_tbl;
+    if (!grep(/$opt_tbl/,@acceptable_formats)) {
+	die("unknown argument for -tbl: $opt_tbl\n");
+    }
+
+    $opt_eqn =  $opt_eqn ? $opt_eqn : "pre";
+    $preproc{"eqn"} = $opt_eqn;
+    if (!grep(/$opt_tbl/,@acceptable_formats)) {
+	die("unknown argument for -eqn: $opt_eqn\n");
+    }
+
+    $opt_pic =  $opt_pic ? $opt_pic : "pre";
+    $preproc{"pic"} = $opt_pic;
+    if (!grep(/$opt_pic/,@acceptable_formats)) {
+	die("unknown argument for -pic: $opt_pic\n");
+    }
+
+    $opt_nofill = "pre" if !defined($opt_nofill);
+    if ($opt_nofill ne "pre" && $opt_nofill ne "br") {
+	die("unknown argument for -nofill: $opt_eqn\n");
+    }
+    $opt_warn = 1 if !defined($opt_warn);
+
+    foreach (@opt_perl) {require if -r;}
+}
+
+sub dump_defined_macros {
+    local(@includes) = grep(-r,@localmacros);
+    local(@ignore);
+
+    print "$version\n";
+    print "using @includes\n" if (@includes);
+    print "knows these keys:\n";
+    foreach $keys (sort keys %macrosubs) {
+	if ($macrosubs{$keys} eq "ignore") {
+	    push(@ignore,$keys);
+	} else {
+	    print "$keys ";
+	    if ($i++ == 20) {print "\n"; $i = 0;}
+	    if (!defined($macrosubs{$keys})) {
+		print "warning! $macrosubs{$keys} not defined!\n";
+		$i = 0;
+	    }
+	}
+    }
+    print "\n\nIt ignores:\n";
+    $i = 0;
+    foreach (@ignore) {
+	print "$_ ";
+	if ($i++ == 20) {print "\n"; $i = 0;}
+    }
+}
+
+sub endmatter {
+    local($title);
+
+    # if there's endnotes, print them now
+    if ($reftext) {
+
+	# navigation labels often have brackets or parentheses around them
+	# don't want that for header. a hack.'
+	$title = $navlabels{'notes'};
+	0 while $title =~ s/[\[\]\(\)]//g;
+
+	$location = 'notes';
+	# startnewsection will put header into pretext
+	$pretext = "";
+	&startnewsection(1, $URL{'notes'}, $title, $title);
+	$textonpage = 1;
+	&output($pretext,1);
+	$pretext = "";
+	&output("<dl>\n$reftext\n</dl>\n",1);
+    }
+		
+    # here we open a new page for every index that's defined...
+    #   probably not right
+    foreach $key (keys %indextext) {
+	if ($indextext{$key}) {
+	    $title = $navlabels{'index'};
+	    0 while $title =~ s/[\[\]\(\)]//g;
+	    $title .= " $key" if ($key != 'x');
+
+	    $location = 'index';
+	    # startnewsection will put header into pretext
+	    $pretext = "";
+	    &startnewsection(1, $URL{'index'}, $title, "$title-$key");
+	    $textonpage = 1;
+	    &output($pretext,1);
+	    $pretext = "";
+	    &output("<dl>\n$indextext{$key}\n</dl>\n",1);
+	}
+    }
+
+    &closelastpage;
+}
+
+# after endmatter, all files are closed. We now need to figure out
+# where to put TOC
+
+sub dotoc {
+
+    # no Table of Contents
+    return if !$opt_toc;
+    return if !$toctext;
+
+    while ($toclevel > 0) {$toctext .= "</ul>\n"; $toclevel--;}
+
+    # if we're all one page but want a separate TOC
+    if ($opt_toc eq 'page' && !$firstfileaftertoc) {
+	$firstfileaftertoc = "$basename-body.html";
+	rename("$basename.html",$firstfileaftertoc) ||
+	    die("can't rename $basename.html");
+    } 
+
+    # if one file or explicitly asked for it, 
+    #   put ToC at beginning of first file
+    # if multiple files, put ToC at end of first file
+    #  (which possibly has pre-1st section matter in it already)
+
+    if ($opt_toc eq "bottom") {
+	open(OUTPUT,">>$URL{'contents'}") ||
+	    die("can't open contents $URL{'contents'}: $!\n");
+	select OUTPUT;
+#	&output("<h1>" . ($opt_title ? $opt_title : "") .
+#		" Table of Contents</h1>\n",1);
+	&output($toctext,1);
+    } else {
+	&opennewpage("temptoc.$$", $maintitle);
+	&output("<h1>" . ($opt_title ? $opt_title : $basename) . "</h1>");
+#	&output("<h2>Table of Contents</h2>\n",1);
+	&output($toctext,1);
+	open(INPUT,"$basename.html") ||
+	    die("can't open $basename.html to read in: $!");
+	$/ = "\n";
+	while(<INPUT>) {
+	    last if /\<body\>/;
+	}
+	while(<INPUT>) {
+	    print OUTPUT $_;
+	}
+	close(INPUT);
+	rename("temptoc.$$","$basename.html");
+    }
+    $URL{'next'} = $firstfileaftertoc;
+    $URL{'current'} = $URL{'contents'};
+    $location = 'contents';
+    &output(&navigate,1) if $opt_nav;
+    &output("$sig</body>",1);
+    close(OUTPUT);
+
+}
+
