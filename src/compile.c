@@ -188,7 +188,7 @@ char	*argv[];
 		if( ( rm_dbfp = fopen( dbfnp, "r" ) ) == NULL ){
 			fprintf( stderr,
 				"%s: can't read database-file '%s'\n",
-				argv[ 0 ], argv[ 1 ] ); 
+				argv[ 0 ], dbfnp ); 
 			if( yyin != stdin )
 				fclose( yyin );
 			return( 1 );
@@ -523,24 +523,6 @@ void	SE_close()
 				}
 			}
 		}else if( !strcmp( ip->i_name, "seq" ) ){
-/*
-			stp->s_seq = ip->i_val.v_value.v_pval;
-			if( stp->s_seq && *stp->s_seq != '\0' ){
-				l_seq = strlen( stp->s_seq );
-				l_seq = 2*l_seq > 256 ? 2*l_seq : 256 ;
-				stp->s_expbuf =
-					( char * )malloc( l_seq*sizeof(char) );
-				if( stp->s_expbuf == NULL ){
-					rm_emsg_lineno = stp->s_lineno;
-					errormsg( 1,
-						"can't allocate s_expbuf." );
-				}
-				stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
-				compile( stp->s_seq,
-					stp->s_expbuf, stp->s_e_expbuf, '\0' );
-			}else
-				stp->s_seq = NULL;
-*/
 			stp->s_seq = str2seq( ip->i_val.v_value.v_pval );
 			if( stp->s_seq && *stp->s_seq != '\0' ){
 				l_seq = strlen( stp->s_seq );
@@ -1138,7 +1120,8 @@ static	int	chk_len_seq( n_egroup, egroup )
 int	n_egroup;
 STREL_T	*egroup[];
 {
-	int	err, exact, exact1, inexact, seq;
+	int	err, seq;
+	int	exact, exact1, inexact, kclos;
 	int	i;
 	int	minl, maxl;
 	int	se_minl, se_maxl;
@@ -1181,7 +1164,13 @@ STREL_T	*egroup[];
 	seq = 0;
 	for( i = 0; i < n_egroup; i++ ){
 		stp = egroup[ i ];
-		if( seqlen( stp->s_seq, &s_minl, &s_maxl, &exact1 ) ){
+		if( seqlen( stp->s_seq, &s_minl, &s_maxl, &exact1, &kclos ) ){
+			if( kclos && stp->s_mismatch != 0 ){
+				err = 1;
+				rm_emsg_lineno = stp->s_lineno;
+				errormsg( 0,
+				"'*' in seq= not allowed with  mismatch= >0." );
+			}
 			seq = 1;
 			if( exact1 ){
 				if( se_minl == UNDEF ){
@@ -2056,11 +2045,12 @@ char	str[];
 	return( sp );
 }
 
-static	int	seqlen( seq, minlen, maxlen, exact )
+static	int	seqlen( seq, minlen, maxlen, exact, kclos )
 char	seq[];
 int	*minlen;
 int	*maxlen;
 int	*exact;
+int	*kclos;
 {
 	char	*sp, *sp1;
 	int	rbr;
@@ -2075,6 +2065,7 @@ int	*exact;
 	if( *seq == '*' ){
 		*minlen = 0;
 		*maxlen = UNBOUNDED;
+		*kclos = 1;
 		return( 1 );
 	}
 
@@ -2083,6 +2074,7 @@ int	*exact;
 	minl = 0;
 	maxl = 0;
 	sp = seq;
+	*kclos = 0;
 	if( *sp == '^' ){	/* leading ^ anchors to position 1 */
 		circ = 1;
 		sp++;
@@ -2091,6 +2083,7 @@ int	*exact;
 		if( *sp == '.' ){
 			if( sp[ 1 ] == '*' ){
 				maxl = UNBOUNDED;
+				*kclos = 1;
 				sp++;
 			}else{
 				minl++;
@@ -2118,6 +2111,7 @@ int	*exact;
 			}
 			if( sp[ 1 ] == '*' ){
 				maxl = UNBOUNDED;
+				*kclos = 1;
 				sp++;
 			}else{
 				minl++;
@@ -2127,6 +2121,7 @@ int	*exact;
 		}else if( *sp == '$' ){
 			if( sp[ 1 ] == '*' ){
 				maxl = UNBOUNDED;
+				*kclos = 1;
 				sp++;
 			}else if( sp[ 1 ] != '\0' ){
 				minl++;
@@ -2143,6 +2138,7 @@ int	*exact;
 			sp++;
 		}else if( sp[ 1 ] == '*' ){
 			maxl = UNBOUNDED;
+			*kclos = 1;
 			sp++;
 		}else{
 			minl++;
