@@ -674,7 +674,9 @@ int	*hlen;
 {
 	int	s, s3_5plim;
 	int	b5, b3;
-	int	bpcnt, mpr;
+	int	mpr, l_pr;
+	int	mpcnt[ 100 ];
+	int	i_lpb;
 
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
@@ -683,9 +685,11 @@ int	*hlen;
 		return( 0 );
 
 	*h3 = s3;
-	bpcnt = 1;
-	*hlen = 1;
+	mpcnt[ 0 ] = 0;
+	i_lpb = 0;
+	l_pr = 1;
 	mpr = 0;
+/*
 	for( bpcnt = 1, *hlen = 1, s = s3 - 1; s >= s3lim; s--, (*hlen)++ ){
 
 		b5 = fm_sbuf[ s5 + *hlen ];
@@ -703,6 +707,32 @@ int	*hlen;
 		}
 	}
 	if( bpcnt < stp->s_minlen || bpcnt > stp->s_maxlen )
+		return( 0 );
+*/
+	for( *hlen = 1, s = s3 - 1; s >= s3lim; s-- ){
+
+		b5 = fm_sbuf[ s5 + *hlen ];
+		b3 = fm_sbuf[ s3 - *hlen ];
+		if( paired( stp->s_pairset, b5, b3 ) ){
+			l_pr = 1;
+			i_lpb = *hlen;
+			mpcnt[ *hlen ] = mpr;
+		}else{
+			l_pr = 0;
+			mpr++;
+			mpcnt[ *hlen ] = mpr;
+			if( mpr > stp->s_mispair ){
+				if( *hlen < stp->s_minlen )
+					return( 0 );
+				else
+					break;
+			}
+		}
+		( *hlen )++;
+	}
+	if( *hlen != i_lpb + 1 )	/* must end on a pair! */
+		*hlen = i_lpb + 1;
+	if( *hlen < stp->s_minlen || *hlen > stp->s_maxlen )
 		return( 0 );
 
 	if( stp->s_seq != NULL ){
@@ -732,7 +762,7 @@ int	*hlen;
 {
 	int	s, s1;
 	int	b50, b5, b3;
-	int	bpcnt, mpr;
+	int	mpr, l_pr;
 
 	b50 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
@@ -741,9 +771,10 @@ int	*hlen;
 		b5 = fm_sbuf[ s ];
 		if( !paired( stp->s_pairset, b5, b3 ) )
 			continue;
-		bpcnt = 1;
 		*hlen = 1;
 		mpr = 0;
+		l_pr = 1;
+/*
 		for( s1 = s - 1; s1 >= s5; s1--, (*hlen)++ ){
 			b5 = fm_sbuf[ s1 ];
 			b3 = fm_sbuf[ s3 - bpcnt ];
@@ -756,6 +787,26 @@ int	*hlen;
 			}
 		}
 		if( bpcnt < stp->s_minlen || bpcnt > stp->s_maxlen )
+			return( 0 );
+*/
+		for( s1 = s - 1; s1 >= s5; s1-- ){
+			b5 = fm_sbuf[ s1 ];
+			b3 = fm_sbuf[ s3 - *hlen ];
+			if( paired( stp->s_pairset, b5, b3 ) ){
+				l_pr = 1;
+				( *hlen )++;
+			}else{
+				l_pr = 0;
+				mpr++;
+				if( mpr > stp->s_mispair ){
+					return( 0 );
+				}
+				( *hlen )++;
+			}
+		}
+		if( !l_pr )	/* must end on a pair	*/
+			return( 0 );
+		if( *hlen < stp->s_minlen || *hlen > stp->s_maxlen )
 			return( 0 );
 
 		if( stp->s_seq != NULL ){
@@ -785,7 +836,7 @@ int	tlen;
 {
 	int	t;
 	int	b1, b2, b3;
-	int	bpcnt, mpr;
+	int	mpr, l_pr;
 
 	b1 = fm_sbuf[ s1 ];
 	b2 = fm_sbuf[ s2 ];
@@ -793,19 +844,24 @@ int	tlen;
 
 	if( !triple( stp->s_pairset, b1, b2, b3 ) )
 		return( 0 );
-
-	bpcnt = 1;
-	mpr = 0;
-	for( t = 1; t < tlen; t++ ){
+	else
+		l_pr = 1;
+	
+	for( mpr = 0, t = 1; t < tlen; t++ ){
 		b1 = fm_sbuf[ s1 + t ];
 		b2 = fm_sbuf[ s2 - t ];
 		b3 = fm_sbuf[ s3 - tlen + 1 + t ];
 		if( !triple( stp->s_pairset, b1, b2, b3 ) ){
+			l_pr = 0;
 			mpr++;
 			if( mpr > stp->s_mispair )
 				return( 0 );
-		}
+		}else
+			l_pr = 1;
 	}
+
+	if( !l_pr )
+		return( 0 );
 
 	if( stp1->s_seq != NULL ){
 		strncpy( fm_chk_seq, &fm_sbuf[ s2 - tlen + 1 ], tlen );
@@ -828,7 +884,7 @@ int	qlen;
 {
 	int	q;
 	int	b1, b2, b3, b4;
-	int	bpcnt, mpr;
+	int	mpr, l_pr;
 
 	b1 = fm_sbuf[ s1 + qlen - 1 ];
 	b2 = fm_sbuf[ s2 ];
@@ -837,20 +893,25 @@ int	qlen;
 
 	if( !quad( stp1->s_pairset, b1, b2, b3, b4 ) )
 		return( 0 );
+	else
+		l_pr = 1;
 
-	bpcnt = 1;
-	mpr = 0;
-	for( q = 1; q < qlen; q++ ){
+	for( mpr = 0, q = 1; q < qlen; q++ ){
 		b1 = fm_sbuf[ s1 + qlen - 1 - q ];
 		b2 = fm_sbuf[ s2 + q ];
 		b3 = fm_sbuf[ s3 - q ];
 		b4 = fm_sbuf[ s4 - qlen + 1 + q ];
 		if( !quad( stp1->s_pairset, b1, b2, b3, b4 ) ){
+			l_pr = 0;
 			mpr++;
 			if( mpr > stp1->s_mispair )
 				return( 0 );
-		}
+		}else
+			l_pr = 1;
 	}
+
+	if( !l_pr )
+		return( 0 );
 
 	if( stp1->s_seq != NULL ){
 		strncpy( fm_chk_seq, &fm_sbuf[ s2 ], qlen );
@@ -901,7 +962,10 @@ int	b3;
 /*
 	btmatp = stp->s_pairset->ps_mat[ 1 ];
 */
+/*
 	btmatp = ps->ps_mat[ 0 ];
+*/
+	btmatp = ps->ps_mat[ 1 ];
 	b1i = rm_b2bc[ b1 ];
 	b2i = rm_b2bc[ b2 ];
 	b3i = rm_b2bc[ b3 ];
@@ -923,7 +987,10 @@ int	b4;
 /*
 	bqmatp = stp->s_pairset->ps_mat[ 1 ];
 */
+/*
 	bqmatp = ps->ps_mat[ 0 ];
+*/
+	bqmatp = ps->ps_mat[ 1 ];
 	b1i = rm_b2bc[ b1 ];
 	b2i = rm_b2bc[ b2 ];
 	b3i = rm_b2bc[ b3 ];
@@ -1357,7 +1424,7 @@ SITE_T	*sip;
 	}else if( sip->s_n_pos == 3 ){
 		rv = triple( sip->s_pairset, b[ 0 ], b[ 1 ], b[ 2 ] );
 	}else if( sip->s_n_pos == 4 ){
-		rv = quad( sip->s_pairset, b[ 0 ], b[ 1 ], b[ 2 ], b[ 4 ] );
+		rv = quad( sip->s_pairset, b[ 0 ], b[ 1 ], b[ 2 ], b[ 3 ] );
 	}
 	return( rv );
 }
