@@ -226,9 +226,15 @@ char	*argv[];
 	np = PR_close();
 	enter_id( "qu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
 
+/*
 	val.v_type = T_STRING;
 	val.v_value.v_pval = "RNA";
 	enter_id( "database", T_STRING, C_VAR, S_GLOBAL, &val );
+*/
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 1;
+	enter_id( "chk_both_strs", T_INT, C_VAR, S_GLOBAL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 3;
