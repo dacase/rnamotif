@@ -1,9 +1,14 @@
-head	1.35;
+head	1.36;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.36
+date	2003.07.21.20.43.10;	author macke;	state Exp;
+branches;
+next	1.35;
 
 1.35
 date	2001.07.30.19.48.47;	author macke;	state Exp;
@@ -186,9 +191,10 @@ desc
 @
 
 
-1.35
+1.36
 log
-@added coded to return SYM_CTX on encountering new symbol ctx.
+@4 new symbols: BEGIN, END, HOLD, RELEASE for use with carry around
+score sections.
 @
 text
 @%{
@@ -252,7 +258,11 @@ q3		return( SYM_Q3 );
 q4		return( SYM_Q4 );
 
 ACCEPT		return( SYM_ACCEPT );
+BEGIN		return( SYM_BEGIN );
+END		return( SYM_END );
+HOLD		return( SYM_HOLD );
 REJECT		return( SYM_REJECT );
+RELEASE		return( SYM_RELEASE );
 break		return( SYM_BREAK );
 continue	return( SYM_CONTINUE );
 else		return( SYM_ELSE );
@@ -445,6 +455,16 @@ static	FNAME_T	*enter_fname( FNAME_T **root, char fname[] )
 		fnp = *root;
 	return( fnp );
 }
+@
+
+
+1.35
+log
+@added coded to return SYM_CTX on encountering new symbol ctx.
+@
+text
+@d62 3
+d66 1
 @
 
 

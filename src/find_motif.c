@@ -29,7 +29,11 @@ extern	int	rm_b2bc[];
 
 extern	SEARCH_T	**rm_searches;
 
+extern	VALUE_T	*rm_nval;
 extern	VALUE_T	*rm_sval;
+extern	VALUE_T	*rm_cval;
+extern	VALUE_T	*rm_pval;
+extern	VALUE_T	*rm_lval;
 
 extern	int	circf;	/* reg. exp. ^ kludge	*/
 extern	char	*loc1, *loc2;
@@ -48,6 +52,9 @@ static	int	fm_opt_pos = -1;	/* current opt. subsearch	*/
 static	int	fm_opt_lpos = -1;
 static	int	fm_opt_rpos = -1;
 static	char	*fm_chk_seq;
+static	char	*fm_hitbuf;	/* sprintf the hit here, then print	*/
+static	int	fm_hitbufsize;
+static	char	fm_sdefbuf[ SID_SIZE + SDEF_SIZE + 4 ];
 
 static	int	find_motif( SEARCH_T * );
 static	int	adjust_szero( int * );
@@ -87,41 +94,73 @@ static	int	chk_sites( int, STREL_T [], SITE_T * );
 static	int	chk_1_site( int, STREL_T *, SITE_T * );
 static	int	chk_seq( STREL_T *, char [], int );
 
-static	void	print_match( FILE *, char [], int, int, STREL_T [] );
+static	void	print_match( FILE *, char [], int, int, STREL_T [], IDENT_T * );
 static	void	mk_cstr( char [], char [] );
 
+int	RM_fm_init( void )
+{
+	IDENT_T	*ip;
+	int	rval = 0;
+
+	ip = RM_find_id( "windowsize" );
+	if( ip == NULL ){
+		RM_errormsg( TRUE,
+			"RM_find_motif: windowsize undefined." );
+		rval = 1;
+		goto CLEAN_UP;
+	}
+
+	if( ip->i_val.v_value.v_ival <= 0 ){
+		RM_errormsg( TRUE,
+			"RM_find_motif: windowsize <= 0." );
+		rval = 1;
+		goto CLEAN_UP;
+	}else
+		fm_windowsize = ip->i_val.v_value.v_ival;
+	fm_winbuf = ( int * )malloc( (fm_windowsize+2) * sizeof(int) );
+	if( fm_winbuf == NULL ){
+		RM_errormsg( TRUE,
+			"RM_find_motif: can't allocate fm_winbuf.");
+		rval = 1;
+		goto CLEAN_UP;
+	}
+	fm_window = &fm_winbuf[ 1 ];
+	fm_chk_seq = ( char * )malloc((fm_windowsize+1) * sizeof(char));
+	if( fm_chk_seq == NULL ){
+		RM_errormsg( TRUE,
+			"RM_find_motif: can't allocate fm_chk_seq." );
+		rval = 1;
+		goto CLEAN_UP;
+	}	
+
+	fm_hitbufsize = fm_windowsize + rm_n_descr;
+	if( rm_lctx )
+		fm_hitbufsize += rm_lctx->s_maxlen + 1;
+	if( rm_rctx )
+		fm_hitbufsize += rm_rctx->s_maxlen + 1;
+	fm_hitbufsize += SID_SIZE + SCORE_SIZE + 2 + 13 + 13 + 1 + 2;
+	fm_hitbuf = ( char * )malloc( fm_hitbufsize * sizeof( char ) );
+	if( fm_hitbuf == NULL ){
+		RM_errormsg( TRUE,
+			"RM_find_motif: can't allocate fm_hitbuf." );
+		rval = 1;
+		goto CLEAN_UP;
+	}
+
+CLEAN_UP : ;
+
+	return( rval );
+}
+
 int	RM_find_motif( int n_searches, SEARCH_T *searches[],
 	SITE_T *sites,
 	char sid[], char sdef[], int comp, int slen, char sbuf[] )
 {
 	int	w_winsize;
 	int	l_szero;
-	IDENT_T	*ip;
 	SEARCH_T	*srp;
 	int	rv;
 	
-	if( fm_winbuf == NULL ){
-		ip = RM_find_id( "windowsize" );
-		if( ip == NULL )
-			RM_errormsg( TRUE,
-				"RM_find_motif: windowsize undefined." );
-	
-			if( ip->i_val.v_value.v_ival <= 0 )
-				RM_errormsg( TRUE,
-					"RM_find_motif: windowsize <= 0." );
-		else
-			fm_windowsize = ip->i_val.v_value.v_ival;
-		fm_winbuf = ( int * )malloc( (fm_windowsize+2) * sizeof(int) );
-		if( fm_winbuf == NULL )
-			RM_errormsg( TRUE,
-				"RM_find_motif: can't allocate fm_winbuf.");
-		fm_window = &fm_winbuf[ 1 ];
-		fm_chk_seq = ( char * )malloc((fm_windowsize+1) * sizeof(char));
-		if( fm_chk_seq == NULL )
-			RM_errormsg( TRUE,
-			"RM_find_motif: can't allocate fm_chk_seq." );
-	}
-
 	fm_sid = sid;
 	fm_sdef = sdef;
 	fm_comp = comp;
@@ -284,10 +323,12 @@ static	int	find_1_motif( SEARCH_T *srp )
 
 static	int	find_ss( SEARCH_T *srp )
 {
-	STREL_T	*stp;
+	STREL_T	*stp, *stp1;
 	int	slen, szero, sdollar;
 	STREL_T	*n_stp;
 	SEARCH_T	*n_srp;
+	int	d, offset, len;
+	IDENT_T	*h_idp;
 	int	rv;
 
 	stp = srp->s_descr;
@@ -311,35 +352,37 @@ static	int	find_ss( SEARCH_T *srp )
 		n_srp = rm_searches[ n_stp->s_searchno ];
 		rv = find_motif( n_srp );
 	}else{
-		rv = 1;
+		rv = TRUE;
 		if( rm_args->a_strict_helices && 
 			!chk_motif( rm_n_descr, rm_descr, rm_sites ) )
 		{
-				rv = FALSE;
+			rv = FALSE;
 		}else if( !set_context( rm_n_descr, rm_descr ) ){
 			rv = FALSE;
 		}else if( !chk_sites( rm_n_descr, rm_descr, rm_sites ) ){
 			rv = FALSE;
-		}else if( RM_score( fm_comp, fm_slen, fm_sbuf ) )
-			print_match( stdout,
-				fm_sid, fm_comp, rm_n_descr, rm_descr );
-/*
-		if( !set_context( rm_n_descr, rm_descr ) ){
-			rv = FALSE;
-		}else if( !chk_sites( rm_n_descr, rm_descr, rm_sites ) ){
-			rv = FALSE;
-		}else if( RM_score( fm_comp, fm_slen, fm_sbuf ) )
-			print_match( stdout,
-				fm_sid, fm_comp, rm_n_descr, rm_descr );
-*/
-/*
-		if( chk_motif( rm_n_descr, rm_descr, rm_sites ) ){
-			rv = 1;
-			print_match( stdout, fm_sid, fm_comp,
-				rm_n_descr, rm_descr );
-		}else
-			rv = FALSE;
-*/
+		}else{
+			rm_nval->v_value.v_pval = fm_sid;
+			rm_cval->v_value.v_ival = fm_comp;
+			stp1 = rm_descr; 
+			if( fm_comp ){
+				offset = fm_slen - stp1->s_matchoff;
+			}else
+				offset = stp1->s_matchoff + 1;
+			rm_pval->v_value.v_ival = offset;
+
+			for(stp1=rm_descr,len=0,d=0; d<rm_n_descr; d++,stp1++)
+				len += stp1->s_matchlen;
+			rm_lval->v_value.v_ival = len;
+
+			if( RM_score( fm_comp, fm_slen, fm_sbuf, &h_idp ) !=
+				SA_REJECT )
+			{
+				print_match( stdout,
+				fm_sid, fm_comp, rm_n_descr, rm_descr, h_idp );
+			}else
+				rv = FALSE;
+		}
 	}
 	unmark_ss( stp, szero, slen );
 	return( rv );
@@ -1718,13 +1761,76 @@ static	int	chk_seq( STREL_T *stp, char seq[], int slen )
 }
 
 static	void	print_match( FILE *fp, char sid[], int comp,
-	int n_descr, STREL_T descr[] )
+	int n_descr, STREL_T descr[], IDENT_T *h_idp )
 {
 	static	int	first = 1;
 	char	name[ 20 ];
 	int	d, len, offset;
 	STREL_T	*stp;
 	char	cstr[ 256 ];
+	char	*hbp;
+	HIT_T	*hp;
+
+	sprintf( fm_sdefbuf, ">%s %s\n", sid, fm_sdef );
+
+	for( stp = descr, len = 0, d = 0; d < n_descr; d++, stp++ )
+		len += stp->s_matchlen;
+
+	stp = descr; 
+	if( comp ){
+		offset = fm_slen - stp->s_matchoff;
+	}else
+		offset = stp->s_matchoff + 1;
+
+	hbp = fm_hitbuf;
+	sprintf( hbp, "%-12s", sid );
+	hbp += strlen( hbp );
+	switch( rm_sval->v_type ){
+	case T_INT :
+		sprintf( hbp, " %8d", rm_sval->v_value.v_ival );
+		break;
+	case T_FLOAT :
+		sprintf( hbp, " %8.3lf", rm_sval->v_value.v_dval );
+		break;
+	case T_STRING :
+		sprintf( hbp, " %8s", rm_sval->v_value.v_pval );
+		break;
+	default :
+		sprintf( hbp, " %8.3lf", 0.0 );
+		break;
+	}
+	hbp += strlen( hbp );
+	sprintf( hbp, " %d %7d %4d", comp, offset, len );
+	hbp += strlen( hbp );
+	
+	if( rm_lctx != NULL ){
+		if( rm_lctx->s_matchlen > 0 ){
+			sprintf( hbp, " %.*s",
+				rm_lctx->s_matchlen,
+				&fm_sbuf[ rm_lctx->s_matchoff ] );
+		}else
+			sprintf( hbp, " ." );
+		hbp += strlen( hbp );
+	}
+	for( d = 0; d < n_descr; d++, stp++ ){
+		if( stp->s_matchlen > 0 ){
+			sprintf( hbp, " %.*s",
+				stp->s_matchlen, &fm_sbuf[ stp->s_matchoff ] );
+		}else
+			sprintf( hbp, " ." );
+		hbp += strlen( hbp );
+	}
+	if( rm_rctx != NULL ){
+		if( rm_rctx->s_matchlen > 0 ){
+			sprintf( hbp, " %.*s",
+				rm_rctx->s_matchlen,
+				&fm_sbuf[ rm_rctx->s_matchoff ] );
+		}else
+			sprintf( hbp, " ." );
+		hbp += strlen( hbp );
+	}
+	*hbp++ = '\n';
+	*hbp = '\0';
 
 	if( first ){
 		first = 0;
@@ -1756,57 +1862,23 @@ static	void	print_match( FILE *fp, char sid[], int comp,
 		}
 		fprintf( fp, "\n" );
 	}
-	for( stp = descr, len = 0, d = 0; d < n_descr; d++, stp++ )
-		len += stp->s_matchlen;
 
-	stp = descr; 
-	if( comp ){
-		offset = fm_slen - stp->s_matchoff;
-	}else
-		offset = stp->s_matchoff + 1;
-
-	fprintf( fp, ">%s %s\n", sid, fm_sdef );
-	fprintf( fp, "%-12s", sid );
-	switch( rm_sval->v_type ){
-	case T_INT :
-		fprintf( fp, " %8d", rm_sval->v_value.v_ival );
-		break;
-	case T_FLOAT :
-		fprintf( fp, " %8.3lf", rm_sval->v_value.v_dval );
-		break;
-	case T_STRING :
-		fprintf( fp, " %8s", rm_sval->v_value.v_pval );
-		break;
-	default :
-		fprintf( fp, " %8.3lf", 0.0 );
-		break;
+	if( h_idp != NULL ){
+		hp = ( HIT_T * )h_idp->i_val.v_value.v_pval;
+		hp->h_def = strdup( fm_sdefbuf );
+/*KLUDGE*/	if( hp->h_def == NULL ){
+			fprintf( stderr, "print_match: can't strdup def\n" );
+			exit( 1 );
+		}
+		hp->h_match = strdup( fm_hitbuf );
+/*KLUDGE*/	if( hp->h_def == NULL ){
+			fprintf( stderr, "print_match: can't strdup def\n" );
+			exit( 1 );
+		}
+	}else{
+		fputs( fm_sdefbuf, fp );
+		fputs( fm_hitbuf, fp );
 	}
-	fprintf( fp, " %d %7d %4d", comp, offset, len );
-
-	if( rm_lctx != NULL ){
-		if( rm_lctx->s_matchlen > 0 ){
-			fprintf( fp, " %.*s",
-				rm_lctx->s_matchlen,
-				&fm_sbuf[ rm_lctx->s_matchoff ] );
-		}else
-			fprintf( fp, " ." );
-	}
-	for( d = 0; d < n_descr; d++, stp++ ){
-		if( stp->s_matchlen > 0 ){
-			fprintf( fp, " %.*s",
-				stp->s_matchlen, &fm_sbuf[ stp->s_matchoff ] );
-		}else
-			fprintf( fp, " ." );
-	}
-	if( rm_rctx != NULL ){
-		if( rm_rctx->s_matchlen > 0 ){
-			fprintf( fp, " %.*s",
-				rm_rctx->s_matchlen,
-				&fm_sbuf[ rm_rctx->s_matchoff ] );
-		}else
-			fprintf( fp, " ." );
-	}
-	fprintf( fp, "\n" );
 }
 
 static	void	mk_cstr( char str[], char cstr[] )

@@ -50,64 +50,79 @@ static	int	rm_n_xdescr;
 extern	int	circf;	/* reg. exp. ^ kludge	*/
 
 #define	LABTAB_SIZE	1000
-static	int	labtab[ LABTAB_SIZE ];
-static	int	nextlab;
+static	int	labtabs[ N_PROG ][ LABTAB_SIZE ];
+static	int	*labtab;
+static	int	nextlabs[ N_PROG ];
+static	int	*nextlab;
 static	int	actlab;
 static	VALUE_T	v_lab;
 
-static	int	ifstk[ 100 ];
-static	int	ifstkp = 0;
+#define	IFSTK_SIZE	100
+static	int	ifstks[ N_PROG ][ IFSTK_SIZE ];
+static	int	*ifstk;
+static	int	ifstkps[ N_PROG ];
+static	int	*ifstkp;
 
-static	int	loopstk[ 100 ];
-static	NODE_T	*loopincrstk[ 100 ];
-static	int	loopstkp = 0;
+#define	LOOPSTK_SIZE	100
+static	int	loopstks[ N_PROG ][ LOOPSTK_SIZE ];
+static	int	*loopstk;
+static	NODE_T	*loopincrstks[ N_PROG ][ LOOPSTK_SIZE ];
+static	NODE_T	**loopincrstk;
+static	int	loopstkps[ N_PROG ];
+static	int	*loopstkp;
 
 static	int	sc_comp;
 static	IDENT_T	*sc_SLEN;
 static	int	sc_slen;
 static	char	*sc_sbuf;
 
-#define	OP_NOOP		0	/* No Op	 	*/
-#define	OP_ACPT		1	/* Accept the candidate	*/
-#define	OP_RJCT		2	/* Reject the candidate */
-#define	OP_MRK		3	/* Mark the stack	*/
-#define	OP_CLS		4	/* Clear the stack	*/
-#define	OP_FCL		5	/* Function Call	*/
-#define	OP_SCL		6	/* Builtin  Call	*/
-#define	OP_STRF		7	/* Str. El. Reference	*/
-#define	OP_LDA		8	/* Load Address		*/
-#define	OP_LOD		9	/* Load Value		*/
-#define	OP_LDC		10	/* Load Constant	*/
-#define	OP_STO		11	/* Store top of stack	*/
-#define	OP_AND		12	/* McCarthy And		*/
-#define	OP_IOR		13	/* McCarthy Or		*/
-#define	OP_NOT		14	/* Not			*/
-#define	OP_MAT		15	/* Match		*/
-#define	OP_INS		16	/* In Pairset		*/
-#define	OP_GTR		17	/* Greater Than		*/
-#define	OP_GEQ		18	/* Greater or Equal	*/
-#define	OP_EQU		19	/* Equal		*/
-#define	OP_NEQ		20	/* Not Equal		*/
-#define	OP_LEQ		21	/* Less or Equal	*/
-#define	OP_LES		22	/* Less Than		*/
-#define	OP_ADD		23	/* Addition		*/
-#define	OP_SUB		24	/* Subtraction		*/
-#define	OP_MUL		25	/* Multiplication	*/
-#define	OP_DIV		26	/* Division		*/
-#define	OP_MOD		27	/* Modulus		*/
-#define	OP_NEG		28	/* Negate		*/
-#define	OP_I_PP		29	/* use then incr (i++)	*/
-#define	OP_PP_I		30	/* incr then use (++i)	*/
-#define	OP_I_MM		31	/* use then decr (i--)	*/
-#define	OP_MM_I		32	/* decr then use (--i)	*/
-#define	OP_FJP		33	/* False Jump		*/
-#define	OP_JMP		34	/* Jump			*/
-#define	N_OP		35
+#define	OP_HALT		0	/* Halt, for BEGIN/END	*/
+#define	OP_NOOP		1	/* No Op	 	*/
+#define	OP_ACPT		2	/* Accept the candidate	*/
+#define	OP_HOLD		3	/* Hold the candidate	*/
+#define	OP_RJCT		4	/* Reject the candidate */
+#define	OP_RLSE		5	/* Release the candidate*/
+#define	OP_MRK		6	/* Mark the stack	*/
+#define	OP_CLS		7	/* Clear the stack	*/
+#define	OP_FCL		8	/* Function Call	*/
+#define	OP_SCL		9	/* Builtin  Call	*/
+#define	OP_STRF		10	/* Str. El. Reference	*/
+#define	OP_LDA		11	/* Load Address		*/
+#define	OP_LOD		12	/* Load Value		*/
+#define	OP_LDC		13	/* Load Constant	*/
+#define	OP_STO		14	/* Store top of stack	*/
+#define	OP_AND		15	/* McCarthy And		*/
+#define	OP_IOR		16	/* McCarthy Or		*/
+#define	OP_NOT		17	/* Not			*/
+#define	OP_MAT		18	/* Match		*/
+#define	OP_INS		19	/* In Pairset		*/
+#define	OP_GTR		20	/* Greater Than		*/
+#define	OP_GEQ		21	/* Greater or Equal	*/
+#define	OP_EQU		22	/* Equal		*/
+#define	OP_NEQ		23	/* Not Equal		*/
+#define	OP_LEQ		24	/* Less or Equal	*/
+#define	OP_LES		25	/* Less Than		*/
+#define	OP_ADD		26	/* Addition		*/
+#define	OP_SUB		27	/* Subtraction		*/
+#define	OP_MUL		28	/* Multiplication	*/
+#define	OP_DIV		29	/* Division		*/
+#define	OP_MOD		30	/* Modulus		*/
+#define	OP_NEG		31	/* Negate		*/
+#define	OP_I_PP		32	/* use then incr (i++)	*/
+#define	OP_PP_I		33	/* incr then use (++i)	*/
+#define	OP_I_MM		34	/* use then decr (i--)	*/
+#define	OP_MM_I		35	/* decr then use (--i)	*/
+#define	OP_FJP		36	/* False Jump		*/
+#define	OP_JMP		37	/* Jump			*/
+#define	N_OP		38
 
 static	char	*opnames[ N_OP ] = {
+	"halt",
 	"noop",
 	"acpt",
+	"hold",
 	"rjct",
+	"rlse",
 	"mrk",
 	"cls",
 	"fcl",
@@ -181,8 +196,11 @@ typedef	struct	inst_t	{
 } INST_T;
 
 #define	PROG_SIZE	10000
-static	INST_T	prog[ PROG_SIZE ];
-static	int	l_prog;
+static	INST_T	progs[ N_PROG ][ PROG_SIZE ];
+static	INST_T	*prog;
+static	int	l_progs[ N_PROG ];
+static	int	*l_prog;
+static	int	c_prog;
 
 #define	MEM_SIZE	10000
 static	VALUE_T	mem[ MEM_SIZE ];
@@ -215,6 +233,8 @@ static	float	do_sc_bits( INST_T * );
 static	float	do_sc_efnx( INST_T * );
 static	int	do_sc_sprintf( INST_T * );
 static	int	fmt_1_item( INST_T *, char *, int, int * );
+static	void	do_hold( INST_T *, IDENT_T ** );
+static	void	do_rlse( INST_T * );
 static	void	do_strf( INST_T * );
 static	void	do_lda( INST_T * );
 static	void	do_lod( INST_T * );
@@ -270,19 +290,29 @@ static	void	tm_report( void );
 void	RM_action( NODE_T *np )
 {
 
-	RM_mark();
-	RM_expr( 0, np );
-	actlab = nextlab;
-	nextlab++;
-	v_lab.v_type = T_INT;
-	v_lab.v_value.v_ival = actlab;
-	addinst( np, OP_FJP, &v_lab );
+	if( np->n_sym == SYM_BEGIN ){
+		RM_setprog( P_BEGIN );
+	}else if( np->n_sym == SYM_END ){
+		RM_setprog( P_END );
+	}else{
+		RM_setprog( P_MAIN );
+		RM_mark();
+		RM_expr( 0, np );
+		actlab = *nextlab;
+		( *nextlab )++;
+		v_lab.v_type = T_INT;
+		v_lab.v_value.v_ival = actlab;
+		addinst( np, OP_FJP, &v_lab );
+	}
 }
 
 void	RM_endaction( void )
 {
 
-	labtab[ actlab ] = l_prog;
+	labtab[ actlab ] = *l_prog;
+	if( c_prog != P_MAIN )
+		addinst( NULL, OP_HALT, NULL );
+	RM_setprog( P_MAIN );
 }
 
 void	RM_if( NODE_T *np )
@@ -290,11 +320,11 @@ void	RM_if( NODE_T *np )
 
 	RM_mark();
 	RM_expr( 0, np );
-	ifstk[ ifstkp ] = nextlab;
-	ifstkp++;
-	nextlab += 2;
+	ifstk[ *ifstkp ] = *nextlab;
+	( *ifstkp )++;
+	*nextlab += 2;
 	v_lab.v_type = T_INT;
-	v_lab.v_value.v_ival = ifstk[ ifstkp - 1 ];
+	v_lab.v_value.v_ival = ifstk[ *ifstkp - 1 ];
 	addinst( np, OP_FJP, &v_lab );
 }
 
@@ -302,31 +332,31 @@ void	RM_else( void )
 {
 
 	v_lab.v_type = T_INT;
-	v_lab.v_value.v_ival = ifstk[ ifstkp - 1 ] + 1;
+	v_lab.v_value.v_ival = ifstk[ *ifstkp - 1 ] + 1;
 	addinst( NULL, OP_JMP, &v_lab );
-	labtab[ ifstk[ ifstkp - 1 ] ] = l_prog;
+	labtab[ ifstk[ *ifstkp - 1 ] ] = *l_prog;
 }
 
 void	RM_endelse( void )
 {
 
-	labtab[ ifstk[ ifstkp - 1 ] + 1 ] = l_prog;
-	ifstkp--;
+	labtab[ ifstk[ *ifstkp - 1 ] + 1 ] = *l_prog;
+	( *ifstkp )--;
 }
 
 void	RM_endif( void )
 {
 
-	labtab[ ifstk[ ifstkp - 1 ] ] = l_prog;
-	ifstkp--;
+	labtab[ ifstk[ *ifstkp - 1 ] ] = *l_prog;
+	( *ifstkp )--;
 }
 
 void	RM_forinit( NODE_T *np )
 {
 
-	loopstk[ loopstkp ] = nextlab;
-	loopstkp++;
-	nextlab += 3;
+	loopstk[ *loopstkp ] = *nextlab;
+	( *loopstkp )++;
+	*nextlab += 3;
 	RM_mark();
 	RM_expr( 0, np );
 	RM_clear();
@@ -335,57 +365,57 @@ void	RM_forinit( NODE_T *np )
 void	RM_fortest( NODE_T *np )
 {
 
-	labtab[ loopstk[ loopstkp - 1 ] ] = l_prog;
+	labtab[ loopstk[ *loopstkp - 1 ] ] = *l_prog;
 	RM_mark();
 	RM_expr( 0, np );
 	v_lab.v_type = T_INT;
-	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ] + 2;
+	v_lab.v_value.v_ival = loopstk[ *loopstkp - 1 ] + 2;
 	addinst( np, OP_FJP, &v_lab );
 }
 
 void	RM_forincr( NODE_T *np )
 {
 
-	loopincrstk[ loopstkp - 1 ] = np;
+	loopincrstk[ *loopstkp - 1 ] = np;
 }
 
 void	RM_endfor( void )
 {
 
-	labtab[ loopstk[ loopstkp - 1 ] + 1 ] = l_prog;
+	labtab[ loopstk[ *loopstkp - 1 ] + 1 ] = *l_prog;
 	RM_mark();
-	RM_expr( 0, loopincrstk[ loopstkp - 1 ] );
+	RM_expr( 0, loopincrstk[ *loopstkp - 1 ] );
 	RM_clear();
 	v_lab.v_type = T_INT;
-	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
+	v_lab.v_value.v_ival = loopstk[ *loopstkp - 1 ];
 	addinst( NULL, OP_JMP, &v_lab );
-	labtab[ loopstk[ loopstkp - 1 ] + 2 ] = l_prog;
-	loopstkp--;
+	labtab[ loopstk[ *loopstkp - 1 ] + 2 ] = *l_prog;
+	( *loopstkp )--;
 }
 
 void	RM_while( NODE_T *np )
 {
 
-	loopstk[ loopstkp ] = nextlab;
-	loopstkp++;
-	nextlab += 3;
-	labtab[ loopstk[ loopstkp -1 ] ] = l_prog;
+	loopstk[ *loopstkp ] = *nextlab;
+	( *loopstkp )++;
+	*nextlab += 3;
+	labtab[ loopstk[ *loopstkp -1 ] ] = *l_prog;
 	RM_mark();
 	RM_expr( 0, np );
 	v_lab.v_type = T_INT;
-	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ] + 2;
+	v_lab.v_value.v_ival = loopstk[ *loopstkp - 1 ] + 2;
 	addinst( np, OP_FJP, &v_lab );
 }
 
 void	RM_endwhile( void )
 {
 
-	labtab[ loopstk[ loopstkp - 1 ] + 1 ] = l_prog;
+	labtab[ loopstk[ *loopstkp - 1 ] + 1 ] = *l_prog;
 	v_lab.v_type = T_INT;
-	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
+	v_lab.v_value.v_ival = loopstk[ *loopstkp - 1 ];
 	addinst( NULL, OP_JMP, &v_lab );
-	labtab[ loopstk[ loopstkp - 1 ] + 2 ] = l_prog;
-	loopstkp--;
+	labtab[ loopstk[ *loopstkp - 1 ] + 2 ] = *l_prog;
+	( *loopstkp )--;
 }
 
 void	RM_break( NODE_T *np )
@@ -396,7 +426,7 @@ void	RM_break( NODE_T *np )
 		lev = 1;
 	else{
 		lev = np->n_val.v_value.v_ival;
-		if( lev < 1 || lev > loopstkp ){
+		if( lev < 1 || lev > *loopstkp ){
 			sprintf( emsg,
 				"continue level must be between 1 and %d.",
 				lev );
@@ -404,7 +434,7 @@ void	RM_break( NODE_T *np )
 		}
 	}
 	v_lab.v_type = T_INT;
-	v_lab.v_value.v_ival = loopstk[ loopstkp - lev ] + 2;
+	v_lab.v_value.v_ival = loopstk[ *loopstkp - lev ] + 2;
 	addinst( NULL, OP_JMP, &v_lab );
 }
 
@@ -416,7 +446,7 @@ void	RM_continue( NODE_T *np )
 		lev = 1;
 	else{
 		lev = np->n_val.v_value.v_ival;
-		if( lev < 1 || lev > loopstkp ){
+		if( lev < 1 || lev > *loopstkp ){
 			sprintf( emsg,
 				"continue level must be between 1 and %d.",
 				lev );
@@ -433,10 +463,22 @@ void	RM_accept( void )
 	addinst( NULL, OP_ACPT, NULL );
 }
 
+void	RM_hold( NODE_T *np )
+{
+
+	addinst( np, OP_HOLD, &np->n_val );
+}
+
 void	RM_reject( void )
 {
 
 	addinst( NULL, OP_RJCT, NULL );
+}
+
+void	RM_release( NODE_T *np )
+{
+
+	addinst( np, OP_RLSE, &np->n_val );
 }
 
 void	RM_mark( void )
@@ -460,19 +502,29 @@ void	RM_expr( int lval, NODE_T *np )
 
 void	RM_linkscore( void )
 {
-	int	i, x;
+	int	i, x, p, sc_prog;
 	INST_T	*ip;
-	VALUE_T	v_svars;
+	IDENT_T	*idp;
 
-	for( ip = prog, i = 0; i < l_prog; i++, ip++ ){
-		if( ip->i_op == OP_FJP || ip->i_op == OP_JMP ){
-			ip->i_val.v_value.v_ival =
-				labtab[ ip->i_val.v_value.v_ival ];
-		}else if( ip->i_op == OP_IOR || ip->i_op == OP_AND ){
-			ip->i_val.v_value.v_ival =
-				labtab[ ip->i_val.v_value.v_ival ];
+	sc_prog = c_prog;
+	for( p = 0; p < N_PROG; p++ ){
+		RM_setprog( p );
+		for( ip = prog, i = 0; i < *l_prog; i++, ip++ ){
+			switch( ip->i_op ){
+			case OP_FJP :
+			case OP_JMP :
+				ip->i_val.v_value.v_ival =
+					labtab[ ip->i_val.v_value.v_ival ];
+				break;
+			case OP_IOR :
+			case OP_AND :
+				ip->i_val.v_value.v_ival =
+					labtab[ ip->i_val.v_value.v_ival ];
+				break;
+			}
 		}
 	}
+	RM_setprog( sc_prog );
 
 	rm_n_xdescr = rm_n_descr;
 	if( rm_lctx != NULL && rm_lctx_explicit )
@@ -494,58 +546,109 @@ void	RM_linkscore( void )
 	if( rm_rctx != NULL && rm_rctx_explicit )
 		rm_xdescr[ x ] = rm_rctx;
 
-	v_svars.v_type = T_INT;
-	v_svars.v_value.v_ival = rm_n_xdescr;
-	RM_enter_id( "NSE", T_INT, C_VAR, S_GLOBAL, 0, &v_svars );
+	idp = RM_find_id( "NSE" );
+	idp->i_val.v_value.v_ival = rm_n_xdescr;
 
-	v_svars.v_type = T_INT;
-	v_svars.v_value.v_ival = 0;
-	sc_SLEN = RM_enter_id( "SLEN", T_INT, C_VAR, S_GLOBAL, 0, &v_svars );
+	sc_SLEN = RM_find_id( "SLEN" );
 }
 
 void	RM_dumpscore( FILE *fp )
 {
 	INST_T	*ip;
-	int	i;
+	int	i, sc_prog;
 
-	fprintf( fp, "SCORE: %4d inst.\n", l_prog );
-	for( ip = prog, i = 0; i < l_prog; i++, ip++ ){
+	sc_prog = c_prog;
+	RM_setprog( P_BEGIN );
+	fprintf( fp, "BEGIN SCORE: %4d inst.\n", *l_prog );
+	for( ip = prog, i = 0; i < *l_prog; i++, ip++ ){
 		dumpinst( fp, i, ip );
 	}
+
+	RM_setprog( P_MAIN );
+	fprintf( fp, "MAIN SCORE:  %4d inst.\n", *l_prog );
+	for( ip = prog, i = 0; i < *l_prog; i++, ip++ ){
+		dumpinst( fp, i, ip );
+	}
+
+	RM_setprog( P_END );
+	fprintf( fp, "END SCORE:   %4d inst.\n", *l_prog );
+	for( ip = prog, i = 0; i < *l_prog; i++, ip++ ){
+		dumpinst( fp, i, ip );
+	}
+
+	RM_setprog( sc_prog );
 }
 
-int	RM_score( int comp, int slen, char sbuf[] )
+void	RM_setprog( int p_num )
+{
+
+	c_prog = p_num;
+	labtab = labtabs[ c_prog ];
+	nextlab = &nextlabs[ c_prog ];
+
+	ifstk = ifstks[ c_prog ];
+	ifstkp = &ifstkps[ c_prog ];
+
+	loopstk = loopstks[ c_prog ];
+	loopincrstk = loopincrstks[ c_prog ];
+	loopstkp = &loopstkps[ c_prog ];
+
+	prog = progs[ c_prog ];
+	l_prog = &l_progs[ c_prog ];
+}
+
+int	RM_score( int comp, int slen, char sbuf[], IDENT_T **h_idp )
 {
 	INST_T	*ip;
-	int	rval;
+	int	rval = SA_REJECT;
 	
-	if( l_prog <= 0 )
-		return( 1 );
+	if( h_idp != NULL )
+		*h_idp = NULL;
+
+	if( *l_prog <= 0 )
+		return( SA_ACCEPT );
 
 	sc_comp = comp;
 	sc_SLEN->i_val.v_value.v_ival = sc_slen = slen;
 	sc_sbuf = sbuf;
 	esp = sp = mp = -1;
 	for( rval = 0, pc = 0; ; ){
-		if( pc < 0 || pc >= l_prog ){
+		if( pc < 0 || pc >= *l_prog ){
 			sprintf( emsg, "RM_score: pc: %d: out of range 0..%d.",
-				pc, l_prog - 1 );
+				pc, *l_prog - 1 );
 			RM_errormsg( TRUE, emsg );
 		}
 		ip = &prog[ pc ];
 
-/*
-fprintf( stdout, "RM_score, pc = %4d, op = %s\n", pc, opnames[ ip->i_op ] );
-dumpstk( stdout, "before op" );
-*/
+#ifdef	DEBUG_SCORE
+fprintf( stderr, "RM_score, pc = %4d, op = %s\n", pc, opnames[ ip->i_op ] );
+dumpstk( stderr, "before op" );
+#endif
 
 		pc++;
 		switch( ip->i_op ){
+		case OP_HALT :
+			if( c_prog == P_MAIN ){
+				sprintf( emsg, "RM_score: pc: %d: HALT", pc );
+				RM_errormsg( TRUE, emsg );
+			}
+			goto SCORED;
+			break;
+
 		case OP_NOOP :
 			break;
 
+		case OP_RLSE :
+			do_rlse( ip );
+			break;
+
 		case OP_ACPT :
-			rval = 1;
+			rval = SA_ACCEPT;
+			goto SCORED;
+			break;
+		case OP_HOLD :
+			do_hold( ip, h_idp );
+			rval = SA_HOLD;
 			goto SCORED;
 			break;
 		case OP_RJCT :
@@ -668,9 +771,9 @@ dumpstk( stdout, "before op" );
 			break;
 		}
 
-/*
-dumpstk( stdout, "after op " );
-*/
+#ifdef	DEBUG_SCORE
+dumpstk( stderr, "after op " );
+#endif
 
 	}
 
@@ -716,11 +819,11 @@ static	void	genexpr( int lval, NODE_T *np )
 			genexpr( 0, np->n_left );
 
 		if( np->n_sym == SYM_OR || np->n_sym == SYM_AND ){
-			l_andor = nextlab;
-			nextlab++;
+			l_andor = *nextlab;
+			( *nextlab )++;
 			addnode( lval, np, l_andor );
 			genexpr( 0, np->n_right );
-			labtab[ l_andor ] = l_prog;
+			labtab[ l_andor ] = *l_prog;
 		}else{
 			genexpr( 0, np->n_right );
 			addnode( lval, np, 0 );
@@ -2014,6 +2117,92 @@ DONE : ;
 	return( rval );
 }
 
+static	void	do_rlse( INST_T *ip )
+{
+	IDENT_T	*idp;
+	HIT_T	*hp;
+
+	idp = ip->i_val.v_value.v_pval;
+	switch( idp->i_type ){
+	case T_UNDEF :
+		if( c_prog != P_END ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, "do_rlse: variable '%s' is undefined.",
+				idp->i_name );
+			RM_errormsg( TRUE, emsg );
+		}
+		break;
+	case T_HIT :
+		hp = ( HIT_T * )idp->i_val.v_value.v_pval;
+		if( hp->h_def == NULL ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( TRUE, "do_rlse: h_def is NULL." );
+		}else
+			fputs( hp->h_def, stdout );
+/*MEM*/		free( hp->h_def );
+		hp->h_def = NULL;
+		if( hp->h_match == NULL ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( TRUE, "do_rlse: h_match is NULL." );
+		}else
+			fputs( hp->h_match, stdout );
+/*MEM*/		free( hp->h_match );
+		hp->h_match = NULL;
+		break;
+	default :
+		rm_wdfname = ip->i_filename;
+		rm_emsg_lineno = ip->i_lineno;
+		RM_errormsg( TRUE, "do_rlse: type mismatch." );
+		break;
+	}
+}
+
+static	void	do_hold( INST_T *ip, IDENT_T **h_idp )
+{
+	IDENT_T	*idp;
+	HIT_T	*hp;
+
+	idp = ip->i_val.v_value.v_pval;
+
+	if( idp->i_type == T_UNDEF ){
+/*MEM*/		hp = ( HIT_T * )malloc( sizeof( HIT_T ) );
+		if( hp == NULL ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( TRUE, "do_hold: can't allocate hp." );
+			exit( 1 );
+		}
+		hp->h_def = NULL;
+		hp->h_match = NULL;
+		idp->i_type = T_HIT;
+		idp->i_val.v_type = T_HIT;
+		idp->i_val.v_value.v_pval = hp;
+		*h_idp = idp;
+	}
+	switch( idp->i_type ){
+	case T_HIT :
+		hp = ( HIT_T * )idp->i_val.v_value.v_pval;
+		if( hp->h_def != NULL ){
+/*MEM*/			free( hp->h_def );
+			hp->h_def = NULL;
+		}
+		if( hp->h_match != NULL ){
+/*MEM*/			free( hp->h_match );
+			hp->h_match = NULL;
+		}
+		*h_idp = idp;
+		break;
+	default :
+		rm_wdfname = ip->i_filename;
+		rm_emsg_lineno = ip->i_lineno;
+		RM_errormsg( TRUE, "do_hold: type mismatch." );
+		break;
+	}
+}
+
 static	void	do_strf( INST_T *ip )
 {
 	int	index;
@@ -2078,22 +2267,9 @@ static	void	do_lda( INST_T *ip )
 
 	sp++;
 	v_top = &mem[ sp ];
-	idp = RM_find_id( ip->i_val.v_value.v_pval );
-	if( idp == NULL ){
-		idp = RM_enter_id( ip->i_val.v_value.v_pval, T_UNDEF, C_VAR,
-			S_GLOBAL, 1, NULL );
-		v_top->v_type = T_UNDEF;
-		v_top->v_value.v_pval = idp;
-	}else if( !idp->i_reinit ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_lda: variable '%s' is readonly.", 
-			idp->i_name );
-		RM_errormsg( TRUE, emsg );
-	}else{
-		v_top->v_type = T_IDENT;
-		v_top->v_value.v_pval = idp;
-	}
+	idp = ip->i_val.v_value.v_pval;
+	v_top->v_type = T_IDENT;
+	v_top->v_value.v_pval = idp;
 }
 
 static	void	do_lod( INST_T *ip )
@@ -2104,50 +2280,40 @@ static	void	do_lod( INST_T *ip )
 
 	sp++;
 	v_top = &mem[ sp ];
-	idp = RM_find_id( ip->i_val.v_value.v_pval );
-	if( idp == NULL ){
+	idp = ip->i_val.v_value.v_pval;
+	switch( idp->i_type ){
+	case T_UNDEF :
 		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_lod: variable '%s' is undefined.",
-			ip->i_val.v_value.v_pval );
+		sprintf( emsg,
+			"do_lod: variable '%s' is undefined.", idp->i_name );
 		RM_errormsg( TRUE, emsg );
-	}else{
-		switch( idp->i_type ){
-		case T_UNDEF :
+		break;
+	case T_INT :
+		v_top->v_type = T_INT;
+		v_top->v_value.v_ival = idp->i_val.v_value.v_ival;
+		break;
+	case T_FLOAT :
+		v_top->v_type = T_FLOAT;
+		v_top->v_value.v_dval = idp->i_val.v_value.v_dval;
+		break;
+	case T_STRING :
+		cp = ( char * )tm_malloc(
+			strlen(idp->i_val.v_value.v_pval)+1, "do_lod" );
+		if( cp == NULL ){
 			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg,
-				"do_lod: variable '%s' is undefined.",
-				idp->i_name );
-			RM_errormsg( TRUE, emsg );
-			break;
-		case T_INT :
-			v_top->v_type = T_INT;
-			v_top->v_value.v_ival = idp->i_val.v_value.v_ival;
-			break;
-		case T_FLOAT :
-			v_top->v_type = T_FLOAT;
-			v_top->v_value.v_dval = idp->i_val.v_value.v_dval;
-			break;
-		case T_STRING :
-			cp = ( char * )tm_malloc(
-				strlen(idp->i_val.v_value.v_pval)+1, "do_lod" );
-			if( cp == NULL ){
-				rm_wdfname = ip->i_filename;
-				rm_emsg_lineno = ip->i_lineno;
-				RM_errormsg( TRUE,
-					"do_lod: can't allocate cp." );
-			}
-			strcpy( cp, idp->i_val.v_value.v_pval );
-			v_top->v_type = T_STRING;
-			v_top->v_value.v_pval = cp;
-			break;
-		default :
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE, "do_lod: type mismatch." );
-			break;
+			RM_errormsg( TRUE, "do_lod: can't allocate cp." );
 		}
+		strcpy( cp, idp->i_val.v_value.v_pval );
+		v_top->v_type = T_STRING;
+		v_top->v_value.v_pval = cp;
+		break;
+	default :
+		rm_wdfname = ip->i_filename;
+		rm_emsg_lineno = ip->i_lineno;
+		RM_errormsg( TRUE, "do_lod: type mismatch." );
+		break;
 	}
 }
 
@@ -3512,12 +3678,13 @@ static	void	addinst( NODE_T *np, int op, VALUE_T *vp )
 {
 	INST_T	*ip;
 	char	*sp;
+	IDENT_T	*idp;
 
 	if( pc >= PROG_SIZE ){
 		RM_errormsg( TRUE, "addinst: program size exceeded." );
 	}else{
-		ip = &prog[ l_prog ];
-		l_prog++;
+		ip = &prog[ *l_prog ];
+		( *l_prog )++;
 		if( np != NULL ){
 			ip->i_filename = np->n_filename;
 			ip->i_lineno = np->n_lineno;
@@ -3535,7 +3702,7 @@ static	void	addinst( NODE_T *np, int op, VALUE_T *vp )
 				ip->i_val.v_value.v_ival = vp->v_value.v_ival;
 			else if( vp->v_type == T_FLOAT )
 				ip->i_val.v_value.v_dval = vp->v_value.v_dval;
-			else if( vp->v_type==T_STRING || vp->v_type==T_IDENT ){
+			else if( vp->v_type==T_STRING ){
 				sp = ( char * )malloc( 
 					strlen( vp->v_value.v_pval ) + 1 );
 				if( sp == NULL ){
@@ -3544,6 +3711,23 @@ static	void	addinst( NODE_T *np, int op, VALUE_T *vp )
 				}
 				strcpy( sp, vp->v_value.v_pval );
 				ip->i_val.v_value.v_pval = sp;
+			}else if( vp->v_type==T_IDENT ){
+				idp = RM_find_id( vp->v_value.v_pval );
+				if( idp == NULL ){
+					idp = RM_enter_id( vp->v_value.v_pval,
+						T_UNDEF, C_VAR, S_GLOBAL,
+						TRUE, NULL );
+				}else if( !idp->i_reinit ){
+					if( op == OP_LDA || op == OP_HOLD ){
+						rm_wdfname = ip->i_filename;
+						rm_emsg_lineno = ip->i_lineno;
+						sprintf( emsg,
+					"addinst: variable '%s' is readonly.", 
+							idp->i_name );
+						RM_errormsg( TRUE, emsg );
+					}
+				}
+				ip->i_val.v_value.v_pval = idp;
 			}else if( vp->v_type == T_PAIRSET ){
 				ip->i_val.v_value.v_pval = vp->v_value.v_pval;
 			}
@@ -3554,7 +3738,8 @@ static	void	addinst( NODE_T *np, int op, VALUE_T *vp )
 static	void	dumpinst( FILE *fp, int i, INST_T * ip )
 {
 	VALUE_T	*vp;
-	
+	IDENT_T	*idp;
+
 	if( ip->i_op < 0 || ip->i_op >= N_OP ){
 		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
@@ -3565,6 +3750,7 @@ static	void	dumpinst( FILE *fp, int i, INST_T * ip )
 	fprintf( fp, "%5d ", i );
 	fprintf( fp, "  %s", opnames[ ip->i_op ] );
 	switch( ip->i_op ){
+	case OP_HALT :
 	case OP_NOOP :
 	case OP_ACPT :
 	case OP_RJCT :
@@ -3626,8 +3812,11 @@ static	void	dumpinst( FILE *fp, int i, INST_T * ip )
 		break;
 	}
 	vp = &ip->i_val;
-	if( ip->i_op == OP_LDA || ip->i_op == OP_LOD ){
-		fprintf( fp, " %s", vp->v_value.v_pval );
+	if( ip->i_op == OP_LDA || ip->i_op == OP_LOD ||
+		ip->i_op == OP_HOLD || ip->i_op == OP_RLSE )
+	{
+		idp = ( IDENT_T * )vp->v_value.v_pval;
+		fprintf( fp, " %s", idp->i_name );
 	}else if( ip->i_op == OP_SCL ){
 		fprintf( fp, " %s", scnames[ vp->v_value.v_ival ] );
 	}else if( vp->v_type == T_INT ){
@@ -3638,9 +3827,9 @@ static	void	dumpinst( FILE *fp, int i, INST_T * ip )
 		fprintf( fp, " \"%s\"", vp->v_value.v_pval );
 	else if( vp->v_type == T_POS )
 		fprintf( fp, " $" );
-	else if( vp->v_type == T_IDENT )
+	else if( vp->v_type == T_IDENT ){
 		fprintf( fp, " %s", vp->v_value.v_pval );
-	else if( vp->v_type == T_PAIRSET ){
+	}else if( vp->v_type == T_PAIRSET ){
 		fprintf( fp, " " );
 		RM_dump_pairset( fp, vp->v_value.v_pval );
 	}

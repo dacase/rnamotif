@@ -5,15 +5,13 @@
 #include "rmdefs.h"
 #include "dbutil.h"
 
+#define	MAXCNT	0x7fffffff
+
 static	int	skipbl2nl( FILE * );
 
 FILE	*DB_fnext( FILE *fp, int *c_fname, int n_fname, char *fname[] )
 {
 
-/*
-	if( fp != NULL && fp != stdin )
-		fclose( fp );
-*/
 	/* Initial state is NULL; called w/stdin means we're done.	*/
 	if( fp == stdin )
 		return( NULL );
@@ -44,7 +42,9 @@ FILE	*DB_fnext( FILE *fp, int *c_fname, int n_fname, char *fname[] )
 int	FN_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	int	s_sbuf, char sbuf[] )
 {
-	int	c, cnt;
+	int	c;
+	unsigned int	cnt;
+	int	ovfl;
 	char	*dp, *sp;
 
 	*sid = '\0';
@@ -98,20 +98,27 @@ int	FN_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	if( c == EOF )
 		return( 0 );
 
-	for( cnt = 0, sp = sbuf; ( c = getc( fp ) ) != EOF; ){
+	for( ovfl = 0, cnt = 0, sp = sbuf; ( c = getc( fp ) ) != EOF; ){
 		if( c == '>' ){
 			ungetc( c, fp );
 			break;
 		}else if( isalpha( c ) ){
-			cnt++;
-			if( cnt < s_sbuf ){
-				c = tolower( c );
-				*sp++ = c == 'u' ? 't' : c;
-			}
+			if( cnt < MAXCNT ){
+				cnt++;
+				if( cnt < s_sbuf ){
+					c = tolower( c );
+					*sp++ = c == 'u' ? 't' : c;
+				}
+			}else
+				ovfl = 1;
 		}
 	}
 	*sp = '\0';
-	if( cnt > s_sbuf ){
+	if( ovfl ){
+		fprintf( stderr,
+	"FN_fgetseq: entry: '%s': seq len > 2^31-1 (%d), truncated to %d.\n",
+			sid, MAXCNT, s_sbuf - 1 );
+	}else if( cnt > s_sbuf ){
 		fprintf( stderr,
 		"FN_fgetseq: entry: '%s': seq len: %d, truncated to %d.\n",
 			sid, cnt, s_sbuf - 1 );
@@ -123,7 +130,9 @@ int	FN_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 int	PIR_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	int	s_sbuf, char sbuf[] )
 {
-	int	c, cnt;
+	int	c;
+	unsigned int	cnt;
+	int	ovfl;
 	char	*dp, *sp;
 
 	*sid = '\0';
@@ -186,20 +195,27 @@ int	PIR_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 			sid, cnt, s_sdef - 1 );
 	}
 
-	for( cnt = 0, sp = sbuf; ( c = getc( fp ) ) != EOF; ){
+	for( ovfl = 0, cnt = 0, sp = sbuf; ( c = getc( fp ) ) != EOF; ){
 		if( c == '>' ){
 			ungetc( c, fp );
 			break;
 		}else if( isalpha( c ) ){
-			cnt++;
-			if( cnt < s_sbuf ){
-				c = tolower( c );
-				*sp++ = c == 'u' ? 't' : c;
-			}
+			if( cnt < MAXCNT ){
+				cnt++;
+				if( cnt < s_sbuf ){
+					c = tolower( c );
+					*sp++ = c == 'u' ? 't' : c;
+				}
+			}else
+				ovfl = 1;
 		}
 	}
 	*sp = '\0';
-	if( cnt > s_sbuf ){
+	if( ovfl ){
+		fprintf( stderr,
+	"PIR_fgetseq: entry: '%s': seq len > 2^31-1 (%d), truncated to %d.\n",
+			sid, MAXCNT, s_sbuf - 1 );
+	}else if( cnt > s_sbuf ){
 		fprintf( stderr,
 		"PIR_fgetseq: entry: '%s': seq len: %d, truncated to %d.\n",
 			sid, cnt, s_sbuf - 1 );
@@ -210,7 +226,8 @@ int	PIR_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 int	GB_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	int	s_sbuf, char sbuf[] )
 {
-	int	cnt;
+	unsigned int	cnt;
+	int	ovfl;
 	char	line[ 256 ], locus[ 20 ], acc[ 20 ], gid[ 20 ];
 	char	*lp, *dp, *sp;
 
@@ -281,16 +298,19 @@ int	GB_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 		return( EOF );
 	}
 
-	for( sp = sbuf, cnt = 0; fgets( line, sizeof( line ), fp ); ){
+	for( sp = sbuf, ovfl = 0, cnt = 0; fgets( line, sizeof( line ), fp ); ){
 		if( !strncmp( line, "//", 2 ) )
 			break;
 		for( lp = line; *lp; lp++ ){
 			if( isalpha( *lp ) ){
-				cnt++;
-				if( cnt < s_sbuf ){
-					*sp++ = isupper( *lp ) ?
-						tolower( *lp ) : *lp;
-				}
+				if( cnt < MAXCNT ){
+					cnt++;
+					if( cnt < s_sbuf ){
+						*sp++ = isupper( *lp ) ?
+							tolower( *lp ) : *lp;
+					}
+				}else
+					ovfl = 1;
 			}
 		}
 		*sp = '\0';
@@ -298,6 +318,15 @@ int	GB_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	if( strncmp( line, "//", 2 ) ){
 		fprintf( stderr, "GB_fgetseq: missing // line.\n" );
 		return( EOF );
+	}
+	if( ovfl ){
+		fprintf( stderr,
+	"GB_fgetseq: entry: '%s': seq len > 2^31-1 (%d), truncated to %d.\n",
+			sid, MAXCNT, s_sbuf - 1 );
+	}else if( cnt > s_sbuf ){
+		fprintf( stderr,
+		"GB_fgetseq: entry: '%s': seq len: %d, truncated to %d.\n",
+			sid, cnt, s_sbuf - 1 );
 	}
 
 	return( sp - sbuf );

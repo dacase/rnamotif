@@ -36,13 +36,17 @@ typedef	union	{
 %token	<ival>	SYM_Q4
 
 %token	<ival>	SYM_ACCEPT
+%token	<ival>	SYM_BEGIN
 %token	<ival>	SYM_BREAK
 %token	<ival>	SYM_CONTINUE
 %token	<ival>	SYM_ELSE
+%token	<ival>	SYM_END
 %token	<ival>	SYM_FOR
+%token	<ival>	SYM_HOLD
 %token	<ival>	SYM_IF
 %token	<ival>	SYM_IN
 %token	<ival>	SYM_REJECT
+%token	<ival>	SYM_RELEASE
 %token	<ival>	SYM_WHILE
 
 %token	<ival>	SYM_IDENT
@@ -112,6 +116,7 @@ typedef	union	{
 %type	<npval>	site
 %type	<npval>	rule_list
 %type	<npval>	rule
+%type	<npval>	pattern
 %type	<npval>	action
 %type	<npval>	stmt_list
 %type	<npval>	stmt
@@ -125,7 +130,9 @@ typedef	union	{
 %type	<npval>	empty_stmt
 %type	<npval>	for_stmt
 %type	<npval>	if_stmt
+%type	<npval>	hold_stmt
 %type	<npval>	reject_stmt
+%type	<npval>	release_stmt
 %type	<npval>	while_stmt
 %type	<npval>	loop_level
 %type	<npval>	if_hdr
@@ -250,10 +257,13 @@ site		: pairing SYM_IN pairset
 rule_list	: rule
 		| rule rule_list
 		;
-rule		: expr 		{ RM_action( $1 ); }
+rule		: pattern	{ RM_action( $1 ); }
 			action	{ RM_endaction(); }
-		;
 		| action
+		;
+pattern		: SYM_BEGIN	{ $$ = RM_node( SYM_BEGIN, 0, 0, 0 ); }
+		| SYM_END	{ $$ = RM_node( SYM_END, 0, 0, 0 ); }
+		| expr		{ $$ = $1; }
 		;
 action		: SYM_LCURLY stmt_list SYM_RCURLY
 				{ $$ = NULL; }
@@ -270,8 +280,10 @@ stmt		: accept_stmt
 		| continue_stmt
 		| empty_stmt
 		| for_stmt
+		| hold_stmt
 		| if_stmt
 		| reject_stmt
+		| release_stmt
 		| while_stmt
 		;
 accept_stmt	: SYM_ACCEPT SYM_SEMICOLON
@@ -307,6 +319,9 @@ empty_stmt	: empty SYM_SEMICOLON
 		;
 for_stmt	: for_hdr stmt	{ RM_endfor(); }
 		;
+hold_stmt	: SYM_HOLD ident SYM_SEMICOLON
+			{ RM_hold( $2 ); }
+		;
 if_stmt		: if_hdr stmt	{ RM_endif(); }
 		| if_hdr stmt SYM_ELSE
 				{ RM_else(); }
@@ -315,6 +330,9 @@ if_stmt		: if_hdr stmt	{ RM_endif(); }
 		;
 reject_stmt	: SYM_REJECT SYM_SEMICOLON
 				{ RM_reject(); $$ = NULL; }
+		;
+release_stmt	: SYM_RELEASE ident SYM_SEMICOLON
+			{ RM_release( $2 ); }
 		;
 while_stmt	: SYM_WHILE SYM_LPAREN expr
 				{ RM_while( $3 ); $$ = NULL; }

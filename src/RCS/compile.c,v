@@ -1,9 +1,24 @@
-head	1.139;
+head	1.142;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.142
+date	2003.07.27.22.35.33;	author macke;	state Exp;
+branches;
+next	1.141;
+
+1.141
+date	2003.07.21.20.38.46;	author macke;	state Exp;
+branches;
+next	1.140;
+
+1.140
+date	2003.06.12.22.06.50;	author macke;	state Exp;
+branches;
+next	1.139;
 
 1.139
 date	2003.02.24.04.02.30;	author macke;	state Exp;
@@ -706,12 +721,10 @@ desc
 @
 
 
-1.139
+1.142
 log
-@moved function decls of those funcs that are used in other file(s) into
-rnamot.h
-Added 3rd parm to RM_getargs() set to FALSE to indicate this is being
-called from the serial code.
+@moved RM_enter_id() of NSE, SLEN from RM_link_score() to here, which
+makes all id's declared in score to be non-reinit.
 @
 text
 @#include <stdio.h>
@@ -811,7 +824,12 @@ int	*rm_basepr;
 int	rm_efnusestdbp;
 PAIRSET_T	*rm_efnstdbp;
 
+	/* values of the name, score, comp, pos, len of the cur. hit */
+VALUE_T	*rm_nval;
 VALUE_T	*rm_sval;
+VALUE_T	*rm_cval;
+VALUE_T	*rm_pval;
+VALUE_T	*rm_lval;
 
 extern	int	circf;		/* RE ^ kludge	*/
 
@@ -1024,16 +1042,46 @@ int	RM_init( int argc, char *argv[] )
 	RM_enter_id( "efn_stdbp",
 		T_PAIRSET, C_VAR, S_GLOBAL, FALSE, &np->n_val );
 
+	val.v_type = T_STRING;
+	val.v_value.v_pval = NULL;
+	ip = RM_enter_id( "NAME", T_STRING, C_VAR, S_GLOBAL, FALSE, &val ); 
+	rm_nval = &ip->i_val;
+
 	val.v_type = T_UNDEF;
 	val.v_value.v_pval = NULL;
-	ip = RM_enter_id( "SCORE", T_UNDEF, C_VAR, S_GLOBAL, 1, &val ); 
+	ip = RM_enter_id( "SCORE", T_UNDEF, C_VAR, S_GLOBAL, TRUE, &val ); 
 	rm_sval = &ip->i_val;
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 0;
+	ip = RM_enter_id( "COMP", T_INT, C_VAR, S_GLOBAL, FALSE, &val ); 
+	rm_cval = &ip->i_val;
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 0;
+	ip = RM_enter_id( "POS", T_INT, C_VAR, S_GLOBAL, FALSE, &val ); 
+	rm_pval = &ip->i_val;
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 0;
+	ip = RM_enter_id( "LEN", T_INT, C_VAR, S_GLOBAL, FALSE, &val ); 
+	rm_lval = &ip->i_val;
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 0;
+	RM_enter_id( "NSE", T_INT, C_VAR, S_GLOBAL, FALSE, &val ); 
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 0;
+	RM_enter_id( "SLEN", T_INT, C_VAR, S_GLOBAL, FALSE, &val ); 
 
 	rm_lineno = 0;
 
 	if( rm_args->a_sopt )
 		rm_args->a_vopt = TRUE;
 
+	RM_setprog( P_MAIN );
+	
 	return( 0 );
 }
 
@@ -2830,15 +2878,18 @@ static	void	eval( NODE_T *expr, int d_ok )
 				l_type = r_type; 
 				ip->i_type = l_type;
 			}
-
 			switch(  T_IJ( l_type, r_type ) ){
 			case T_IJ( T_INT, T_INT ) :
 				break;
 			case T_IJ( T_INT, T_FLOAT ) :
 				/* promote _variable_ to float: */
-				valstk[n_valstk-1].v_type = T_FLOAT;
+				valstk[n_valstk-1].v_type = T_INT;
+				valstk[n_valstk-1].v_value.v_ival =
+					valstk[n_valstk-1].v_value.v_dval;
 				break;
 			case T_IJ( T_FLOAT, T_INT ) :
+				/* promote _variable_ to float: */
+				valstk[n_valstk-1].v_type = T_FLOAT;
 				valstk[n_valstk-1].v_value.v_dval =
 					valstk[n_valstk-1].v_value.v_ival;
 				break;
@@ -2979,6 +3030,15 @@ static	int	loadidval( VALUE_T *vp )
 		}
 		vp->v_type = T_INT;
 		vp->v_value.v_ival = ip->i_val.v_value.v_ival;
+	}else if( type == T_FLOAT ){
+		if( ip->i_val.v_value.v_ival == UNDEF ){
+			sprintf( emsg,
+				"loadidval: id '%s' has int value UNDEF.",
+				ip->i_name );
+			RM_errormsg( TRUE, emsg );
+		}
+		vp->v_type = T_FLOAT;
+		vp->v_value.v_dval = ip->i_val.v_value.v_dval;
 	}else if( type == T_STRING ){
 		if( ip->i_val.v_value.v_pval == NULL ){
 			sprintf( emsg,
@@ -3018,6 +3078,7 @@ static	void	storeexprval( IDENT_T *ip, VALUE_T *vp )
 {
 	int	type;
 	char	*sp;
+
 
 	type = vp->v_type;
 	if( type == T_INT ){
@@ -4174,6 +4235,52 @@ static	void	dump_bestpat( FILE *fp, STREL_T *stp )
 		fprintf( fp, "%d", o_rmax );
 	fprintf( fp, "\n" );
 }
+@
+
+
+1.141
+log
+@added new variables: NAME, COMP, POS, LEN for use in score sections
+that want to get the best candidate at a position.
+@
+text
+@d341 8
+@
+
+
+1.140
+log
+@Hard to believe but str-element parms with float values were being
+ignored, with the result that pairfrac=PF didn't work!  Fixed.
+@
+text
+@d98 2
+d101 3
+d316 5
+d323 1
+a323 1
+	ip = RM_enter_id( "SCORE", T_UNDEF, C_VAR, S_GLOBAL, 1, &val ); 
+d326 15
+d346 2
+d2149 3
+a2151 1
+				valstk[n_valstk-1].v_type = T_FLOAT;
+d2154 2
+d2344 1
+@
+
+
+1.139
+log
+@moved function decls of those funcs that are used in other file(s) into
+rnamot.h
+Added 3rd parm to RM_getargs() set to FALSE to indicate this is being
+called from the serial code.
+@
+text
+@a2116 1
+
+d2265 9
 @
 
 

@@ -1,7 +1,7 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.4.0 2003-feb-25"
+#define	VERSION	"v3.0.0 2003-jul-27"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ data ]\n\n\
@@ -41,7 +41,10 @@ data:\t(Optional) Use one:\n\
 #define	EFN_INFINITY	16000	/* ? */
 #define	MAXSLEN		30000000
 
-#define	RE_BPC		20
+#define	SID_SIZE	100	/* seq id		*/
+#define	SDEF_SIZE	20000	/* seq def		*/
+#define	SCORE_SIZE	1000	/* bytes for score	*/
+#define	RE_BPC		20	/* bytes for RE element	*/
 
 #define	T_UNDEF		0
 #define	T_INT		1
@@ -50,7 +53,8 @@ data:\t(Optional) Use one:\n\
 #define	T_PAIRSET	4
 #define	T_POS		5
 #define	T_IDENT		6
-#define	N_TYPE		7
+#define	T_HIT		7	/* save match, HOLD, RELEASE stmts	*/
+#define	N_TYPE		8
 #define	T_IJ(i,j)	((i)*N_TYPE+(j))
 
 #define	C_UNDEF		0
@@ -69,6 +73,17 @@ data:\t(Optional) Use one:\n\
 #define	CTX_DESCR	2
 #define	CTX_SITES	3
 #define	CTX_SCORE	4
+
+	/* score "programs", BEGIN, main, END	*/
+#define	P_BEGIN		0
+#define	P_MAIN		1
+#define	P_END		2
+#define	N_PROG		3
+
+	/* action to take returned by RM_score()	*/
+#define	SA_REJECT	0
+#define	SA_HOLD		1
+#define	SA_ACCEPT	2
 
 typedef	struct	value_t	{
 	int	v_type;
@@ -89,6 +104,11 @@ typedef	struct	ident_t	{
 	int	i_reinit;
 	VALUE_T	i_val;
 } IDENT_T;
+
+typedef	struct	hit_t	{
+	char	*h_def;
+	char	*h_match;
+} HIT_T;
 
 #define	BCODE_A		0
 #define	BCODE_C		1
@@ -299,6 +319,7 @@ void	RM_errormsg( int, char [] );
 int	RM_paired( PAIRSET_T *, int, int );
 int	RM_triple( PAIRSET_T *, int, int, int );
 int	RM_quad( PAIRSET_T *, int, int, int, int );
+int	RM_fm_init( void );
 int	RM_find_motif( int, SEARCH_T *[], SITE_T *,
 		char [], char [], int, int, char [] );
 
@@ -331,6 +352,7 @@ void	RM_clear( void );
 void	RM_expr( int, NODE_T * );
 void	RM_linkscore( void );
 void	RM_dumpscore( FILE * );
-int	RM_score( int, int, char [] );
+void	RM_setprog( int );
+int	RM_score( int, int, char [], IDENT_T ** );
 
 #endif

@@ -59,7 +59,11 @@ q3		return( SYM_Q3 );
 q4		return( SYM_Q4 );
 
 ACCEPT		return( SYM_ACCEPT );
+BEGIN		return( SYM_BEGIN );
+END		return( SYM_END );
+HOLD		return( SYM_HOLD );
 REJECT		return( SYM_REJECT );
+RELEASE		return( SYM_RELEASE );
 break		return( SYM_BREAK );
 continue	return( SYM_CONTINUE );
 else		return( SYM_ELSE );

@@ -23,9 +23,7 @@ extern	SITE_T	*rm_sites;
 extern	SEARCH_T	**rm_searches;
 extern	int		rm_n_searches;
 
-#define	SID_SIZE	100
 static	char	sid[ SID_SIZE ];
-#define	SDEF_SIZE	20000
 static	char	sdef[ SDEF_SIZE ];
 static	int	s_sbuf;
 static	char	*sbuf;
@@ -140,6 +138,14 @@ main( int argc, char *argv[] )
 		exit( 1 );
 	}
 	
+	if( RM_fm_init() ){
+		exit( 1 );
+	}
+
+	RM_setprog( P_BEGIN );
+	RM_score( 0, 0, NULL, NULL );
+
+	RM_setprog( P_MAIN );
 	for( ecnt = 0; ; ){
 		slen = fgetseq( rm_dbfp, sid,
 			SDEF_SIZE, sdef, s_sbuf, sbuf );
@@ -167,6 +173,9 @@ main( int argc, char *argv[] )
 				sid, sdef, 1, slen, sbuf );
 		}
 	}
+
+	RM_setprog( P_END );
+	RM_score( 0, 0, NULL, NULL );
 
 	exit( 0 );
 }

@@ -5,10 +5,14 @@
 #include <sys/stat.h>
 
 #define	U_MSG_S	\
-	"usage: %s [ -a ] [ -l ] [ -smax N ] [ -td dir ] [ rm-output-file ]\n"
+"usage: %s [ -a ] [ -l[a] ] [ -smax N ] [ -td dir ] [ rm-output-file ]\n"
 
 #define	MIN(a,b)	((a)<(b)?(a):(b))
 #define	MAX(a,b)	((a)>(b)?(a):(b))
+
+#define	L_OFF		0
+#define	L_LOCUS		1
+#define	L_ACC		2
 
 #define	SMAX		30000000	/* largest file to sort */
 #define	MAXFIELDS	200
@@ -58,13 +62,16 @@ main( int argc, char *argv[] )
 	ifname = NULL;
 	tfdir = NULL;
 	aopt = 0;	/* 1 = make fastn alignment		*/ 
-	lopt = 0;	/* 1 = print only entry's locus name	*/
+	lopt = L_OFF;	/* 1 = print only entry's locus name	*/
+			/* 2 = print only entry's acc#		*/
 	smax = SMAX;	/* Don't sort files larger than SMAX	*/
 	for( ac = 1; ac < argc; ac++ ){
 		if( !strcmp( argv[ ac ], "-a" ) )
 			aopt = 1;
 		else if( !strcmp( argv[ ac ], "-l" ) )
-			lopt = 1;
+			lopt = L_LOCUS;
+		else if( !strcmp( argv[ ac ], "-la" ) )
+			lopt = L_ACC;
 		else if( !strcmp( argv[ ac ], "-smax" ) ){
 			ac++;
 			if( ac >= argc ){
@@ -191,7 +198,9 @@ main( int argc, char *argv[] )
 					vbp = sp;
 				}
 			}
-			if( vbp != NULL ){
+		}
+		if( vbp != NULL ){
+			if( lopt == L_LOCUS ){
 				vbp++;
 				if( *vbp != '\0' )
 					strcpy( ofields[ 0 ], vbp );
@@ -203,6 +212,12 @@ main( int argc, char *argv[] )
 				}else{
 					vbp--;
 					*vbp = '\0';
+				}
+			}else if( lopt == L_ACC ){
+				if( l_vbp != NULL ){
+					l_vbp++;
+					strncpy( ofields[0], l_vbp, vbp-l_vbp );
+					ofields[0][vbp-l_vbp] = '\0';
 				}
 			}
 		}
