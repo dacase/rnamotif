@@ -329,7 +329,7 @@ NODE_T	*PR_close()
 			errormsg( 0, "PR_close: pair-string has 2-4 bases." );
 		}
 	}
-	ps->ps_mat = NULL;
+	ps->ps_mat[ 0 ] = NULL; ps->ps_mat[ 1 ] = NULL; ps->ps_mat[ 1 ] = NULL;
 	ps = pairop( "check", ps, NULL );
 
 	np = ( NODE_T * )malloc( sizeof( NODE_T ) );
@@ -1676,7 +1676,7 @@ PAIRSET_T	*ps2;
 			}
 		}
 		ps1->ps_n_pairs = j;
-		ps1->ps_mat = mk_bmatp( ps1 );
+		ps1->ps_mat[ 0 ] = mk_bmatp( ps1 );
 		return( ps1 );
 	}else if( !strcmp( op, "copy" ) ){
 		if( ps1 == NULL )
@@ -1693,7 +1693,7 @@ PAIRSET_T	*ps2;
 		n_ps->ps_pairs = n_pp;
 		for( i = 0; i < n_ps->ps_n_pairs; i++ )
 			n_ps->ps_pairs[ i ] = ps1->ps_pairs[ i ];
-		n_ps->ps_mat = mk_bmatp( n_ps );
+		n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
 		return( n_ps );
 	}else if( !strcmp( op, "add" ) ){
 		ppi = ps1->ps_pairs;
@@ -1733,7 +1733,7 @@ PAIRSET_T	*ps2;
 			}
 			ADDED : ;
 		}
-		n_ps->ps_mat = mk_bmatp( n_ps );
+		n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
 		return( n_ps );
 	}else if( !strcmp( op, "sub" ) ){
 		ppi = ps1->ps_pairs;
@@ -1778,7 +1778,7 @@ PAIRSET_T	*ps2;
 			}
 		}
 		n_ps->ps_n_pairs = j;
-		n_ps->ps_mat = mk_bmatp( n_ps );
+		n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
 		return( n_ps );
 	}else if( !strcmp( op, "equal" ) ){
 		if( ps1->ps_n_pairs != ps2->ps_n_pairs )
