@@ -12,12 +12,12 @@ extern	int	rm_n_descr;
 extern	int	rm_dminlen;
 extern	int	rm_dmaxlen;
 extern	int	rm_b2bc[];
-extern	int	rm_comp;
 
 extern	SEARCH_T	**rm_searches;
 
 static	char	fm_emsg[ 256 ];
 static	char	*fm_locus;
+static	int	fm_comp;
 static	int	fm_comp;
 static	int	fm_slen;
 static	char	*fm_sbuf;
@@ -45,11 +45,13 @@ static	void	set_mbuf();
 
 IDENT_T	*find_id();
 
-int	find_motif_driver( n_searches, searches, sites, locus, slen, sbuf )
+int	find_motif_driver( n_searches, searches, sites,
+	locus, comp, slen, sbuf )
 int	n_searches;
 SEARCH_T	*searches[];
 SITE_T	*sites;
 char	locus[];
+int	comp;
 int	slen;
 char	sbuf[];
 {
@@ -82,6 +84,7 @@ char	sbuf[];
 	}
 
 	fm_locus = locus;
+	fm_comp = comp;
 	fm_slen = slen;
 	fm_sbuf = sbuf;
 
@@ -239,7 +242,7 @@ SEARCH_T	*srp;
 		}
 	}else{
 		if( chk_motif( rm_n_descr, rm_descr ) )
-			print_match( stdout, fm_locus, rm_comp,
+			print_match( stdout, fm_locus, fm_comp,
 				rm_n_descr, rm_descr );
 	}
 
