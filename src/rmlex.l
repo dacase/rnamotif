@@ -69,14 +69,17 @@ q4		return( SYM_Q4 );
 		}
 
 =		return( SYM_EQUAL );
+\+=		return( SYM_PLUS_EQUAL );
+\-=		return( SYM_MINUS_EQUAL );
+\+		return( SYM_PLUS );
+\-		return( SYM_MINUS );
+\$		return( SYM_DOLLAR );
 \(		return( SYM_LPAREN );
 \)		return( SYM_RPAREN );
 \{		return( SYM_LCURLY );
 \}		return( SYM_RCURLY );
-\,		return( SYM_COMMA );
-\-		return( SYM_MINUS );
-\$		return( SYM_DOLLAR );
 \.		return( SYM_PERIOD );
+\,		return( SYM_COMMA );
 :		return( SYM_COLON );
 
 .		return( SYM_ERROR );
