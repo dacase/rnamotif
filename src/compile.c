@@ -70,6 +70,8 @@ static	int	rm_s_iupac = RM_B2BC_SIZE;
 SEARCH_T	**rm_searches;
 int	rm_n_searches;
 
+extern	int	circf;		/* RE ^ kludge	*/
+
 static	char	emsg[ 256 ];
 
 NODE_T	*PR_close();
@@ -524,6 +526,7 @@ void	SE_close()
 			}
 		}else if( !strcmp( ip->i_name, "seq" ) ){
 			stp->s_seq = str2seq( ip->i_val.v_value.v_pval );
+/*
 			if( stp->s_seq && *stp->s_seq != '\0' ){
 				l_seq = strlen( stp->s_seq );
 				l_seq = 2*l_seq > 256 ? 2*l_seq : 256 ;
@@ -539,6 +542,7 @@ void	SE_close()
 					stp->s_expbuf, stp->s_e_expbuf, '\0' );
 			}else
 				stp->s_seq = NULL;
+*/
 		}else if( !strcmp( ip->i_name, "mismatch" ) ){
 			stp->s_mismatch = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "mispair" ) ){
@@ -1121,8 +1125,8 @@ int	n_egroup;
 STREL_T	*egroup[];
 {
 	int	err, seq;
-	int	exact, exact1, inexact, kclos;
-	int	i;
+	int	exact, exact1, inexact, mmok;
+	int	i, l_seq;
 	int	minl, maxl;
 	int	se_minl, se_maxl;
 	int	si_minl, si_maxl;
@@ -1157,6 +1161,24 @@ STREL_T	*egroup[];
 		}
 	}
 
+	for( i = 0; i < n_egroup; i++ ){
+		stp = egroup[ i ];
+		if( stp->s_seq != NULL ){
+			l_seq = strlen( stp->s_seq );
+			l_seq = 2*l_seq > 256 ? 2*l_seq : 256;
+			stp->s_expbuf =
+				( char * )malloc( l_seq*sizeof(char) );
+			if( stp->s_expbuf == NULL ){
+				rm_emsg_lineno = stp->s_lineno;
+				errormsg( 1,
+					"can't allocate s_expbuf." );
+			}
+			stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
+			compile( stp->s_seq, stp->s_expbuf,
+				stp->s_e_expbuf, '\0' );
+		}
+	}
+
 	se_minl = se_maxl = UNDEF;
 	si_minl = si_maxl = UNDEF;
 	exact = 0;
@@ -1164,12 +1186,15 @@ STREL_T	*egroup[];
 	seq = 0;
 	for( i = 0; i < n_egroup; i++ ){
 		stp = egroup[ i ];
-		if( seqlen( stp->s_seq, &s_minl, &s_maxl, &exact1, &kclos ) ){
-			if( kclos && stp->s_mismatch != 0 ){
+		if( stp->s_seq == NULL )
+			continue;
+		circf = *stp->s_seq == '^';
+		if(mm_seqlen(stp->s_expbuf, &s_minl, &s_maxl, &exact1, &mmok)){
+			if( !mmok && stp->s_mismatch != 0 ){
 				err = 1;
 				rm_emsg_lineno = stp->s_lineno;
 				errormsg( 0,
-				"'*' in seq= not allowed with  mismatch= >0." );
+		"specified seq= and mismatch= >0 are not consistant." );
 			}
 			seq = 1;
 			if( exact1 ){
@@ -1262,6 +1287,22 @@ STREL_T	*egroup[];
 			stp = egroup[ i ];
 			stp->s_minlen = minl;
 			stp->s_maxlen = maxl;
+/*
+			if( stp->s_seq != NULL ){
+				l_seq = strlen( stp->s_seq );
+				l_seq = 2*l_seq > 256 ? 2*l_seq : 256;
+				stp->s_expbuf =
+					( char * )malloc( l_seq*sizeof(char) );
+				if( stp->s_expbuf == NULL ){
+					rm_emsg_lineno = stp->s_lineno;
+					errormsg( 1,
+						"can't allocate s_expbuf." );
+				}
+				stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
+				compile( stp->s_seq, stp->s_expbuf,
+					stp->s_e_expbuf, '\0' );
+			}
+*/
 		}
 	}
 
