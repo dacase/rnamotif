@@ -1,3 +1,23 @@
+1.4.0	2000-dec-17
+	Added include capabilities to permit file sharing.  Includes 
+	are indicated with #include 'xxx' lines in the source and may
+	be nested to a depth (including the 1st file) of 10.  The
+	argument to the include should be a single or angle (<>) quoted
+	string, as to be consistant double quoted strings are considered
+	to be sequences and any IUPAC chars are expanded.
+
+	Following the C example, 0 or more -Idir arguments may be
+	placed on the command line are the names of directories to be
+	searched in left to right order to find the include files.
+
+	Including is handled by a separate 1st pass over the original
+	source and it along with the includes are writen to a tmp file
+	which is then rescanned by lex/yacc.  Line/file info from the
+	original source is saved as # line N 'xxx' directives.  This
+	mod also allowed the command line defs to be interpolated just
+	before the descr res. word giving the correct semantics that
+	command line defs take effect before any searching.
+
 1.3.4	2000-nov-29
 	Added new builtin sprintf() which works like the awk version.
 	It takes 1+ args, the first of which is a format, and the 2 and
@@ -5,7 +25,7 @@
 	It returns a character string with is usually assigned to the
 	predefined variable SCORE.
 
-	Also fixed rmfmt to deal with >1 score colums in light of the
+	Also fixed rmfmt to deal with >1 score columns in light of the
 	new ability of rnamotif to create such files.  A single numeric
 	SCORE behaves like the previous versions, >1, but fixed score
 	fields is sorted on name & position only, and >1 but variable is

@@ -1,9 +1,19 @@
-head	1.41;
+head	1.43;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.43
+date	2000.12.18.03.04.01;	author macke;	state Exp;
+branches;
+next	1.42;
+
+1.42
+date	2000.12.05.02.35.49;	author macke;	state Exp;
+branches;
+next	1.41;
 
 1.41
 date	2000.10.07.04.57.52;	author macke;	state Exp;
@@ -216,9 +226,9 @@ desc
 @
 
 
-1.41
+1.43
 log
-@converted all headers from K&R to ANSI.
+@modified to deal with new tree based global symbol table.
 @
 text
 @#include <stdio.h>
@@ -228,7 +238,12 @@ text
 #include "rnamot.h"
 #include "y.tab.h"
 
-extern	IDENT_T	rm_global_ids[];
+extern	INCDIR_T	*rm_idlist;
+
+/*
+extern	IDENT_T	*rm_global_ids[];
+*/
+extern	IDENT_T	*rm_global_ids;
 extern	int	rm_n_global_ids;
 
 extern	STREL_T	rm_descr[];
@@ -241,6 +256,7 @@ extern	char	rm_bc2b[];
 extern	SEARCH_T	**rm_searches;
 extern	int	rm_n_searches;
 
+void	RM_dump_gids( FILE *, IDENT_T *, int );
 void	RM_dump_id( FILE *, IDENT_T *, int );
 void	RM_dump_pairset( FILE *, PAIRSET_T * );
 void	RM_dump_pair( FILE *, PAIR_T * );
@@ -260,14 +276,31 @@ void	RM_dump( FILE *fp,
 	int d_parms, int d_descr, int d_sites, int d_hierarchy )
 {
 	int	i;
-	IDENT_T	*ip;
 	STREL_T	*stp;
 	char	prefix[ 100 ];
+	INCDIR_T	*id1;
+
+	if( rm_idlist != NULL ){
+		for( i = 0, id1 = rm_idlist; id1; id1 = id1->i_next )
+			i++;
+		fprintf( fp, "INCLUDES: %3d dirs.\n", i );
+		for( id1 = rm_idlist; id1; id1 = id1->i_next )
+			fprintf( fp, "\t%s\n", id1->i_name );
+	}
 
 	if( d_parms ){
 		fprintf( fp, "PARMS: %3d global symbols.\n", rm_n_global_ids );
+/*
 		for( ip = rm_global_ids, i = 0; i < rm_n_global_ids; i++, ip++ )
 			RM_dump_id( fp, ip, d_parms );
+*/
+/*
+		for( i = 0; i < rm_n_global_ids; i++ ){
+			ip = rm_global_ids[ i ];
+			RM_dump_id( fp, ip, d_parms );
+		}
+*/
+		RM_dump_gids( fp, rm_global_ids, d_parms );
 	}
 
 	if( d_descr ){
@@ -286,6 +319,16 @@ void	RM_dump( FILE *fp,
 		strcpy( prefix, "+" );
 		print_hierarchy( fp, 0, prefix, 0, rm_descr );
 		print_searches( fp, rm_n_searches, rm_searches );
+	}
+}
+
+void	RM_dump_gids( FILE *fp, IDENT_T *ip, int fmt )
+{
+
+	if( ip != NULL ){
+		RM_dump_gids( fp, ip->i_left, fmt );
+		RM_dump_id( fp, ip, fmt );
+		RM_dump_gids( fp, ip->i_right, fmt );
 	}
 }
 
@@ -1011,6 +1054,33 @@ static	void	print_searches( FILE *fp, int n_searches, SEARCH_T *searches[] )
 		fprintf( fp, "\n" );
 	}
 }
+@
+
+
+1.42
+log
+@added code to dump the include directory list.
+@
+text
+@d10 4
+a13 1
+extern	IDENT_T	rm_global_ids[];
+d26 1
+a45 1
+	IDENT_T	*ip;
+d60 1
+d63 8
+d89 10
+@
+
+
+1.41
+log
+@converted all headers from K&R to ANSI.
+@
+text
+@d8 2
+d45 9
 @
 
 

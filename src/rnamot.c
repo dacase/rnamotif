@@ -5,8 +5,8 @@
 extern	FILE	*yyin;
 
 extern	int	rm_error;
-extern	char	rm_dfname[];
-extern	char	*rm_cldfname;
+extern	char	*rm_dfname;
+extern	char	*rm_xdfname;
 extern	int	rm_copt;
 extern	int	rm_dopt;
 extern	int	rm_hopt;
@@ -42,6 +42,8 @@ typedef	void	DBASE_T;
 DBASE_T	*dbp, *GB_opendb();
 #endif
 
+char	*RM_preprocess( void );
+
 static	void	mk_rcmp( int, char [], char [] );
 
 main( int argc, char *argv[] )
@@ -65,17 +67,21 @@ main( int argc, char *argv[] )
 	if( done )
 		exit( 0 );
 
+	if( ( rm_xdfname = RM_preprocess() ) == NULL )
+		exit( 1 );
+
+	if( ( yyin = fopen( rm_xdfname, "r" ) ) == NULL ){
+		fprintf( stderr, "%s: can't read xd-file %s.\n",
+			argv[ 0 ], rm_xdfname );
+		exit( 1 );
+	}
+
 	if( yyparse() ){
-		RM_errormsg( 1, "syntax error." );
+		RM_errormsg( 0, "syntax error." );
 	}
-	fclose( yyin );
-	if( rm_n_descr == 0 ){
-		RM_errormsg( 1, "no descriptor." );
-	}
-	if( rm_cldfname != NULL ){
-		if( RM_evalcldefs() )
-			exit( 1 );
-	}
+
+	unlink( rm_xdfname );
+
 	if( !rm_error ){
 		if( SE_link( rm_n_descr, rm_descr ) )
 			exit( 1 );

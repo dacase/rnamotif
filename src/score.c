@@ -19,6 +19,7 @@
 	((s)==SYM_PLUS_ASSIGN||(s)==SYM_MINUS_ASSIGN||\
 	 (s)==SYM_PERCENT_ASSIGN||(s)==SYM_SLASH_ASSIGN||(s)==SYM_STAR_ASSIGN)
 
+extern	char	*rm_wdfname;
 extern	int	rm_lineno;
 extern	int	rm_emsg_lineno;	
 extern	STREL_T	rm_descr[];
@@ -150,6 +151,7 @@ static	char	*scnames[ N_SC ] = {
 };
 
 typedef	struct	inst_t	{
+	char	*i_filename;
 	int	i_lineno;
 	int	i_op;
 	VALUE_T	i_val;
@@ -242,7 +244,7 @@ static	int	setupefn( INST_T *, int, int, int, int );
 static	int	setbp( STREL_T *, int, int, int, int, int [] );
 static	void	mk_stref_name( int, char []);
 static	void	addnode( int, NODE_T *, int );
-static	void	addinst( int, int, VALUE_T * );
+static	void	addinst( NODE_T *, int, VALUE_T * );
 static	void	dumpinst( FILE *, int, INST_T * );
 static	void	dumpstk( FILE *, char [] );
 
@@ -271,7 +273,7 @@ void	RM_action( NODE_T *np )
 	nextlab++;
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = actlab;
-	addinst( np->n_lineno, OP_FJP, &v_lab );
+	addinst( np, OP_FJP, &v_lab );
 }
 
 void	RM_endaction( void )
@@ -290,7 +292,7 @@ void	RM_if( NODE_T *np )
 	nextlab += 2;
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = ifstk[ ifstkp - 1 ];
-	addinst( np->n_lineno, OP_FJP, &v_lab );
+	addinst( np, OP_FJP, &v_lab );
 }
 
 void	RM_else( void )
@@ -298,7 +300,7 @@ void	RM_else( void )
 
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = ifstk[ ifstkp - 1 ] + 1;
-	addinst( UNDEF, OP_JMP, &v_lab );
+	addinst( NULL, OP_JMP, &v_lab );
 	labtab[ ifstk[ ifstkp - 1 ] ] = l_prog;
 }
 
@@ -335,7 +337,7 @@ void	RM_fortest( NODE_T *np )
 	RM_expr( 0, np );
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ] + 2;
-	addinst( np->n_lineno, OP_FJP, &v_lab );
+	addinst( np, OP_FJP, &v_lab );
 }
 
 void	RM_forincr( NODE_T *np )
@@ -353,7 +355,7 @@ void	RM_endfor( void )
 	RM_clear();
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
-	addinst( UNDEF, OP_JMP, &v_lab );
+	addinst( NULL, OP_JMP, &v_lab );
 	labtab[ loopstk[ loopstkp - 1 ] + 2 ] = l_prog;
 	loopstkp--;
 }
@@ -369,7 +371,7 @@ void	RM_while( NODE_T *np )
 	RM_expr( 0, np );
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ] + 2;
-	addinst( np->n_lineno, OP_FJP, &v_lab );
+	addinst( np, OP_FJP, &v_lab );
 }
 
 void	RM_endwhile( void )
@@ -377,7 +379,7 @@ void	RM_endwhile( void )
 
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
-	addinst( UNDEF, OP_JMP, &v_lab );
+	addinst( NULL, OP_JMP, &v_lab );
 	labtab[ loopstk[ loopstkp - 1 ] + 2 ] = l_prog;
 	loopstkp--;
 }
@@ -387,7 +389,7 @@ void	RM_break( void )
 
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ] + 1;
-	addinst( UNDEF, OP_JMP, &v_lab );
+	addinst( NULL, OP_JMP, &v_lab );
 }
 
 void	RM_continue( void )
@@ -395,31 +397,31 @@ void	RM_continue( void )
 
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
-	addinst( UNDEF, OP_JMP, &v_lab );
+	addinst( NULL, OP_JMP, &v_lab );
 }
 
 void	RM_accept( void )
 {
 
-	addinst( UNDEF, OP_ACPT, NULL );
+	addinst( NULL, OP_ACPT, NULL );
 }
 
 void	RM_reject( void )
 {
 
-	addinst( UNDEF, OP_RJCT, NULL );
+	addinst( NULL, OP_RJCT, NULL );
 }
 
 void	RM_mark( void )
 {
 
-	addinst( UNDEF, OP_MRK, NULL );
+	addinst( NULL, OP_MRK, NULL );
 }
 
 void	RM_clear( void )
 {
 
-	addinst( UNDEF, OP_CLS, 0 );
+	addinst( NULL, OP_CLS, 0 );
 }
 
 void	RM_expr( int lval, NODE_T *np )
@@ -608,6 +610,7 @@ dumpstk( stdout, "before op" );
 			pc = ip->i_val.v_value.v_ival;
 			break;
 		default :
+			rm_wdfname = ip->i_filename; 
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, "RM_score: unknown op %d.", ip->i_op );
 			RM_errormsg( 1, emsg );
@@ -651,9 +654,9 @@ static	void	genexpr( int lval, NODE_T *np )
 
 	if( np ){
 		if( np->n_sym == SYM_CALL ){
-			addinst( np->n_lineno, OP_MRK, NULL );
+			addinst( np, OP_MRK, NULL );
 		}else if( np->n_sym == SYM_IN ){
-			addinst( np->n_lineno, OP_MRK, NULL );
+			addinst( np, OP_MRK, NULL );
 		}
 
 		genexpr( ISLVAL( np->n_sym ), np->n_left );
@@ -673,7 +676,7 @@ static	void	genexpr( int lval, NODE_T *np )
 		}
 
 		if( np->n_sym == SYM_KW_STREF || np->n_sym == SYM_IX_STREF ){
-			addinst( np->n_lineno, OP_STRF, NULL );
+			addinst( np, OP_STRF, NULL );
 		}
 	}
 }
@@ -708,6 +711,7 @@ static	void	fix_kw_stref( NODE_T *np )
 			ip = np3->n_val.v_value.v_pval;
 			if( !strcmp( ip, "index" ) ){
 				if( n_index != NULL ){
+					rm_wdfname = n_index->n_filename;
 					rm_emsg_lineno = n_index->n_lineno;
 					RM_errormsg( 1,
 	"fix_kw_stref: index parameter may not appear more than once." );
@@ -715,6 +719,7 @@ static	void	fix_kw_stref( NODE_T *np )
 					n_index = np2->n_right;
 			}else if( !strcmp( ip, "tag" ) ){
 				if( n_tag != NULL ){
+					rm_wdfname = n_tag->n_filename;
 					rm_emsg_lineno = n_tag->n_lineno;
 					RM_errormsg( 1,
 	"fix_kw_stref: tag parameter may not appear more than once." );
@@ -722,6 +727,7 @@ static	void	fix_kw_stref( NODE_T *np )
 					n_tag = np2->n_right;
 			}else if( !strcmp( ip, "pos" ) ){
 				if( n_pos != NULL ){
+					rm_wdfname = n_pos->n_filename;
 					rm_emsg_lineno = n_pos->n_lineno;
 					RM_errormsg( 1,
 		"fix_kw_stref: pos parameter may not appear more than once." );
@@ -729,12 +735,14 @@ static	void	fix_kw_stref( NODE_T *np )
 					n_pos = np2->n_right;
 			}else if( !strcmp( ip, "len" ) ){
 				if( n_len != NULL ){
+					rm_wdfname = n_len->n_filename;
 					rm_emsg_lineno = n_len->n_lineno;
 					RM_errormsg( 1,
 		"fix_kw_stref: len parameter may not appear more than once." );
 				}else
 					n_len = np2->n_right;
 			}else{
+				rm_wdfname = np3->n_filename;
 				rm_emsg_lineno = np3->n_lineno;
 				sprintf( emsg,
 				"fix_kw_stref: unknown parameter: '%s'.",
@@ -744,10 +752,12 @@ static	void	fix_kw_stref( NODE_T *np )
 		}
 	}
 
+	rm_wdfname = np->n_filename;
 	rm_emsg_lineno = np->n_lineno;
 	if( n_index == NULL && n_tag == NULL ||
 		n_index != NULL && n_tag != NULL )
 	{
+		rm_wdfname = np->n_filename;
 		rm_emsg_lineno = np->n_lineno;
 		RM_errormsg( 1,
 		"fix_kw_stref: one of index= or tag= required for stref()." );
@@ -848,6 +858,7 @@ static	void	fix_call( NODE_T *np )
 	sc = is_syscall( np );
 	switch( sc ){
 	case SC_STRID :
+		rm_wdfname = np->n_filename;
 		rm_emsg_lineno = np->n_lineno;
 		RM_errormsg( 1, "fix_call: STRID can not be called by user." );
 		break;
@@ -855,6 +866,7 @@ static	void	fix_call( NODE_T *np )
 		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
 			pcnt++;
 		if( pcnt != 2 ){
+			rm_wdfname = np->n_filename;
 			rm_emsg_lineno = np->n_lineno;
 			sprintf( emsg,
 				"fix_call: function '%s' has 2 parameters.",
@@ -868,6 +880,7 @@ static	void	fix_call( NODE_T *np )
 		np2 = np2->n_left;
 
 		if( np1->n_sym != SYM_KW_STREF && np1->n_sym != SYM_IX_STREF ){
+			rm_wdfname = np1->n_filename;
 			rm_emsg_lineno = np1->n_lineno;
 			sprintf( emsg,
 			"fix_call: function '%s' takes only strel arguments.",
@@ -879,6 +892,7 @@ static	void	fix_call( NODE_T *np )
 				;
 		}
 		if( np2->n_sym != SYM_KW_STREF && np2->n_sym != SYM_IX_STREF ){
+			rm_wdfname = np2->n_filename;
 			rm_emsg_lineno = np2->n_lineno;
 			sprintf( emsg,
 			"fix_call: function '%s' takes only strel arguments.",
@@ -898,6 +912,7 @@ static	void	fix_call( NODE_T *np )
 		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
 			pcnt++;
 		if( pcnt != 1 ){
+			rm_wdfname = np->n_filename;
 			rm_emsg_lineno = np->n_lineno;
 			sprintf( emsg,
 				"fix_call: function '%s' has 1 parameter.",
@@ -912,6 +927,7 @@ static	void	fix_call( NODE_T *np )
 	case SC_SPRINTF :
 		break;
 	default :
+		rm_wdfname = np->n_filename;
 		rm_emsg_lineno = np->n_lineno;
 		RM_errormsg( 1, "fix_call: unknown syscall." );
 		break;
@@ -980,7 +996,8 @@ static	void	do_scl( INST_T *ip )
 
 		idx  = mem[ sp - 5 ].v_value.v_ival;
 		if( idx < 0 || idx >= rm_n_descr ){
-			rm_emsg_lineno = UNDEF;
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, 
 		"do_scl: efn: 1st descr index must be between 1 and %d.",
 				rm_n_descr );
@@ -991,13 +1008,16 @@ static	void	do_scl( INST_T *ip )
 		if( pos == UNDEF )
 			pos = 1;
 		else if( pos < 0 ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1, "efn: pos1 must be > 0." );
 		}else if( stp->s_matchlen == 0 ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1,
 	"do_scl: efn: descr1 must have match len > 0." );
 		}else if( pos > stp->s_matchlen ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, "do_scl: efn: pos1 must be <= %d.",
 				stp->s_matchlen );
@@ -1008,12 +1028,14 @@ static	void	do_scl( INST_T *ip )
 
 		idx2 = mem[ sp - 2 ].v_value.v_ival;
 		if( idx2 < 0 || idx2 >= rm_n_descr ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, 
 		"do_scl: efn: 2nd descr index must be between 1 and %d.",
 				rm_n_descr );
 			RM_errormsg( 1, emsg );
 		}else if( idx >= idx2 ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1, 
 		"do_scl: efn: 2nd descr index must follow 1st descr.",
@@ -1025,13 +1047,16 @@ static	void	do_scl( INST_T *ip )
 		if( pos2 == UNDEF )
 			pos2 = stp2->s_matchlen;
 		else if( pos2 < 0 ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1, "efn: pos2 must be > 0." );
 		}else if( stp2->s_matchlen == 0 ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1,
 	"do_scl: efn: descr2 must have match len > 0." );
 		}else if( pos > stp2->s_matchlen ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, "do_scl: efn: pos2 must be <= %d.",
 				stp2->s_matchlen );
@@ -1063,7 +1088,8 @@ static	void	do_scl( INST_T *ip )
 	case SC_MISMATCHES :
 		idx = mem[ sp - 2 ].v_value.v_ival;
 		if( idx < 0 || idx >= rm_n_descr ){
-			rm_emsg_lineno = UNDEF;
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, 
 		"do_scl: mismatches: descr index must be between 1 and %d.",
 				rm_n_descr );
@@ -1079,7 +1105,8 @@ static	void	do_scl( INST_T *ip )
 	case SC_MISPAIRS :
 		idx = mem[ sp - 2 ].v_value.v_ival;
 		if( idx < 0 || idx >= rm_n_descr ){
-			rm_emsg_lineno = UNDEF;
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, 
 		"do_scl: mispairs: descr index must be between 1 and %d.",
 				rm_n_descr );
@@ -1095,7 +1122,8 @@ static	void	do_scl( INST_T *ip )
 	case SC_PAIRED :
 		idx = mem[ sp - 2 ].v_value.v_ival;
 		if( idx < 0 || idx >= rm_n_descr ){
-			rm_emsg_lineno = UNDEF;
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, 
 		"do_scl: paired: descr index must be between 1 and %d.",
 				rm_n_descr );
@@ -1105,7 +1133,8 @@ static	void	do_scl( INST_T *ip )
 		
 		pos = mem[ sp - 1 ].v_value.v_ival;
 		if( pos < 1 || pos > stp->s_matchlen ){
-			rm_emsg_lineno = UNDEF;
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, 
 		"do_scl: paired: pos must be between 1 and %d.",
 				stp->s_matchlen );
@@ -1115,7 +1144,8 @@ static	void	do_scl( INST_T *ip )
 
 		len = mem[ sp ].v_value.v_ival;
 		if( len == 0 ){
-			rm_emsg_lineno = UNDEF;
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, "do_scl: paired: len must be > 0." );
 			RM_errormsg( 1, emsg );
 		}else if( len < 0 )
@@ -1132,6 +1162,7 @@ static	void	do_scl( INST_T *ip )
 		do_sprintf( ip );
 		cp = ( char * )malloc( strlen( sprintfbuf ) + 1 );
 		if( cp == NULL ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1, "do_strf: can't allocate cp1." );
 		}
@@ -1147,7 +1178,8 @@ static	void	do_scl( INST_T *ip )
 		break;
 
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_wdfname = ip->i_filename;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_scl: undefined syscall." );
 		break;
 	}
@@ -1410,6 +1442,7 @@ static	int	do_fmt( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	v_arg = NULL;
 	r_arg = u_arg < 0 ? *c_arg - u_arg : u_arg;
 	if( r_arg < 1 || r_arg >= n_args ){
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_fmt: No such argument (%d).", r_arg );
 		RM_errormsg( 0, emsg );
@@ -1421,6 +1454,7 @@ static	int	do_fmt( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	v_wid = NULL;
 	r_wid = u_wid < 0 ? *c_arg - u_wid : u_wid;
 	if( r_wid < 0 || r_wid >= n_args ){
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_fmt: No such width argument (%d).", r_wid );
 		RM_errormsg( 0, emsg );
@@ -1429,6 +1463,7 @@ static	int	do_fmt( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	}else if( r_wid != 0 ){
 		v_wid = &mem[ mp + r_wid + 1 ];
 		if( v_wid->v_type != T_INT ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 0, "do_fmt: Ind. width must be int." );
 			rval = 1;
@@ -1439,6 +1474,7 @@ static	int	do_fmt( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	v_prec = NULL;
 	r_prec = u_prec < 0 ? *c_arg - u_prec : u_prec;
 	if( r_prec < 0 || r_prec >= n_args ){
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg,
 			"do_fmt: No such prec. argument (%d).", r_prec );
@@ -1448,6 +1484,7 @@ static	int	do_fmt( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	}else if( r_prec != 0 ){
 		v_wid = &mem[ mp + r_prec + 1 ];
 		if( v_prec->v_type != T_INT ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 0, "do_fmt: Ind. prec. must be int." );
 			rval = 1;
@@ -1470,6 +1507,7 @@ static	int	do_fmt( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	case 'g' :
 	case 'G' :
 		if( v_arg->v_type != T_FLOAT ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg,
 				"do_fmt: '%c' format requires float arg.",
@@ -1500,6 +1538,7 @@ static	int	do_fmt( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	case 'd' :
 	case 'i' :
 		if( v_arg->v_type != T_INT ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg,
 				"do_fmt: '%c' format requires int arg.",
@@ -1532,6 +1571,7 @@ static	int	do_fmt( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	case 'x' :
 	case 'X' :
 		if( v_arg->v_type != T_INT ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg,
 				"do_fmt: '%c' format requires int arg.",
@@ -1563,6 +1603,7 @@ static	int	do_fmt( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	case 's' :
 	case 'S' :
 		if( v_arg->v_type != T_STRING ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg,
 				"do_fmt: '%c' format requires string/seq arg.",
@@ -1597,6 +1638,7 @@ static	int	do_fmt( INST_T *ip, char *fmt, int n_args, int *c_arg )
 		else if( v_arg->v_type == T_FLOAT )
 			v_arg->v_value.v_dval = nprt;
 		else{
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, "do_fmt: '%c' format requires int arg.",
 				type );
@@ -1614,6 +1656,7 @@ static	int	do_fmt( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	case 'C' :
 	case 'p' :
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_fmt: '%c' unsupported format.", type );
 		RM_errormsg( 0, emsg );
@@ -1642,6 +1685,7 @@ static	void	do_strf( INST_T *ip )
 	pos   = mem[ sp - 1 ].v_value.v_ival;
 	index = mem[ sp - 2 ].v_value.v_ival;
 	if( index < 0 || index >= rm_n_descr ){
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;;
 		sprintf( emsg, "do_strf: no such descriptor %d.", index );
 		RM_errormsg( 1, emsg );
@@ -1650,11 +1694,13 @@ static	void	do_strf( INST_T *ip )
 	if( pos == UNDEF )
 		pos = 1;
 	else if( pos < 0 ){
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_strf: pos must be > 0." );
 	}else if( stp->s_matchlen == 0 ){
 		pos = 1;	
 	}else if( pos > stp->s_matchlen ){
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_strf: pos must be <= %d.\n",
 			stp->s_matchlen );
@@ -1662,6 +1708,7 @@ static	void	do_strf( INST_T *ip )
 	}
 	pos--;
 	if( len == 0 ){ 
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_strf: len must be > 0." );
 	}else if( len == UNDEF )	/* rest of string */
@@ -1670,6 +1717,7 @@ static	void	do_strf( INST_T *ip )
 		len = MIN( stp->s_matchlen - pos, len );
 	cp = ( char * )tm_malloc( ( len + 1 ) * sizeof( char ), "do_strf" );
 	if( cp == NULL ){
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_strf: can't allocate cp." );
 		exit( 1 );
@@ -1696,6 +1744,7 @@ static	void	do_lda( INST_T *ip )
 		v_top->v_type = T_UNDEF;
 		v_top->v_value.v_pval = idp;
 	}else if( !idp->i_reinit ){
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_lda: variable '%s' is readonly.", 
 			idp->i_name );
@@ -1716,14 +1765,16 @@ static	void	do_lod( INST_T *ip )
 	v_top = &mem[ sp ];
 	idp = RM_find_id( ip->i_val.v_value.v_pval );
 	if( idp == NULL ){
-		rm_emsg_lineno = UNDEF;
+		rm_wdfname = ip->i_filename;
+		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_lod: variable '%s' is undefined.",
 			ip->i_val.v_value.v_pval );
 		RM_errormsg( 1, emsg );
 	}else{
 		switch( idp->i_type ){
 		case T_UNDEF :
-			rm_emsg_lineno = UNDEF;
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg,
 				"do_lod: variable '%s' is undefined.",
 				idp->i_name );
@@ -1741,7 +1792,8 @@ static	void	do_lod( INST_T *ip )
 			cp = ( char * )tm_malloc(
 				strlen(idp->i_val.v_value.v_pval)+1, "do_lod" );
 			if( cp == NULL ){
-				rm_emsg_lineno = UNDEF;
+				rm_wdfname = ip->i_filename;
+				rm_emsg_lineno = ip->i_lineno;
 				RM_errormsg( 1, "do_lod: can't allocate cp." );
 			}
 			strcpy( cp, idp->i_val.v_value.v_pval );
@@ -1749,6 +1801,7 @@ static	void	do_lod( INST_T *ip )
 			v_top->v_value.v_pval = cp;
 			break;
 		default :
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1, "do_lod: type mismatch." );
 			break;
@@ -1778,6 +1831,7 @@ static	void	do_ldc( INST_T *ip )
 		cp = ( char * )tm_malloc(
 			strlen( ip->i_val.v_value.v_pval ) + 1, "do_ldc" );
 		if( cp == NULL ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1, "do_ldc: can't allocate cp." );
 		}
@@ -1795,6 +1849,7 @@ static	void	do_ldc( INST_T *ip )
 		v_top->v_value.v_pval = ip->i_val.v_value.v_pval;
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_ldc: type mismatch." );
 		break;
@@ -1832,7 +1887,8 @@ static	void	do_sto( INST_T *ip )
 		cp = ( char * )tm_malloc(
 			strlen( v_top->v_value.v_pval ) + 1, "do_sto: US" );
 		if( cp == NULL ){
-			rm_emsg_lineno = UNDEF;
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1, "do_sto: can't allocate new string." );
 		}
 		strcpy( cp, v_top->v_value.v_pval );
@@ -1857,7 +1913,8 @@ static	void	do_sto( INST_T *ip )
 		cp = ( char * )tm_malloc(
 			strlen( v_top->v_value.v_pval ) + 1, "do_sto: SS" );
 		if( cp == NULL ){
-			rm_emsg_lineno = UNDEF;
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1, "do_sto: can't allocate new string." );
 		}
 		strcpy( cp, v_top->v_value.v_pval );
@@ -1866,6 +1923,7 @@ static	void	do_sto( INST_T *ip )
 		tm_free( v_top->v_value.v_pval );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_sto: type mismatch." );
 		break;
@@ -1899,6 +1957,7 @@ static	void	do_and( INST_T *ip )
 		tm_free( cp );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_and: type mismatch." );
 		break;
@@ -1934,6 +1993,7 @@ static	void	do_ior( INST_T *ip )
 		tm_free( cp );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_ior: type mismatch." );
 		break;
@@ -1962,6 +2022,7 @@ static	void	do_not( INST_T *ip )
 			!( *( char * )v_top->v_value.v_pval != '\0' );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_not: type mismatch." );
 		break;
@@ -1993,6 +2054,7 @@ static	void	do_mat( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_mat: type mismatch." );
 		break;
@@ -2010,6 +2072,7 @@ static	void	do_ins( INST_T *ip )
 
 	n_bases = sp - mp - 1;
 	if( n_bases < 2 || n_bases > 4 ){
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_ins: pair has %d bases, requires %d-%d.",
 			n_bases, 2, 4 );
@@ -2018,6 +2081,7 @@ static	void	do_ins( INST_T *ip )
 
 	v_top = &mem[ sp ];
 	if( v_top->v_type != T_PAIRSET ){
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1,
 			"do_ins: rhs of \"in\" must have type pairset." );
@@ -2026,6 +2090,7 @@ static	void	do_ins( INST_T *ip )
 	for( l0 = UNDEF, i = 0; i < n_bases; i++ ){
 		v_bases[ i ] = &mem[ mp + 1 + i ];
 		if( v_bases[ i ]->v_type != T_STRING ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1,
 				"do_ins: pair elements must be type string." );
@@ -2034,6 +2099,7 @@ static	void	do_ins( INST_T *ip )
 		if( l0 == UNDEF )
 			l0 = l_bases[ i ]; 
 		else if( l_bases[ i ] != l0 ){
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1,
 		"do_ins: all pair elements must have the same length." );
@@ -2122,6 +2188,7 @@ static	void	do_gtr( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_gtr: type mismatch." );
 		break;
@@ -2166,6 +2233,7 @@ static	void	do_geq( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_geq: type mismatch." );
 		exit( 1 );
@@ -2211,6 +2279,7 @@ static	void	do_equ( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_equ: type mismatch." );
 		break;
@@ -2255,6 +2324,7 @@ static	void	do_neq( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_neq: type mismatch." );
 		break;
@@ -2299,6 +2369,7 @@ static	void	do_leq( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_leq: type mismatch." );
 		break;
@@ -2343,6 +2414,7 @@ static	void	do_les( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_les: type mismatch." );
 		break;
@@ -2381,7 +2453,8 @@ static	void	do_add( INST_T *ip )
 		cp = ( char * )tm_malloc(
 			strlen( s_tm1 ) + strlen( s_top ) + 1, "do_add" );
 		if( cp == NULL ){
-			rm_emsg_lineno = UNDEF;
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1, "do_add: can't allocate new string." );
 		}
 		strcpy( cp, s_tm1 );
@@ -2391,6 +2464,7 @@ static	void	do_add( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_add: type mismatch." );
 		break;
@@ -2422,6 +2496,7 @@ static	void	do_sub( INST_T *ip )
 		v_tm1->v_value.v_dval -= v_top->v_value.v_dval;
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_sub: type mismatch." );
 		break;
@@ -2453,6 +2528,7 @@ static	void	do_mul( INST_T *ip )
 		v_tm1->v_value.v_dval *= v_top->v_value.v_dval;
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_mul: type mismatch." );
 		break;
@@ -2484,6 +2560,7 @@ static	void	do_div( INST_T *ip )
 		v_tm1->v_value.v_dval /= v_top->v_value.v_dval;
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_div: type mismatch." );
 		break;
@@ -2506,6 +2583,7 @@ static	void	do_mod( INST_T *ip )
 		v_tm1->v_value.v_ival %= v_top->v_value.v_ival;
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_mod: type mismatch." );
 		break;
@@ -2528,6 +2606,7 @@ static	void	do_neg( INST_T *ip )
 		v_top->v_value.v_dval = -v_top->v_value.v_dval;
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_neg: type mismatch." );
 		break;
@@ -2546,6 +2625,7 @@ static	void	do_i_pp( INST_T *ip )
 	
 	switch( t_top ){
 	case T_UNDEF :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_i_pp: variable '%s' is undefined.",
 			idp->i_name );
@@ -2555,6 +2635,7 @@ static	void	do_i_pp( INST_T *ip )
 		v_top->v_value.v_ival = ( idp->i_val.v_value.v_ival )++;
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_i_pp: type mismatch." );
 		break;
@@ -2573,6 +2654,7 @@ static	void	do_pp_i( INST_T *ip )
 	
 	switch( t_top ){
 	case T_UNDEF :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_pp_i: variable '%s' is undefined.",
 			idp->i_name );
@@ -2582,6 +2664,7 @@ static	void	do_pp_i( INST_T *ip )
 		v_top->v_value.v_ival = ++( idp->i_val.v_value.v_ival );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_pp_i: type mismatch." );
 		break;
@@ -2600,6 +2683,7 @@ static	void	do_i_mm( INST_T *ip )
 	
 	switch( t_top ){
 	case T_UNDEF :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_i_mm: variable '%s' is undefined.",
 			idp->i_name );
@@ -2609,6 +2693,7 @@ static	void	do_i_mm( INST_T *ip )
 		v_top->v_value.v_ival = ( idp->i_val.v_value.v_ival )--;
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_i_mm: type mismatch." );
 		exit( 1 );
@@ -2628,6 +2713,7 @@ static	void	do_mm_i( INST_T *ip )
 	
 	switch( t_top ){
 	case T_UNDEF :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_mm_i: variable '%s' is undefined.",
 			idp->i_name );
@@ -2637,6 +2723,7 @@ static	void	do_mm_i( INST_T *ip )
 		v_top->v_value.v_ival = --( idp->i_val.v_value.v_ival );
 		break;
 	default :
+		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_mm_i: type mismatch." );
 		break;
@@ -2678,6 +2765,7 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 		}else if( stp5->s_type == SYM_SS ){
 			rm_basepr[ i ] = UNDEF;
 		}else{
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1, 
 			"setupefn: efn() only works on h5/ss/h3 elements." );
@@ -2698,6 +2786,7 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 			}else if( stp->s_type == SYM_SS ){
 				rm_basepr[ i ] = UNDEF;
 			}else{
+				rm_wdfname = ip->i_filename;
 				rm_emsg_lineno = ip->i_lineno;
 				RM_errormsg( 1, 
 			"setupefn: efn() only works on h5/ss/h3 elements." );
@@ -2717,6 +2806,7 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 		}else if( stp3->s_type == SYM_SS ){
 			rm_basepr[ i ] = UNDEF;
 		}else{
+			rm_wdfname = ip->i_filename;
 			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1, 
 			"setupefn: efn() only works on h5/ss/h3 elements." );
@@ -2817,6 +2907,7 @@ static	void	addnode( int lval, NODE_T *np, int l_andor )
 	VALUE_T	v_node;
 	int	sc;
 
+	rm_wdfname = np->n_filename;
 	rm_emsg_lineno = np->n_lineno;
 	switch( np->n_sym ){
 
@@ -2824,9 +2915,9 @@ static	void	addnode( int lval, NODE_T *np, int l_andor )
 		if( ( sc = is_syscall( np ) ) != UNDEF ){
 			v_node.v_type = T_INT;
 			v_node.v_value.v_ival = sc;
-			addinst( np->n_lineno, OP_SCL, &v_node );
+			addinst( np, OP_SCL, &v_node );
 		}else
-			addinst( np->n_lineno, OP_FCL, &np->n_val );
+			addinst( np, OP_FCL, &np->n_val );
 		break;
 	case SYM_LIST :
 		break;
@@ -2867,115 +2958,115 @@ static	void	addnode( int lval, NODE_T *np, int l_andor )
 
 	case SYM_IDENT :
 		if( lval ){
-			addinst( np->n_lineno, OP_LDA, &np->n_val );
+			addinst( np, OP_LDA, &np->n_val );
 		}else{
-			addinst( np->n_lineno, OP_LOD, &np->n_val );
+			addinst( np, OP_LOD, &np->n_val );
 		}
 		break;
 	case SYM_INT :
-		addinst( np->n_lineno, OP_LDC, &np->n_val );
+		addinst( np, OP_LDC, &np->n_val );
 		break;
 	case SYM_FLOAT :
-		addinst( np->n_lineno, OP_LDC, &np->n_val );
+		addinst( np, OP_LDC, &np->n_val );
 		break;
 	case SYM_STRING :
-		addinst( np->n_lineno, OP_LDC, &np->n_val );
+		addinst( np, OP_LDC, &np->n_val );
 		break;
 	case SYM_DOLLAR :
 		v_node.v_type = T_POS;
 		v_node.v_value.v_pval = NULL;
-		addinst( np->n_lineno, OP_LDC, &v_node );
+		addinst( np, OP_LDC, &v_node );
 		break;
 	case SYM_PAIRSET :
-		addinst( np->n_lineno, OP_LDC, &np->n_val );
+		addinst( np, OP_LDC, &np->n_val );
 		break;
 
 	case SYM_ASSIGN :
-		addinst( np->n_lineno, OP_STO, NULL );
+		addinst( np, OP_STO, NULL );
 		break;
 
 	case SYM_PLUS_ASSIGN :
-		addinst( np->n_lineno, OP_ADD, NULL );
-		addinst( np->n_lineno, OP_STO, NULL );
+		addinst( np, OP_ADD, NULL );
+		addinst( np, OP_STO, NULL );
 		break;
 	case SYM_MINUS_ASSIGN :
-		addinst( np->n_lineno, OP_SUB, NULL );
-		addinst( np->n_lineno, OP_STO, NULL );
+		addinst( np, OP_SUB, NULL );
+		addinst( np, OP_STO, NULL );
 		break;
 	case SYM_PERCENT_ASSIGN :
-		addinst( np->n_lineno, OP_MOD, NULL );
-		addinst( np->n_lineno, OP_STO, NULL );
+		addinst( np, OP_MOD, NULL );
+		addinst( np, OP_STO, NULL );
 		break;
 	case SYM_STAR_ASSIGN :
-		addinst( np->n_lineno, OP_MUL, NULL );
-		addinst( np->n_lineno, OP_STO, NULL );
+		addinst( np, OP_MUL, NULL );
+		addinst( np, OP_STO, NULL );
 		break;
 	case SYM_SLASH_ASSIGN :
-		addinst( np->n_lineno, OP_DIV, NULL );
-		addinst( np->n_lineno, OP_STO, NULL );
+		addinst( np, OP_DIV, NULL );
+		addinst( np, OP_STO, NULL );
 		break;
 
 	case SYM_AND :
 		v_lab.v_type = T_INT;
 		v_lab.v_value.v_ival = l_andor;
-		addinst( np->n_lineno, OP_AND, &v_lab );
+		addinst( np, OP_AND, &v_lab );
 		break;
 	case SYM_OR :
 		v_lab.v_type = T_INT;
 		v_lab.v_value.v_ival = l_andor;
-		addinst( np->n_lineno, OP_IOR, &v_lab );
+		addinst( np, OP_IOR, &v_lab );
 		break;
 	case SYM_NOT :
-		addinst( np->n_lineno, OP_NOT, NULL );
+		addinst( np, OP_NOT, NULL );
 		break;
 
 	case SYM_EQUAL :
-		addinst( np->n_lineno, OP_EQU, NULL );
+		addinst( np, OP_EQU, NULL );
 		break;
 	case SYM_NOT_EQUAL :
-		addinst( np->n_lineno, OP_NEQ, NULL );
+		addinst( np, OP_NEQ, NULL );
 		break;
 	case SYM_GREATER :
-		addinst( np->n_lineno, OP_GTR, NULL );
+		addinst( np, OP_GTR, NULL );
 		break;
 	case SYM_GREATER_EQUAL :
-		addinst( np->n_lineno, OP_GEQ, NULL );
+		addinst( np, OP_GEQ, NULL );
 		break;
 	case SYM_LESS :
-		addinst( np->n_lineno, OP_LES, NULL );
+		addinst( np, OP_LES, NULL );
 		break;
 	case SYM_LESS_EQUAL :
-		addinst( np->n_lineno, OP_LEQ, NULL );
+		addinst( np, OP_LEQ, NULL );
 		break;
 
 	case SYM_MATCH :
-		addinst( np->n_lineno, OP_MAT, NULL );
+		addinst( np, OP_MAT, NULL );
 		break;
 	case SYM_DONT_MATCH :
-		addinst( np->n_lineno, OP_MAT, NULL );
-		addinst( np->n_lineno, OP_NOT, NULL );
+		addinst( np, OP_MAT, NULL );
+		addinst( np, OP_NOT, NULL );
 		break;
 	case SYM_IN :
-		addinst( np->n_lineno, OP_INS, NULL );
+		addinst( np, OP_INS, NULL );
 		break;
 
 	case SYM_PLUS :
-		addinst( np->n_lineno, OP_ADD, NULL );
+		addinst( np, OP_ADD, NULL );
 		break;
 	case SYM_MINUS :
-		addinst( np->n_lineno, OP_SUB, NULL );
+		addinst( np, OP_SUB, NULL );
 		break;
 	case SYM_PERCENT :
-		addinst( np->n_lineno, OP_MOD, NULL );
+		addinst( np, OP_MOD, NULL );
 		break;
 	case SYM_STAR :
-		addinst( np->n_lineno, OP_MUL, NULL );
+		addinst( np, OP_MUL, NULL );
 		break;
 	case SYM_SLASH :
-		addinst( np->n_lineno, OP_DIV, NULL );
+		addinst( np, OP_DIV, NULL );
 		break;
 	case SYM_NEGATE :
-		addinst( np->n_lineno, OP_NEG, NULL );
+		addinst( np, OP_NEG, NULL );
 		break;
 
 	case SYM_COLON :
@@ -2983,16 +3074,16 @@ static	void	addnode( int lval, NODE_T *np, int l_andor )
 
 	case SYM_MINUS_MINUS :
 		if( np->n_left ){
-			addinst( np->n_lineno, OP_I_MM, NULL );
+			addinst( np, OP_I_MM, NULL );
 		}else{
-			addinst( np->n_lineno, OP_MM_I, NULL );
+			addinst( np, OP_MM_I, NULL );
 		}
 		break;
 	case SYM_PLUS_PLUS :
 		if( np->n_left ){
-			addinst( np->n_lineno, OP_I_PP, NULL );
+			addinst( np, OP_I_PP, NULL );
 		}else{
-			addinst( np->n_lineno, OP_PP_I, NULL );
+			addinst( np, OP_PP_I, NULL );
 		}
 		break;
 
@@ -3018,7 +3109,7 @@ static	void	addnode( int lval, NODE_T *np, int l_andor )
 	}
 }
 
-static	void	addinst( int ln, int op, VALUE_T *vp )
+static	void	addinst( NODE_T *np, int op, VALUE_T *vp )
 {
 	INST_T	*ip;
 	char	*sp;
@@ -3028,7 +3119,13 @@ static	void	addinst( int ln, int op, VALUE_T *vp )
 	}else{
 		ip = &prog[ l_prog ];
 		l_prog++;
-		ip->i_lineno = ln;
+		if( np != NULL ){
+			ip->i_filename = np->n_filename;
+			ip->i_lineno = np->n_lineno;
+		}else{
+			ip->i_filename = " -- No File -- ";
+			ip->i_lineno = UNDEF;
+		}
 		ip->i_op = op;
 		if( vp == NULL ){
 			ip->i_val.v_type = T_UNDEF;
@@ -3060,7 +3157,8 @@ static	void	dumpinst( FILE *fp, int i, INST_T * ip )
 	VALUE_T	*vp;
 	
 	if( ip->i_op < 0 || ip->i_op >= N_OP ){
-		rm_emsg_lineno = UNDEF;
+		rm_wdfname = ip->i_filename;
+		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "dumpinst: bad op %d\n", ip->i_op );
 		RM_errormsg( 1, emsg );
 	}

@@ -1,9 +1,29 @@
-head	1.69;
+head	1.73;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.73
+date	2000.12.18.03.05.39;	author macke;	state Exp;
+branches;
+next	1.72;
+
+1.72
+date	2000.12.16.18.38.41;	author macke;	state Exp;
+branches;
+next	1.71;
+
+1.71
+date	2000.12.16.00.29.26;	author macke;	state Exp;
+branches;
+next	1.70;
+
+1.70
+date	2000.12.05.18.43.04;	author macke;	state Exp;
+branches;
+next	1.69;
 
 1.69
 date	2000.11.29.17.28.55;	author macke;	state Exp;
@@ -356,15 +376,16 @@ desc
 @
 
 
-1.69
+1.73
 log
-@updated version date to actual release date.
+@added i_left, i_right fields to IDENT_T so as to support a tree based
+symbol table.  Updated version and date to 1.4.0 2000-dec-17
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.3.4 2000-nov-29"
+#define	VERSION	"v1.4.0 2000-dec-17"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] -descr descr-file [ -dtype dtype ] [ seq-file ]\n\n\
@@ -372,7 +393,10 @@ options:\n\
 \t-c\n\
 \t-d\n\
 \t-h\n\
+\t-s\n\
 \t-v\n\
+\t-Did=expr\n\
+\t-Idir\n\
 \t-help\n\
 \n\
 -descr descr-file\n\
@@ -426,6 +450,8 @@ typedef	struct	value_t	{
 } VALUE_T;
 
 typedef	struct	ident_t	{
+	struct	ident_t	*i_left;
+	struct	ident_t	*i_right;
 	char	*i_name;
 	int	i_type;
 	int	i_class;
@@ -466,6 +492,7 @@ typedef	struct	node_t	{
 	int	n_type;
 	int	n_class;
 	int	n_lineno;
+	char	*n_filename;
 	VALUE_T	n_val;
 	struct	node_t	*n_left;
 	struct	node_t	*n_right;
@@ -543,7 +570,65 @@ typedef	struct	search_t	{
 	int	s_dollar;
 } SEARCH_T;
 
+typedef	struct	incdir_t	{
+	struct	incdir_t	*i_next;
+	char	*i_name;
+} INCDIR_T;
+
 #endif
+@
+
+
+1.72
+log
+@removed FSTK_T as it was preprocessor specific.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.3.5 2000-dec-15"
+d12 1
+d69 2
+d111 1
+@
+
+
+1.71
+log
+@updated date for 1.3.5 to 15-dec-2000
+@
+text
+@a184 6
+typedef	struct	fstk_t	{
+	char	*f_fname;
+	FILE	*f_fp;
+	int	f_lineno;
+} FSTK_T;
+
+@
+
+
+1.70
+log
+@added types required for file includes: FSTK_T and INCDIR_T.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.3.5 2000-dec-05"
+@
+
+
+1.69
+log
+@updated version date to actual release date.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.3.4 2000-nov-29"
+d13 2
+d184 11
 @
 
 

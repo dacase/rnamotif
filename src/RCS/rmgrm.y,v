@@ -1,9 +1,19 @@
-head	1.32;
+head	1.34;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.34
+date	2000.12.09.22.04.03;	author macke;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	2000.12.06.19.06.27;	author macke;	state Exp;
+branches;
+next	1.32;
 
 1.32
 date	2000.11.15.05.19.31;	author macke;	state Exp;
@@ -171,10 +181,9 @@ desc
 @
 
 
-1.32
+1.34
 log
-@made the descr section optional in order to allow parsing of a file
-of cmd line defs after the descr has been parsed.
+@restore gram to no longer permit empty desriptor.
 @
 text
 @%{
@@ -271,10 +280,11 @@ static	NODE_T	*np;
 %%
 program		: parm_part descr_part site_part score_part ;
 
-parm_part	: SYM_PARMS { rm_context = CTX_PARMS; } pd_list
+parm_part	: parm_hdr { rm_context = CTX_PARMS; } pd_list
 		| ;
-descr_part	: SYM_DESCR { rm_context = CTX_DESCR; } se_list
+parm_hdr	: SYM_PARMS
 		| ;
+descr_part	: SYM_DESCR { rm_context = CTX_DESCR; } se_list ;
 site_part	: SYM_SITES { rm_context = CTX_SITES; } kw_site_list
 		| ;
 score_part	: SYM_SCORE { rm_context = CTX_SCORE; } rule_list
@@ -543,6 +553,30 @@ char	msg[];
 	fprintf( stderr, "yyerror: %s\n", msg );
 	return( 0 );
 }
+@
+
+
+1.33
+log
+@made the rword parms optional
+@
+text
+@d99 1
+a99 2
+descr_part	: SYM_DESCR { rm_context = CTX_DESCR; } se_list
+		| ;
+@
+
+
+1.32
+log
+@made the descr section optional in order to allow parsing of a file
+of cmd line defs after the descr has been parsed.
+@
+text
+@d95 3
+a97 1
+parm_part	: SYM_PARMS { rm_context = CTX_PARMS; } pd_list
 @
 
 

@@ -5,15 +5,19 @@
 #include "rnamot.h"
 #include "y.tab.h"
 
-extern	FILE	*yyin;
-
-int	rm_error;
-int	rm_context = CTX_START;
+int	rm_context = CTX_PARMS;
 VALUE_T	rm_tokval;
+char	*rm_dfname;
+char	rm_wdfname[ 256 ];
+char	*rm_xdfname;
 int	rm_lineno;
+int	rm_error;
 int	rm_emsg_lineno;
-char	rm_dfname[ 256 ] = "--stdin--";
-char	*rm_cldfname = NULL;
+
+INCDIR_T	*rm_idlist;
+
+char	*rm_cldefs;
+
 int	rm_copt = 0;
 int	rm_dopt = 0;
 int	rm_hopt = 0;
@@ -27,8 +31,11 @@ int	rm_dtype = DT_FASTN;
 static	VALUE_T	valstk[ VALSTKSIZE ];
 static	int	n_valstk;
 
+/*
 #define	RM_GLOBAL_IDS_SIZE	50
-IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ];
+IDENT_T	*rm_global_ids[ RM_GLOBAL_IDS_SIZE ];
+*/
+IDENT_T	*rm_global_ids;
 int	rm_n_global_ids = 0;
 
 #define	LOCAL_IDS_SIZE	20
@@ -96,6 +103,8 @@ NODE_T	*PR_close( void );
 
 IDENT_T	*RM_enter_id( char [], int, int, int, int, VALUE_T * );
 IDENT_T	*RM_find_id( char [] );
+static	IDENT_T	*enterid( IDENT_T *, IDENT_T * );
+static	IDENT_T	*findid( IDENT_T *, char * );
 
 char	*RM_str2seq( char [] );
 
@@ -137,17 +146,16 @@ static	int	pk_cmp( STREL_T **, STREL_T ** );
 
 int	RM_init( int argc, char *argv[] )
 {
-	int	ac, i, err;
+	int	ac, i, err, len, cldsize;
 	NODE_T	*np;
-	char	*dfnp, *dbfnp;
+	char	*dbfnp, *sp;
 	VALUE_T	val;
-	FILE	*cfp;
 	IDENT_T	*ip;
+	INCDIR_T	*id1, *idt;
 
-	dfnp = NULL;	/* descriptor file name	*/
-	dbfnp = NULL;	/* database file name	*/
-	cfp = NULL;	/* defs from the cmd line */
-	for( err = 0, ac = 1; ac < argc; ac++ ){
+	dbfnp = NULL;		/* database file name	*/
+	id1 = idt = NULL;	/* list of include dirs */
+	for( err = 0, cldsize = 0, ac = 1; ac < argc; ac++ ){
 		if( !strcmp( argv[ ac ], "-c" ) )
 			rm_copt = 1;
 		else if( !strcmp( argv[ ac ], "-d" ) )
@@ -165,13 +173,13 @@ int	RM_init( int argc, char *argv[] )
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
 				err = 1;
 				break;
-			}else if( dfnp != NULL ){
+			}else if( rm_dfname != NULL ){
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
 				err = 1;
 				break;
 			}else{
 				ac++;
-				dfnp = argv[ ac ];
+				rm_dfname = argv[ ac ];
 			}
 		}else if( !strcmp( argv[ ac ], "-dtype" ) ){
 			if( ac == argc - 1 ){
@@ -191,20 +199,33 @@ int	RM_init( int argc, char *argv[] )
 				}
 			}
 		}else if( !strncmp( argv[ ac ], "-D", 2 ) ){
-			if( rm_cldfname == NULL )
-				rm_cldfname = tempnam( NULL, "defs" );
-			if( cfp == NULL ){
-				cfp = fopen( rm_cldfname, "w" );
-				if( cfp == NULL ){
-					fprintf( stderr,
-		"%s: argv[ 0 ], can't write cmd line defs to file %s.\n",
-						argv[ 0 ], rm_cldfname );
-					err = 1;
-					break;
-				}
-				fprintf( cfp, "parms\n" );
+			cldsize += strlen( &argv[ ac ][ 2 ] ) + 2;
+		}else if( !strncmp( argv[ ac ], "-I", 2 ) ){
+			id1 = ( INCDIR_T * )malloc( sizeof( INCDIR_T ) );
+			if( id1 == NULL ){
+				fprintf( stderr,
+				"%s: can't allocate space for incdir %s.",
+					argv[ 0 ], argv[ ac ] );
+				err = 1;
+				break;
 			}
-			fprintf( cfp, "%s;\n", &argv[ ac ][ 2 ] );
+			len = strlen( &argv[ ac ][ 2 ] ) + 1;
+			sp = ( char * ) malloc( len * sizeof( char ) );
+			if( sp == NULL ){
+				fprintf( stderr,
+					"%s: can't allocate sp for incdir %s.",
+					argv[ 0 ], argv[ ac ] );
+				err = 1;
+				break;
+			}
+			strcpy( sp, &argv[ ac ][ 2 ] );
+			id1->i_next = NULL;
+			id1->i_name = sp;
+			if( rm_idlist == NULL )
+				rm_idlist = id1;
+			else
+				idt->i_next = id1;
+			idt = id1;
 		}else if( *argv[ ac ] == '-' ){
 			fprintf( stderr, U_MSG_S, argv[ 0 ] );
 			err = 1;
@@ -216,33 +237,42 @@ int	RM_init( int argc, char *argv[] )
 		}else
 			dbfnp = argv[ ac ];
 	}
-	if( cfp != NULL ){
-		fclose( cfp );
-		cfp = NULL;
-	}
-	if( err ){
-		if( rm_cldfname != NULL )
-			unlink( rm_cldfname );
+	if( err )
 		return( 1 );
+	if( rm_vopt )
+		return( 0 );
+	if( rm_dfname == NULL ){
+		if( !rm_sopt ){
+			fprintf( stderr, U_MSG_S, argv[ 0 ] );
+			return( 1 );
+		}
 	}
 
-	if( dfnp != NULL ){
-		if( ( yyin = fopen( dfnp, "r" ) ) == NULL ){
+	if( cldsize > 0 ){
+		rm_cldefs = ( char * )malloc( cldsize * sizeof( char ) );
+		if( rm_cldefs == NULL ){
 			fprintf( stderr,
-				"%s: can't read descr-file '%s'\n",
-				argv[ 0 ], dfnp );
+				"%s: can't allocate space for cmd-line defs.\n",
+				argv[ 0 ] );
 			return( 1 );
-		}else
-			strcpy( rm_dfname, dfnp );
+		}
+		for( sp = rm_cldefs, ac = 1; ac < argc; ac++ ){
+			if( !strncmp( argv[ ac ], "-D", 2 ) ){ 
+				strcpy( sp, &argv[ ac ][ 2 ] );
+				sp += strlen( sp );
+				*sp++ =  ';';
+				*sp++ =  ' ';
+			}
+		}
+		sp[-1] = '\n';
+		*sp = '\0';
 	}
 
 	if( dbfnp != NULL ){
 		if( ( rm_dbfp = fopen( dbfnp, "r" ) ) == NULL ){
 			fprintf( stderr,
-				"%s: can't read database-file '%s'\n",
+				"%s: can't read database-file '%s'.\n",
 				argv[ 0 ], dbfnp ); 
-			if( yyin != stdin )
-				fclose( yyin );
 			return( 1 );
 		}
 	}else
@@ -361,35 +391,7 @@ int	RM_init( int argc, char *argv[] )
 	ip = RM_enter_id( "SCORE", T_UNDEF, C_VAR, S_GLOBAL, 1, &val ); 
 	rm_sval = &ip->i_val;
 
-	rm_lineno = 1;
-
-	return( 0 );
-}
-
-int	RM_evalcldefs( void )
-{
-	char	save_rm_dfname[ 256 ];
-	int	save_rm_lineno;
-
-	strcpy( save_rm_dfname, rm_dfname );
-	save_rm_lineno = rm_lineno;
-	strcpy( rm_dfname, rm_cldfname );
-	rm_lineno = 1;
-
-	if( ( yyin = fopen( rm_dfname, "r" ) ) == NULL ){
-		rm_emsg_lineno = UNDEF;
-		RM_errormsg( 0, "can't read cmd-line defs file." );
-		unlink( rm_dfname );
-		return( 1 );
-	}
-	if( yyparse() ){
-		RM_errormsg( 1, "syntax error." );
-	}
-	fclose( yyin );
-	unlink( rm_dfname );
-
-	strcpy( rm_dfname, save_rm_dfname );
-	rm_lineno = save_rm_lineno;
+	rm_lineno = 0;
 
 	return( 0 );
 }
@@ -1780,6 +1782,7 @@ IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
 	IDENT_T	*ip;
 	char	*np;
 
+/*
 	if( scope == S_GLOBAL ){
 		if( rm_n_global_ids >= RM_GLOBAL_IDS_SIZE ){
 			RM_errormsg( 1, 
@@ -1799,11 +1802,20 @@ IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
 		local_ids[ n_local_ids ] = ip;
 		n_local_ids++;
 	}
+*/
+	ip = ( IDENT_T * )malloc( sizeof( IDENT_T ) );
+	if( ip == NULL ){
+		sprintf( emsg, "RM_enter_id: can't alloc ip for %s id '%s'.",
+			scope == S_GLOBAL ? "global" : "local", name );
+		RM_errormsg( 1, emsg );
+	}
 	np = ( char * )malloc( strlen( name ) + 1 );
 	if( np == NULL ){
 		RM_errormsg( 1, "RM_enter_id: can't alloc np for name." );
 	}
 	strcpy( np, name );
+	ip->i_left = NULL;
+	ip->i_right = NULL;
 	ip->i_name = np;
 	ip->i_type = type;
 	ip->i_class = class;
@@ -1834,6 +1846,24 @@ IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
 				vp->v_value.v_pval, NULL );
 		}
 	}
+	if( scope == S_GLOBAL ){
+/*
+		if( rm_n_global_ids >= RM_GLOBAL_IDS_SIZE ){
+			RM_errormsg( 1, 
+				"RM_enter_id: global symbol tab overflow." );
+		}
+		rm_global_ids[ rm_n_global_ids ] = ip;
+*/
+		rm_global_ids = enterid( rm_global_ids, ip );
+		rm_n_global_ids++;
+	}else{
+		if( n_local_ids >= LOCAL_IDS_SIZE ){
+			RM_errormsg( 1,
+				"RM_enter_id: local symbol tab overflow." );
+		}
+		local_ids[ n_local_ids ] = ip;
+		n_local_ids++;
+	}
 	return( ip );
 }
 
@@ -1847,11 +1877,53 @@ IDENT_T	*RM_find_id( char name[] )
 		if( !strcmp( name, ip->i_name ) )
 			return( ip );
 	}
+/*
 	for( ip = rm_global_ids, i = 0; i < rm_n_global_ids; i++, ip++ ){
 		if( !strcmp( name, ip->i_name ) )
 			return( ip );
 	}
-	return( NULL );
+*/
+/*
+	for( i = 0; i < rm_n_global_ids; i++ ){
+	 	ip = rm_global_ids[ i ];
+		if( !strcmp( name, ip->i_name ) )
+			return( ip );
+	}
+*/
+	return( findid( rm_global_ids, name ) );
+}
+
+static	IDENT_T	*enterid( IDENT_T *root, IDENT_T *ip )
+{
+	int	cv;
+
+	if( root == NULL )
+		return( ip );
+	else if( ( cv = strcmp( root->i_name, ip->i_name ) ) < 0 )
+		root->i_right = enterid( root->i_right, ip );
+	else if( cv > 0 )
+		root->i_left = enterid( root->i_left, ip );
+	else{
+		rm_emsg_lineno = rm_lineno;
+		sprintf( emsg, "enterid: attempt to redefine symbol '%s'.",
+			ip->i_name );
+		RM_errormsg( 1, emsg );
+	}
+	return( root );
+}
+
+static	IDENT_T	*findid( IDENT_T *root, char *iname )
+{
+	int	cv;
+
+	if( root == NULL )
+		return( NULL );
+	else if( ( cv = strcmp( root->i_name, iname ) ) == 0 )
+		return( root );
+	else if( cv < 0 )
+		return( findid( root->i_right, iname ) );
+	else
+		return( findid( root->i_left, iname ) );
 }
 
 static	int	ends2attr( char str[] )

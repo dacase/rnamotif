@@ -1,9 +1,49 @@
-head	1.110;
+head	1.118;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.118
+date	2000.12.18.04.03.07;	author macke;	state Exp;
+branches;
+next	1.117;
+
+1.117
+date	2000.12.18.03.06.30;	author macke;	state Exp;
+branches;
+next	1.116;
+
+1.116
+date	2000.12.17.23.16.27;	author macke;	state Exp;
+branches;
+next	1.115;
+
+1.115
+date	2000.12.15.22.44.43;	author macke;	state Exp;
+branches;
+next	1.114;
+
+1.114
+date	2000.12.14.05.31.06;	author macke;	state Exp;
+branches;
+next	1.113;
+
+1.113
+date	2000.12.09.22.02.23;	author macke;	state Exp;
+branches;
+next	1.112;
+
+1.112
+date	2000.12.07.19.21.22;	author macke;	state Exp;
+branches;
+next	1.111;
+
+1.111
+date	2000.12.05.18.43.25;	author macke;	state Exp;
+branches;
+next	1.110;
 
 1.110
 date	2000.11.27.00.17.25;	author macke;	state Exp;
@@ -561,10 +601,9 @@ desc
 @
 
 
-1.110
+1.118
 log
-@moved the var "SCORE" from score.c to here.  Retyped as T_UNDEF. Made its
-value available globally as VALUE_T *rm_sval;.
+@allow no -descr xxx arg if -s set.
 @
 text
 @#include <stdio.h>
@@ -574,15 +613,19 @@ text
 #include "rnamot.h"
 #include "y.tab.h"
 
-extern	FILE	*yyin;
-
-int	rm_error;
-int	rm_context = CTX_START;
+int	rm_context = CTX_PARMS;
 VALUE_T	rm_tokval;
+char	*rm_dfname;
+char	rm_wdfname[ 256 ];
+char	*rm_xdfname;
 int	rm_lineno;
+int	rm_error;
 int	rm_emsg_lineno;
-char	rm_dfname[ 256 ] = "--stdin--";
-char	*rm_cldfname = NULL;
+
+INCDIR_T	*rm_idlist;
+
+char	*rm_cldefs;
+
 int	rm_copt = 0;
 int	rm_dopt = 0;
 int	rm_hopt = 0;
@@ -596,8 +639,11 @@ int	rm_dtype = DT_FASTN;
 static	VALUE_T	valstk[ VALSTKSIZE ];
 static	int	n_valstk;
 
+/*
 #define	RM_GLOBAL_IDS_SIZE	50
-IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ];
+IDENT_T	*rm_global_ids[ RM_GLOBAL_IDS_SIZE ];
+*/
+IDENT_T	*rm_global_ids;
 int	rm_n_global_ids = 0;
 
 #define	LOCAL_IDS_SIZE	20
@@ -665,6 +711,8 @@ NODE_T	*PR_close( void );
 
 IDENT_T	*RM_enter_id( char [], int, int, int, int, VALUE_T * );
 IDENT_T	*RM_find_id( char [] );
+static	IDENT_T	*enterid( IDENT_T *, IDENT_T * );
+static	IDENT_T	*findid( IDENT_T *, char * );
 
 char	*RM_str2seq( char [] );
 
@@ -706,17 +754,16 @@ static	int	pk_cmp( STREL_T **, STREL_T ** );
 
 int	RM_init( int argc, char *argv[] )
 {
-	int	ac, i, err;
+	int	ac, i, err, len, cldsize;
 	NODE_T	*np;
-	char	*dfnp, *dbfnp;
+	char	*dbfnp, *sp;
 	VALUE_T	val;
-	FILE	*cfp;
 	IDENT_T	*ip;
+	INCDIR_T	*id1, *idt;
 
-	dfnp = NULL;	/* descriptor file name	*/
-	dbfnp = NULL;	/* database file name	*/
-	cfp = NULL;	/* defs from the cmd line */
-	for( err = 0, ac = 1; ac < argc; ac++ ){
+	dbfnp = NULL;		/* database file name	*/
+	id1 = idt = NULL;	/* list of include dirs */
+	for( err = 0, cldsize = 0, ac = 1; ac < argc; ac++ ){
 		if( !strcmp( argv[ ac ], "-c" ) )
 			rm_copt = 1;
 		else if( !strcmp( argv[ ac ], "-d" ) )
@@ -734,13 +781,13 @@ int	RM_init( int argc, char *argv[] )
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
 				err = 1;
 				break;
-			}else if( dfnp != NULL ){
+			}else if( rm_dfname != NULL ){
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
 				err = 1;
 				break;
 			}else{
 				ac++;
-				dfnp = argv[ ac ];
+				rm_dfname = argv[ ac ];
 			}
 		}else if( !strcmp( argv[ ac ], "-dtype" ) ){
 			if( ac == argc - 1 ){
@@ -760,20 +807,33 @@ int	RM_init( int argc, char *argv[] )
 				}
 			}
 		}else if( !strncmp( argv[ ac ], "-D", 2 ) ){
-			if( rm_cldfname == NULL )
-				rm_cldfname = tempnam( NULL, "defs" );
-			if( cfp == NULL ){
-				cfp = fopen( rm_cldfname, "w" );
-				if( cfp == NULL ){
-					fprintf( stderr,
-		"%s: argv[ 0 ], can't write cmd line defs to file %s.\n",
-						argv[ 0 ], rm_cldfname );
-					err = 1;
-					break;
-				}
-				fprintf( cfp, "parms\n" );
+			cldsize += strlen( &argv[ ac ][ 2 ] ) + 2;
+		}else if( !strncmp( argv[ ac ], "-I", 2 ) ){
+			id1 = ( INCDIR_T * )malloc( sizeof( INCDIR_T ) );
+			if( id1 == NULL ){
+				fprintf( stderr,
+				"%s: can't allocate space for incdir %s.",
+					argv[ 0 ], argv[ ac ] );
+				err = 1;
+				break;
 			}
-			fprintf( cfp, "%s;\n", &argv[ ac ][ 2 ] );
+			len = strlen( &argv[ ac ][ 2 ] ) + 1;
+			sp = ( char * ) malloc( len * sizeof( char ) );
+			if( sp == NULL ){
+				fprintf( stderr,
+					"%s: can't allocate sp for incdir %s.",
+					argv[ 0 ], argv[ ac ] );
+				err = 1;
+				break;
+			}
+			strcpy( sp, &argv[ ac ][ 2 ] );
+			id1->i_next = NULL;
+			id1->i_name = sp;
+			if( rm_idlist == NULL )
+				rm_idlist = id1;
+			else
+				idt->i_next = id1;
+			idt = id1;
 		}else if( *argv[ ac ] == '-' ){
 			fprintf( stderr, U_MSG_S, argv[ 0 ] );
 			err = 1;
@@ -785,33 +845,42 @@ int	RM_init( int argc, char *argv[] )
 		}else
 			dbfnp = argv[ ac ];
 	}
-	if( cfp != NULL ){
-		fclose( cfp );
-		cfp = NULL;
-	}
-	if( err ){
-		if( rm_cldfname != NULL )
-			unlink( rm_cldfname );
+	if( err )
 		return( 1 );
+	if( rm_vopt )
+		return( 0 );
+	if( rm_dfname == NULL ){
+		if( !rm_sopt ){
+			fprintf( stderr, U_MSG_S, argv[ 0 ] );
+			return( 1 );
+		}
 	}
 
-	if( dfnp != NULL ){
-		if( ( yyin = fopen( dfnp, "r" ) ) == NULL ){
+	if( cldsize > 0 ){
+		rm_cldefs = ( char * )malloc( cldsize * sizeof( char ) );
+		if( rm_cldefs == NULL ){
 			fprintf( stderr,
-				"%s: can't read descr-file '%s'\n",
-				argv[ 0 ], dfnp );
+				"%s: can't allocate space for cmd-line defs.\n",
+				argv[ 0 ] );
 			return( 1 );
-		}else
-			strcpy( rm_dfname, dfnp );
+		}
+		for( sp = rm_cldefs, ac = 1; ac < argc; ac++ ){
+			if( !strncmp( argv[ ac ], "-D", 2 ) ){ 
+				strcpy( sp, &argv[ ac ][ 2 ] );
+				sp += strlen( sp );
+				*sp++ =  ';';
+				*sp++ =  ' ';
+			}
+		}
+		sp[-1] = '\n';
+		*sp = '\0';
 	}
 
 	if( dbfnp != NULL ){
 		if( ( rm_dbfp = fopen( dbfnp, "r" ) ) == NULL ){
 			fprintf( stderr,
-				"%s: can't read database-file '%s'\n",
+				"%s: can't read database-file '%s'.\n",
 				argv[ 0 ], dbfnp ); 
-			if( yyin != stdin )
-				fclose( yyin );
 			return( 1 );
 		}
 	}else
@@ -930,35 +999,7 @@ int	RM_init( int argc, char *argv[] )
 	ip = RM_enter_id( "SCORE", T_UNDEF, C_VAR, S_GLOBAL, 1, &val ); 
 	rm_sval = &ip->i_val;
 
-	rm_lineno = 1;
-
-	return( 0 );
-}
-
-int	RM_evalcldefs( void )
-{
-	char	save_rm_dfname[ 256 ];
-	int	save_rm_lineno;
-
-	strcpy( save_rm_dfname, rm_dfname );
-	save_rm_lineno = rm_lineno;
-	strcpy( rm_dfname, rm_cldfname );
-	rm_lineno = 1;
-
-	if( ( yyin = fopen( rm_dfname, "r" ) ) == NULL ){
-		rm_emsg_lineno = UNDEF;
-		RM_errormsg( 0, "can't read cmd-line defs file." );
-		unlink( rm_dfname );
-		return( 1 );
-	}
-	if( yyparse() ){
-		RM_errormsg( 1, "syntax error." );
-	}
-	fclose( yyin );
-	unlink( rm_dfname );
-
-	strcpy( rm_dfname, save_rm_dfname );
-	rm_lineno = save_rm_lineno;
+	rm_lineno = 0;
 
 	return( 0 );
 }
@@ -2349,6 +2390,7 @@ IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
 	IDENT_T	*ip;
 	char	*np;
 
+/*
 	if( scope == S_GLOBAL ){
 		if( rm_n_global_ids >= RM_GLOBAL_IDS_SIZE ){
 			RM_errormsg( 1, 
@@ -2368,11 +2410,20 @@ IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
 		local_ids[ n_local_ids ] = ip;
 		n_local_ids++;
 	}
+*/
+	ip = ( IDENT_T * )malloc( sizeof( IDENT_T ) );
+	if( ip == NULL ){
+		sprintf( emsg, "RM_enter_id: can't alloc ip for %s id '%s'.",
+			scope == S_GLOBAL ? "global" : "local", name );
+		RM_errormsg( 1, emsg );
+	}
 	np = ( char * )malloc( strlen( name ) + 1 );
 	if( np == NULL ){
 		RM_errormsg( 1, "RM_enter_id: can't alloc np for name." );
 	}
 	strcpy( np, name );
+	ip->i_left = NULL;
+	ip->i_right = NULL;
 	ip->i_name = np;
 	ip->i_type = type;
 	ip->i_class = class;
@@ -2403,6 +2454,24 @@ IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
 				vp->v_value.v_pval, NULL );
 		}
 	}
+	if( scope == S_GLOBAL ){
+/*
+		if( rm_n_global_ids >= RM_GLOBAL_IDS_SIZE ){
+			RM_errormsg( 1, 
+				"RM_enter_id: global symbol tab overflow." );
+		}
+		rm_global_ids[ rm_n_global_ids ] = ip;
+*/
+		rm_global_ids = enterid( rm_global_ids, ip );
+		rm_n_global_ids++;
+	}else{
+		if( n_local_ids >= LOCAL_IDS_SIZE ){
+			RM_errormsg( 1,
+				"RM_enter_id: local symbol tab overflow." );
+		}
+		local_ids[ n_local_ids ] = ip;
+		n_local_ids++;
+	}
 	return( ip );
 }
 
@@ -2416,11 +2485,53 @@ IDENT_T	*RM_find_id( char name[] )
 		if( !strcmp( name, ip->i_name ) )
 			return( ip );
 	}
+/*
 	for( ip = rm_global_ids, i = 0; i < rm_n_global_ids; i++, ip++ ){
 		if( !strcmp( name, ip->i_name ) )
 			return( ip );
 	}
-	return( NULL );
+*/
+/*
+	for( i = 0; i < rm_n_global_ids; i++ ){
+	 	ip = rm_global_ids[ i ];
+		if( !strcmp( name, ip->i_name ) )
+			return( ip );
+	}
+*/
+	return( findid( rm_global_ids, name ) );
+}
+
+static	IDENT_T	*enterid( IDENT_T *root, IDENT_T *ip )
+{
+	int	cv;
+
+	if( root == NULL )
+		return( ip );
+	else if( ( cv = strcmp( root->i_name, ip->i_name ) ) < 0 )
+		root->i_right = enterid( root->i_right, ip );
+	else if( cv > 0 )
+		root->i_left = enterid( root->i_left, ip );
+	else{
+		rm_emsg_lineno = rm_lineno;
+		sprintf( emsg, "enterid: attempt to redefine symbol '%s'.",
+			ip->i_name );
+		RM_errormsg( 1, emsg );
+	}
+	return( root );
+}
+
+static	IDENT_T	*findid( IDENT_T *root, char *iname )
+{
+	int	cv;
+
+	if( root == NULL )
+		return( NULL );
+	else if( ( cv = strcmp( root->i_name, iname ) ) == 0 )
+		return( root );
+	else if( cv < 0 )
+		return( findid( root->i_right, iname ) );
+	else
+		return( findid( root->i_left, iname ) );
 }
 
 static	int	ends2attr( char str[] )
@@ -4001,6 +4112,390 @@ static	int	pk_cmp( STREL_T **d1, STREL_T **d2 )
 
 	return( ( *d1 )->s_index - ( *d2 )->s_index );
 }
+@
+
+
+1.117
+log
+@changed global symbol table from an array to a tree.
+@
+text
+@d245 4
+a248 2
+		fprintf( stderr, U_MSG_S, argv[ 0 ] );
+		return( 1 );
+@
+
+
+1.116
+log
+@good saving point, as I am going to change the symbol tables to be
+trees.
+@
+text
+@d34 1
+d36 3
+a38 1
+IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ];
+d106 2
+d242 2
+d1783 1
+d1803 7
+d1847 18
+d1878 1
+d1883 42
+a1924 1
+	return( NULL );
+@
+
+
+1.115
+log
+@removed code that opened & closed yyin, as this is now done in the
+main program rnamot.c
+@
+text
+@d385 1
+a385 1
+	rm_lineno = 1;
+d1800 2
+@
+
+
+1.114
+log
+@save cmd line -D's to a string.  Incomplete solution of getting the
+file names right.
+@
+text
+@a7 2
+extern	FILE	*yyin;
+
+d11 1
+a261 10
+	if( rm_xdfname != NULL ){
+fprintf( stderr, "using file %s\n", rm_xdfname );
+		if( ( yyin = fopen( rm_xdfname, "r" ) ) == NULL ){
+			fprintf( stderr,
+				"%s: can't read expanded descr-file '%s'.\n",
+				argv[ 0 ], rm_xdfname );
+			return( 1 );
+		}
+	}
+
+a266 2
+			if( yyin != stdin )
+				fclose( yyin );
+@
+
+
+1.113
+log
+@moved RM_include(), RM_pushfile() and RM_popfile () to rmlex.l
+moved unlink() to rnamot.c
+@
+text
+@a9 1
+int	rm_error;
+d12 2
+d15 1
+d18 1
+a18 1
+extern	INCDIR_T	*rm_idlist;
+d20 1
+a20 2
+char	*rm_cldfname = NULL;
+int	rm_usecldfile = 1;
+a105 1
+FILE	*RM_pushfile( char [] );
+d145 1
+a145 1
+	int	ac, i, err, len;
+d147 1
+a147 1
+	char	*dfnp, *dbfnp, *sp;
+a148 1
+	FILE	*cfp;
+a151 1
+	dfnp = NULL;		/* descriptor file name	*/
+a152 1
+	cfp = NULL;		/* defs from the cmd line */
+d154 1
+a154 1
+	for( err = 0, ac = 1; ac < argc; ac++ ){
+d172 1
+a172 1
+			}else if( dfnp != NULL ){
+d178 1
+a178 1
+				dfnp = argv[ ac ];
+d198 1
+a198 13
+			if( rm_cldfname == NULL )
+				rm_cldfname = tempnam( NULL, "defs" );
+			if( cfp == NULL ){
+				cfp = fopen( rm_cldfname, "w" );
+				if( cfp == NULL ){
+					fprintf( stderr,
+		"%s: argv[ 0 ], can't write cmd line defs to file %s.\n",
+						argv[ 0 ], rm_cldfname );
+					err = 1;
+					break;
+				}
+			}
+			fprintf( cfp, "%s;\n", &argv[ ac ][ 2 ] );
+a235 4
+	if( cfp != NULL ){
+		fclose( cfp );
+		cfp = NULL;
+	}
+d238 24
+d263 3
+a265 2
+	if( dfnp != NULL ){
+		if( ( yyin = RM_pushfile( dfnp ) ) == NULL ){
+d267 2
+a268 2
+				"%s: can't read descr-file '%s'.\n",
+				argv[ 0 ], dfnp );
+@
+
+
+1.112
+log
+@removed start context, now start in CTX_PARMS.  removed RM_evalcldefs()
+as this now done properly inline.
+@
+text
+@d16 1
+a16 6
+#define	RM_DFSTK_SIZE	10
+FSTK_T	rm_dfstk[ RM_DFSTK_SIZE ];
+int	rm_dfstkp = -1;
+char	*rm_dfname = NULL;
+#define	IS_FSTK_EMPTY()	(rm_dfstkp==0)
+#define	IS_FSTK_FULL()	(rm_dfstkp>=RM_DFSTK_SIZE-1)
+a17 2
+INCDIR_T	*rm_idlist;
+
+a98 4
+FILE	*RM_pushfile( char [] );
+FILE	*RM_popfile( void );
+FILE	*RM_include( char [] );
+
+d105 1
+d255 1
+a255 3
+	if( err ){
+		if( rm_cldfname != NULL )
+			unlink( rm_cldfname );
+a256 1
+	}
+a394 105
+}
+
+FILE	*RM_pushfile( char fname[] )
+{
+	char	*sp;
+	FILE	*fp;
+	FSTK_T	*fsp;
+
+	if( IS_FSTK_FULL() ){
+		sprintf( emsg, "RM_pushfile: fstk overflow: %s.", fname );
+		RM_errormsg( 1, emsg );
+	}
+	sp = ( char * )malloc( strlen( fname ) + 1 );
+	if( sp == NULL ){
+		sprintf( emsg, "RM_pushfile: can't allocate fname for: %s.",
+			fname );
+		RM_errormsg( 1, emsg );
+	}
+	strcpy( sp, fname );
+	if( ( fp = fopen( fname, "r" ) ) == NULL ){
+		sprintf( emsg, "RM_pushfile: can't read %s.", fname );
+		RM_errormsg( 1, emsg );
+	}
+	if( !IS_FSTK_EMPTY() )
+		rm_dfstk[ rm_dfstkp ].f_lineno = rm_lineno;
+	rm_dfstkp++;
+	fsp = &rm_dfstk[ rm_dfstkp ];
+	fsp->f_fname = sp;
+	fsp->f_fp = fp;
+	fsp->f_lineno = 1;
+	rm_dfname = fsp->f_fname;
+	rm_lineno = 1;
+
+	return( fp );
+}
+
+FILE	*RM_popfile( void )
+{
+	FSTK_T	*fsp;
+
+	if( IS_FSTK_EMPTY() )
+		return( NULL );
+	fsp = &rm_dfstk[ rm_dfstkp ];
+	fclose( fsp->f_fp );
+	if( rm_dfstkp > 1 )
+		free( fsp->f_fname );
+	rm_dfstkp--;
+	fsp = &rm_dfstk[ rm_dfstkp ];
+	rm_dfname = fsp->f_fname;
+	rm_lineno = fsp->f_lineno;
+
+	return( fsp->f_fp );
+}
+
+FILE	*RM_include( char str[] )
+{
+	char	*sp, *sp1;
+	char	fname[ 256 ], path[ 256 ];
+	int	c;
+	FILE	*fp;
+	INCDIR_T	*idp;
+
+	for( sp = &str[1]; isspace( *sp ); sp++ )
+		;
+	for( ; *sp && !isspace( *sp ); sp++ )
+		;
+	if( *sp == '\0' ){
+		RM_errormsg( 1, "RM_include: no filename." );
+	}
+	for( ; isspace( *sp ); sp++ )
+		;
+	if( *sp == '"' )
+		c = '"';
+	else if( *sp == '<' )
+		c = '>';
+	else if( *sp == '\'' )
+		c = '\'';
+	else{
+		sprintf( emsg, "RM_include: bad include filename '%s'.", sp );
+		RM_errormsg( 1, emsg );
+	}
+	sp++;
+	if( ( sp1 = strchr( sp, c ) ) == NULL ){
+		sprintf( emsg, "RM_include: bad include filename '%s'.", sp );
+		RM_errormsg( 1, emsg );
+	}
+	strncpy( fname, sp, sp1 - sp );
+	fname[ sp1 - sp ] = '\0';
+
+	if( rm_idlist == NULL )
+		fp = RM_pushfile( fname );
+	else{
+		for( idp = rm_idlist; idp; idp = idp->i_next ){
+			sprintf( path, "%s/%s", idp->i_name, fname );
+			if( fp = RM_pushfile( path ) )
+				break;
+		}
+	}
+	if( fp == NULL ){
+		sprintf( emsg,
+			"RM_include: can't find include file '%s'.", fname );
+		RM_errormsg( 1, emsg );
+	}
+
+	return( fp );
+@
+
+
+1.111
+log
+@added new funcs RM_include(), RM_pushfile() and RM_popfile() as well
+as some additional var's required for file includes.
+@
+text
+@d11 1
+a11 1
+int	rm_context = CTX_START;
+d26 1
+a221 1
+				fprintf( cfp, "parms\n" );
+a512 20
+}
+
+int	RM_evalcldefs( void )
+{
+
+	if( ( yyin = RM_pushfile( rm_cldfname ) ) == NULL ){
+		rm_emsg_lineno = UNDEF;
+		sprintf( emsg,
+			"RM_evalcldefs: can't read cmd-line defs file %s.",
+			rm_cldfname );
+		RM_errormsg( 0, emsg );
+		unlink( rm_cldfname );
+		return( 1 );
+	}
+	if( yyparse() ){
+		RM_errormsg( 1, "syntax error." );
+	}
+	unlink( rm_cldfname );
+
+	return( 0 );
+@
+
+
+1.110
+log
+@moved the var "SCORE" from score.c to here.  Retyped as T_UNDEF. Made its
+value available globally as VALUE_T *rm_sval;.
+@
+text
+@d15 10
+a24 1
+char	rm_dfname[ 256 ] = "--stdin--";
+d26 1
+d105 4
+d154 1
+a154 1
+	int	ac, i, err;
+d156 1
+a156 1
+	char	*dfnp, *dbfnp;
+d160 1
+d162 4
+a165 3
+	dfnp = NULL;	/* descriptor file name	*/
+	dbfnp = NULL;	/* database file name	*/
+	cfp = NULL;	/* defs from the cmd line */
+d224 26
+d272 1
+a272 1
+		if( ( yyin = fopen( dfnp, "r" ) ) == NULL ){
+d274 1
+a274 1
+				"%s: can't read descr-file '%s'\n",
+d277 1
+a277 2
+		}else
+			strcpy( rm_dfname, dfnp );
+d283 1
+a283 1
+				"%s: can't read database-file '%s'\n",
+d410 105
+a516 7
+	char	save_rm_dfname[ 256 ];
+	int	save_rm_lineno;
+
+	strcpy( save_rm_dfname, rm_dfname );
+	save_rm_lineno = rm_lineno;
+	strcpy( rm_dfname, rm_cldfname );
+	rm_lineno = 1;
+d518 1
+a518 1
+	if( ( yyin = fopen( rm_dfname, "r" ) ) == NULL ){
+d520 5
+a524 2
+		RM_errormsg( 0, "can't read cmd-line defs file." );
+		unlink( rm_dfname );
+d530 1
+a530 5
+	fclose( yyin );
+	unlink( rm_dfname );
+
+	strcpy( rm_dfname, save_rm_dfname );
+	rm_lineno = save_rm_lineno;
 @
 
 

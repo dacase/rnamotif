@@ -1,9 +1,44 @@
-head	1.51;
+head	1.58;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.58
+date	2000.12.15.22.42.43;	author macke;	state Exp;
+branches;
+next	1.57;
+
+1.57
+date	2000.12.14.05.29.30;	author macke;	state Exp;
+branches;
+next	1.56;
+
+1.56
+date	2000.12.11.23.21.08;	author macke;	state Exp;
+branches;
+next	1.55;
+
+1.55
+date	2000.12.09.22.03.19;	author macke;	state Exp;
+branches;
+next	1.54;
+
+1.54
+date	2000.12.07.19.18.07;	author macke;	state Exp;
+branches;
+next	1.53;
+
+1.53
+date	2000.12.05.18.44.44;	author macke;	state Exp;
+branches;
+next	1.52;
+
+1.52
+date	2000.12.04.19.12.32;	author macke;	state Exp;
+branches;
+next	1.51;
 
 1.51
 date	2000.11.15.05.18.50;	author macke;	state Exp;
@@ -266,9 +301,9 @@ desc
 @
 
 
-1.51
+1.58
 log
-@modified to parse -D (cmd line defs) after parsing the descriptor.
+@added call to unlink() to delete the expanded descr file, rm_xdfname.
 @
 text
 @#include <stdio.h>
@@ -278,8 +313,8 @@ text
 extern	FILE	*yyin;
 
 extern	int	rm_error;
-extern	char	rm_dfname[];
-extern	char	*rm_cldfname;
+extern	char	*rm_dfname;
+extern	char	*rm_xdfname;
 extern	int	rm_copt;
 extern	int	rm_dopt;
 extern	int	rm_hopt;
@@ -315,6 +350,8 @@ typedef	void	DBASE_T;
 DBASE_T	*dbp, *GB_opendb();
 #endif
 
+char	*RM_preprocess( void );
+
 static	void	mk_rcmp( int, char [], char [] );
 
 main( int argc, char *argv[] )
@@ -338,17 +375,21 @@ main( int argc, char *argv[] )
 	if( done )
 		exit( 0 );
 
+	if( ( rm_xdfname = RM_preprocess() ) == NULL )
+		exit( 1 );
+
+	if( ( yyin = fopen( rm_xdfname, "r" ) ) == NULL ){
+		fprintf( stderr, "%s: can't read xd-file %s.\n",
+			argv[ 0 ], rm_xdfname );
+		exit( 1 );
+	}
+
 	if( yyparse() ){
-		RM_errormsg( 1, "syntax error." );
+		RM_errormsg( 0, "syntax error." );
 	}
-	fclose( yyin );
-	if( rm_n_descr == 0 ){
-		RM_errormsg( 1, "no descriptor." );
-	}
-	if( rm_cldfname != NULL ){
-		if( RM_evalcldefs() )
-			exit( 1 );
-	}
+
+	unlink( rm_xdfname );
+
 	if( !rm_error ){
 		if( SE_link( rm_n_descr, rm_descr ) )
 			exit( 1 );
@@ -440,6 +481,104 @@ static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
 	for( sp = sbuf, cp = &csbuf[ slen - 1 ], i = 0; i < slen; i++ )
 		*cp-- = wc_cmp[ *sp++ ];
 }
+@
+
+
+1.57
+log
+@removed unlink() of cldfname and ipfname as these files are no
+longer used.  Called RM_preprocess() to perform includes. This
+is followed by setting yyin to this file then calling yyparse().
+@
+text
+@d83 2
+@
+
+
+1.56
+log
+@made rm_ipfname visible so as to delete it after compilation.
+Also use normal quit on syntax error.
+@
+text
+@d5 2
+d9 1
+a9 2
+extern	char	*rm_cldfname;
+extern	char	*rm_ipfname;
+d45 2
+d70 9
+a81 4
+	if( rm_cldfname != NULL )
+		unlink( rm_cldfname );
+	if( rm_ipfname != NULL )
+		unlink( rm_ipfname );
+@
+
+
+1.55
+log
+@removed error message about no descriptor as the grammar prevents it.
+Added code to unlink() cmd line defs file.
+@
+text
+@d8 1
+d68 1
+a68 1
+		RM_errormsg( 1, "syntax error." );
+d72 3
+@
+
+
+1.54
+log
+@removed code that made call RM_evalcldefs() as this is now done
+properly inline.
+@
+text
+@d69 2
+a70 3
+	if( rm_n_descr == 0 ){
+		RM_errormsg( 1, "no descriptor." );
+	}
+@
+
+
+1.53
+log
+@removed fclose( yyin ) as it is now done in yywrap() when included
+files are unstacked.
+@
+text
+@a71 4
+	if( rm_cldfname != NULL ){
+		if( RM_evalcldefs() )
+			exit( 1 );
+	}
+@
+
+
+1.52
+log
+@change rm_dfname to be pointer vs address of actual space.
+@
+text
+@a4 2
+extern	FILE	*yyin;
+
+a68 1
+	fclose( yyin );
+@
+
+
+1.51
+log
+@modified to parse -D (cmd line defs) after parsing the descriptor.
+@
+text
+@d8 1
+a8 1
+extern	char	rm_dfname[];
 @
 
 

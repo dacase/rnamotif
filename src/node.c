@@ -4,6 +4,7 @@
 #include "y.tab.h"
 
 extern	int	rm_lineno;
+extern	char	*rm_wdfname;
 
 void	RM_dumpnode( FILE *, NODE_T *, int );
 
@@ -20,6 +21,7 @@ NODE_T	*RM_node( int sym, VALUE_T *vp, NODE_T *left, NODE_T *right )
 	np->n_sym = sym;
 	np->n_type = T_UNDEF;
 	np->n_class = C_UNDEF;
+	np->n_filename = rm_wdfname;
 	np->n_lineno = rm_lineno;
 	np->n_left = left;
 	np->n_right = right;
@@ -64,9 +66,9 @@ void	RM_dumpnode( FILE *fp, NODE_T *np, int indent )
 {
 
 	fprintf( fp, "%*s",indent, "" );
-	fprintf( fp, "%8p: lf = %8p rt = %8p ln,tp,cl = %3d,%2d,%2d ",
+	fprintf( fp, "%8p: lf = %8p rt = %8p fn,ln,tp,cl = %s:%3d,%2d,%2d ",
 		np, np->n_left, np->n_right,
-		np->n_lineno, np->n_type, np->n_class );
+		np->n_filename, np->n_lineno, np->n_type, np->n_class );
 	switch( np->n_sym ){
 
 #include "dumpnode.h"

@@ -1,7 +1,7 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.3.4 2000-nov-29"
+#define	VERSION	"v1.4.0 2000-dec-17"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] -descr descr-file [ -dtype dtype ] [ seq-file ]\n\n\
@@ -9,7 +9,10 @@ options:\n\
 \t-c\n\
 \t-d\n\
 \t-h\n\
+\t-s\n\
 \t-v\n\
+\t-Did=expr\n\
+\t-Idir\n\
 \t-help\n\
 \n\
 -descr descr-file\n\
@@ -63,6 +66,8 @@ typedef	struct	value_t	{
 } VALUE_T;
 
 typedef	struct	ident_t	{
+	struct	ident_t	*i_left;
+	struct	ident_t	*i_right;
 	char	*i_name;
 	int	i_type;
 	int	i_class;
@@ -103,6 +108,7 @@ typedef	struct	node_t	{
 	int	n_type;
 	int	n_class;
 	int	n_lineno;
+	char	*n_filename;
 	VALUE_T	n_val;
 	struct	node_t	*n_left;
 	struct	node_t	*n_right;
@@ -179,5 +185,10 @@ typedef	struct	search_t	{
 	int	s_zero;
 	int	s_dollar;
 } SEARCH_T;
+
+typedef	struct	incdir_t	{
+	struct	incdir_t	*i_next;
+	char	*i_name;
+} INCDIR_T;
 
 #endif

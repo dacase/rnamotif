@@ -1,21 +1,40 @@
 %{
 
+#include <string.h>
 #include "rnamot.h"
 #include "y.tab.h"
-double	atof();		/* get it it if we ever need reals	*/
+
+double	atof();
 char	*RM_str2seq();
 
+extern	int	rm_context;
+extern	char	*rm_wdfname;
 extern	int	rm_lineno;
+extern	int	rm_emsg_lineno;
 extern	VALUE_T	rm_tokval;
+
 static	char	*sp;
 static	POS_T	*posp;
+static	char	emsg[ 256 ];
+
+typedef	struct	fname_t	{
+	struct	fname_t	*f_left;
+	struct	fname_t	*f_right;
+	char	*f_name;
+} FNAME_T;
+
+static	FNAME_T	*ftree;
+
+static	void	setfileinfo( char [] );
+static	FNAME_T	*enter_fname( FNAME_T **, char [] );
 
 %}
 %%
 
+^#\ line.*	setfileinfo( yytext );
 #.*		;
 
-\n		rm_lineno++;
+\n		;
 
 [\ \t\f]+	;
 
@@ -163,4 +182,72 @@ int	yywrap()
 {
 
 	return( 1 );
+}
+
+static	void	setfileinfo( char data[] )
+{
+	char	*dp, *qp;
+	int	lnum;
+	char	work[ 256 ];
+	FNAME_T	*fnp;
+
+	dp = &data[ 6 ];	/* skip # line	*/
+	if( !isspace( *dp ) )
+		return;
+	dp += strspn( dp, " \t" );
+	if( !isdigit( *dp ) )
+		return;
+	for( lnum = *dp++ - '0'; isdigit( *dp ); dp++ )
+		lnum = 10 * lnum + *dp - '0';
+	if( !isspace( *dp ) )
+		return;
+	for( ; isspace( *dp ); dp++ )
+		;
+	if( *dp != '\'' )
+		return;
+	dp++;
+	if( qp = strchr( dp, '\'' ) ){
+		rm_lineno = lnum;
+		strncpy( work, dp, qp - dp );
+		work[ qp - dp ] = '\0';
+		fnp = enter_fname( &ftree, work );
+		rm_wdfname = fnp->f_name;
+	}
+}
+
+static	FNAME_T	*enter_fname( FNAME_T **root, char fname[] )
+{
+	char	*sp;
+	FNAME_T	*fnp;
+	int	cv;
+
+	if( *root == NULL ){
+		fnp = ( FNAME_T * )malloc( sizeof( FNAME_T ) );
+		if( fnp == NULL ){
+			sprintf( emsg,
+			"enter_fname: can't allocate space for fnp for '%s'.",
+				fname );
+			rm_emsg_lineno = rm_lineno;
+			RM_errormsg( 1, emsg );
+		}
+		fnp->f_left = NULL;
+		fnp->f_right = NULL;
+		sp = ( char * )malloc( strlen( fname ) + 1 );
+		if( sp == NULL ){
+			sprintf( emsg,
+		"enter_fname: can't allocate space for f_name for '%s'.",
+				fname );
+			rm_emsg_lineno = rm_lineno;
+			RM_errormsg( 1, emsg );
+		}
+		strcpy( sp, fname );
+		fnp->f_name = sp;
+		*root = fnp;
+	}else if( ( cv = strcmp( ( *root )->f_name, fname ) ) < 0 )
+		fnp = enter_fname( &( *root )->f_right, fname );
+	else if( cv > 0 )
+		fnp = enter_fname( &( *root )->f_left, fname );
+	else
+		fnp = *root;
+	return( fnp );
 }

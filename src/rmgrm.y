@@ -92,10 +92,11 @@ static	NODE_T	*np;
 %%
 program		: parm_part descr_part site_part score_part ;
 
-parm_part	: SYM_PARMS { rm_context = CTX_PARMS; } pd_list
+parm_part	: parm_hdr { rm_context = CTX_PARMS; } pd_list
 		| ;
-descr_part	: SYM_DESCR { rm_context = CTX_DESCR; } se_list
+parm_hdr	: SYM_PARMS
 		| ;
+descr_part	: SYM_DESCR { rm_context = CTX_DESCR; } se_list ;
 site_part	: SYM_SITES { rm_context = CTX_SITES; } kw_site_list
 		| ;
 score_part	: SYM_SCORE { rm_context = CTX_SCORE; } rule_list

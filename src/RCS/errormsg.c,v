@@ -1,9 +1,29 @@
-head	1.6;
+head	1.10;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.10
+date	2000.12.17.23.46.43;	author macke;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2000.12.17.22.56.52;	author macke;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	2000.12.15.22.40.44;	author macke;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2000.12.04.19.12.58;	author macke;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2000.10.07.05.18.40;	author macke;	state Exp;
@@ -41,25 +61,74 @@ desc
 @
 
 
-1.6
+1.10
 log
-@converted header from K&R to ANSI.
+@returned rm_wdfname to * from [].
 @
 text
 @#include <stdio.h>
 
 extern	int	rm_error;
-extern	char	rm_dfname[];
+extern	char	*rm_wdfname;
 extern	int	rm_emsg_lineno;
 
 void	RM_errormsg( int fatal, char msg[] )
 {
 
 	rm_error = 1;
-	fprintf( stderr, "%s:%d %s\n", rm_dfname, rm_emsg_lineno, msg );
+	fprintf( stderr, "%s:%d %s\n", rm_wdfname, rm_emsg_lineno, msg );
 	if( fatal )
 		exit( 1 );
 }
+@
+
+
+1.9
+log
+@changed ref of rm_wdfname from * to [].
+@
+text
+@d4 1
+a4 1
+extern	char	rm_wdfname[];
+@
+
+
+1.8
+log
+@changed print stmt to use rm_wdfname vs rm_dfname.  rm_wdfname is
+the current (possibly included) source file.
+@
+text
+@d4 1
+a4 1
+extern	char	*rm_wdfname;
+@
+
+
+1.7
+log
+@changed rm_dfname to be pointer to space holding descr file name
+vs original fixed location.
+@
+text
+@d4 1
+a4 1
+extern	char	*rm_dfname;
+d11 1
+a11 1
+	fprintf( stderr, "%s:%d %s\n", rm_dfname, rm_emsg_lineno, msg );
+@
+
+
+1.6
+log
+@converted header from K&R to ANSI.
+@
+text
+@d4 1
+a4 1
+extern	char	rm_dfname[];
 @
 
 

@@ -1,9 +1,39 @@
-head	1.28;
+head	1.34;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.34
+date	2000.12.18.03.04.34;	author macke;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	2000.12.15.23.08.11;	author macke;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	2000.12.15.22.41.30;	author macke;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	2000.12.14.05.32.02;	author macke;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	2000.12.09.22.04.28;	author macke;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	2000.12.05.18.44.01;	author macke;	state Exp;
+branches;
+next	1.28;
 
 1.28
 date	2000.04.25.00.22.22;	author macke;	state Exp;
@@ -151,29 +181,49 @@ desc
 @
 
 
-1.28
+1.34
 log
-@change float v_fval to double v_dval
+@rm_wdfname is now always allocated and all of its value are live during
+a run. Save the file name from the # line N 'XXX' lines.
 @
 text
 @%{
 
+#include <string.h>
 #include "rnamot.h"
 #include "y.tab.h"
-double	atof();		/* get it it if we ever need reals	*/
+
+double	atof();
 char	*RM_str2seq();
 
+extern	int	rm_context;
+extern	char	*rm_wdfname;
 extern	int	rm_lineno;
+extern	int	rm_emsg_lineno;
 extern	VALUE_T	rm_tokval;
+
 static	char	*sp;
 static	POS_T	*posp;
+static	char	emsg[ 256 ];
+
+typedef	struct	fname_t	{
+	struct	fname_t	*f_left;
+	struct	fname_t	*f_right;
+	char	*f_name;
+} FNAME_T;
+
+static	FNAME_T	*ftree;
+
+static	void	setfileinfo( char [] );
+static	FNAME_T	*enter_fname( FNAME_T **, char [] );
 
 %}
 %%
 
+^#\ line.*	setfileinfo( yytext );
 #.*		;
 
-\n		rm_lineno++;
+\n		;
 
 [\ \t\f]+	;
 
@@ -322,6 +372,321 @@ int	yywrap()
 
 	return( 1 );
 }
+
+static	void	setfileinfo( char data[] )
+{
+	char	*dp, *qp;
+	int	lnum;
+	char	work[ 256 ];
+	FNAME_T	*fnp;
+
+	dp = &data[ 6 ];	/* skip # line	*/
+	if( !isspace( *dp ) )
+		return;
+	dp += strspn( dp, " \t" );
+	if( !isdigit( *dp ) )
+		return;
+	for( lnum = *dp++ - '0'; isdigit( *dp ); dp++ )
+		lnum = 10 * lnum + *dp - '0';
+	if( !isspace( *dp ) )
+		return;
+	for( ; isspace( *dp ); dp++ )
+		;
+	if( *dp != '\'' )
+		return;
+	dp++;
+	if( qp = strchr( dp, '\'' ) ){
+		rm_lineno = lnum;
+		strncpy( work, dp, qp - dp );
+		work[ qp - dp ] = '\0';
+		fnp = enter_fname( &ftree, work );
+		rm_wdfname = fnp->f_name;
+	}
+}
+
+static	FNAME_T	*enter_fname( FNAME_T **root, char fname[] )
+{
+	char	*sp;
+	FNAME_T	*fnp;
+	int	cv;
+
+	if( *root == NULL ){
+		fnp = ( FNAME_T * )malloc( sizeof( FNAME_T ) );
+		if( fnp == NULL ){
+			sprintf( emsg,
+			"enter_fname: can't allocate space for fnp for '%s'.",
+				fname );
+			rm_emsg_lineno = rm_lineno;
+			RM_errormsg( 1, emsg );
+		}
+		fnp->f_left = NULL;
+		fnp->f_right = NULL;
+		sp = ( char * )malloc( strlen( fname ) + 1 );
+		if( sp == NULL ){
+			sprintf( emsg,
+		"enter_fname: can't allocate space for f_name for '%s'.",
+				fname );
+			rm_emsg_lineno = rm_lineno;
+			RM_errormsg( 1, emsg );
+		}
+		strcpy( sp, fname );
+		fnp->f_name = sp;
+		*root = fnp;
+	}else if( ( cv = strcmp( ( *root )->f_name, fname ) ) < 0 )
+		fnp = enter_fname( &( *root )->f_right, fname );
+	else if( cv > 0 )
+		fnp = enter_fname( &( *root )->f_left, fname );
+	else
+		fnp = *root;
+	return( fnp );
+}
+@
+
+
+1.33
+log
+@changed extern def of rm_wdfname from *rm_wdfname to rm_wdfname[].
+@
+text
+@d11 1
+a11 1
+extern	char	rm_wdfname[];
+d13 1
+d20 8
+d29 1
+d37 1
+a37 1
+\n		rm_lineno++;
+d191 2
+d211 4
+a214 2
+		strncpy( rm_wdfname, dp, qp - dp );
+		rm_wdfname[ qp - dp ] = '\0';
+d216 37
+@
+
+
+1.32
+log
+@removed ipf* stuff as it is no longer used.  Added new func()
+setfileinfo() to parse the # line N 'fname' lines, thus setting the
+current file name.
+@
+text
+@d11 1
+a11 1
+extern	char	*rm_wdfname;
+@
+
+
+1.31
+log
+@removed all include stuff as it is now handled upstream.  yyin is
+fully expanded before passing to lex.
+@
+text
+@d11 1
+d19 1
+a19 4
+char	*rm_ipfname;
+static	FILE	*ipfp;
+static	int	ipfd;
+static	long	ipfsize;	
+d24 1
+d175 27
+@
+
+
+1.30
+log
+@include stuff: RM_include(), RM_pushfile() and RM_popfile() is now here.
+@
+text
+@d6 1
+a8 3
+FILE	*RM_include();
+FILE	*RM_pushfile();
+FILE	*RM_popfile();
+d10 1
+a12 9
+extern	char	*rm_cldfname;
+extern	int	rm_usecldfile;
+
+#define	RM_DFSTK_SIZE	10
+FSTK_T	rm_dfstk[ RM_DFSTK_SIZE ];
+int	rm_dfstkp = -1;		/* MT stack contains -descr XXX fneme	*/
+char	*rm_dfname = NULL;
+#define	IS_FSTK_EMPTY()	(rm_dfstkp==0)
+#define	IS_FSTK_FULL()	(rm_dfstkp>=RM_DFSTK_SIZE-1)
+a13 2
+INCDIR_T	*rm_idlist;
+
+d18 5
+a25 1
+#\ *include[\ \t]+.*	yyin = RM_include( yytext );
+d33 1
+a33 10
+descr		{ 
+		  if( rm_cldfname != NULL){
+			if( rm_usecldfile ){
+				rm_usecldfile = 0;
+				yyin = RM_pushfile( rm_cldfname );
+			}else
+		  		return( SYM_DESCR );
+		  }else
+		  	return( SYM_DESCR );
+		}
+a174 5
+	for( yyin = RM_popfile(); yyin; yyin = RM_popfile() ){
+		if( !feof( yyin ) ){
+			return( 0 );
+		}
+	}
+a175 113
+}
+
+FILE	*RM_pushfile( char fname[] )
+{
+	char	*sp;
+	FILE	*fp;
+	FSTK_T	*fsp;
+
+	if( IS_FSTK_FULL() ){
+		sprintf( emsg, "RM_pushfile: fstk overflow: %s.", fname );
+		RM_errormsg( 1, emsg );
+	}
+	sp = ( char * )malloc( strlen( fname ) + 1 );
+	if( sp == NULL ){
+		sprintf( emsg, "RM_pushfile: can't allocate fname for: %s.",
+			fname );
+		RM_errormsg( 1, emsg );
+	}
+	strcpy( sp, fname );
+	if( ( fp = fopen( fname, "r" ) ) == NULL ){
+		sprintf( emsg, "RM_pushfile: can't read %s.", fname );
+		RM_errormsg( 1, emsg );
+	}
+	if( !IS_FSTK_EMPTY() )
+		rm_dfstk[ rm_dfstkp ].f_lineno = rm_lineno;
+	rm_dfstkp++;
+	fsp = &rm_dfstk[ rm_dfstkp ];
+	fsp->f_fname = sp;
+	fsp->f_fp = fp;
+	fsp->f_lineno = 1;
+	rm_dfname = fsp->f_fname;
+	rm_lineno = 1;
+
+#ifndef	FLEX
+	fseek( yyin, -( long )( yyleng  + ( yysptr - yysbuf ) ), 1 );
+	yysptr = yysbuf;
+	yyleng = 0;
+	*yytext = '\0';
+#endif
+
+	return( fp );
+}
+
+FILE	*RM_popfile( void )
+{
+	FSTK_T	*fsp;
+
+	if( IS_FSTK_EMPTY() )
+		return( NULL );
+
+	fsp = &rm_dfstk[ rm_dfstkp ];
+	fclose( fsp->f_fp );
+	free( fsp->f_fname );
+
+	rm_dfstkp--;
+	fsp = &rm_dfstk[ rm_dfstkp ];
+	rm_dfname = fsp->f_fname;
+	rm_lineno = fsp->f_lineno;
+
+	return( fsp->f_fp );
+}
+
+FILE	*RM_include( char str[] )
+{
+	char	*sp, *sp1;
+	char	fname[ 256 ], path[ 256 ];
+	int	c;
+	FILE	*fp;
+	INCDIR_T	*idp;
+
+	for( sp = &str[1]; isspace( *sp ); sp++ )
+		;
+	for( ; *sp && !isspace( *sp ); sp++ )
+		;
+	if( *sp == '\0' ){
+		RM_errormsg( 1, "RM_include: no filename." );
+	}
+	for( ; isspace( *sp ); sp++ )
+		;
+	if( *sp == '"' )
+		c = '"';
+	else if( *sp == '<' )
+		c = '>';
+	else if( *sp == '\'' )
+		c = '\'';
+	else{
+		sprintf( emsg, "RM_include: bad include filename '%s'.", sp );
+		RM_errormsg( 1, emsg );
+	}
+	sp++;
+	if( ( sp1 = strchr( sp, c ) ) == NULL ){
+		sprintf( emsg, "RM_include: bad include filename '%s'.", sp );
+		RM_errormsg( 1, emsg );
+	}
+	strncpy( fname, sp, sp1 - sp );
+	fname[ sp1 - sp ] = '\0';
+
+	if( rm_idlist == NULL )
+		fp = RM_pushfile( fname );
+	else{
+		for( idp = rm_idlist; idp; idp = idp->i_next ){
+			sprintf( path, "%s/%s", idp->i_name, fname );
+			if( fp = RM_pushfile( path ) )
+				break;
+		}
+	}
+	if( fp == NULL ){
+		sprintf( emsg,
+			"RM_include: can't find include file '%s'.", fname );
+		RM_errormsg( 1, emsg );
+	}
+
+	return( fp );
+@
+
+
+1.29
+log
+@added new rule for #include.  Also modified yywrap() to unstack
+any interpolated files.
+@
+text
+@d9 1
+d14 12
+d28 1
+d41 10
+a50 1
+descr		return( SYM_DESCR );
+d198 113
+@
+
+
+1.28
+log
+@change float v_fval to double v_dval
+@
+text
+@d3 1
+d6 1
+a6 1
+double	atof();		/* get it it if we ever need reals	*/
+d8 2
+d19 1
+d169 5
 @
 
 

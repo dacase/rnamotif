@@ -10,6 +10,7 @@ RNAMOTOBJS=	\
 	find_motif.o	\
 	mm_regexp.o	\
 	node.o		\
+	preprocess.o	\
 	regexp.o	\
 	score.o		\
 	split.o		\
@@ -35,6 +36,8 @@ efn.o:		rnamot.h
 find_motif.o:	rnamot.h y.tab.h
 
 node.o:		dumpnode.h rnamot.h y.tab.h
+
+preprocess.o:	rnamot.h
 
 y.tab.o:	rnamot.h y.tab.c
 

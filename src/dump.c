@@ -5,7 +5,12 @@
 #include "rnamot.h"
 #include "y.tab.h"
 
-extern	IDENT_T	rm_global_ids[];
+extern	INCDIR_T	*rm_idlist;
+
+/*
+extern	IDENT_T	*rm_global_ids[];
+*/
+extern	IDENT_T	*rm_global_ids;
 extern	int	rm_n_global_ids;
 
 extern	STREL_T	rm_descr[];
@@ -18,6 +23,7 @@ extern	char	rm_bc2b[];
 extern	SEARCH_T	**rm_searches;
 extern	int	rm_n_searches;
 
+void	RM_dump_gids( FILE *, IDENT_T *, int );
 void	RM_dump_id( FILE *, IDENT_T *, int );
 void	RM_dump_pairset( FILE *, PAIRSET_T * );
 void	RM_dump_pair( FILE *, PAIR_T * );
@@ -37,14 +43,31 @@ void	RM_dump( FILE *fp,
 	int d_parms, int d_descr, int d_sites, int d_hierarchy )
 {
 	int	i;
-	IDENT_T	*ip;
 	STREL_T	*stp;
 	char	prefix[ 100 ];
+	INCDIR_T	*id1;
+
+	if( rm_idlist != NULL ){
+		for( i = 0, id1 = rm_idlist; id1; id1 = id1->i_next )
+			i++;
+		fprintf( fp, "INCLUDES: %3d dirs.\n", i );
+		for( id1 = rm_idlist; id1; id1 = id1->i_next )
+			fprintf( fp, "\t%s\n", id1->i_name );
+	}
 
 	if( d_parms ){
 		fprintf( fp, "PARMS: %3d global symbols.\n", rm_n_global_ids );
+/*
 		for( ip = rm_global_ids, i = 0; i < rm_n_global_ids; i++, ip++ )
 			RM_dump_id( fp, ip, d_parms );
+*/
+/*
+		for( i = 0; i < rm_n_global_ids; i++ ){
+			ip = rm_global_ids[ i ];
+			RM_dump_id( fp, ip, d_parms );
+		}
+*/
+		RM_dump_gids( fp, rm_global_ids, d_parms );
 	}
 
 	if( d_descr ){
@@ -63,6 +86,16 @@ void	RM_dump( FILE *fp,
 		strcpy( prefix, "+" );
 		print_hierarchy( fp, 0, prefix, 0, rm_descr );
 		print_searches( fp, rm_n_searches, rm_searches );
+	}
+}
+
+void	RM_dump_gids( FILE *fp, IDENT_T *ip, int fmt )
+{
+
+	if( ip != NULL ){
+		RM_dump_gids( fp, ip->i_left, fmt );
+		RM_dump_id( fp, ip, fmt );
+		RM_dump_gids( fp, ip->i_right, fmt );
 	}
 }
 
