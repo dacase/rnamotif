@@ -388,9 +388,14 @@ int	stype;
 	PAIRSET_T *ps;
 
 	n_valstk = 0;
+	if( stype == SYM_SE ){
+		rm_emsg_lineno = rm_lineno;
+		RM_errormsg( 1,
+			"SE_open: strel 'se' allowed only in score section." );
+	}
 	if( rm_n_descr == rm_s_descr ){
 		rm_emsg_lineno = rm_lineno;
-		sprintf( emsg, "SE_new: descr array size(%d) exceeded.",
+		sprintf( emsg, "SE_open: descr array size(%d) exceeded.",
 			rm_s_descr );
 		RM_errormsg( 1, emsg );
 	}
@@ -2364,6 +2369,11 @@ int	ptype;
 	IDENT_T	*ip;
 
 	n_valstk = 0;
+	if( ptype == SYM_SE ){
+		rm_emsg_lineno = rm_lineno;
+		RM_errormsg( 1,
+		"POS_open: site type 'se' allowed only in score section." );
+	}
 	if( rm_n_pos == rm_s_pos ){
 		rm_emsg_lineno = rm_lineno;
 		sprintf( emsg,
