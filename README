@@ -28,8 +28,12 @@ Installation and testing of rnamotif:
      environment.  This may require no change on many machines, but
      you may need to locate the C-compiler, lex or yacc.
 
-(b)  "make" will make the executables, leaving them in the src subdirectory.
+(b)  Go to the "src" subdirectory; "make" will make the executables, 
+     leaving them in the src subdirectory.  There is no "install" target,
+     but you can manually move rnamotif to someplace in your PATH if you
+     wish.
 
-(c)  "make test" will run some (short) test suites.
+(c)  Go to the "test" subdirectory; "make test" will run some (short) test 
+     calculations and report results.
 
 Please send comments and questions to Tom Macke <macke@scripps.edu>.
