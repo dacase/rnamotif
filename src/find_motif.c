@@ -245,17 +245,6 @@ SEARCH_T	*srp;
 	if( stp->s_seq != NULL ){
 		if( !chk_seq( stp, &fm_sbuf[ szero ], slen ) )
 			return( 0 );
-/*
-		strncpy( fm_chk_seq, &fm_sbuf[ szero ], slen );
-		fm_chk_seq[ slen ] = '\0';
-		circf = *stp->s_seq == '^';
-		if( stp->s_mismatch > 0 ){
-			if( !mm_step( fm_chk_seq,
-				stp->s_expbuf, stp->s_mismatch ) )
-				return( 0 );
-		}else if( !step( fm_chk_seq, stp->s_expbuf ) )
-			return( 0 );
-*/
 	}
 
 	mark_ss( stp, szero, slen);
@@ -713,28 +702,7 @@ int	*hlen;
 	i_lpb = 0;
 	l_pr = 1;
 	mpr = 0;
-/*
-	for( bpcnt = 1, *hlen = 1, s = s3 - 1; s >= s3lim; s--, (*hlen)++ ){
-
-		b5 = fm_sbuf[ s5 + *hlen ];
-		b3 = fm_sbuf[ s3 - *hlen ];
-		if( paired( stp->s_pairset, b5, b3 ) ){
-			bpcnt++;
-		}else{
-			mpr++;
-			if( mpr > stp->s_mispair ){
-				if( *hlen < stp->s_minlen )
-					return( 0 );
-				else
-					break;
-			}
-		}
-	}
-	if( bpcnt < stp->s_minlen || bpcnt > stp->s_maxlen )
-		return( 0 );
-*/
 	for( *hlen = 1, s = s3 - 1; s >= s3lim; s-- ){
-
 		b5 = fm_sbuf[ s5 + *hlen ];
 		b3 = fm_sbuf[ s3 - *hlen ];
 		if( paired( stp->s_pairset, b5, b3 ) ){
@@ -762,32 +730,10 @@ int	*hlen;
 	if( stp->s_seq != NULL ){
 		if( !chk_seq( stp, &fm_sbuf[ s5 ], *hlen ) )
 			return( 0 );
-/*
-		strncpy( fm_chk_seq,  &fm_sbuf[ s5 ], *hlen );
-		fm_chk_seq[ *hlen ] = '\0';
-		circf = *stp->s_seq == '^';
-		if( stp->s_mismatch > 0 ){
-			if( !mm_step( fm_chk_seq,
-				stp->s_expbuf, stp->s_mismatch ) )
-				return( 0 );
-		}else if( !step( fm_chk_seq, stp->s_expbuf ) )
-			return( 0 );
-*/
 	}
 	if( stp3->s_seq != NULL ){
 		if( !chk_seq( stp3, &fm_sbuf[ s3 - *hlen + 1 ], *hlen ) )
 			return( 0 );
-/*
-		strncpy( fm_chk_seq,  &fm_sbuf[ s3 - *hlen + 1 ], *hlen );
-		fm_chk_seq[ *hlen ] = '\0';
-		circf = *stp3->s_seq == '^';
-		if( stp3->s_mismatch > 0 ){
-			if( !mm_step( fm_chk_seq,
-				stp3->s_expbuf, stp3->s_mismatch ) )
-				return( 0 );
-		}else if( !step( fm_chk_seq, stp3->s_expbuf ) )
-			return( 0 );
-*/
 	}
 
 	return( 1 );
@@ -816,21 +762,6 @@ int	*hlen;
 		*hlen = 1;
 		mpr = 0;
 		l_pr = 1;
-/*
-		for( s1 = s - 1; s1 >= s5; s1--, (*hlen)++ ){
-			b5 = fm_sbuf[ s1 ];
-			b3 = fm_sbuf[ s3 - bpcnt ];
-			if( paired( stp->s_pairset, b5, b3 ) ){
-				bpcnt++;
-			}else{
-				mpr++;
-				if( mpr > stp->s_mispair )
-					return( 0 );
-			}
-		}
-		if( bpcnt < stp->s_minlen || bpcnt > stp->s_maxlen )
-			return( 0 );
-*/
 		for( s1 = s - 1; s1 >= s5; s1-- ){
 			b5 = fm_sbuf[ s1 ];
 			b3 = fm_sbuf[ s3 - *hlen ];
@@ -854,32 +785,10 @@ int	*hlen;
 		if( stp->s_seq != NULL ){
 			if( !chk_seq( stp, &fm_sbuf[ s5 ], *hlen ) )
 				return( 0 );
-/*
-			strncpy( fm_chk_seq, &fm_sbuf[ s5 ], *hlen );
-			fm_chk_seq[ *hlen ] = '\0'; 
-			circf = *stp->s_seq == '^';
-			if( stp->s_mismatch > 0 ){
-				if( !mm_step( fm_chk_seq,
-					stp->s_expbuf, stp->s_mismatch ) )
-					return( 0 );
-			} else if( !step( fm_chk_seq, stp->s_expbuf ) )
-				return( 0 );
-*/
 		}
 		if( stp3->s_seq != NULL ){
 			if( !chk_seq( stp3, &fm_sbuf[ s3-*hlen+1 ], *hlen ) )
 				return( 0 );
-/*
-			strncpy( fm_chk_seq, &fm_sbuf[ s3-*hlen+1 ], *hlen );
-			fm_chk_seq[ *hlen ] = '\0'; 
-			circf = *stp3->s_seq == '^';
-			if( stp3->s_mismatch > 0 ){
-				if( !mm_step( fm_chk_seq,
-					stp3->s_expbuf, stp3->s_mismatch ) )
-					return( 0 );
-			}else if( !step( fm_chk_seq, stp3->s_expbuf ) )
-				return( 0 );
-*/
 		}
 		return( 1 );
 	}
@@ -926,17 +835,6 @@ int	tlen;
 	if( stp1->s_seq != NULL ){
 		if( !chk_seq( stp1, &fm_sbuf[ s2 - tlen + 1 ], tlen ) )
 			return( 0 );
-/*
-		strncpy( fm_chk_seq, &fm_sbuf[ s2 - tlen + 1 ], tlen );
-		fm_chk_seq[ tlen ] = '\0';
-		circf = *stp1->s_seq == '^';
-		if( stp1->s_mismatch > 0 ){
-			if( !mm_step( fm_chk_seq,
-				stp1->s_expbuf, stp1->s_mismatch ) )
-				return( 0 );
-		}else if( !step( fm_chk_seq, stp1->s_expbuf ) )
-			return( 0 );
-*/
 	}
 
 	return( 1 );
@@ -985,33 +883,11 @@ int	qlen;
 	if( stp1->s_seq != NULL ){
 		if( !chk_seq( stp1, &fm_sbuf[ s2 ], qlen ) )
 			return( 0 );
-/*
-		strncpy( fm_chk_seq, &fm_sbuf[ s2 ], qlen );
-		fm_chk_seq[ qlen ] = '\0';
-		circf = *stp1->s_seq == '^';
-		if( stp1->s_mismatch > 0 ){
-			if( !mm_step( fm_chk_seq,
-				stp1->s_expbuf, stp1->s_mismatch ) )
-				return( 0 );
-		}else if( !step( fm_chk_seq, stp1->s_expbuf ) )
-			return( 0 );
-*/
 	}
 
 	if( stp2->s_seq != NULL ){
 		if( !chk_seq( stp2, &fm_sbuf[ s3 - qlen + 1 ], qlen ) )
 			return( 0 );
-/*
-		strncpy( fm_chk_seq, &fm_sbuf[ s3 - qlen + 1 ], qlen );
-		fm_chk_seq[ qlen ] = '\0';
-		circf = *stp2->s_seq == '^';
-		if( stp2->s_mismatch > 0 ){
-			if( !mm_step( fm_chk_seq,
-				stp2->s_expbuf, stp2->s_mismatch ) )
-				return( 0 );
-		}else if( !step( fm_chk_seq, stp2->s_expbuf ) )
-			return( 0 );
-*/
 	}
 
 	return( 1 );
@@ -1026,9 +902,6 @@ int	b3;
 	int	b5i, b3i;
 	int	rv;
 	
-/*
-	bpmatp = stp->s_pairset->ps_mat[ 0 ];
-*/
 	bpmatp = ps->ps_mat[ 0 ];
 	b5i = rm_b2bc[ b5 ];
 	b3i = rm_b2bc[ b3 ];
@@ -1046,9 +919,6 @@ int	b3;
 	int	b1i, b2i, b3i;
 	int	rv;
 	
-/*
-	btmatp = stp->s_pairset->ps_mat[ 1 ];
-*/
 	btmatp = ps->ps_mat[ 1 ];
 	b1i = rm_b2bc[ b1 ];
 	b2i = rm_b2bc[ b2 ];
@@ -1068,9 +938,6 @@ int	b4;
 	int	b1i, b2i, b3i, b4i;
 	int	rv;
 	
-/*
-	bqmatp = stp->s_pairset->ps_mat[ 1 ];
-*/
 	bqmatp = ps->ps_mat[ 1 ];
 	b1i = rm_b2bc[ b1 ];
 	b2i = rm_b2bc[ b2 ];
@@ -1602,10 +1469,6 @@ int	slen;
 	int	i;
 	char	*csp, *sp;
 
-/*
-	strncpy( fm_chk_seq, seq, slen );
-	fm_chk_seq[ slen ] = '\0';
-*/
 	for( csp = fm_chk_seq, sp = seq, i = 0; i < slen; i++, sp++ )
 		*csp++ = ( *sp == 'u' || *sp == 'U' ) ? 't' : *sp;
 	*csp = '\0';
