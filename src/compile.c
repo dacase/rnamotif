@@ -82,6 +82,7 @@ NODE_T	*PR_close();
 IDENT_T	*RM_enter_id();
 IDENT_T	*RM_find_id();
 
+static	int	ends2attr();
 static	void	eval();
 static	int	loadidval();
 static	void	storeexprval();
@@ -275,6 +276,22 @@ char	*argv[];
 	val.v_value.v_ival = 30;
 	RM_enter_id( "wc_maxlen", T_INT, C_VAR, S_GLOBAL, 0, &val );
 
+	val.v_type = T_STRING;
+	val.v_value.v_pval = "pp";
+	RM_enter_id( "wc_ends", T_STRING, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_STRING;
+	val.v_value.v_pval = "pp";
+	RM_enter_id( "phlx_ends", T_STRING, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_STRING;
+	val.v_value.v_pval = "pp";
+	RM_enter_id( "tr_ends", T_STRING, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_STRING;
+	val.v_value.v_pval = "pp";
+	RM_enter_id( "qu_ends", T_STRING, C_VAR, S_GLOBAL, 0, &val );
+
 	val.v_type = T_INT;
 	val.v_value.v_ival = 6000;
 	RM_enter_id( "windowsize", T_INT, C_VAR, S_GLOBAL, 0, &val );
@@ -403,7 +420,7 @@ int	stype;
 	rm_n_descr++;
 	stp->s_checked = 0;
 	stp->s_type = stype;
-	stp->s_proper = 0;
+	stp->s_attr = 0;
 	stp->s_index = rm_n_descr - 1;
 	stp->s_lineno = rm_lineno;
 	stp->s_searchno = UNDEF;
@@ -479,22 +496,35 @@ int	stype;
 		ip = RM_enter_id( "pairfrac",
 			T_FLOAT, C_VAR, S_STREL, 0, &val );
 
+		val.v_type = T_STRING;
+		val.v_value.v_pval = NULL;
+		ip = RM_enter_id( "ends", T_STRING, C_VAR, S_STREL, 0, &val );
+
 		switch( stype ){
 		case SYM_SS :
 			stp->s_pairset = NULL;
 			break;
 		case SYM_H5 :
 		case SYM_H3 :
+			ip = RM_find_id( "wc" );
+			def_pairset = ip->i_val.v_value.v_pval;
+			ip = RM_find_id( "wc_ends" );
+			stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
+			break;
 		case SYM_P5 :
 		case SYM_P3 :
 			ip = RM_find_id( "wc" );
 			def_pairset = ip->i_val.v_value.v_pval;
+			ip = RM_find_id( "phlx_ends" );
+			stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
 			break;
 		case SYM_T1 :
 		case SYM_T2 :
 		case SYM_T3 :
 			ip = RM_find_id( "tr" );
 			def_pairset = ip->i_val.v_value.v_pval;
+			ip = RM_find_id( "tr_ends" );
+			stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
 			break;
 		case SYM_Q1 :
 		case SYM_Q2 :
@@ -502,6 +532,8 @@ int	stype;
 		case SYM_Q4 :
 			ip = RM_find_id( "qu" );
 			def_pairset = ip->i_val.v_value.v_pval;
+			ip = RM_find_id( "qu_ends" );
+			stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
 			break;
 		}
 		val.v_type = T_PAIR;
@@ -526,7 +558,7 @@ void	SE_close()
 {
 	int	i, s_minlen, s_maxlen, s_len, s_mispair, s_pairfrac;
 	int	l_seq;
-	IDENT_T	*ip;
+	IDENT_T	*ip, *ip1;
 
 	s_minlen = 0;
 	s_maxlen = 0;
@@ -584,6 +616,9 @@ void	SE_close()
 			stp->s_pairfrac = ip->i_val.v_value.v_fval;
 		}else if( !strcmp( ip->i_name, "pair" ) ){
 			stp->s_pairset = ip->i_val.v_value.v_pval;
+		}else if( !strcmp( ip->i_name, "ends" ) ){
+			if( ip->i_val.v_value.v_pval != NULL )
+				stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
 		}
 	}
 	def_pairset = NULL;
@@ -727,12 +762,12 @@ STREL_T	descr[];
 	for( i = 0; i < n_descr; i++ ){
 		stp = &descr[ i ];
 		if( stp->s_type == SYM_SS )
-			stp->s_proper = 1;
+			stp->s_attr |= SA_PROPER;
 		else if( stp->s_type == SYM_H5 || stp->s_type == SYM_P5 ){
 			stp1 = stp->s_mates[ 0 ];
 			if( chk_proper_nesting( stp, stp1, descr ) ){
-				stp->s_proper = 1;
-				stp->s_mates[ 0 ]->s_proper = 1;
+				stp->s_attr |= SA_PROPER;
+				stp->s_mates[ 0 ]->s_attr |= SA_PROPER;
 			}
 		}else if( stp->s_type == SYM_T1 ){
 			stp1 = stp->s_mates[ 0 ];
@@ -744,9 +779,9 @@ STREL_T	descr[];
 			}
 			stp2 = stp->s_mates[ 1 ];
 			if( chk_proper_nesting( stp1, stp2, descr ) ){
-				stp->s_proper = 1;
-				stp->s_mates[ 0 ]->s_proper = 1;
-				stp->s_mates[ 1 ]->s_proper = 1;
+				stp->s_attr |= SA_PROPER;
+				stp->s_mates[ 0 ]->s_attr |= SA_PROPER;
+				stp->s_mates[ 1 ]->s_attr |= SA_PROPER;
 			}
 		}else if( stp->s_type == SYM_Q1 ){
 			stp1 = stp->s_mates[ 0 ];
@@ -765,10 +800,10 @@ STREL_T	descr[];
 			}
 			stp3 = stp->s_mates[ 2 ];
 			if( chk_proper_nesting( stp2, stp3, descr ) ){
-				stp->s_proper = 1;
-				stp->s_mates[ 0 ]->s_proper = 1;
-				stp->s_mates[ 1 ]->s_proper = 1;
-				stp->s_mates[ 2 ]->s_proper = 1;
+				stp->s_attr |= SA_PROPER;
+				stp->s_mates[ 0 ]->s_attr |= SA_PROPER;
+				stp->s_mates[ 1 ]->s_attr |= SA_PROPER;
+				stp->s_mates[ 2 ]->s_attr |= SA_PROPER;
 			}
 		}
 	}
@@ -964,7 +999,7 @@ STREL_T	descr[];
 		stp->s_checked = 1;
 		return;
 	}
-	if( stp->s_proper ){
+	if( stp->s_attr & SA_PROPER ){
 		stp->s_checked = 1;
 		for( j = 0; j < stp->s_n_mates; j++ ){
 			stp1 = stp->s_mates[ j ];
@@ -1448,6 +1483,41 @@ char	name[];
 			return( ip );
 	}
 	return( NULL );
+}
+
+static	int	ends2attr( str )
+char	str[];
+{
+	int	slen;
+	char	l_str[ 10 ], *sp, *lp;
+
+	if( str == NULL || *str == '\0' )
+		return( 0 );
+	slen = strlen( str );
+	if( slen != 2 ){
+		rm_emsg_lineno = rm_lineno;
+		RM_errormsg( 0,
+			"ends2attr: end values are \"pp\", \"mp\", \"pm\" & \"mm\"." );
+		return( 0 );
+	}
+	for( lp = l_str, sp = str; *sp; sp++ ){
+		*lp++ = isupper( *sp ) ? tolower( *sp ) : *sp;
+	}
+	*lp = '\0';
+	if( !strcmp( l_str, "pp" ) )
+		return( SA_5PAIRED | SA_3PAIRED );
+	else if( !strcmp( l_str, "mp" ) )
+		return( SA_3PAIRED );
+	else if( !strcmp( l_str, "pm" ) )
+		return( SA_5PAIRED );
+	else if( !strcmp( l_str, "mm" ) )
+		return( 0 );
+	else{
+		rm_emsg_lineno = rm_lineno;
+		RM_errormsg( 0,
+			"ends2attr: end values are \"pp\", \"mp\", \"pm\" & \"mm\"." );
+		return( 0 );
+	}
 }
 
 static	void	eval( expr, d_ok )
@@ -2837,7 +2907,7 @@ STREL_T	descr[];
 			break;
 
 		case SYM_H5 :
-			if( stp->s_proper ){
+			if( stp->s_attr & SA_PROPER ){
 				srp = ( SEARCH_T * )malloc(sizeof( SEARCH_T ));
 				if( srp == NULL ){
 					sprintf( emsg,
@@ -2996,7 +3066,7 @@ SEARCH_T	*searches[];
 			stp1 = stp->s_outer;
 			if( stp1 == NULL )
 				searches[ s ]->s_backup = NULL;
-			else if( stp1->s_proper )
+			else if( stp1->s_attr & SA_PROPER )
 				searches[ s ]->s_backup = stp1;
 			else{	/* pknot	*/
 				stp1 = stp1->s_scopes[ 0 ];
