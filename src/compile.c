@@ -459,17 +459,18 @@ int	stype;
 	ip = RM_enter_id( "mismatch", T_INT, C_VAR, S_STREL, 0, &val );
 
 	val.v_type = T_FLOAT;
-	val.v_value.v_fval = UNDEF;
+	val.v_value.v_fval = 1.0;
 	ip = RM_enter_id( "matchfrac", T_FLOAT, C_VAR, S_STREL, 0, &val );
 
 	if( stype != SYM_SS ){ 
 		val.v_type = T_INT;
-		val.v_value.v_ival = UNDEF;
+		val.v_value.v_ival = 0;
 		ip = RM_enter_id( "mispair", T_INT, C_VAR, S_STREL, 0, &val );
 
 		val.v_type = T_FLOAT;
-		val.v_value.v_fval = UNDEF;
-		ip = RM_enter_id( "pairfrac", T_FLOAT, C_VAR, S_STREL, 0, &val );
+		val.v_value.v_fval = 1.0;
+		ip = RM_enter_id( "pairfrac",
+			T_FLOAT, C_VAR, S_STREL, 0, &val );
 
 		switch( stype ){
 		case SYM_SS :
@@ -1371,6 +1372,8 @@ VALUE_T	*vp;
 	if( vp != NULL ){
 		if( type == T_INT ){
 			ip->i_val.v_value.v_ival = vp->v_value.v_ival;
+		}else if( type == T_FLOAT ){
+			ip->i_val.v_value.v_fval = vp->v_value.v_fval;
 		}else if( type == T_STRING ){
 			if( vp->v_value.v_pval == NULL ) 
 				ip->i_val.v_value.v_pval = NULL;
