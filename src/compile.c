@@ -254,6 +254,10 @@ int	stype;
 	stp->s_maxglen = UNDEF;
 	stp->s_minilen = UNDEF;
 	stp->s_maxilen = UNDEF;
+	stp->s_start.a_l2r = 0;
+	stp->s_start.a_offset = UNDEF;
+	stp->s_stop.a_l2r = 0;
+	stp->s_stop.a_offset = UNDEF;
 	stp->s_seq = NULL;
 	stp->s_mismatch = 0;
 	stp->s_mispair = 0;
@@ -1644,14 +1648,14 @@ POS_T	*r_pos;
 		n_pos->p_type = SYM_DOLLAR;
 		n_pos->p_lineno = rm_emsg_lineno;
 		n_pos->p_tag = NULL;
-		n_pos->p_l2r = 1;
-		n_pos->p_offset = vp->v_value.v_ival;
+		n_pos->p_addr.a_l2r = 1;
+		n_pos->p_addr.a_offset = vp->v_value.v_ival;
 		vp->v_type = T_POS;
 		vp->v_value.v_pval = n_pos;
 		return( n_pos );
 	}else if( !strcmp( op, "sub" ) ){
 		l_pos = ( POS_T * )ptr;
-		if( l_pos->p_l2r || !r_pos->p_l2r ){
+		if( l_pos->p_addr.a_l2r || !r_pos->p_addr.a_l2r ){
 			errormsg( 1,
 "posop: sub: expr must have the form '% - expr'; expr is int. valued > 0." );
 		}
@@ -1662,8 +1666,9 @@ POS_T	*r_pos;
 		n_pos->p_type = SYM_DOLLAR;
 		n_pos->p_lineno = rm_emsg_lineno;
 		n_pos->p_tag = NULL;
-		n_pos->p_l2r = 0;
-		n_pos->p_offset = l_pos->p_offset + r_pos->p_offset;
+		n_pos->p_addr.a_l2r = 0;
+		n_pos->p_addr.a_offset =
+			l_pos->p_addr.a_offset + r_pos->p_addr.a_offset;
 		return( n_pos );
 	}else{
 		sprintf( emsg, "posop: unknown op '%s'.", op );
@@ -1794,8 +1799,8 @@ int	ptype;
 	posp->p_lineno = rm_lineno;
 	posp->p_tag = NULL;
 	posp->p_dindex = UNDEF;
-	posp->p_l2r = 1;	/* 1 = 1..$; 0 = $..1	*/
-	posp->p_offset = 0;
+	posp->p_addr.a_l2r = 1;	/* 1 = 1..$; 0 = $..1	*/
+	posp->p_addr.a_offset = 0;
 
 	n_local_ids = 0;
 	val.v_type = T_STRING;
@@ -1830,8 +1835,8 @@ int	parms;
 			posp->p_tag = ip->i_val.v_value.v_pval;
 		}else if( !strcmp( ip->i_name, "pos" ) ){
 			i_pos = ip->i_val.v_value.v_pval;
-			posp->p_l2r = i_pos->p_l2r;
-			posp->p_offset = i_pos->p_offset;
+			posp->p_addr.a_l2r = i_pos->p_addr.a_l2r;
+			posp->p_addr.a_offset = i_pos->p_addr.a_offset;
 		}
 	}
 }
@@ -1920,14 +1925,14 @@ SITE_T	*sip;
 		if( posp->p_dindex == UNDEF )
 			continue;
 		stp = &rm_descr[ posp->p_dindex ];
-		if( posp->p_l2r ){
-			if( posp->p_offset > stp->s_minlen ){
+		if( posp->p_addr.a_l2r ){
+			if( posp->p_addr.a_offset > stp->s_minlen ){
 				err = 1;
 				rm_emsg_lineno = posp->p_lineno;
 				errormsg( 0,
 					"position offset > strel minlen." );
 			}
-		}else if( posp->p_offset + 1 > stp->s_minlen ){
+		}else if( posp->p_addr.a_offset + 1 > stp->s_minlen ){
 			err = 1;
 			rm_emsg_lineno = posp->p_lineno;
 			errormsg( 0, "position offset > strel minlen." );
