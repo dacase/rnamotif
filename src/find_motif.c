@@ -20,7 +20,7 @@ extern	SEARCH_T	**rm_searches;
 extern	int	circf;	/* reg. exp. ^ kludge	*/
 
 static	char	fm_emsg[ 256 ];
-static	char	*fm_locus;
+static	char	*fm_seqid;
 static	int	fm_comp;
 static	int	fm_comp;
 static	int	fm_slen;
@@ -67,11 +67,11 @@ static	void	set_mbuf();
 IDENT_T	*find_id();
 
 int	find_motif_driver( n_searches, searches, sites,
-	locus, comp, slen, sbuf )
+	seqid, comp, slen, sbuf )
 int	n_searches;
 SEARCH_T	*searches[];
 SITE_T	*sites;
-char	locus[];
+char	seqid[];
 int	comp;
 int	slen;
 char	sbuf[];
@@ -105,7 +105,7 @@ char	sbuf[];
 			"find_motif_driver: can't allocate fm_chk_seq." );
 	}
 
-	fm_locus = locus;
+	fm_seqid = seqid;
 	fm_comp = comp;
 	fm_slen = slen;
 	fm_sbuf = sbuf;
@@ -255,11 +255,11 @@ SEARCH_T	*srp;
 		rv = find_motif( n_srp );
 	}else{
 		rv = 1;
-		print_match( stdout, fm_locus, fm_comp, rm_n_descr, rm_descr );
+		print_match( stdout, fm_seqid, fm_comp, rm_n_descr, rm_descr );
 /*
 		if( chk_motif( rm_n_descr, rm_descr, rm_sites ) ){
 			rv = 1;
-			print_match( stdout, fm_locus, fm_comp,
+			print_match( stdout, fm_seqid, fm_comp,
 				rm_n_descr, rm_descr );
 		}else
 			rv = 0;
@@ -1466,9 +1466,9 @@ SITE_T	*sip;
 	return( rv );
 }
 
-static	void	print_match( fp, locus, comp, n_descr, descr )
+static	void	print_match( fp, seqid, comp, n_descr, descr )
 FILE	*fp;
-char	locus[];
+char	seqid[];
 int	comp;
 int	n_descr;
 STREL_T	descr[];
@@ -1495,7 +1495,7 @@ STREL_T	descr[];
 	for( stp = descr, len = 0, d = 0; d < n_descr; d++, stp++ )
 		len += stp->s_matchlen;
 
-	fprintf( fp, "%-12s %d", locus, comp );
+	fprintf( fp, "%-12s %d", seqid, comp );
 /*
 	stp = descr; 
 	set_mbuf( stp->s_matchoff, stp->s_matchlen, mbuf );
