@@ -90,22 +90,22 @@ char	sbuf[];
 	if( fm_winbuf == NULL ){
 		ip = RM_find_id( "windowsize" );
 		if( ip == NULL )
-			errormsg( 1,
+			RM_errormsg( 1,
 				"find_motif_driver: windowsize undefined." );
 	
 			if( ip->i_val.v_value.v_ival <= 0 )
-				errormsg( 1,
+				RM_errormsg( 1,
 					"find_motif_driver: windowsize <= 0." );
 		else
 			fm_windowsize = ip->i_val.v_value.v_ival;
 		fm_winbuf = ( int * )malloc( (fm_windowsize+2) * sizeof(int) );
 		if( fm_winbuf == NULL )
-			errormsg( 1,
+			RM_errormsg( 1,
 				"find_motif_driver: can't allocate fm_winbuf.");
 		fm_window = &fm_winbuf[ 1 ];
 		fm_chk_seq = ( char * )malloc((fm_windowsize+1) * sizeof(char));
 		if( fm_chk_seq == NULL )
-			errormsg( 1,
+			RM_errormsg( 1,
 			"find_motif_driver: can't allocate fm_chk_seq." );
 	}
 
@@ -219,7 +219,7 @@ SEARCH_T	*srp;
 		rm_emsg_lineno = stp->s_lineno;
 		sprintf( fm_emsg, "find_motif: illegal symbol %d.",
 			stp->s_type );
-		errormsg( 1, fm_emsg );
+		RM_errormsg( 1, fm_emsg );
 		break;
 	}
 
