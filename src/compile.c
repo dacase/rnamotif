@@ -6,7 +6,7 @@
 #include "y.tab.h"
 
 VALUE_T	rmval;
-int	rmlineno = 1;
+int	rmlineno;
 int	rmerror = 0;
 int	rmemsglineno;
 char	rmfname[ 256 ] = "--stdin--";
@@ -37,6 +37,8 @@ static	int	n_local_ids;
 static	char	*curpair[ CURPAIR_SIZE ];
 int	n_curpair;
 
+PAIRLIST_T	*pairlists[ 5 ];	/* #str = (0,1,) 2,3,4	*/
+
 #define	DESCRSIZE 100
 static	STREL_T	descr[ DESCRSIZE ];
 static	int	n_descr;
@@ -44,6 +46,8 @@ static	STREL_T	*stp;
 
 void	SE_dump();
 void	SE_dump_descr();
+
+NODE_T	*PR_close();
 
 static	void	enter_id();
 static	IDENT_T	*find_id();
@@ -53,6 +57,51 @@ static	void	storeexprval();
 
 static	void	seqlen();
 
+int	RM_init()
+{
+	IDENT_T	*ip;
+	NODE_T	*np;
+
+	rmlineno = 0;
+	curpair[0] = "a:u";
+	curpair[1] = "c:g";
+	curpair[2] = "g:c";
+	curpair[3] = "u:a";
+	n_curpair = 4;
+	ip = find_id( "wc" );
+	np = PR_close();
+	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
+
+	curpair[0] = "g:u";
+	curpair[1] = "u:g";
+	n_curpair = 2;
+	ip = find_id( "gu" );
+	np = PR_close();
+	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
+
+	curpair[0] = "a:u:u";
+	n_curpair = 1;
+	ip = find_id( "tr" );
+	np = PR_close();
+	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
+
+	curpair[0] = "g:g:g:g";
+	n_curpair = 1;
+	ip = find_id( "qu" );
+	np = PR_close();
+	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
+
+	rmlineno = 1;
+}
+
+PARM_add( expr )
+NODE_T	*expr;
+{
+
+	n_valstk = 0;
+	eval( expr, 0 );
+}
+
 void	PR_open()
 {
 
@@ -74,19 +123,19 @@ NODE_T	*PR_close()
 {
 	int	i, b, needbase;
 	PAIR_T	*pp;
-	PAIRLIST_T	*pl;
+	PAIRSET_T	*ps;
 	char	*bp;
 	NODE_T	*np;
 
-	pl = ( PAIRLIST_T * )malloc( sizeof( PAIRLIST_T ) );
-	if( pl == NULL )
+	ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
+	if( ps == NULL )
 		errormsg( 1, "PR_close: can't allocate pairlist.\n" );
 	pp = ( PAIR_T * )malloc( n_curpair * sizeof( PAIR_T ) );
 	if( pp == NULL )
 		errormsg( 1, "PR_close: can't allocate pair.\n" );
-	pl->pl_n_pairs = n_curpair;
-	pl->pl_pairs = pp;
-	for( pp = pl->pl_pairs, i = 0; i < pl->pl_n_pairs; i++, pp++ ){
+	ps->ps_n_pairs = n_curpair;
+	ps->ps_pairs = pp;
+	for( pp = ps->ps_pairs, i = 0; i < ps->ps_n_pairs; i++, pp++ ){
 		for( needbase = 1, b = 0, bp = curpair[ i ]; *bp; bp++ ){
 			if( ISBASE( *bp ) ){
 				if( needbase ){
@@ -121,7 +170,7 @@ NODE_T	*PR_close()
 	}
 
 	fprintf( stderr, "Close Pair: %d elements.\n", n_curpair );
-	for( pp = pl->pl_pairs, i = 0; i < n_curpair; i++, pp++ ){
+	for( pp = ps->ps_pairs, i = 0; i < n_curpair; i++, pp++ ){
 		fprintf( stderr, "%3d: ", i + 1 );
 		for( b = 0; b < pp->p_n_bases; b++ ){
 			fprintf( stderr, "%c", pp->p_bases[ b ] );
@@ -131,7 +180,18 @@ NODE_T	*PR_close()
 		fprintf( stderr, "\n" );
 	}
 
-	return( NULL );
+	np = ( NODE_T * )malloc( sizeof( NODE_T ) );
+	if( np == NULL ){
+		errormsg( 1, "PR_close: can't allocate np.\n" );
+	}
+	np->n_sym = SYM_LCURLY;
+	np->n_type = T_PAIR;
+	np->n_class = C_LIT;
+	np->n_lineno = 0;
+	np->n_val.v_value.v_pval = ps;
+	np->n_left = NULL;
+	np->n_right = NULL;
+	return( np );
 }
 
 void	SE_open( stype )
@@ -415,8 +475,9 @@ char	name[];
 	return( NULL );
 }
 
-static	void	eval( expr )
+static	void	eval( expr, d_ok )
 NODE_T	*expr;
+int	d_ok;
 {
 	char	*sp, *l_sp, *r_sp;
 	IDENT_T	*ip, *ip1;
