@@ -78,9 +78,12 @@ val		: ident		{ $$ = $1; }
 
 ident		: SYM_IDENT 	{ $$ = node( SYM_IDENT, &rmval, 0, 0 ); } ;
 
-pairval		: SYM_LCURLY pair_list SYM_RCURLY ;
-pair_list	: SYM_STRING
-		| SYM_STRING SYM_COMMA pair_list ;
+pairval		: SYM_LCURLY 	{ PR_open(); } pair_list SYM_RCURLY
+				{ $$ = PR_close(); } ;
+pair_list	: pair		{ PR_add( $1 ); } ;
+		| pair_list SYM_COMMA pair
+				{ PR_add( $3 ); } ;
+pair		: SYM_STRING 	{ $$ = node( SYM_STRING, &rmval, 0, 0 ); };
 
 descr_part	: SYM_DESCR { context = CTX_DESCR; } strel_list ;
 strel_list	: strel
