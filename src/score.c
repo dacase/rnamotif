@@ -23,12 +23,9 @@ static	int	actlab;
 static	int	ifstk[ 100 ];
 static	int	ifstkp = 0;
 
-static	int	forstk[ 100 ];
-static	NODE_T	*forincrstk[ 100 ];
-static	int	forstkp = 0;
-
-static	int	whilestk[ 100 ];
-static	int	whilestkp = 0;
+static	int	loopstk[ 100 ];
+static	NODE_T	*loopincrstk[ 100 ];
+static	int	loopstkp = 0;
 
 void	SC_if();
 void	SC_else();
@@ -40,6 +37,8 @@ void	SC_forincr();
 void	SC_endfor();
 void	SC_while();
 void	SC_endwhile();
+void	SC_break();
+void	SC_continue();
 void	SC_accept();
 void	SC_reject();
 void	SC_mark();
@@ -102,9 +101,9 @@ void	SC_forinit( np )
 NODE_T	*np;
 {
 
-	forstk[ forstkp ] = nextlab;
-	forstkp++;
-	nextlab += 2;
+	loopstk[ loopstkp ] = nextlab;
+	loopstkp++;
+	nextlab += 3;
 	SC_mark();
 	SC_expr( 0, np );
 	SC_clear();
@@ -114,49 +113,62 @@ void	SC_fortest( np )
 NODE_T	*np;
 {
 
-	fprintf( CFP, "L%d:\n", forstk[ forstkp - 1 ] );
+	fprintf( CFP, "L%d:\n", loopstk[ loopstkp - 1 ] );
 	SC_mark();
 	SC_expr( 0, np );
-	fprintf( CFP, "  fjp L%d\n", forstk[ forstkp - 1 ] + 1 );
+	fprintf( CFP, "  fjp L%d\n", loopstk[ loopstkp - 1 ] + 2 );
 }
 
 void	SC_forincr( np )
 NODE_T	*np;
 {
 
-	forincrstk[ forstkp - 1 ] = np;
+	loopincrstk[ loopstkp - 1 ] = np;
 }
 
 void	SC_endfor()
 {
 
+	fprintf( CFP, "L%d:\n", loopstk[ loopstkp - 1 ] + 1 );
 	SC_mark();
-	SC_expr( 0, forincrstk[ forstkp - 1 ] );
+	SC_expr( 0, loopincrstk[ loopstkp - 1 ] );
 	SC_clear();
-	fprintf( CFP, "  jmp L%d\n", forstk[ forstkp - 1 ] );
-	fprintf( CFP, "L%d:\n", forstk[ forstkp - 1 ] + 1 );
-	forstkp--;
+	fprintf( CFP, "  jmp L%d\n", loopstk[ loopstkp - 1 ] );
+	fprintf( CFP, "L%d:\n", loopstk[ loopstkp - 1 ] + 2 );
+	loopstkp--;
 }
 
 void	SC_while( np )
 NODE_T	*np;
 {
 
-	whilestk[ whilestkp ] = nextlab;
-	whilestkp++;
-	nextlab += 2;
-	fprintf( CFP, "L%d:\n", whilestk[ whilestkp - 1 ] );
+	loopstk[ loopstkp ] = nextlab;
+	loopstkp++;
+	nextlab += 3;
+	fprintf( CFP, "L%d:\n", loopstk[ loopstkp - 1 ] );
 	SC_mark();
 	SC_expr( 0, np );
-	fprintf( CFP, "  fjp L%d\n", whilestk[ whilestkp - 1 ] + 1 );
+	fprintf( CFP, "  fjp L%d\n", loopstk[ loopstkp - 1 ] + 2 );
 }
 
 void	SC_endwhile()
 {
 
-	fprintf( CFP, "  jmp L%d\n", whilestk[ whilestkp - 1 ] );
-	fprintf( CFP, "L%d:\n", whilestk[ whilestkp - 1 ] + 1 );
-	whilestkp--;
+	fprintf( CFP, "  jmp L%d\n", loopstk[ loopstkp - 1 ] );
+	fprintf( CFP, "L%d:\n", loopstk[ loopstkp - 1 ] + 2 );
+	loopstkp--;
+}
+
+void	SC_break()
+{
+
+	fprintf( CFP, "  jmp L%d\n", loopstk[ loopstkp - 1 ] + 1 );
+}
+
+void	SC_continue()
+{
+
+	fprintf( CFP, "  jmp L%d\n", loopstk[ loopstkp - 1 ] );
 }
 
 void	SC_accept()
