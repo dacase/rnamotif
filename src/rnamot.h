@@ -1,8 +1,23 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
+#define	U_MSG_S	\
+"usage: %s [ options ] -descr descr-file [ -dtype dtype ] [ seq-file ]\n\n\
+options:\n\
+\t-c\n\
+\t-d\n\
+\t-h\n\
+\t-help\n\
+\n\
+-descr descr-file\n\
+\n\
+-dtype { genbank | fastn }\n"
+
 #define	UNDEF	(-1)
 #define	UNBOUNDED	0x7fffffff
+
+#define	DT_GENBANK	0
+#define	DT_FASTN	1
 
 #define	T_UNDEF		0
 #define	T_INT		1
