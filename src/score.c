@@ -435,7 +435,6 @@ void	RM_linkscore( void )
 {
 	int	i;
 	INST_T	*ip;
-	IDENT_T	*idp;
 	VALUE_T	v_svars;
 
 	for( ip = prog, i = 0; i < l_prog; i++, ip++ ){
@@ -955,7 +954,7 @@ static	void	do_scl( INST_T *ip )
 	char	*cp;
 	VALUE_T	*v_id;
 	int	i, stype, idx, pos, len;
-	int	idx2, pos2, len2;
+	int	idx2, pos2;
 	STREL_T	*stp, *stp2;
 	IDENT_T	*idp;
 	float	rval;
@@ -1063,7 +1062,6 @@ static	void	do_scl( INST_T *ip )
 			RM_errormsg( 1, emsg );
 		}
 		pos2--;
-		len2 = mem[ sp     ].v_value.v_ival;
 		if( setupefn( ip, idx, pos, idx2, pos2 ) ){
 			RM_initst();
 			rval = 0.01 * RM_efn( 0, rm_l_base, 1 );

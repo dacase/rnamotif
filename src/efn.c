@@ -39,7 +39,6 @@ extern	int	*rm_basepr;
 static	char	emsg[ 256 ];
 
 static	int	asint3[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ];
-static	int	asint5[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ][ 5 ][ 5 ];
 #define	MAX_IBHLOOP	30
 static	int	inter[ ( MAX_IBHLOOP + 1 ) ];
 static	int	bulge[ ( MAX_IBHLOOP + 1 ) ];
@@ -56,7 +55,6 @@ static	int	poppen[ POPPEN_SIZE + 1 ];
 
 static	int	sint2[ 6 ][ 6 ][ 5 ][ 5 ];
 static	int	sint4[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ][ 5 ];
-static	int	sint6[ 6 ][ 6 ][ 25 ][ 5 ][ 5 ][ 5 ][ 5 ];
 
 #define	MAXTLOOPS	100
 static	int	tloops[ MAXTLOOPS ][ 2 ];

@@ -75,7 +75,7 @@ main( int argc, char *argv[] )
 	char	*fname;
 	FILE	*fp;
 	int	d, f;
-	char	sname[ 256 ], l_sname[ 256 ], *seqp;
+	char	sname[ 256 ], *seqp;
 	int	comp, off, len;
 	int	rval = 0;
 
@@ -139,7 +139,7 @@ main( int argc, char *argv[] )
 		}
 	}
 
-	for( *l_sname = '\0'; getline( line, fp ); ){
+	while( getline( line, fp ) ){
 		if( *line == '#' )
 			continue;
 		if( *line == '>' )
@@ -363,7 +363,7 @@ static	void	wr_ctfile( FILE *fp, DESCR_T descr[], char name[],
 static	int	getpn( DESCR_T *dp, int d0, DESCR_T descr[] )
 {
 	DESCR_T	*dp1;
-	int	fb, lb;
+	int	lb;
 
 	lb = dp->d_stop - dp->d_start + 1;
 	switch( dp->d_type ){
@@ -398,4 +398,5 @@ static	int	getpn( DESCR_T *dp, int d0, DESCR_T descr[] )
 		return( 0 );
 		break;
 	}
+	return( -1 );
 }

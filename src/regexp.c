@@ -102,15 +102,30 @@ static int	size;
 
 static char	bittab[] = { 1, 2, 4, 8, 16, 32, 64, 128 };
 
+
+static void
+getrnge(str)
+register char *str;
+{
+	register int sizecode;
+
+	low = *str++ & 0377;
+	sizecode = *str & 0377;
+	if (sizecode == 255)
+		size = 20000;
+	else
+		size = sizecode - low;
+}
+
 /*ARGSUSED*/
-char *
+void
 compile(instring, ep, endbuf, seof)
 register char *ep;
 char *instring, *endbuf;
 {
 	INIT	/* Dependent declarations and initializations */
-	register c;
-	register eof = seof;
+	register int c;
+	register int eof = seof;
 	char *lastep;
 	int cclcnt;
 	char bracket[NBRA], *bracketp;
@@ -370,7 +385,7 @@ char *instring, *endbuf;
 int step(p1, p2)
 register char *p1, *p2; 
 {
-	register c;
+	register int c;
 
 
 	/*
@@ -641,20 +656,6 @@ register char *lp, *ep;
 		}
 	}
 	/*NOTREACHED*/
-}
-
-static
-getrnge(str)
-register char *str;
-{
-	register int sizecode;
-
-	low = *str++ & 0377;
-	sizecode = *str & 0377;
-	if (sizecode == 255)
-		size = 20000;
-	else
-		size = sizecode - low;
 }
 
 #endif /*!_regexp_h*/
