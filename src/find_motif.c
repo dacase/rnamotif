@@ -44,6 +44,8 @@ static	int	match_4plex();
 static	int	paired();
 static	int	triple();
 static	int	quad();
+static	void	mark_ss();
+static	void	unmark_ss();
 static	void	mark_duplex();
 static	void	unmark_duplex();
 static	int	chk_wchlx0();
@@ -148,17 +150,14 @@ SEARCH_T	*srp;
 	l_sdollar = srp->s_zero + stp->s_minglen - 1;
 
 	if( loop ){
+		rv = 0;
 		for( sdollar = f_sdollar; sdollar >= l_sdollar; sdollar-- ){
 			srp->s_dollar = sdollar;
-
 			if( n_srp != NULL ){
 				n_srp->s_zero = sdollar + 1;
 				n_srp->s_dollar = o_sdollar;
-			}else{
-
 			}
-
-			rv = find_1_motif( srp );
+			rv |= find_1_motif( srp );
 		}
 	}else	
 		rv = find_1_motif( srp );
@@ -204,6 +203,7 @@ SEARCH_T	*srp;
 	case SYM_Q3 :
 	case SYM_Q4 :
 	default :
+		rv = 0;
 		rm_emsg_lineno = stp->s_lineno;
 		sprintf( fm_emsg, "find_motif: illegal symbol %d.",
 			stp->s_type );
@@ -220,6 +220,7 @@ SEARCH_T	*srp;
 	STREL_T	*stp, *n_stp;
 	SEARCH_T	*n_srp;
 	int	s, slen, szero, sdollar;
+	int	rv;
 
 	stp = srp->s_descr;
 	szero = srp->s_zero;
@@ -235,28 +236,21 @@ SEARCH_T	*srp;
 			return( 0 );
 	}
 
-	for( s = 0; s < slen; s++ ) 
-		fm_window[ szero + s - fm_szero ] = stp->s_index;
-	stp->s_matchoff = szero;
-	stp->s_matchlen = slen;
-
+	mark_ss( stp, szero, slen);
 	n_stp = srp->s_forward;
 	if( n_stp != NULL ){
 		n_srp = rm_searches[ n_stp->s_searchno ];
-		if( find_motif( n_srp ) ){
-			return( 1 );
-		}else{
-			for( s = 0; s < slen; s++ ) 
-				fm_window[ szero + s - fm_szero ] = UNDEF;
-			return( 0 );
-		}
+		rv = find_motif( n_srp );
 	}else{
-		if( chk_motif( rm_n_descr, rm_descr ) )
+		if( chk_motif( rm_n_descr, rm_descr ) ){
 			print_match( stdout, fm_locus, fm_comp,
 				rm_n_descr, rm_descr );
+			rv = 1;
+		}else
+			rv = 0;
 	}
-
-	return( 1 );
+	unmark_ss( stp, szero, slen );
+	return( rv );
 }
 
 static	int	find_wchlx( srp )
@@ -301,12 +295,20 @@ SEARCH_T	*srp;
 		i_srp->s_zero = szero + hlen;
 		i_srp->s_dollar = h3 - hlen;
 
+/*
 		if( find_motif( i_srp ) ){
 			return( 1 );
 		}else{
 			unmark_duplex( stp, szero, stp3, h3, hlen );
 			return( 0 );
 		}
+*/
+		if( find_motif( i_srp ) ){
+			return( 1 );
+		}else{
+			return( 0 );
+		}
+		unmark_duplex( stp, szero, stp3, h3, hlen );
 	}else
 		return( 0 );
 }
@@ -482,6 +484,7 @@ SEARCH_T	*srp;
 	int	i1_len, i2_len;
 	int	i1_minl, i1_maxl, i2_minl, i2_maxl;
 	int	h, hlen;
+	int	rv;
 	SEARCH_T	*i1_srp, *i2_srp;
 
 	szero = srp->s_zero;
@@ -513,47 +516,39 @@ SEARCH_T	*srp;
 	s5lo = MIN( s5lo / 2, h_maxl );
 	s5lo = szero + s5lo - 1;
 
+	rv = 0;
 	if( match_phlx( stp, stp2, szero, sdollar, s5hi, s5lo, &hlen ) ){
 
 		i_len = sdollar - szero - 2 * hlen + 1;
 		if( i_len > i1_maxl + i2_maxl + hlen )
 			return( 0 );
 
+		mark_duplex( stp, szero, stp2, sdollar, hlen );
+
 		for( s=sdollar-i2_minl-hlen; s>=szero+2*hlen+i1_minl-1; s-- ){
 			if(match_triplex( stp, stp1, szero, s, sdollar, hlen )){
 
 				i1_len = s - 2 * hlen - szero + 1;
 				if( i1_len > i1_maxl )
-					return( 0 );
+					continue;
 				i2_len = sdollar - hlen - s + 1;
 				if( i2_len > i2_maxl )
-					return( 0 );
+					continue;
 
-				mark_duplex( stp, szero, stp2, sdollar, hlen );
-				stp1->s_matchoff = s - hlen + 1;
-				stp1->s_matchlen = hlen;
-				for( s1 = 0; s1 < hlen; s1++ )
-					fm_window[s-s1-fm_szero]=stp1->s_index;
+				mark_ss( stp1, s - hlen + 1, hlen );
 
 				i1_srp->s_zero = szero + hlen;
 				i1_srp->s_dollar = s - hlen;
 				i2_srp->s_zero = s + 1;
 				i2_srp->s_dollar = sdollar - hlen;
 
-				if( find_motif( i1_srp ) ){
-					return( 1 );
-				}else{
-					unmark_duplex( stp, szero,
-						stp2, sdollar, hlen);
-					stp1->s_matchoff = UNDEF;
-					stp1->s_matchlen = 0;
-					for( s1 = 0; s1 < hlen; s1++ )
-						fm_window[s-s1-fm_szero]=UNDEF;
-				}
+				rv |= find_motif( i1_srp );
+				unmark_ss( stp1, s - hlen + 1, hlen );
 			}
 		}
-	}else
-		return( 0 );
+		unmark_duplex( stp, szero, stp2, sdollar, hlen);
+	}
+	return( rv );
 }
 
 static	int	find_4plex( srp )
@@ -943,6 +938,34 @@ int	b4;
 	return( rv );
 }
 
+static	void	mark_ss( stp, s5, slen )
+STREL_T	*stp;
+int	s5;
+int	slen;
+{
+	int	s;
+
+	stp->s_matchoff = s5;
+	stp->s_matchlen = slen;
+
+	for( s = 0; s < slen; s++ )
+		fm_window[ s5 + s - fm_szero ] = stp->s_index;
+}
+
+static	void	unmark_ss( stp, s5, slen )
+STREL_T	*stp;
+int	s5;
+int	slen;
+{
+	int	s;
+
+	stp->s_matchoff = UNDEF;
+	stp->s_matchlen = 0;
+
+	for( s = 0; s < slen; s++ )
+		fm_window[ s5 + s - fm_szero ] = UNDEF;
+}
+
 static	void	mark_duplex( stp5, h5, stp3, h3, hlen )
 STREL_T	*stp5;
 int	h5;
@@ -978,8 +1001,8 @@ int	hlen;
 	stp3->s_matchlen = 0;
 
 	for( h = 0; h < hlen; h++ ){
-		fm_window[ h5+h-fm_szero ] = stp5->s_index;
-		fm_window[ h3-h-fm_szero ] = stp5->s_index;
+		fm_window[ h5+h-fm_szero ] = UNDEF;
+		fm_window[ h3-h-fm_szero ] = UNDEF;
 	}
 }
 
