@@ -1,5 +1,6 @@
 #RM scored
 #RM descr h5(tag='h1') ss h3(tag='h1')
+#RM dfile efn.descr
 SUIFFITSD    2.300 1   20 12 ttat   ttcg   ataa
 CCYRRDA      0.700 1  491 12 ctta   ttcg   taag
 CCYRRDB      0.700 1  492 12 ctta   ttcg   taag

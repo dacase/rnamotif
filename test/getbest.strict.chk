@@ -1,5 +1,6 @@
 #RM scored
 #RM descr ctx h5 ss h5 ss h5 ss h3 ss h3 ss h3 ctx
+#RM dfile getbest.strict.descr
 AZORRDB    -15.000 0   42 25 gaacg gc   ag cgg  .  gggc ttcg gccc g   ccg .    gc gagtg
 BLHRRNAA   -15.000 0  722 26 tgtcc ggtc c  cg   .  tccg cgtt cgga .    cg t  gacc ccagc
 CBRRR18S3  -15.000 0  110 21 gtntt ccc  t  gc   .  tcc  gaga  gga .    gc .   ggg naacc

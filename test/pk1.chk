@@ -1,5 +1,6 @@
 #RM scored
 #RM descr h5(tag='1') ss h5(tag='2') ss h3(tag='1') ss h3(tag='2')
+#RM dfile pk1.descr
 ABLREAA    0.000 0  832 26 tgat   caa        gaac  gaaa   gtca gag         gttc
 ACGRRDADA  0.000 0  659 23 tgc    agga       gag   gaaa    gcg gaa          ttc
 ACGRRDADA  0.000 0  659 24 tgc    agga       gag   gaaa    gcg gaat         tcc

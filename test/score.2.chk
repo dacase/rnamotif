@@ -1,5 +1,6 @@
 #RM scored
 #RM descr h5(tag='h1') ss h3(tag='h1')
+#RM dfile score.2.descr
 ACLRR16S   0.000 0  125 31 tagtagtccac     gccgtaaac      gttgagtacta
 ACLRR16S   0.000 0  126 29 agtagtccac      gccgtaaac       gttgagtact
 ACLRRNA    0.000 0  794 31 tagtagtccac     gccgtaaac      gttgagtacta

@@ -1,5 +1,6 @@
 #RM scored
 #RM descr h5 ss h5 ss h3 ss h3
+#RM dfile bulge.descr
 MTERR16S  -10.100 0 1182 22 tgc gaa ggg gcga ccc gga gca
 ANMRREA3  -10.200 0  115 21 ccc tgg ccc gaga ggg ct  ggg
 COGRR16S  -10.200 0 1488 20 ccc ttg gcc ggaa ggc c   ggg

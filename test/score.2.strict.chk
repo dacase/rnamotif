@@ -1,5 +1,6 @@
 #RM scored
 #RM descr ctx h5(tag='h1') ss h3(tag='h1') ctx
+#RM dfile score.2.strict.descr
 ANNRRO     0.000 1  272 29 ccagt gtggccggtc   gccctctca    ggccggctac ccgtc
 ANPRRNAA   0.000 0  828 26 cgcat taagtactcc   gcctga       gtagtacgta cgcaa
 ANPRRNAA   0.000 1  342 31 aaaat tccctactgct  gcctcccgt   aggagtatgga ccgtt

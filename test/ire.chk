@@ -1,5 +1,6 @@
 #RM scored
 #RM descr ss h5 ss(tag="5p") h5 ss h3 ss(tag="3p") h3 ss
+#RM ire.descr
 AB001025   1.000 1   8060 29 gaa agg c   cttat cagtgg gtggg . tct tca
 AB008226   1.000 0   4438 29 cag tat c   tttaa cagtgc ttgag . atg ctt
 AB011178   1.000 1   3312 29 agc ctc c   tcatt cagtga agtga . ggg tga

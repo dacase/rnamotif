@@ -1,5 +1,6 @@
 #RM scored
 #RM descr ctx h5 ss h5 ss h3 ss h3 ctx
+#RM dfile bulge.strict.descr
 MTERR16S  -10.100 0 1182 22 tggga tgc gaa ggg gcga ccc gga gca aatct
 AGCRR18S  -10.300 1  507 18 ttacg ggg c   ctc gaaa gag t   ccc gtatt
 BRARREA   -10.300 1  508 18 ttacg ggg c   ctc gaaa gag t   ccc gtatt

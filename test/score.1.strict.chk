@@ -1,5 +1,6 @@
 #RM scored
 #RM descr ctx h5 ss h3 ctx
+#RM dfile score.1.strict.descr
 TTERRDA   1.000 0   61 22 agtcg cgcgcccgg ggcg ccgggcgcg gcgca
 TTERRDA   1.000 1   82 22 tgcgc cgcgcccgg cgcc ccgggcgcg cgact
 THCLRRNA  0.889 0  261 22 ctgaa ccctccggg gaaa cccggaggg gatgt

@@ -1,5 +1,6 @@
 #RM scored
 #RM descr ctx h5(tag='1') ss h5(tag='2') ss h3(tag='1') ss h3(tag='2') ctx
+#RM dfile pk1.strict.descr
 ACGRRDADA  0.000 0 659 23 ttgag tgc    agga       gag   gaaa    gcg gaa        ttc ccagt
 ARORRSA    0.000 0 139 33 tttgg tggg   ggatagccc  ggg   gaaa   ctcg gattaa     tac cgcat
 BIFRR16SF  0.000 0 994 31 tgaca tgtg   ccggacgccn gtg   gaaa   cgcg nnn        tcc cttcg

@@ -1,5 +1,6 @@
 #RM scored
 #RM descr ctx h5 ss h3 ctx
+#RM dfile sprintf.strict.descr
 ACARRDX    -12.500,6,gcga 0   81 16 tactg gggtgg  gcga  ccaccc gggaa
 ANNRRO     -15.400,6,gaaa 0  110 16 gataa ccccgg  gaaa  ccgggg ctaat
 AQF16SRRN  -15.400,6,gaaa 0  154 16 gataa ccccgg  gaaa  ccgggg ctaat

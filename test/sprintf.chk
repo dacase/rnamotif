@@ -1,5 +1,6 @@
 #RM scored
 #RM descr h5 ss h3
+#RM dfile sprintf.descr
 ACARRDX    -12.500,6,gcga 0   81 16 gggtgg  gcga  ccaccc
 ANNRRO     -15.400,6,gaaa 0  110 16 ccccgg  gaaa  ccgggg
 ANNRRO     -12.100,5,gaaa 0  111 14 cccgg   gaaa   ccggg

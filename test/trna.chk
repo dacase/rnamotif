@@ -1,5 +1,6 @@
 #RM scored
 #RM descr h5 ss h5 ss h3 ss h5 ss h3 ss h5 ss h3 h3 ss
+#RM dfile trna.descr
 ACSTRW     0.000 0    1 75 gacctcg tg gcg  caacggtag    cgc g tctga ctccaga tcaga aggct                gcgtg ttcgaat cacgt cggggtc acca
 ACSTRW     0.000 0    1 75 gacctcg tg gcg  caacggtag    cgc g tctga ctccaga tcaga aggctgc              gtgt  tcgaatc  acgt cggggtc acca
 ACSTRW     0.000 0    1 75 gacctcg tg gcgc aacggta     gcgc g tctga ctccaga tcaga aggct                gcgtg ttcgaat cacgt cggggtc acca

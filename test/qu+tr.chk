@@ -1,5 +1,6 @@
 #RM scored
 #RM descr q1(tag='1') ss q2(tag='1') ss q3(tag='1') ss q4(tag='1') ss t1(tag='2') ss t2(tag='2') ss t3(tag='2')
+#RM dfile qu+tr.descr
 GARRRITS 0.000 0 190 59 gtg gttt      gag aactggata  gtg gacac     gag taag      aata gtgagac    tgtt ttttgg     tttt
 GARRRITS 0.000 0 190 59 gtg gttt      gag aactggata  gtg gacac     gag taag      aata gtgagactg  tttt ttgg       tttt
 GARRRITS 0.000 0 190 59 gtg gttt      gag aactggata  gtg gacac     gag taag      aata gtgagactgt tttt tgg        tttt
