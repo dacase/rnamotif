@@ -13,6 +13,9 @@ extern	int	rm_n_descr;
 
 extern	SITE_T	*rm_sites;
 
+extern	SEARCH_T	**rm_searches;
+extern	int	rm_n_searches;
+
 void	RM_dump_id();
 void	RM_dump_pairset();
 void	RM_dump_pair();
@@ -23,6 +26,7 @@ static	void	print_hierarchy();
 static	void	print_1_element();
 static	void	mk_prefix();
 static	void	mk_strel_name();
+static	void	print_searches();
 
 void	RM_dump( fp, d_parms, d_descr, d_sites, d_hierarchy )
 FILE	*fp;
@@ -57,6 +61,7 @@ int	d_hierarchy;
 	"descr minl  maxl  mngl  mxgl  mnil  mxil start  stop  descr\n" );
 		strcpy( prefix, "+" );
 		print_hierarchy( fp, 0, prefix, 0, rm_descr );
+		print_searches( fp, rm_n_searches, rm_searches );
 	}
 }
 
@@ -658,5 +663,33 @@ char	name[];
 	case SYM_Q4 :
 		strcpy( name, "q4" );
 		break;
+	}
+}
+
+static	void	print_searches( fp, n_searches, searches )
+FILE	*fp;
+int	n_searches;
+SEARCH_T	*searches[];
+{
+	int	s;
+	STREL_T	*stp, *stp1;
+	char	name[ 20 ];
+
+	fprintf( fp, "total search depth: %3d\n", n_searches );
+	for( s = 0; s < n_searches; s++ ){
+		stp = searches[ s ]->s_descr;
+		mk_strel_name( stp, name );
+		fprintf( fp, "%3d: type = %s", stp->s_index, name );
+		stp1 = searches[ s ]->s_next;
+		if( stp1 != NULL )
+			fprintf( fp, ", next = %6d", stp1->s_index );
+		else
+			fprintf( fp, ", next = (None)" );
+		stp1 = searches[ s ]->s_backup;
+		if( stp1 != NULL )
+			fprintf( fp, ", backup = %6d", stp1->s_index );
+		else
+			fprintf( fp, ", backup = (None)" );
+		fprintf( fp, "\n" );
 	}
 }
