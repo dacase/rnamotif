@@ -49,7 +49,7 @@ while		return( SYM_WHILE );
 [a-zA-Z][_a-zA-Z0-9]*	{
 		  sp = ( char * )malloc(( yyleng + 1 ) *sizeof( char ));
 		  if( sp == NULL ){
-			errormsg( 1, 
+			RM_errormsg( 1, 
 				"lex.yy.c: can't alloc sp for SYM_IDENT." );
 		  }
 		  strcpy( sp, yytext );
@@ -73,7 +73,7 @@ while		return( SYM_WHILE );
 			yytext[ yyleng ] = '\0';
 			sp = ( char * )malloc( ( yyleng - 1 )*sizeof( char ) );
 			if( sp == NULL ){
-				errormsg( 1,
+				RM_errormsg( 1,
 				"lex.yy.c: can't alloc sp for SYM_STRING." );
 			}
 			strncpy( sp, &yytext[1], yyleng - 2 );
@@ -88,7 +88,7 @@ while		return( SYM_WHILE );
 =		return( SYM_ASSIGN );
 \$		{ posp = ( POS_T * )malloc( sizeof( POS_T ) );
 		  if( posp == NULL ){
-			errormsg( 1,
+			RM_errormsg( 1,
 				"lex.yy.c: can't alloc posp for SYM_DOLLAR." );
 		  }
 		  posp->p_type = SYM_DOLLAR;
