@@ -29,7 +29,7 @@ typedef	struct	ident_t	{
 	char	*i_name;
 	int	i_type;
 	int	i_class;
-	VALUE_T	i_value;
+	VALUE_T	i_val;
 } IDENT_T;
 
 typedef	struct	node_t	{
