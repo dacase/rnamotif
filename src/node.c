@@ -81,7 +81,7 @@ int	indent;
 	POS_T	*posp;
 
 	fprintf( fp, "%*s",indent, "" );
-	fprintf( fp, "%7d: lf = %7d rt = %7d ln,tp,cl = %3d,%2d,%2d ",
+	fprintf( fp, "%7p: lf = %7p rt = %7p ln,tp,cl = %3d,%2d,%2d ",
 		np, np->n_left, np->n_right,
 		np->n_lineno, np->n_type, np->n_class );
 	switch( np->n_sym ){
