@@ -103,6 +103,8 @@ typedef	struct	strel_t	{
 	char	s_index;	/* index into descr array	*/
 	int	s_lineno;
 	int	s_searchno;	/* index into searches[]	*/
+	int	s_matchoff;	/* matched string starts here	*/
+	int	s_matchlen;	/* matched string is this long	*/
 	char	*s_tag;
 	struct	strel_t	*s_next;
 	struct	strel_t	*s_prev;
