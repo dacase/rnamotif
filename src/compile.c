@@ -64,6 +64,8 @@ SITE_T	*rm_sites = NULL;
 int	rm_b2bc[ RM_B2BC_SIZE ];
 int	rm_s_b2bc = RM_B2BC_SIZE;
 char	rm_bc2b[ N_BCODES ] = { 'a', 'c', 'g', 't', 'n' };
+static	char	*rm_iupac[ RM_B2BC_SIZE ];
+static	int	rm_s_iupac = RM_B2BC_SIZE;
 
 SEARCH_T	**rm_searches;
 int	rm_n_searches;
@@ -82,6 +84,7 @@ static	void	*mk_bmatp();
 static	void	*mk_rbmatp();
 static	POS_T	*posop();
 
+static	char	*str2seq();
 static	int	seqlen();
 static	int	link_tags();
 static	void	chk_tagorder();
@@ -202,6 +205,25 @@ char	*argv[];
 	rm_b2bc[ 'u' ] = BCODE_T; rm_b2bc[ 'U' ] = BCODE_T;
 	rm_b2bc[ 'n' ] = BCODE_N; rm_b2bc[ 'N' ] = BCODE_N;
 
+	for( i = 0; i < rm_s_iupac; i++ )
+		rm_iupac[ i ] = NULL;
+	rm_iupac[ 'a' ] ="a";	   rm_iupac[ 'A' ] ="a";
+	rm_iupac[ 'b' ] ="[cgt]";  rm_iupac[ 'B' ] ="[cgt]";
+	rm_iupac[ 'c' ] ="c";	   rm_iupac[ 'C' ] ="c";
+	rm_iupac[ 'd' ] ="[agt]";  rm_iupac[ 'D' ] ="[agt]";
+	rm_iupac[ 'g' ] ="g";	   rm_iupac[ 'G' ] ="g";
+	rm_iupac[ 'h' ] ="[act]";  rm_iupac[ 'H' ] ="[act]";
+	rm_iupac[ 'k' ] ="[gt]";   rm_iupac[ 'K' ] ="[gt]";
+	rm_iupac[ 'm' ] ="[ac]";   rm_iupac[ 'M' ] ="[ac]";
+	rm_iupac[ 'n' ] ="[acgt]"; rm_iupac[ 'N' ] ="[acgt]";
+	rm_iupac[ 'r' ] ="[ag]";   rm_iupac[ 'R' ] ="[ag]";
+	rm_iupac[ 's' ] ="[cg]";   rm_iupac[ 'S' ] ="[cg]";
+	rm_iupac[ 't' ] ="t";	   rm_iupac[ 'T' ] ="t";
+	rm_iupac[ 'u' ] ="t";	   rm_iupac[ 'U' ] ="t";
+	rm_iupac[ 'v' ] ="[acg]";  rm_iupac[ 'V' ] ="[acg]";
+	rm_iupac[ 'w' ] ="[at]";   rm_iupac[ 'W' ] ="[at]";
+	rm_iupac[ 'y' ] ="[ct]";   rm_iupac[ 'Y' ] ="[ct]";
+
 	rm_lineno = 0;
 	curpair[0] = "a:u";
 	curpair[1] = "c:g";
@@ -227,15 +249,13 @@ char	*argv[];
 	np = PR_close();
 	enter_id( "qu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
 
-/*
-	val.v_type = T_STRING;
-	val.v_value.v_pval = "RNA";
-	enter_id( "database", T_STRING, C_VAR, S_GLOBAL, &val );
-*/
-
 	val.v_type = T_INT;
 	val.v_value.v_ival = 1;
 	enter_id( "chk_both_strs", T_INT, C_VAR, S_GLOBAL, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 1;
+	enter_id( "iupac", T_INT, C_VAR, S_GLOBAL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 3;
@@ -503,7 +523,25 @@ void	SE_close()
 				}
 			}
 		}else if( !strcmp( ip->i_name, "seq" ) ){
+/*
 			stp->s_seq = ip->i_val.v_value.v_pval;
+			if( stp->s_seq && *stp->s_seq != '\0' ){
+				l_seq = strlen( stp->s_seq );
+				l_seq = 2*l_seq > 256 ? 2*l_seq : 256 ;
+				stp->s_expbuf =
+					( char * )malloc( l_seq*sizeof(char) );
+				if( stp->s_expbuf == NULL ){
+					rm_emsg_lineno = stp->s_lineno;
+					errormsg( 1,
+						"can't allocate s_expbuf." );
+				}
+				stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
+				compile( stp->s_seq,
+					stp->s_expbuf, stp->s_e_expbuf, '\0' );
+			}else
+				stp->s_seq = NULL;
+*/
+			stp->s_seq = str2seq( ip->i_val.v_value.v_pval );
 			if( stp->s_seq && *stp->s_seq != '\0' ){
 				l_seq = strlen( stp->s_seq );
 				l_seq = 2*l_seq > 256 ? 2*l_seq : 256 ;
@@ -1981,6 +2019,41 @@ POS_T	*r_pos;
 		errormsg( 1, emsg );
 		return( NULL );
 	}
+}
+
+static	char	*str2seq( str )
+char	str[];
+{
+	char	*s1, *s2, *s3, *sp;
+	int	iupac, c;
+	IDENT_T	*ip;
+	char	seq[ 1024 ];
+
+	if( str == NULL || *str == '\0' )
+		return( NULL );
+	ip = find_id( "iupac" );
+	if( ip )
+		iupac = ip->i_val.v_value.v_ival;
+	for( s1 = str, s2 = seq; *s1; s1++ ){
+		c = isupper( *s1 ) ? tolower( *s1 ) : *s1;
+		if( c == 'u' )
+			c = 't';
+		if( iupac ){
+			if( s3 = rm_iupac[ c ] ){
+				strcpy( s2, s3 );
+				s2 += strlen( s3 );
+			}else
+				*s2++ = c;
+		}else
+			*s2++ = c;
+	}
+	*s2 = '\0';
+	sp = ( char * )malloc( strlen( seq ) + 1 );
+	if( sp == NULL ){
+		errormsg( 1, "str2seq: can't alloc sp." );
+	}
+	strcpy( sp, seq );
+	return( sp );
 }
 
 static	int	seqlen( seq, minlen, maxlen, exact )
