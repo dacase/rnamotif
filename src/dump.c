@@ -12,6 +12,7 @@ extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
 
 void	RM_dump_id();
+void	RM_dump_pairset();
 void	RM_dump_descr();
 
 void	RM_dump( fp, d_parms, d_descr, d_sites )
@@ -126,18 +127,9 @@ IDENT_T	*ip;
 					ip->i_val.v_value.v_pval : "NULL" );
 		break;
 	case T_PAIR :
-		fprintf( fp, "{ " );
 		ps = ip->i_val.v_value.v_pval;
-		for( pp = ps->ps_pairs, i = 0; i < ps->ps_n_pairs; i++, pp++ ){
-			for( b = 0; b < pp->p_n_bases; b++ ){
-				fprintf( stderr, "%c", pp->p_bases[ b ] );
-				if( b < pp->p_n_bases - 1 )
-					fprintf( stderr, ":" );
-			}
-			if( i < ps->ps_n_pairs - 1 )
-				fprintf( fp, ", " );
-		}
-		fprintf( fp, " }\n" );
+		RM_dump_pairset( fp, ps );
+		fprintf( fp, "\n" );
 		break;
 	case T_IDENT :
 		fprintf( fp, "IDENT?\n" );
@@ -149,6 +141,28 @@ IDENT_T	*ip;
 		
 	fprintf( fp, "}\n" );
 }
+
+void	RM_dump_pairset( fp, ps )
+FILE	*fp;
+PAIRSET_T	*ps;
+{
+	PAIR_T	*pp;
+	int	i, b;
+
+	fprintf( fp, "{ " );
+	if( ps != NULL ){
+		for( pp = ps->ps_pairs, i = 0; i < ps->ps_n_pairs; i++, pp++ ){
+			for( b = 0; b < pp->p_n_bases; b++ ){
+				fprintf( stderr, "%c", pp->p_bases[ b ] );
+				if( b < pp->p_n_bases - 1 )
+					fprintf( stderr, ":" );
+			}
+			if( i < ps->ps_n_pairs - 1 )
+				fprintf( fp, ", " );
+		}
+	}
+	fprintf( fp, " }" );
+} 
 
 void	RM_dump_descr( fp, stp )
 FILE	*fp;
@@ -223,6 +237,10 @@ STREL_T	*stp;
 	fprintf( fp, "\tmismatch = %d\n", stp->s_mismatch );
 
 	fprintf( fp, "\tmispair  = %d\n", stp->s_mispair );
+
+	fprintf( fp, "\tpair     = " );
+	RM_dump_pairset( fp, stp->s_pairset );
+	fprintf( fp, "\n" );
 
 	fprintf( fp, "}\n" );
 }
