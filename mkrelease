@@ -1,5 +1,11 @@
 #! /bin/csh
+#
 #   make a tar file for "release"
+#
+#   Run this from the directory above this one, e.g.:
+#       cd ..
+#       rnamotif/mkrelease <version number>
+#
 #   Requires an argument for the version number
 #   The "make clean" ensures that files like y.tab.c,
 #   y.tab.h, etc are not put on the tar tape.
@@ -12,14 +18,15 @@ make clean
 set tarfile = rnamotif-$1.tar
 echo making $tarfile
 tar cvf $tarfile \
-	./INSTALL \
-	./revision.history \
-	./iupac.codes \
-	./Makefile \
-	./config.h* \
-	./doc \
-	./src \
-	./efndata \
-	./test \
-	./descr
+	rnamotif/README \
+	rnamotif/COPYING.GNU \
+	rnamotif/revision.history \
+	rnamotif/iupac.codes \
+	rnamotif/Makefile \
+	rnamotif/config.h* \
+	rnamotif/doc \
+	rnamotif/src \
+	rnamotif/efndata \
+	rnamotif/test \
+	rnamotif/descr
 gzip -v $tarfile
