@@ -1,3 +1,12 @@
+1.6.0	2001-jul-31
+	Finished first version of context.  ctx() behaves like any ss()
+	with the same parms, except they are checked after the motif has
+	been found.
+	
+1.5.98	2001-jun-29
+	Initial implementation of context.  Sites work, but score doesn't
+	Context length and sequence are not checked but stubs are in for this.
+
 1.5.3	2001-jun-03
 	Fixed bug that used too short of a buffer for RE's with 
 	many character classes.
