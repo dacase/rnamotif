@@ -22,6 +22,8 @@ IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ] = {
 int	rm_s_global_ids = RM_GLOBAL_IDS_SIZE;
 int	rm_n_global_ids = 6;
 
+int	rm_tminlen;
+int	rm_tmaxlen;
 #define	RM_DESCR_SIZE 100
 STREL_T	rm_descr[ RM_DESCR_SIZE ];
 int	rm_s_descr = RM_DESCR_SIZE;
@@ -64,6 +66,12 @@ char	*argv[];
 	if( !rm_error ){
 		if( SE_link( rm_n_descr, rm_descr ) )
 			exit( 1 );
+		fprintf( stderr, "%s: complete descr length: min/max = %d/",
+			rm_fname, rm_tminlen );
+		if( rm_tmaxlen == UNBOUNDED )
+			fprintf( stderr, "UNBND\n" );
+		else
+			fprintf( stderr, "%d\n", rm_tmaxlen );
 	}
 
 	if( rm_dopt )
