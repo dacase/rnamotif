@@ -237,6 +237,7 @@ int	stype;
 	stp->s_lineno = rm_lineno;
 	stp->s_tag = NULL;
 	stp->s_next = NULL;
+	stp->s_prev = NULL;
 	stp->s_inner = NULL;
 	stp->s_mates = NULL;
 	stp->s_n_mates = 0;
@@ -1943,8 +1944,10 @@ STREL_T	descr[];
 		stp = &descr[ d ];
 		if( stp->s_n_scopes == 0 ){
 			nd = d + 1;
-			if( nd <= ld )
+			if( nd <= ld ){
 				stp->s_next = &descr[ nd ];
+				stp->s_next->s_prev = stp;
+			}
 			continue;
 		}
 		for( s = 0; s < stp->s_n_scopes - 1; s++ ){
@@ -1956,8 +1959,10 @@ STREL_T	descr[];
 		}
 		stp1 = stp->s_scopes[ stp->s_n_scopes - 1 ];
 		nd = stp1->s_index + 1;
-		if( nd <= ld )
+		if( nd <= ld ){
 			stp->s_next = &descr[ nd ];
+			stp->s_next->s_prev = stp;
+		}
 	}
 	return( &descr[ fd ] );
 }
