@@ -23,7 +23,8 @@ char	*argv[];
 	char	*tfnp1, *tfnp2;
 	char	cmd[ 256 ];
 	char	line[ 10000 ];
-	int	f, fw, fs;
+	int	field1, f, fw, fs;
+	int	scored;
 
 	if( argc == 1 )
 		ifp = stdin;
@@ -43,6 +44,8 @@ char	*argv[];
 		exit( 1 );
 	}
 
+	scored = 0;	/* #RM scored line seen */
+	field1 = FIELD1;
 	for( t_fields = 0; fgets( line, sizeof( line ), ifp ); ){
 		/* skip fastn def lines	*/
 		if( *line == '>' )
@@ -51,10 +54,15 @@ char	*argv[];
 		if( n_fields == 0 )
 			continue;
 		else if( !strcmp( fields[ 0 ], "#RM" ) ){
-			if( n_fields > 1 && !strcmp( fields[ 1 ], "descr" ) ){
-				fmt = getfmt( n_fields, fields );
+			if( n_fields < 2 )
+				continue;
+			if( !strcmp( fields[ 1 ], "descr" ) ){
+				fmt = getfmt( n_fields, field1, fields );
 				if( fmt == NULL )
 					exit( 1 );
+			}else if( !strcmp( fields[ 1 ], "scored" ) ){
+				field1++;
+				scored = 1;
 			}
 			fputs( line, stdout );
 			continue;
@@ -62,17 +70,6 @@ char	*argv[];
 			continue;
 		if( t_fields == 0 ){
 			t_fields = n_fields;
-/*
-			maxw = ( int * )
-				malloc( ( t_fields - FIELD1 ) * sizeof( int ) );
-			if( maxw == NULL ){
-				fprintf( stderr, "%s: can't allocate maxw.\n",
-					argv[ 0 ] );
-				exit( 1 );
-			}
-			for( f = 0; f < t_fields - FIELD1; f++ )
-				maxw[ f ] = 0;
-*/
 			maxw = ( int * )malloc( ( t_fields ) * sizeof( int ) );
 			if( maxw == NULL ){
 				fprintf( stderr, "%s: can't allocate maxw.\n",
@@ -82,21 +79,12 @@ char	*argv[];
 			for( f = 0; f < t_fields; f++ )
 				maxw[ f ] = 0;
 		}
-/*
-		for( f = 0; f < t_fields - FIELD1; f++ ){
-			fw = strlen( fields[ FIELD1 + f ] );
-			if( fw > MAXW )
-				fw = fcmprs( fw, fields[ FIELD1 + f ] );
-			if( fw > maxw[ f ] )
-				maxw[ f ] = fw;
-		}
-*/
-		for( f = 0; f < FIELD1; f++ ){
+		for( f = 0; f < field1; f++ ){
 			fw = strlen( fields[ f ] );
 			if( fw > maxw[ f ] )
 				maxw[ f ] = fw;
 		}
-		for( f = FIELD1; f < t_fields; f++ ){
+		for( f = field1; f < t_fields; f++ ){
 			fw = strlen( fields[ f ] );
 			if( fw > MAXW )
 				fw = fcmprs( fw, fields[ f ] );
@@ -113,8 +101,14 @@ char	*argv[];
 	fclose( tfp1 );
 
 	tfnp2 = tempnam( NULL, "srt" );
-	sprintf( cmd, "sort +0 -1 +1n -2 +2n -3 +3n -4 %s > %s\n",
-		tfnp1, tfnp2 );
+	if( scored ){
+		sprintf( cmd,
+			"sort +1rn -2 +0 -1 +2n -3 +3n -4 +4n -5 %s > %s\n",
+			tfnp1, tfnp2 );
+	}else{
+		sprintf( cmd, "sort +0 -1 +1n -2 +2n -3 +3n -4 %s > %s\n",
+			tfnp1, tfnp2 );
+	}
 	system( cmd );
 
 	if( ( tfp2 = fopen( tfnp2, "r" ) ) == NULL ){
@@ -126,13 +120,6 @@ char	*argv[];
 
 	while( fgets( line, sizeof( line ), tfp2 ) ){
 		n_fields = split( line, fields, " \t\n" );
-/*
-		printf( "%-12s %s %7s %4s",
-			fields[ 0 ], fields[ 1 ], fields[ 2 ], fields[ 3 ] );
-*/
-/*
-		for( f = 0; f < t_fields - FIELD1; f++ ){
-*/
 		for( f = 0; f < t_fields; f++ ){
 			fw = strlen( fields[ f ] );
 			if( fmt[ f ] == FMT_LEFT ){
@@ -163,29 +150,30 @@ char	*argv[];
 	exit( 0 );
 }
 
-static	int	*getfmt( n_fields, fields )
+static	int	*getfmt( n_fields, field1, fields )
 int	n_fields;
+int	field1;
 char	*fields[];
 {
 	int	f;
 	int	*fmt;
 
-	fmt = ( int * )malloc( ( n_fields - 2 + FIELD1 ) * sizeof( int ) );
+	fmt = ( int * )malloc( ( n_fields - 2 + field1 ) * sizeof( int ) );
 	if( fmt == NULL ){
 		fprintf( stderr, "getfmt: can't allocate fmt.\n" );
 		return( NULL );
 	}
 	fmt[ 0 ] = FMT_LEFT;
-	for( f = 1; f < FIELD1; f++ )
+	for( f = 1; f < field1; f++ )
 		fmt[ f ] = FMT_RIGHT;
 	for( f = 2; f < n_fields; f++ ){
 		if( !strncmp( fields[ f ], "h3", 2 ) ||
 				!strncmp( fields[ f ], "t2", 2 ) ||
 				!strncmp( fields[ f ], "q2", 2 ) ||
 				!strncmp( fields[ f ], "q4", 2 ) )
-			fmt[ f - 2 + FIELD1 ] = FMT_RIGHT;
+			fmt[ f - 2 + field1 ] = FMT_RIGHT;
 		else
-			fmt[ f - 2 + FIELD1 ] = FMT_LEFT;
+			fmt[ f - 2 + field1 ] = FMT_LEFT;
 	}
 	return( fmt );
 }
