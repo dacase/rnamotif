@@ -99,7 +99,7 @@ char	*argv[];
 
 	for( dbp = DB_open( dbnp ); dbp; ){
 		if( slen = DB_getseq( dbp, locus, SBUFSIZE, sbuf ) ){
-			find_motif_driver( rm_n_descr, rm_descr, rm_sites,
+			find_motif_driver( rm_n_searches, rm_searches, rm_sites,
 				locus, slen, sbuf );
 		}
 		dbp = DB_next( dbp );
