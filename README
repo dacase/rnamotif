@@ -1,0 +1,35 @@
+
+   The "rnamotif" program searchs input sequences for portions that match
+a given descriptor or "motif".  Matching sequences can also be ranked by
+various scoring functions.  See doc/rnamot.ps for documentation.
+
+==============================================================================
+
+   This source code is copyright (C) 1998, 1999, 2000,  by Tom Macke and
+   David A. Case, Department Molecular Biology, The Scripps Research Institute.
+
+   This program is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by the
+   Free Software Foundation; either version 1, or (at your option) any later
+   version. The GNU General Public License should be in a file called
+   COPYING.GNU; if not, write to the Free Software Foundation, Inc., 675 Mass
+   Ave, Cambridge, MA 02139, USA.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+==============================================================================
+
+Installation and testing of rnamot3:
+
+(a)  Edit the "config.h" file in this directory to suit your local 
+     environment.  This may require no change on many machines, but
+     you may need to locate the C-compiler, lex or yacc.
+
+(b)  "make" will make the executables, leaving them in the src subdirectory.
+
+(c)  "make test" will run some (short) test suites.
+
+Please send comments and questions to Tom Macke <macke@scripps.edu>.
