@@ -41,6 +41,7 @@ typedef	struct	node_t	{
 	int	n_sym;
 	int	n_type;
 	int	n_class;
+	int	n_lineno;
 	VALUE_T	n_val;
 	struct	node_t	*n_left;
 	struct	node_t	*n_right;
