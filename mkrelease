@@ -8,8 +8,6 @@ set tarfile = rnamot3-$1.tar
 echo making $tarfile
 tar cvf $tarfile \
 	./INSTALL \
-	./mkrelease \
-	./mktar \
 	./revision.history \
 	./iupac.codes \
 	./Makefile \
