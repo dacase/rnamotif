@@ -36,6 +36,7 @@ extern	STREL_T	rm_descr[];
 extern	int	rm_s_descr;
 extern	int	rm_n_descr;
 static	STREL_T	*stp;
+static	PAIRSET_T	*def_pairset = NULL;
 
 NODE_T	*PR_close();
 
@@ -243,24 +244,24 @@ int	stype;
 		case SYM_P5 :
 		case SYM_P3 :
 			ip = find_id( "wc" );
-			ps = ip->i_val.v_value.v_pval;
+			def_pairset = ip->i_val.v_value.v_pval;
 			break;
 		case SYM_T1 :
 		case SYM_T2 :
 		case SYM_T3 :
 			ip = find_id( "tr" );
-			ps = ip->i_val.v_value.v_pval;
+			def_pairset = ip->i_val.v_value.v_pval;
 			break;
 		case SYM_Q1 :
 		case SYM_Q2 :
 		case SYM_Q3 :
 		case SYM_Q4 :
 			ip = find_id( "qu" );
-			ps = ip->i_val.v_value.v_pval;
+			def_pairset = ip->i_val.v_value.v_pval;
 			break;
 		}
 		val.v_type = T_PAIR;
-		val.v_value.v_pval = ps;
+		val.v_value.v_pval = NULL;
 		ip = enter_id( "pair", T_PAIR, C_VAR, S_STREL, &val );
 	}
 }
@@ -316,6 +317,7 @@ void	SE_close()
 		rm_emsg_lineno = stp->s_lineno;
 		errormsg( 0, "strel minlen > maxlen.\n" );
 	}
+	def_pairset = NULL;
 }
 
 static	IDENT_T	*enter_id( name, type, class, scope, vp )
@@ -623,10 +625,14 @@ VALUE_T	*vp;
 		vp->v_value.v_pval = sp;
 	}else if( type == T_PAIR ){
 		if( ip->i_val.v_value.v_pval == NULL ){
-			sprintf( emsg,
+			if( def_pairset != NULL )
+				ps = def_pairset;
+			else{
+				sprintf( emsg,
 				"loadidval: id '%s' has pair value NULL.\n",
-				 ip->i_name );
-			errormsg( 1, emsg );
+					 ip->i_name );
+				errormsg( 1, emsg );
+			}
 		}else
 			ps = ip->i_val.v_value.v_pval;
 		vp->v_type = T_PAIR;
@@ -673,6 +679,9 @@ PAIRSET_T	*ps2;
 	PAIR_T	*n_pp, *pp, *ppi, *ppj;
 
 	if( !strcmp( op, "check" ) ){
+		if( ps1 == NULL ){
+			errormsg( 1, "pairop: check: ps1 == NULL.\n" );
+		}
 		pp = ps1->ps_pairs;
 		for( nb = UNDEF, i = 0; i < ps1->ps_n_pairs; i++, pp++ ){
 			b = pp->p_n_bases;
@@ -723,6 +732,8 @@ PAIRSET_T	*ps2;
 		ps1->ps_n_pairs = j;
 		return( ps1 );
 	}else if( !strcmp( op, "copy" ) ){
+		if( ps1 == NULL )
+			return( NULL );
 		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
 		if( n_ps == NULL ){
 			errormsg( 1, "pairop: copy: can't allocate n_ps.\n" );
