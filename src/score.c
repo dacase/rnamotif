@@ -229,7 +229,9 @@ NODE_T	*np;
 void	RM_else()
 {
 
-	addinst( OP_JMP, ifstk[ ifstkp - 1 ] + 1 );
+	v_lab.v_type = T_INT;
+	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
+	addinst( OP_JMP, &v_lab );
 	labtab[ ifstk[ ifstkp - 1 ] ] = l_prog;
 }
 
