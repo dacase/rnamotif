@@ -72,6 +72,7 @@ typedef	struct	pos_t	{
 } POS_T;
 
 typedef	struct	site_t	{
+	struct	site_t	*s_next;
 	POS_T	*s_pos;
 	int	s_n_pos;
 	PAIRSET_T	*s_pairset;
