@@ -18,14 +18,14 @@ make clean
 set tarfile = rnamotif-$1.tar
 echo making $tarfile
 tar cvXf rnamotif/excludes $tarfile \
-	rnamotif/README \
-	rnamotif/COPYING.GNU \
-	rnamotif/revision.history \
-	rnamotif/iupac.codes \
-	rnamotif/Makefile \
-	rnamotif/config.h* \
-	rnamotif/doc/rnamotif.pdf \
-	rnamotif/src \
-	rnamotif/efndata \
-	rnamotif/test
+	rnamotif-$1/README \
+	rnamotif-$1/COPYING.GNU \
+	rnamotif-$1/revision.history \
+	rnamotif-$1/iupac.codes \
+	rnamotif-$1/Makefile \
+	rnamotif-$1/config.h* \
+	rnamotif-$1/doc/rnamotif.pdf \
+	rnamotif-$1/src \
+	rnamotif-$1/efndata \
+	rnamotif-$1/test
 gzip -v $tarfile
