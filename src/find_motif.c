@@ -45,9 +45,6 @@ static	int	match_wchlx();
 static	int	match_phlx();
 static	int	match_triplex();
 static	int	match_4plex();
-static	int	paired();
-static	int	triple();
-static	int	quad();
 static	void	mark_ss();
 static	void	unmark_ss();
 static	void	mark_duplex();
@@ -236,6 +233,8 @@ SEARCH_T	*srp;
 	int	rv;
 
 	stp = srp->s_descr;
+	stp->s_n_mismatches = 0;
+	stp->s_n_mispairs = 0;
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
 	slen = sdollar - szero + 1;
@@ -279,7 +278,7 @@ SEARCH_T	*srp;
 	int	s, s3lim, slen, szero, sdollar;
 	int	h_minl, h_maxl;
 	int	i_minl, i_maxl, i_len;
-	int	h, h3, hlen;
+	int	h, h3, hlen, n_mpr;
 	STREL_T	*i_stp;
 	SEARCH_T	*i_srp;
 	int	rv;
@@ -288,7 +287,11 @@ SEARCH_T	*srp;
 	sdollar = srp->s_dollar;
 	slen = sdollar - szero + 1;
 	stp = srp->s_descr;
+	stp->s_n_mismatches = 0;
+	stp->s_n_mispairs = 0;
 	stp3 = stp->s_mates[ 0 ];
+	stp3->s_n_mismatches = 0;
+	stp3->s_n_mispairs = 0;
 
 	h_minl = stp->s_minlen;
 	h_maxl = stp->s_maxlen;
@@ -301,7 +304,7 @@ SEARCH_T	*srp;
 	s3lim = sdollar - s3lim + 1;
 
 	rv = 0;
-	if( match_wchlx( stp, stp3, szero, sdollar, s3lim, &h3, &hlen ) ){
+	if(match_wchlx(stp, stp3, szero, sdollar, s3lim, &h3, &hlen, &n_mpr )){
 
 /*
 		if( !chk_wchlx0( srp, szero, h3 ) )
@@ -312,6 +315,8 @@ SEARCH_T	*srp;
 		if( i_len > i_maxl )
 			return( 0 );
 
+		stp->s_n_mispairs = n_mpr;
+		stp3->s_n_mispairs = n_mpr;
 		mark_duplex( stp, szero, stp3, h3, hlen );
 
 		i_stp = stp->s_inner;
@@ -336,9 +341,9 @@ SEARCH_T	*srp;
 	int	h2_minl, h2_maxl;
 	int	i2_minl, i2_maxl;
 	int	i3_minl, i3_maxl;
-	int	h13, h1len;
+	int	h13, h1len, n_mpr1;
 	int	s2, s2_zero, s20_lim, s23_lim;
-	int	h23, h2len;
+	int	h23, h2len, n_mpr2;
 	int	i1_len, i2_len, i3_len;
 	STREL_T	*i1_stp, *i2_stp, *i3_stp;
 	SEARCH_T	*i1_srp, *i2_srp, *i3_srp;
@@ -348,10 +353,17 @@ SEARCH_T	*srp;
 	sdollar = srp->s_dollar;
 	slen = sdollar - szero + 1;
 	stp = srp->s_descr;
-
+	stp->s_n_mismatches = 0;
+	stp->s_n_mispairs = 0;
 	stp1 = stp->s_scopes[ 1 ];
+	stp1->s_n_mismatches = 0;
+	stp1->s_n_mispairs = 0;
 	stp2 = stp->s_scopes[ 2 ];
+	stp2->s_n_mismatches = 0;
+	stp2->s_n_mispairs = 0;
 	stp3 = stp->s_scopes[ 3 ];
+	stp3->s_n_mismatches = 0;
+	stp3->s_n_mispairs = 0;
 
 	s1_dollar = sdollar - stp2->s_minilen - stp3->s_minlen;
 
@@ -380,7 +392,8 @@ SEARCH_T	*srp;
 	s13_lim = s1_dollar - s13_lim + 1;
 
 	rv = 0;
-	if( match_wchlx( stp, stp2, szero, s1_dollar, s13_lim, &h13, &h1len ) ){
+	if( match_wchlx(stp, stp2, szero, s1_dollar, s13_lim,
+		&h13, &h1len, &n_mpr1 ) ){
 
 		mark_duplex( stp, szero, stp2, h13, h1len );
 
@@ -389,8 +402,8 @@ SEARCH_T	*srp;
 		s23_lim = s1_dollar + stp2->s_minilen + 1;
 
 		for( s2 = s2_zero; s2 <= s20_lim; s2++ ){
-			if(match_wchlx(stp1,stp3,
-				s2,sdollar,s23_lim,&h23,&h2len)){
+			if( match_wchlx( stp1, stp3,
+				s2, sdollar, s23_lim, &h23, &h2len, &n_mpr2 ) ){
 
 				i1_len = s2 - szero - h1len;
 				if( i1_len > i1_maxl )
@@ -402,6 +415,10 @@ SEARCH_T	*srp;
 				if( i3_len > i3_maxl )
 					continue;
 
+				stp->s_n_mispairs = n_mpr1;
+				stp1->s_n_mispairs = n_mpr2;
+				stp2->s_n_mispairs = n_mpr1;
+				stp3->s_n_mispairs = n_mpr2;
 				mark_duplex( stp1, s2, stp3, h23, h2len );
 
 				i1_srp->s_zero = szero + h1len;
@@ -428,7 +445,7 @@ SEARCH_T	*srp;
 	int	s, s3lim, s5hi, s5lo;
 	int	h_minl, h_maxl;
 	int	i_minl, i_maxl, i_len;
-	int	h, hlen;
+	int	h, hlen, n_mpr;
 	SEARCH_T	*i_srp;
 	int	rv;
 
@@ -436,7 +453,12 @@ SEARCH_T	*srp;
 	sdollar = srp->s_dollar;
 	slen = sdollar - szero + 1;
 	stp = srp->s_descr;
+	stp->s_n_mismatches = 0;
+	stp->s_n_mispairs = 0;
 	stp3 = stp->s_mates[ 0 ];
+	stp3->s_n_mismatches = 0;
+	stp3->s_n_mispairs = 0;
+	
 
 	h_minl = stp->s_minlen;
 	h_maxl = stp->s_maxlen;
@@ -455,12 +477,14 @@ SEARCH_T	*srp;
 	s5lo = szero + s5lo - 1;
 
 	rv = 0;
-	if( match_phlx( stp, stp3, szero, sdollar, s5hi, s5lo, &hlen ) ){
+	if( match_phlx( stp, stp3, szero, sdollar, s5hi, s5lo, &hlen, &n_mpr )){
 
 		i_len = sdollar - szero - 2 * hlen + 1;
 		if( i_len > i_maxl  )
 			return( 0 );
 
+		stp->s_n_mispairs = n_mpr;
+		stp3->s_n_mispairs = n_mpr;
 		mark_duplex( stp, szero, stp3, sdollar, hlen );
 
 		i_stp = stp->s_inner;
@@ -485,7 +509,7 @@ SEARCH_T	*srp;
 	int	i_len, i_minl, i_maxl;
 	int	i1_len, i2_len;
 	int	i1_minl, i1_maxl, i2_minl, i2_maxl;
-	int	h, hlen;
+	int	h, hlen, n_mpr;
 	SEARCH_T	*i1_srp, *i2_srp;
 	int	rv;
 
@@ -493,8 +517,14 @@ SEARCH_T	*srp;
 	sdollar = srp->s_dollar;
 	slen = sdollar - szero + 1;
 	stp = srp->s_descr;
+	stp->s_n_mismatches = 0; 
+	stp->s_n_mispairs = 0; 
 	stp1 = stp->s_scopes[ 1 ];
+	stp1->s_n_mismatches = 0; 
+	stp1->s_n_mispairs = 0; 
 	stp2 = stp->s_scopes[ 2 ];
+	stp2->s_n_mismatches = 0; 
+	stp2->s_n_mispairs = 0; 
 
 	h_minl = stp->s_minlen;
 	h_maxl = stp->s_maxlen;
@@ -519,7 +549,7 @@ SEARCH_T	*srp;
 	s5lo = szero + s5lo - 1;
 
 	rv = 0;
-	if( match_phlx( stp, stp2, szero, sdollar, s5hi, s5lo, &hlen ) ){
+	if( match_phlx( stp, stp2, szero, sdollar, s5hi, s5lo, &hlen, &n_mpr )){
 
 		i_len = sdollar - szero - 2 * hlen + 1;
 		if( i_len > i1_maxl + i2_maxl + hlen )
@@ -528,7 +558,8 @@ SEARCH_T	*srp;
 		mark_duplex( stp, szero, stp2, sdollar, hlen );
 
 		for( s=sdollar-i2_minl-hlen; s>=szero+2*hlen+i1_minl-1; s-- ){
-			if(match_triplex( stp, stp1, szero, s, sdollar, hlen )){
+			if(match_triplex( stp, stp1, szero, s,
+				sdollar, hlen, &n_mpr )){
 
 				i1_len = s - 2 * hlen - szero + 1;
 				if( i1_len > i1_maxl )
@@ -537,6 +568,9 @@ SEARCH_T	*srp;
 				if( i2_len > i2_maxl )
 					continue;
 
+				stp->s_n_mispairs = n_mpr;
+				stp1->s_n_mispairs = n_mpr;
+				stp2->s_n_mispairs = n_mpr;
 				mark_ss( stp1, s - hlen + 1, hlen );
 
 				i1_srp->s_zero = szero + hlen;
@@ -563,16 +597,24 @@ SEARCH_T	*srp;
 	int	i_minl, i_maxl, i_len;
 	int	i1_minl, i2_minl, i3_minl;
 	int	i1_maxl, i2_maxl, i3_maxl;
-	int	h, h3, hlen;
+	int	h, h3, hlen, n_mpr;
 	int	rv;
 
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
 	slen = sdollar - szero + 1;
 	stp = srp->s_descr;
+	stp->s_n_mismatches = 0;
+	stp->s_n_mispairs = 0;
 	stp1 = stp->s_mates[ 0 ];
+	stp1->s_n_mismatches = 0;
+	stp1->s_n_mispairs = 0;
 	stp2 = stp->s_mates[ 1 ];
+	stp2->s_n_mismatches = 0;
+	stp2->s_n_mispairs = 0;
 	stp3 = stp->s_mates[ 2 ];
+	stp3->s_n_mismatches = 0;
+	stp3->s_n_mispairs = 0;
 
 	h_minl = stp->s_minlen;
 	h_maxl = stp->s_maxlen;
@@ -591,7 +633,7 @@ SEARCH_T	*srp;
 	s3lim = sdollar - s3lim + 1;
 
 	rv = 0;
-	if( match_wchlx( stp, stp3, szero, sdollar, s3lim, &h3, &hlen ) ){
+	if(match_wchlx( stp, stp3, szero, sdollar, s3lim, &h3, &hlen, &n_mpr )){
 		mark_duplex( stp, szero, stp3, h3, hlen );
 		rv = find_4plex_inner( srp, h3, hlen );
 		unmark_duplex( stp, szero, stp3, h3, hlen );
@@ -611,7 +653,7 @@ int	hlen;
 	int	i_minl, i_maxl, i_len;
 	int	i1_minl, i2_minl, i3_minl;
 	int	i1_maxl, i2_maxl, i3_maxl;
-	int	i1_len, i2_len, i3_len;
+	int	i1_len, i2_len, i3_len, n_mpr;
 	STREL_T	*i1_stp, *i2_stp, *i3_stp;
 	SEARCH_T	*i1_srp, *i2_srp, *i3_srp;
 	int	rv;
@@ -647,7 +689,7 @@ int	hlen;
 		s2lim = s1 + 2 * hlen + i2_minl;
 		for( s2 = s3 - hlen - i3_minl; s2 >= s2lim; s2-- ){
 			if( match_4plex( stp1, stp2,
-				szero, s1, s2, s3, hlen ) ){
+				szero, s1, s2, s3, hlen, &n_mpr ) ){
 
 				i1_len = s1 - szero - hlen + 1;
 				if( i1_len > i1_maxl )
@@ -659,6 +701,10 @@ int	hlen;
 				if( i3_len > i3_maxl )
 					continue;
 
+				stp->s_n_mispairs = n_mpr;
+				stp1->s_n_mispairs = n_mpr;
+				stp2->s_n_mispairs = n_mpr;
+				stp3->s_n_mispairs = n_mpr;
 				mark_duplex( stp1, s1, stp2, s2, hlen );
 
 				i1_srp->s_zero = szero + hlen;
@@ -676,7 +722,7 @@ int	hlen;
 	return( rv );
 }
 
-static	int	match_wchlx( stp, stp3, s5, s3, s3lim, h3, hlen )
+static	int	match_wchlx( stp, stp3, s5, s3, s3lim, h3, hlen, n_mpr )
 STREL_T	*stp;
 STREL_T	*stp3;
 int	s5;
@@ -684,6 +730,7 @@ int	s3;
 int	s3lim;
 int	*h3;
 int	*hlen;
+int	*n_mpr;
 {
 	int	s, s3_5plim;
 	int	b5, b3;
@@ -693,13 +740,13 @@ int	*hlen;
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
 
-	if( !paired( stp->s_pairset, b5, b3 ) )
+	if( !RM_paired( stp->s_pairset, b5, b3 ) )
 		return( 0 );
 
 	*h3 = s3;	/* index of 5' base of h3	*/
 	i_lpb = 0;	/* index of last paired base	*/
 	l_pr = 1;	/* last position is paired	*/
-	mpr = 0;	/* number of mispairs		*/
+	*n_mpr = 0;	/* number of mispairs		*/
 	mplim = 0;	/* max. number of mispairs	*/
 	pfrac = 0;	/* check against pfrac		*/ 
 
@@ -713,7 +760,7 @@ int	*hlen;
 	for( *hlen = 1, s = s3 - 1; s >= s3lim; s-- ){
 		b5 = fm_sbuf[ s5 + *hlen ];
 		b3 = fm_sbuf[ s3 - *hlen ];
-		if( paired( stp->s_pairset, b5, b3 ) ){
+		if( RM_paired( stp->s_pairset, b5, b3 ) ){
 			l_pr = 1;
 			i_lpb = *hlen;
 		}else{
@@ -732,9 +779,9 @@ int	*hlen;
 	for( *hlen = 1, s = s3 - 1; s >= s3lim; s-- ){
 		b5 = fm_sbuf[ s5 + *hlen ];
 		b3 = fm_sbuf[ s3 - *hlen ];
-		if( paired( stp->s_pairset, b5, b3 ) ){
+		if( RM_paired( stp->s_pairset, b5, b3 ) ){
 			if( pfrac ){
-				if(1.*(*hlen-mpr)/(*hlen) >= stp->s_pairfrac){
+				if(1.*(*hlen-*n_mpr)/(*hlen)>=stp->s_pairfrac){
 					l_pr = 1;
 					i_lpb = *hlen;
 				}
@@ -744,8 +791,8 @@ int	*hlen;
 			}
 		}else{
 			l_pr = 0;
-			mpr++;
-			if( mpr > mplim ){
+			( *n_mpr )++;
+			if( *n_mpr > mplim ){
 				if( *hlen < stp->s_minlen )
 					return( 0 );
 				else
@@ -771,7 +818,7 @@ int	*hlen;
 	return( 1 );
 }
 
-static	int	match_phlx( stp, stp3, s5, s3, s5hi, s5lo, hlen )
+static	int	match_phlx( stp, stp3, s5, s3, s5hi, s5lo, hlen, n_mpr )
 STREL_T	*stp;
 STREL_T	*stp3;
 int	s5;
@@ -779,6 +826,7 @@ int	s3;
 int	s5hi;
 int	s5lo;
 int	*hlen;
+int	*n_mpr;
 {
 	int	s, s1;
 	int	b5, b3;
@@ -797,23 +845,20 @@ int	*hlen;
 
 	for( s = s5hi; s >= s5lo; s-- ){
 		b5 = fm_sbuf[ s ];
-		if( !paired( stp->s_pairset, b5, b3 ) )
+		if( !RM_paired( stp->s_pairset, b5, b3 ) )
 			continue;
 		*hlen = 1;
-		mpr = 0;
+		*n_mpr = 0;
 		l_pr = 1;
 		for( s1 = s - 1; s1 >= s5; s1-- ){
 			b5 = fm_sbuf[ s1 ];
 			b3 = fm_sbuf[ s3 - *hlen ];
-			if( paired( stp->s_pairset, b5, b3 ) ){
+			if( RM_paired( stp->s_pairset, b5, b3 ) ){
 				l_pr = 1;
 			}else{
 				l_pr = 0;
-				mpr++;
-/*
-				if( mpr > stp->s_mispair ){
-*/
-				if( mpr > mplim ){
+				( *n_mpr )++;
+				if( *n_mpr > mplim ){
 					return( 0 );
 				}
 			}
@@ -824,7 +869,7 @@ int	*hlen;
 		if( *hlen < stp->s_minlen || *hlen > stp->s_maxlen )
 			return( 0 );
 		if( pfrac ){
-			if( 1.*(*hlen-mpr)/(*hlen) < stp->s_pairfrac )
+			if( 1.*(*hlen-*n_mpr)/(*hlen) < stp->s_pairfrac )
 				return( 0 );
 		}
 
@@ -841,13 +886,14 @@ int	*hlen;
 	return( 0 );
 }
 
-static	int	match_triplex( stp, stp1, s1, s2, s3, tlen )
+static	int	match_triplex( stp, stp1, s1, s2, s3, tlen, n_mpr )
 STREL_T	*stp;
 STREL_T	*stp1;
 int	s1;
 int	s2;
 int	s3;
 int	tlen;
+int	*n_mpr;
 {
 	int	t;
 	int	b1, b2, b3;
@@ -863,22 +909,19 @@ int	tlen;
 		mplim = (1.-stp->s_pairfrac)*tlen;
 	
 
-	if( !triple( stp->s_pairset, b1, b2, b3 ) )
+	if( !RM_triple( stp->s_pairset, b1, b2, b3 ) )
 		return( 0 );
 	else
 		l_pr = 1;
 	
-	for( mpr = 0, t = 1; t < tlen; t++ ){
+	for( *n_mpr = 0, t = 1; t < tlen; t++ ){
 		b1 = fm_sbuf[ s1 + t ];
 		b2 = fm_sbuf[ s2 - t ];
 		b3 = fm_sbuf[ s3 - tlen + 1 + t ];
-		if( !triple( stp->s_pairset, b1, b2, b3 ) ){
+		if( !RM_triple( stp->s_pairset, b1, b2, b3 ) ){
 			l_pr = 0;
-			mpr++;
-/*
-			if( mpr > stp->s_mispair )
-*/
-			if( mpr > mplim )
+			( *n_mpr )++;
+			if( *n_mpr > mplim )
 				return( 0 );
 		}else
 			l_pr = 1;
@@ -895,7 +938,7 @@ int	tlen;
 	return( 1 );
 }
 
-static	int	match_4plex( stp1, stp2, s1, s2, s3, s4, qlen )
+static	int	match_4plex( stp1, stp2, s1, s2, s3, s4, qlen, n_mpr )
 STREL_T	*stp1;
 STREL_T	*stp2;
 int	s1;
@@ -903,6 +946,7 @@ int	s2;
 int	s3;
 int	s4;
 int	qlen;
+int	*n_mpr;
 {
 	int	q;
 	int	b1, b2, b3, b4;
@@ -918,23 +962,20 @@ int	qlen;
 	else if( stp1->s_pairfrac < 1.0 )
 		mplim = (1.-stp1->s_pairfrac)*qlen;
 
-	if( !quad( stp1->s_pairset, b1, b2, b3, b4 ) )
+	if( !RM_quad( stp1->s_pairset, b1, b2, b3, b4 ) )
 		return( 0 );
 	else
 		l_pr = 1;
 
-	for( mpr = 0, q = 1; q < qlen; q++ ){
+	for( *n_mpr = 0, q = 1; q < qlen; q++ ){
 		b1 = fm_sbuf[ s1 + qlen - 1 - q ];
 		b2 = fm_sbuf[ s2 + q ];
 		b3 = fm_sbuf[ s3 - q ];
 		b4 = fm_sbuf[ s4 - qlen + 1 + q ];
-		if( !quad( stp1->s_pairset, b1, b2, b3, b4 ) ){
+		if( !RM_quad( stp1->s_pairset, b1, b2, b3, b4 ) ){
 			l_pr = 0;
-			mpr++;
-/*
-			if( mpr > stp1->s_mispair )
-*/
-			if( mpr > mplim )
+			( *n_mpr )++;
+			if( *n_mpr > mplim )
 				return( 0 );
 		}else
 			l_pr = 1;
@@ -956,7 +997,7 @@ int	qlen;
 	return( 1 );
 }
 
-static	int	paired( ps, b5, b3 )
+int	RM_paired( ps, b5, b3 )
 PAIRSET_T	*ps;
 int	b5;
 int	b3;
@@ -972,7 +1013,7 @@ int	b3;
 	return( rv );
 }
 
-static	int	triple( ps, b1, b2, b3 )
+int	RM_triple( ps, b1, b2, b3 )
 PAIRSET_T	*ps;
 int	b1;
 int	b2;
@@ -990,7 +1031,7 @@ int	b3;
 	return( rv );
 }
 
-static	int	quad( ps, b1, b2, b3, b4 )
+int	RM_quad( ps, b1, b2, b3, b4 )
 PAIRSET_T	*ps;
 int	b1;
 int	b2;
@@ -1095,7 +1136,7 @@ int	s3;
 	b5 = fm_sbuf[ s5 - 1 ];
 	b3 = fm_sbuf[ s3 + 1 ];
 	stp = srp->s_descr;
-	return( !paired( stp->s_pairset, b5, b3 ) );
+	return( !RM_paired( stp->s_pairset, b5, b3 ) );
 }
 
 static	int	chk_motif( n_descr, descr, sites )
@@ -1166,7 +1207,7 @@ STREL_T	descr[];
 			if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
 				b5 = fm_sbuf[ h5 ];
 				b3 = fm_sbuf[ h3 ];
-				if( paired( stp->s_pairset, b5, b3 ) )
+				if( RM_paired( stp->s_pairset, b5, b3 ) )
 					return( 0 );
 			}
 		}
@@ -1181,7 +1222,7 @@ STREL_T	descr[];
 	if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
 		b5 = fm_sbuf[ h5 ];
 		b3 = fm_sbuf[ h3 ];
-		if( paired( stp->s_pairset, b5, b3 ) )
+		if( RM_paired( stp->s_pairset, b5, b3 ) )
 			return( 0 );
 	}
 
@@ -1216,7 +1257,7 @@ STREL_T	descr[];
 		if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
 			b5 = fm_sbuf[ h5 ];
 			b3 = fm_sbuf[ h3 ];
-			if( paired( stp->s_pairset, b5, b3 ) )
+			if( RM_paired( stp->s_pairset, b5, b3 ) )
 				return( 0 );
 		}
 	}
@@ -1231,7 +1272,7 @@ STREL_T	descr[];
 		if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
 			b5 = fm_sbuf[ h5 ];
 			b3 = fm_sbuf[ h3 ];
-			if( paired( stp->s_pairset, b5, b3 ) )
+			if( RM_paired( stp->s_pairset, b5, b3 ) )
 				return( 0 );
 		}
 	}
@@ -1278,7 +1319,7 @@ STREL_T	descr[];
 			b1 = fm_sbuf[ d1 ];
 			b2 = fm_sbuf[ d2 ];
 			b3 = fm_sbuf[ d3 ];
-			if( triple( stp->s_pairset, b1, b2, b3 ) )
+			if( RM_triple( stp->s_pairset, b1, b2, b3 ) )
 				return( 0 );
 		}
 	}
@@ -1298,7 +1339,7 @@ STREL_T	descr[];
 			b1 = fm_sbuf[ d1 ];
 			b2 = fm_sbuf[ d2 ];
 			b3 = fm_sbuf[ d3 ];
-			if( triple( stp->s_pairset, b1, b2, b3 ) )
+			if( RM_triple( stp->s_pairset, b1, b2, b3 ) )
 				return( 0 );
 		}
 	}
@@ -1354,7 +1395,7 @@ STREL_T	descr[];
 				b2 = fm_sbuf[ d2 ];
 				b3 = fm_sbuf[ d3 ];
 				b4 = fm_sbuf[ d4 ];
-				if( quad( stp->s_pairset, b1, b2, b3, b4 ) )
+				if( RM_quad( stp->s_pairset, b1, b2, b3, b4 ) )
 					return( 0 );
 			}
 		}
@@ -1378,7 +1419,7 @@ STREL_T	descr[];
 		b2 = fm_sbuf[ d2 ];
 		b3 = fm_sbuf[ d3 ];
 		b4 = fm_sbuf[ d4 ];
-		if( quad( stp->s_pairset, b1, b2, b3, b4 ) )
+		if( RM_quad( stp->s_pairset, b1, b2, b3, b4 ) )
 			return( 0 );
 	}
 
@@ -1431,11 +1472,11 @@ SITE_T	*sip;
 	}
 
 	if( sip->s_n_pos == 2 ){
-		rv = paired( sip->s_pairset, b[ 0 ], b[ 1 ] );
+		rv = RM_paired( sip->s_pairset, b[ 0 ], b[ 1 ] );
 	}else if( sip->s_n_pos == 3 ){
-		rv = triple( sip->s_pairset, b[ 0 ], b[ 1 ], b[ 2 ] );
+		rv = RM_triple( sip->s_pairset, b[ 0 ], b[ 1 ], b[ 2 ] );
 	}else if( sip->s_n_pos == 4 ){
-		rv = quad( sip->s_pairset, b[ 0 ], b[ 1 ], b[ 2 ], b[ 3 ] );
+		rv = RM_quad( sip->s_pairset, b[ 0 ], b[ 1 ], b[ 2 ], b[ 3 ] );
 	}
 	return( rv );
 }
@@ -1537,7 +1578,8 @@ int	slen;
 	*csp = '\0';
 	circf = *stp->s_seq == '^';
 	if( stp->s_mismatch > 0 ){
-		return( mm_step( fm_chk_seq, stp->s_expbuf, stp->s_mismatch ) );
+		return( mm_step( fm_chk_seq, stp->s_expbuf, stp->s_mismatch,
+			&stp->s_n_mismatches ) );
 	}else
 		return( step( fm_chk_seq, stp->s_expbuf ) );
 }
