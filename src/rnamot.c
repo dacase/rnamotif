@@ -2,6 +2,8 @@
 
 #include "rnamot.h"
 
+#include "dbase.h"
+
 int	rm_error;
 VALUE_T	rm_tokval;
 int	rm_lineno;
@@ -57,9 +59,6 @@ static	char	sbuf[ SBUFSIZE ];
 static	int	slen;
 
 IDENT_T	*find_id();
-
-DBASE_T	*DB_open();
-DBASE_T *DB_next();
 
 main( argc, argv )
 int	argc;
