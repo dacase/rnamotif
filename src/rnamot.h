@@ -122,6 +122,8 @@ typedef	struct	strel_t	{
 	ADDR_T	s_start;
 	ADDR_T	s_stop;
 	char	*s_seq;
+	char	*s_expbuf;
+	char	*s_e_expbuf;
 	int	s_mismatch;
 	int	s_mispair;
 	PAIRSET_T	*s_pairset;
