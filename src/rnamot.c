@@ -15,7 +15,7 @@ IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ] = {
 	{ "tr", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
 	{ "qu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
 	{ "overlap", T_INT, C_VAR, S_GLOBAL, { T_INT, 0 } },
-	{ "database", T_STRING, C_VAR, S_GLOBAL, { T_STRING, "gbvrt" } }
+	{ "database", T_STRING, C_VAR, S_GLOBAL, { T_STRING, "VRT" } }
 };
 int	rm_s_global_ids = RM_GLOBAL_IDS_SIZE;
 int	rm_n_global_ids = 6;
@@ -34,18 +34,24 @@ SITE_T	*rm_sites = NULL;
 
 extern	int	yydebug;
 
-static	FILE	*opendb();	
-static	FILE	*nextdb();
-
 char	*getenv();
 
+#define	SBUFSIZE	2000000
+static	char	sbuf[ SBUFSIZE ];
+static	int	slen;
+
 IDENT_T	*find_id();
+
+DBASE_T	*DB_open();
+DBASE_T *DB_next();
 
 main( argc, argv )
 int	argc;
 char	*argv[];
 {
-	FILE	*dbfp;
+	DBASE_T	*dbp;
+	IDENT_T	*ip;
+	char	*dbnp;
 
 	RM_init();
 
@@ -59,43 +65,20 @@ char	*argv[];
 
 	RM_dump( stderr, 1, 1, 1 );
 
-	for( dbfp = opendb(); dbfp; dbfp = nextdb( dbfp ) ){
-		find_rnamot( dbfp, rm_n_descr, rm_descr, rm_sites );
+	ip = find_id( "database" );
+	if( ip == NULL ){
+		fprintf( stderr, "rnamot: 'database' not defined.\n" );
+		exit( 1 );
+	}else
+		dbnp = ip->i_val.v_value.v_pval;
+
+	for( dbp = DB_open( dbnp ); dbp; ){
+		if( slen = DB_getseq( dbp, SBUFSIZE, sbuf ) ){
+			find_rnamot( rm_n_descr, rm_descr, rm_sites,
+				slen, sbuf );
+		}else
+			dbp = DB_next();
 	}
 
 	exit( 0 );
-}
-
-static	FILE	*opendb()
-{
-	IDENT_T	*ip;
-	char	dbfname[ 256 ];
-	char	*gbhp;
-	FILE	*fp;
-
-	ip = find_id( "database" );
-	RM_dump_id( stderr, ip );
-
-	if( ( gbhp = getenv( "GBHOME" ) ) == NULL ){
-		fprintf( stderr, "rnamot: GBHOME not defined.\n" );
-		exit( 1 );
-	}
-	sprintf( dbfname, "%s/%s.seq", gbhp, ip->i_val.v_value.v_pval );
-	if( ( fp = fopen( dbfname, "r" ) ) == NULL ){
-		fprintf( stderr, "rnamot: can't read dbfile '%s'.\n",
-			dbfname );
-		exit( 1 );
-	}
-
-	return( fp );
-}
-
-static	FILE	*nextdb( fp )
-FILE	*fp;
-{
-
-	if( fp != NULL )
-		fclose( fp );
-
-	return( NULL );
 }
