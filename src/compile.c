@@ -2456,10 +2456,13 @@ STREL_T	descr[];
 				srp->s_backup = NULL;
 				rm_searches[ rm_n_searches ] = srp;
 				rm_n_searches++;
+/*
 				stp1 = stp->s_inner;
 				if( stp1 != NULL )
 					find_search_order( stp1->s_index,
 						descr );
+*/
+/*
 				stp1 = stp->s_scopes[ 1 ];
 				srp = ( SEARCH_T * )malloc(sizeof( SEARCH_T ));
 				if( srp == NULL ){
@@ -2473,7 +2476,13 @@ STREL_T	descr[];
 				srp->s_backup = NULL;
 				rm_searches[ rm_n_searches ] = srp;
 				rm_n_searches++;
+*/
 
+				stp1 = stp->s_inner;
+				if( stp1 != NULL )
+					find_search_order( stp1->s_index,
+						descr );
+				stp1 = stp->s_scopes[ 1 ];
 				stp2 = stp1->s_inner;
 				if( stp2 != NULL )
 					find_search_order( stp2->s_index,
@@ -2531,7 +2540,7 @@ int	n_searches;
 SEARCH_T	*searches[];
 {
 	int	s;
-	STREL_T	*stp;
+	STREL_T	*stp, *stp1;
 
 	for( s = 0; s < n_searches - 1; s++ )
 		searches[ s ]->s_forward = searches[ s + 1 ]->s_descr;
@@ -2539,7 +2548,16 @@ SEARCH_T	*searches[];
 		stp = searches[ s ]->s_descr;
 		if( stp->s_prev != NULL )
 			searches[ s ]->s_backup = stp->s_prev;
-		else 
-			searches[ s ]->s_backup = stp->s_outer;
+		else{ 
+			stp1 = stp->s_outer;
+			if( stp1 == NULL )
+				searches[ s ]->s_backup = NULL;
+			else if( stp1->s_proper )
+				searches[ s ]->s_backup = stp1;
+			else{	/* pknot	*/
+				stp1 = stp1->s_scopes[ 0 ];
+				searches[ s ]->s_backup = stp1;
+			}
+		}
 	}
 }
