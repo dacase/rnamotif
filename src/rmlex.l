@@ -4,6 +4,7 @@
 #include "y.tab.h"
 double	atof();		/* get it it if we ever need reals	*/
 
+int	rmlineno = 1;
 VALUE_T	rmval;
 static	char	*sp;
 
@@ -12,7 +13,9 @@ static	char	*sp;
 
 #.*		;
 
-[\ \t\f\n]+	;
+\n		rmlineno++;
+
+[\ \t\f]+	;
 
 parms		return( SYM_PARMS );
 descr		return( SYM_DESCR );
