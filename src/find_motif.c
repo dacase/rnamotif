@@ -394,8 +394,11 @@ STREL_T	descr[];
 		stp->s_matchlen, &fm_sbuf[ stp->s_matchoff ] );
 
 	for( ++stp, d = 1; d < n_descr; d++, stp++ ){
-		fprintf( fp, " %.*s", stp->s_matchlen,
-			&fm_sbuf[ stp->s_matchoff ] );
+		if( stp->s_matchlen > 0 )
+			fprintf( fp, " %.*s", stp->s_matchlen,
+				&fm_sbuf[ stp->s_matchoff ] );
+		else
+			fprintf( fp, " ." );
 	}
 	fprintf( fp, "\n" );
 }
