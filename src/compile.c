@@ -404,6 +404,8 @@ int	stype;
 	stp->s_searchno = UNDEF;
 	stp->s_matchoff = UNDEF;
 	stp->s_matchlen = UNDEF;
+	stp->s_n_mismatches = UNDEF;
+	stp->s_n_mispairs = UNDEF;
 	stp->s_tag = NULL;
 	stp->s_next = NULL;
 	stp->s_prev = NULL;
