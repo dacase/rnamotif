@@ -95,6 +95,7 @@ descr_part	: SYM_DESCR { rm_context = CTX_DESCR; } se_list ;
 site_part	: SYM_SITES { rm_context = CTX_SITES; } site_list
 		| ;
 score_part	: SYM_SCORE { rm_context = CTX_SCORE; } rule_list
+				{ SC_accept(); }
 		| ;
 
 pd_list		: pdef
@@ -166,13 +167,15 @@ auto_stmt	: auto_lval SYM_SEMICOLON
 				  SC_expr( 0, $1 );
 				  SC_clear();
 				} ;
-break_stmt	: SYM_BREAK SYM_SEMICOLON ;
+break_stmt	: SYM_BREAK SYM_SEMICOLON
+				{ SC_break(); } ;
 call_stmt	: fcall SYM_SEMICOLON
 				{ SC_expr( 0, $1 );
 				  SC_clear();
 				} ;
 cmpd_stmt	: SYM_LCURLY stmt_list SYM_RCURLY ;
-continue_stmt	: SYM_CONTINUE SYM_SEMICOLON ;
+continue_stmt	: SYM_CONTINUE SYM_SEMICOLON
+				{ SC_continue(); } ;
 empty_stmt	: empty SYM_SEMICOLON ;
 for_stmt	: for_hdr stmt	{ SC_endfor(); } ;
 if_stmt		: if_hdr stmt	{ SC_endif(); }
