@@ -75,7 +75,6 @@ q4		return( SYM_Q4 );
 \)		return( SYM_RPAREN );
 \{		return( SYM_LCURLY );
 \}		return( SYM_RCURLY );
-\.		return( SYM_PERIOD );
 \,		return( SYM_COMMA );
 :		return( SYM_COLON );
 
