@@ -43,9 +43,6 @@ static	char	csbuf[ SBUF_SIZE ];
 IDENT_T	*RM_find_id();
 
 char	*RM_preprocessor( void );
-/*
-FILE	*FN_fnext( FILE *, int *, int, char *[] );
-*/
 FILE	*DB_fnext( FILE *, int *, int, char *[] );
 int	FN_fgetseq( FILE *, char *, int, char *, int, char * );
 int	PIR_fgetseq( FILE *, char *, int, char *, int, char * );
@@ -141,25 +138,14 @@ main( int argc, char *argv[] )
 			argv[ 0 ], rm_dbfmt );
 		exit( 1 );
 	}
-/*
-	rm_dbfp = FN_fnext( rm_dbfp, &rm_c_dbfname, rm_n_dbfname, rm_dbfname );
-*/
 	rm_dbfp = DB_fnext( rm_dbfp, &rm_c_dbfname, rm_n_dbfname, rm_dbfname );
 	if( rm_dbfp == NULL )
 		exit( 1 );
 
 	for( ecnt = 0; ; ){
-/*
-		slen = FN_fgetseq( rm_dbfp, sid,
-			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
-*/
 		slen = fgetseq( rm_dbfp, sid,
 			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
 		if( slen == EOF ){
-/*
-			rm_dbfp = FN_fnext( rm_dbfp,
-				&rm_c_dbfname, rm_n_dbfname, rm_dbfname );
-*/
 			rm_dbfp = DB_fnext( rm_dbfp,
 				&rm_c_dbfname, rm_n_dbfname, rm_dbfname );
 			if( rm_dbfp == NULL )

@@ -386,11 +386,11 @@ static	int	getmiscloop( char fname[] )
 	}else{	
 		/* these parms are not currently used by efn1 */
 		fgets( line, sizeof( line ), fp );
-/*
 		sscanf( line, "%f %f %f", &fv1, &fv2, &fv3 );
-*/
+/*
 		sscanf( line, "%f %f %f",
 			&efdp->e_efn2a, &efdp->e_efn2b, &efdp->e_efn2c );
+*/
 
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );

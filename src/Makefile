@@ -27,7 +27,7 @@ rnamotif:	$(RNAMOTOBJS)
 
 rnamot.o:	rnamot.h y.tab.h
 
-compile.o:	rnamot.h y.tab.h
+compile.o:	rnamot.h mm_regexp.h y.tab.h
 
 dbutil.o:	rnamot.h
 

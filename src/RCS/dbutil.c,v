@@ -1,4 +1,34 @@
-#include <stdio.h>
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	2001.11.14.17.31.26;	author macke;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2001.08.24.17.11.40;	author macke;	state Exp;
+branches;
+next	;
+
+
+desc
+@replaces fastn.c with new set of routines that cover fastn and pir
+format with genbank ff on the way.
+@
+
+
+1.2
+log
+@fixed flaw in DB_fnext() that cause infinite loop if the DB file was
+stdin.
+@
+text
+@#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 
@@ -214,3 +244,14 @@ static	int	skipbl2nl( FILE *fp )
 			break;
 	return( c );
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d12 1
+d14 6
+@

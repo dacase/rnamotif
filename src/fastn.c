@@ -44,9 +44,6 @@ int	FN_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	*sbuf = '\0';
 	
 	if( ( c = getc( fp ) ) == EOF ){
-/*
-		return( 0 );
-*/
 		return( EOF );
 	}else if( c != '>' ){
 		fprintf( stderr,

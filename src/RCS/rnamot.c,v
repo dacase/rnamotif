@@ -1,9 +1,14 @@
-head	1.64;
+head	1.65;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.65
+date	2001.11.14.17.33.13;	author macke;	state Exp;
+branches;
+next	1.64;
 
 1.64
 date	2001.08.24.17.18.03;	author macke;	state Exp;
@@ -331,10 +336,9 @@ desc
 @
 
 
-1.64
+1.65
 log
-@modified to use the new var rm_dbfmt to decide which fgetseq() to
-use.  Change the name of FN_fnext() to DB_fnext()
+@removed commented out code that handled the old FN_file handlers.
 @
 text
 @#include <stdio.h>
@@ -382,9 +386,6 @@ static	char	csbuf[ SBUF_SIZE ];
 IDENT_T	*RM_find_id();
 
 char	*RM_preprocessor( void );
-/*
-FILE	*FN_fnext( FILE *, int *, int, char *[] );
-*/
 FILE	*DB_fnext( FILE *, int *, int, char *[] );
 int	FN_fgetseq( FILE *, char *, int, char *, int, char * );
 int	PIR_fgetseq( FILE *, char *, int, char *, int, char * );
@@ -480,25 +481,14 @@ main( int argc, char *argv[] )
 			argv[ 0 ], rm_dbfmt );
 		exit( 1 );
 	}
-/*
-	rm_dbfp = FN_fnext( rm_dbfp, &rm_c_dbfname, rm_n_dbfname, rm_dbfname );
-*/
 	rm_dbfp = DB_fnext( rm_dbfp, &rm_c_dbfname, rm_n_dbfname, rm_dbfname );
 	if( rm_dbfp == NULL )
 		exit( 1 );
 
 	for( ecnt = 0; ; ){
-/*
-		slen = FN_fgetseq( rm_dbfp, sid,
-			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
-*/
 		slen = fgetseq( rm_dbfp, sid,
 			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
 		if( slen == EOF ){
-/*
-			rm_dbfp = FN_fnext( rm_dbfp,
-				&rm_c_dbfname, rm_n_dbfname, rm_dbfname );
-*/
 			rm_dbfp = DB_fnext( rm_dbfp,
 				&rm_c_dbfname, rm_n_dbfname, rm_dbfname );
 			if( rm_dbfp == NULL )
@@ -547,6 +537,33 @@ static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
 	for( sp = sbuf, cp = &csbuf[ slen - 1 ], i = 0; i < slen; i++ )
 		*cp-- = wc_cmp[ *sp++ ];
 }
+@
+
+
+1.64
+log
+@modified to use the new var rm_dbfmt to decide which fgetseq() to
+use.  Change the name of FN_fnext() to DB_fnext()
+@
+text
+@a45 3
+/*
+FILE	*FN_fnext( FILE *, int *, int, char *[] );
+*/
+a140 3
+/*
+	rm_dbfp = FN_fnext( rm_dbfp, &rm_c_dbfname, rm_n_dbfname, rm_dbfname );
+*/
+a145 4
+/*
+		slen = FN_fgetseq( rm_dbfp, sid,
+			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
+*/
+a148 4
+/*
+			rm_dbfp = FN_fnext( rm_dbfp,
+				&rm_c_dbfname, rm_n_dbfname, rm_dbfname );
+*/
 @
 
 

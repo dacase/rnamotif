@@ -1,9 +1,14 @@
-head	1.19;
+head	1.20;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.20
+date	2001.12.19.21.06.47;	author macke;	state Exp;
+branches;
+next	1.19;
 
 1.19
 date	2001.10.29.20.00.32;	author macke;	state Exp;
@@ -107,11 +112,10 @@ enough to begin integration into rnamotif.
 @
 
 
-1.19
+1.20
 log
-@added new var rm_efnds_allocated, used to indicate the arrays holding
-the structure have been allocated.  These arrays are used by both efn()
-and efn2()
+@changed format that read unused (for efn) efn2[acb] vars to read them
+into float temps.
 @
 text
 @/*
@@ -502,11 +506,11 @@ static	int	getmiscloop( char fname[] )
 	}else{	
 		/* these parms are not currently used by efn1 */
 		fgets( line, sizeof( line ), fp );
-/*
 		sscanf( line, "%f %f %f", &fv1, &fv2, &fv3 );
-*/
+/*
 		sscanf( line, "%f %f %f",
 			&efdp->e_efn2a, &efdp->e_efn2b, &efdp->e_efn2c );
+*/
 
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
@@ -1791,6 +1795,21 @@ static	int	pull( int *a, int *b, int *c )
 	stkp--;
 	return( 0 );
 }
+@
+
+
+1.19
+log
+@added new var rm_efnds_allocated, used to indicate the arrays holding
+the structure have been allocated.  These arrays are used by both efn()
+and efn2()
+@
+text
+@d389 1
+a390 2
+		sscanf( line, "%f %f %f", &fv1, &fv2, &fv3 );
+*/
+d393 1
 @
 
 

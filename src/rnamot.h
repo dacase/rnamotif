@@ -1,7 +1,7 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.7.0 2001-oct-29"
+#define	VERSION	"v2.0.0 2001-dec-19"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
@@ -9,6 +9,8 @@ options:\n\
 \t-c\t\t\tCompile only, no search\n\
 \t-d\t\t\tDump internal data structures\n\
 \t-h\t\t\tDump the structure hierarchy\n\
+\t-ON\t\t\tMin #chars, best seq= for opt. (default=2.5)\n\
+\t-p\t\t\tDump the score code\n\
 \t-s\t\t\tShow builtin variables\n\
 \t-v\t\t\tPrint Version Infomation\n\
 \t-context\t\tPrint solution context\n\
@@ -148,6 +150,18 @@ typedef	struct	site_t	{
 #define	SA_3PAIRED	004
 #define	SA_N_ATTR	3
 
+typedef	struct	subpat_t	{
+	float	b_ecnt;
+	int	b_pos;
+	int	b_len;
+	int	b_minlen;
+	int	b_maxlen;
+	int	b_lminlen;
+	int	b_lmaxlen;
+	int	b_rminlen;
+	int	b_rmaxlen;
+} BESTPAT_T;
+
 typedef	struct	strel_t	{
 	int	s_checked;	/* used during linking		*/
 	int	s_type;
@@ -157,8 +171,8 @@ typedef	struct	strel_t	{
 	int	s_searchno;	/* index into searches[]	*/
 	int	s_matchoff;	/* matched string starts here	*/
 	int	s_matchlen;	/* matched string is this long	*/
-	int	s_n_mismatches;	/* number of mismatches		*/
-	int	s_n_mispairs;	/* number of mismatches		*/
+	int	s_n_mismatches;	/* number of mismatches, cur. match	*/
+	int	s_n_mispairs;	/* number of mispairs, cur. match	*/
 	char	*s_tag;
 	struct	strel_t	*s_next;
 	struct	strel_t	*s_prev;
@@ -180,6 +194,7 @@ typedef	struct	strel_t	{
 	char	*s_seq;
 	char	*s_expbuf;
 	char	*s_e_expbuf;
+	BESTPAT_T	s_bestpat;
 	int	s_mismatch;
 	double	s_matchfrac;
 	int	s_mispair;

@@ -1050,23 +1050,10 @@ static	void	fix_call( NODE_T *np )
 
 static	void	do_fcl( INST_T *ip )
 {
-	char	*cp;
-	int	len;
 
 	rm_wdfname = ip->i_filename;
 	rm_emsg_lineno = ip->i_lineno;
 	RM_errormsg( 1, "do_fcl: Unimplemented instruction." );
-/*
-	if( !strcmp( ip->i_val.v_value.v_pval, "length" ) ){
-		cp = mem[ sp ].v_value.v_pval;
-		len = strlen( cp );
-		tm_free( cp );
-		mem[ mp ].v_type = T_INT;
-		mem[ mp ].v_value.v_ival = len;
-		sp = mp;
-		mp = mem[ mp ].v_value.v_ival;
-	}
-*/
 }
 
 static	void	do_scl( INST_T *ip )
@@ -3301,26 +3288,14 @@ static	void	mk_stref_name( int sym, char name[] )
 static	void	addnode( int lval, NODE_T *np, int l_andor )
 {
 	VALUE_T	v_node;
-	int	sc;
 
 	rm_wdfname = np->n_filename;
 	rm_emsg_lineno = np->n_lineno;
 	switch( np->n_sym ){
 
 	case SYM_CALL :
-/*
-		if( ( sc = is_syscall( np ) ) != UNDEF ){
-			v_node.v_type = T_INT;
-			v_node.v_value.v_ival = sc;
-			addinst( np, OP_SCL, &v_node );
-		}else
-			addinst( np, OP_FCL, &np->n_val );
-*/
 		v_node.v_type = T_INT;
-/*
-		v_node.v_value.v_ival = sc = is_syscall( np );
-*/
-		v_node.v_value.v_ival = sc = np->n_val.v_value.v_ival;
+		v_node.v_value.v_ival = np->n_val.v_value.v_ival;
 		addinst( np, OP_SCL, &v_node );
 		break;
 	case SYM_LIST :

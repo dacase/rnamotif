@@ -1,9 +1,14 @@
-head	1.55;
+head	1.56;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.56
+date	2001.12.19.21.14.42;	author macke;	state Exp;
+branches;
+next	1.55;
 
 1.55
 date	2001.10.29.20.05.49;	author macke;	state Exp;
@@ -286,10 +291,10 @@ desc
 @
 
 
-1.55
+1.56
 log
-@added code to support efn2(), extended energy model that considers
-coaxial stacking of helices in m-way junctions.
+@removed unused variables that were left over from commented out code.
+Removed the commented out code as well.
 @
 text
 @#include <stdio.h>
@@ -1344,23 +1349,10 @@ static	void	fix_call( NODE_T *np )
 
 static	void	do_fcl( INST_T *ip )
 {
-	char	*cp;
-	int	len;
 
 	rm_wdfname = ip->i_filename;
 	rm_emsg_lineno = ip->i_lineno;
 	RM_errormsg( 1, "do_fcl: Unimplemented instruction." );
-/*
-	if( !strcmp( ip->i_val.v_value.v_pval, "length" ) ){
-		cp = mem[ sp ].v_value.v_pval;
-		len = strlen( cp );
-		tm_free( cp );
-		mem[ mp ].v_type = T_INT;
-		mem[ mp ].v_value.v_ival = len;
-		sp = mp;
-		mp = mem[ mp ].v_value.v_ival;
-	}
-*/
 }
 
 static	void	do_scl( INST_T *ip )
@@ -3595,26 +3587,14 @@ static	void	mk_stref_name( int sym, char name[] )
 static	void	addnode( int lval, NODE_T *np, int l_andor )
 {
 	VALUE_T	v_node;
-	int	sc;
 
 	rm_wdfname = np->n_filename;
 	rm_emsg_lineno = np->n_lineno;
 	switch( np->n_sym ){
 
 	case SYM_CALL :
-/*
-		if( ( sc = is_syscall( np ) ) != UNDEF ){
-			v_node.v_type = T_INT;
-			v_node.v_value.v_ival = sc;
-			addinst( np, OP_SCL, &v_node );
-		}else
-			addinst( np, OP_FCL, &np->n_val );
-*/
 		v_node.v_type = T_INT;
-/*
-		v_node.v_value.v_ival = sc = is_syscall( np );
-*/
-		v_node.v_value.v_ival = sc = np->n_val.v_value.v_ival;
+		v_node.v_value.v_ival = np->n_val.v_value.v_ival;
 		addinst( np, OP_SCL, &v_node );
 		break;
 	case SYM_LIST :
@@ -4033,6 +4013,47 @@ static	void	tm_report( void )
 	if( cnt > 1 )
 		exit( 1 );
 }
+@
+
+
+1.55
+log
+@added code to support efn2(), extended energy model that considers
+coaxial stacking of helices in m-way junctions.
+@
+text
+@a1052 2
+	char	*cp;
+	int	len;
+a1056 11
+/*
+	if( !strcmp( ip->i_val.v_value.v_pval, "length" ) ){
+		cp = mem[ sp ].v_value.v_pval;
+		len = strlen( cp );
+		tm_free( cp );
+		mem[ mp ].v_type = T_INT;
+		mem[ mp ].v_value.v_ival = len;
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+	}
+*/
+a3290 1
+	int	sc;
+a3296 8
+/*
+		if( ( sc = is_syscall( np ) ) != UNDEF ){
+			v_node.v_type = T_INT;
+			v_node.v_value.v_ival = sc;
+			addinst( np, OP_SCL, &v_node );
+		}else
+			addinst( np, OP_FCL, &np->n_val );
+*/
+d3298 1
+a3298 4
+/*
+		v_node.v_value.v_ival = sc = is_syscall( np );
+*/
+		v_node.v_value.v_ival = sc = np->n_val.v_value.v_ival;
 @
 
 

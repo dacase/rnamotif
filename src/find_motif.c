@@ -12,6 +12,8 @@
 extern	int	rm_emsg_lineno;
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
+extern	STREL_T	*rm_o_stp;	/* search for this first	*/
+extern	char	*rm_o_expbuf;
 extern	STREL_T	*rm_lctx;
 extern	int	rm_lctx_explicit;
 extern	STREL_T	*rm_rctx;
@@ -26,6 +28,7 @@ extern	SEARCH_T	**rm_searches;
 extern	VALUE_T	*rm_sval;
 
 extern	int	circf;	/* reg. exp. ^ kludge	*/
+extern	char	*loc1, *loc2;
 
 static	char	fm_emsg[ 256 ];
 static	char	*fm_sid;
@@ -37,6 +40,9 @@ static	int	*fm_winbuf;	/* windowsize + 2, 1 before, 1 after	*/
 static	int	*fm_window;	/* fm_winbuf[1]				*/
 static	int	fm_windowsize;
 static	int	fm_szero;
+static	int	fm_opt_pos = -1;	/* current opt. subsearch	*/
+static	int	fm_opt_lpos = -1;
+static	int	fm_opt_rpos = -1;
 static	char	*fm_chk_seq;
 
 IDENT_T	*RM_find_id( char [] );
@@ -46,6 +52,7 @@ int	RM_triple( PAIRSET_T *, int, int, int );
 int	RM_quad( PAIRSET_T *, int, int, int, int );
 
 static	int	find_motif( SEARCH_T * );
+static	int	adjust_szero( int * );
 static	int	find_1_motif( SEARCH_T * );
 static	int	find_ss( SEARCH_T * );
 static	int	find_wchlx( SEARCH_T * );
@@ -127,7 +134,12 @@ int	find_motif_driver( int n_searches, SEARCH_T *searches[],
 
 	srp = searches[ 0 ];
 	l_szero = slen - w_winsize;
+	fm_opt_pos = fm_opt_lpos = fm_opt_rpos = -1;
 	for( rv = 0, fm_szero = 0; fm_szero < l_szero; fm_szero++ ){
+		if( rm_o_stp != NULL ){
+			if( !adjust_szero( &fm_szero ) )
+				return( rv );
+		}
 		srp->s_zero = fm_szero;
 		srp->s_dollar = fm_szero + w_winsize - 1;
 		fm_window[ srp->s_zero - 1 - fm_szero ] = UNDEF;
@@ -138,10 +150,50 @@ int	find_motif_driver( int n_searches, SEARCH_T *searches[],
 	l_szero = slen - rm_dminlen;
 	srp->s_dollar = slen - 1;
 	for( ; fm_szero <= l_szero; fm_szero++ ){
+		if( rm_o_stp != NULL ){
+			if( !adjust_szero( &fm_szero ) )
+				return( rv );
+		}
 		srp->s_zero = fm_szero;
 		rv |= find_motif( srp );
 	}
 	return( rv );
+}
+
+static	int	adjust_szero( int *szero )
+{
+	int	l_mm, n_mm;
+
+	if( *szero <= fm_opt_rpos ){
+		return( 1 );
+	}else
+		fm_opt_pos++;
+
+	circf = 0;
+	if( ( l_mm = rm_o_stp->s_mismatch ) == 0 ){
+		if( step( &fm_sbuf[ fm_opt_pos ], rm_o_expbuf ) ){
+			fm_opt_pos = loc1 - fm_sbuf;
+			fm_opt_lpos = fm_opt_pos-rm_o_stp->s_bestpat.b_lmaxlen;
+			fm_opt_rpos = fm_opt_pos-rm_o_stp->s_bestpat.b_lminlen;
+			if( fm_opt_lpos < *szero )
+				fm_opt_lpos = *szero;
+			if( fm_opt_rpos < *szero )
+				fm_opt_rpos = *szero;
+			*szero = fm_opt_lpos;
+			return( 1 );
+		}
+	}else if( mm_step( &fm_sbuf[ fm_opt_pos ], rm_o_expbuf, l_mm, &n_mm ) ){
+		fm_opt_pos = loc1 - fm_sbuf;
+		fm_opt_lpos = fm_opt_pos-rm_o_stp->s_bestpat.b_lmaxlen;
+		fm_opt_rpos = fm_opt_pos-rm_o_stp->s_bestpat.b_lminlen;
+		if( fm_opt_lpos < *szero )
+			fm_opt_lpos = *szero;
+		if( fm_opt_rpos < *szero )
+			fm_opt_rpos = *szero;
+		*szero = fm_opt_lpos;
+		return( 1 );
+	}
+	return( 0 );
 }
 
 static	int	find_motif( SEARCH_T *srp )

@@ -2,6 +2,8 @@
 #include <ctype.h>
 #include <string.h>
 
+double	atof();
+
 #include "rnamot.h"
 #include "y.tab.h"
 
@@ -60,9 +62,14 @@ int	rm_s_descr = RM_DESCR_SIZE;
 int	rm_n_descr;
 int	rm_dminlen;		/* min len. of entire motif	*/
 int	rm_dmaxlen;		/* max len. of entire motif	*/
-STREL_T	*rm_lctx = NULL;	/* left context */
+static	float	rm_o_emin = 2.5;/* min len of subpat for opt	*/
+STREL_T	*rm_o_stp = NULL;	/* "optimized" sub-query	*/
+char	*rm_o_expbuf = NULL;	/* RE buf for optimized stp	*/
+int	rm_o_lctx = UNDEF;	/* required #nt 5' of o_stp	*/
+int	rm_o_rctx = UNDEF;	/* required #nt 3' of o_stp	*/
+STREL_T	*rm_lctx = NULL;	/* left context			*/
 int	rm_lctx_explicit = 0;	/* set via a ctx element	*/
-STREL_T	*rm_rctx = NULL;	/* left context */
+STREL_T	*rm_rctx = NULL;	/* left context 		*/
 int	rm_rctx_explicit = 0;	/* set via a ctx element	*/
 static	STREL_T	*stp;
 #define	SCOPE_STK_SIZE	100
@@ -126,7 +133,6 @@ static	PAIRSET_T	*pairop( char [], PAIRSET_T *, PAIRSET_T * );
 static	void	*mk_bmatp( PAIRSET_T * );
 static	void	*mk_rbmatp( PAIRSET_T * );
 static	POS_T	*posop( char [], void *, POS_T * );
-static	int	seqlen( char [], int *, int *, int *, int * );
 static	int	chk_context( void );
 static	int	link_tags( int, STREL_T [] );
 static	void	chk_tagorder( int, STREL_T *[] );
@@ -152,7 +158,9 @@ static	int	max_prefixlen( STREL_T *, STREL_T [] );
 static	int	min_suffixlen( STREL_T *, STREL_T [] );
 static	void	find_search_order( int, STREL_T [] );
 static	void	set_search_order_links( int, SEARCH_T *[]);
+static	void	optimize_query( void );
 static	int	pk_cmp( STREL_T **, STREL_T ** );
+static	void	dump_bestpat();
 
 int	RM_init( int argc, char *argv[] )
 {
@@ -180,7 +188,18 @@ int	RM_init( int argc, char *argv[] )
 			rm_dopt = 1;
 		else if( !strcmp( argv[ ac ], "-h" ) )
 			rm_hopt = 1;
-		else if( !strcmp( argv[ ac ], "-p" ) )
+		else if( !strncmp( argv[ ac ], "-O", 2 ) ){
+			sp = &argv[ ac ][ 2 ];
+			if( *sp == '\0' ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
+			}else{
+				rm_o_emin = atof( sp );
+				if( rm_o_emin < 0.25 )
+					rm_o_emin = 0.0;
+			}
+		}else if( !strcmp( argv[ ac ], "-p" ) )
 			rm_popt = 1;
 		else if( !strcmp( argv[ ac ], "-s" ) )
 			rm_sopt = 1;
@@ -639,6 +658,7 @@ static	void	SE_init( STREL_T *stp, int stype )
 	stp->s_seq = NULL;
 	stp->s_expbuf = NULL;
 	stp->s_e_expbuf = NULL;
+	memset( &stp->s_bestpat, 0, sizeof( BESTPAT_T ) );
 	stp->s_mismatch = 0;
 	stp->s_matchfrac = 1.0;
 	stp->s_mispair = UNDEF;
@@ -847,6 +867,9 @@ int	SE_link( int n_descr, STREL_T descr[] )
 	rm_n_searches = 0;
 	find_search_order( 0, descr );
 	set_search_order_links( rm_n_searches, rm_searches );
+
+	if( rm_o_emin > 0.0 )
+		optimize_query();
 
 	return( err );
 }
@@ -1669,7 +1692,7 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 		stp = egroup[ i ];
 		if( stp->s_seq == NULL )
 			continue;
-		mm_seqlen1( stp, &i1_minl, &i1_maxl, &mmok );
+		mm_seqlen( stp, 1, &i1_minl, &i1_maxl, &mmok );
 		if( !mmok && stp->s_mismatch > 0 ){
 			err = 1;
 			rm_emsg_lineno = stp->s_lineno;
@@ -2701,113 +2724,6 @@ char	*RM_str2seq( char str[] )
 	return( sp );
 }
 
-static	int	seqlen( char seq[],
-	int *minlen, int *maxlen, int *exact, int *kclos )
-{
-	char	*sp;
-	int	rbr;
-	int	minl, maxl;
-	int	circ, dollar;
-
-	/* no string! */
-	if( seq == NULL || *seq == '\0' )
-		return( 0 );
-
-	/* useful exception to strict rules of RE*	*/
-	if( *seq == '*' ){
-		*minlen = 0;
-		*maxlen = UNBOUNDED;
-		*kclos = 1;
-		return( 1 );
-	}
-
-	circ = 0;
-	dollar = 0;
-	minl = 0;
-	maxl = 0;
-	sp = seq;
-	*kclos = 0;
-	if( *sp == '^' ){	/* leading ^ anchors to position 1 */
-		circ = 1;
-		sp++;
-	}
-	while( *sp ){
-		if( *sp == '.' ){
-			if( sp[ 1 ] == '*' ){
-				maxl = UNBOUNDED;
-				*kclos = 1;
-				sp++;
-			}else{
-				minl++;
-				if( maxl != UNBOUNDED )
-					maxl++;
-			}
-		}else if( *sp == '[' ){
-			sp++;
-			if( *sp == '^' )
-				sp++;
-			if( *sp == ']' )
-				sp++;
-			for( rbr = 0; *sp; sp++ ){
-				if( *sp == ']' ){
-					rbr = 1;
-					break;
-				}
-			}
-			if( !rbr ){
-				sprintf( emsg,
-					"unclosed char class in pat '%s'",
-					seq );
-				RM_errormsg( 0, emsg );
-				return( 0 );
-			}
-			if( sp[ 1 ] == '*' ){
-				maxl = UNBOUNDED;
-				*kclos = 1;
-				sp++;
-			}else{
-				minl++;
-				if( maxl != UNBOUNDED )
-					maxl++;
-			}
-		}else if( *sp == '$' ){
-			if( sp[ 1 ] == '*' ){
-				maxl = UNBOUNDED;
-				*kclos = 1;
-				sp++;
-			}else if( sp[ 1 ] != '\0' ){
-				minl++;
-				if( maxl != UNBOUNDED )
-					maxl++;
-			}else
-				dollar = 1;
-		}else if( *sp == '\\' ){
-			if( sp[ 1 ] != '(' && sp[ 1 ] != ')' ){
-				minl++;
-				if( maxl != UNBOUNDED )
-					maxl++;
-			}
-			sp++;
-		}else if( sp[ 1 ] == '*' ){
-			maxl = UNBOUNDED;
-			*kclos = 1;
-			sp++;
-		}else{
-			minl++;
-			if( maxl != UNBOUNDED )
-				maxl++;
-		}
-		sp++;
-	}
-	*minlen = minl;
-	if( circ && dollar )
-		*maxlen = maxl;
-	else
-		*maxlen = UNBOUNDED;
-	*exact = circ && dollar;
-	return( 1 );
-}
-
 void	POS_open( int ptype )
 {
 	VALUE_T	val;
@@ -3405,8 +3321,128 @@ static	void	set_search_order_links( int n_searches, SEARCH_T *searches[] )
 	}
 }
 
+static	void	optimize_query( void )
+{
+	int	d;
+	float	ecnt, o_ecnt;
+	int	bpos, blen, bmin, lmin, lmax, rmin, rmax;
+	STREL_T	*stp;
+
+	/* look for best literal	*/
+	for( o_ecnt = 0, rm_o_stp = NULL, d = 0; d < rm_n_descr; d++ ){
+		stp = &rm_descr[ d ];
+		if( stp->s_seq != NULL ){
+			ecnt = stp->s_bestpat.b_ecnt - stp->s_mismatch;
+			if( ecnt < rm_o_emin )
+				continue;
+			if( ecnt > o_ecnt ){
+				o_ecnt = ecnt;
+				rm_o_stp = stp;
+			}
+		}
+	}
+	if( rm_o_stp != NULL ){
+
+		bpos = rm_o_stp->s_bestpat.b_pos;
+		blen = rm_o_stp->s_bestpat.b_len;
+		bmin = rm_o_stp->s_bestpat.b_minlen;
+		lmin = rm_o_stp->s_bestpat.b_lminlen;
+		lmax = rm_o_stp->s_bestpat.b_lmaxlen;
+		rmin = rm_o_stp->s_bestpat.b_rminlen;
+		rmax = rm_o_stp->s_bestpat.b_rmaxlen;
+
+		rm_o_expbuf = ( char * )
+			mm_regdup( &rm_o_stp->s_expbuf[ bpos ], blen );
+		if( rm_o_expbuf == NULL ){
+			RM_errormsg( 1,
+				"optimize_query: can't allocate rm_o_expbuf" );
+		}
+
+		if( rm_o_stp->s_maxlen != UNBOUNDED ){
+			if( lmax == UNBOUNDED ){
+				lmax = rm_o_stp->s_maxlen -
+					bmin - rmin; 
+				rm_o_stp->s_bestpat.b_lmaxlen = lmax;
+			}
+			if( rmax == UNBOUNDED ){
+				rmax = rm_o_stp->s_maxlen -
+					bmin - lmin; 
+				rm_o_stp->s_bestpat.b_rmaxlen = rmax;
+			}
+		}
+
+		for( d = 0; d < rm_o_stp->s_index; d++ ){
+			stp = &rm_descr[ d ];
+			lmin += stp->s_minlen;
+			if( lmax != UNBOUNDED ){
+				if( stp->s_maxlen == UNBOUNDED )
+					lmax = UNBOUNDED;
+				lmax += stp->s_maxlen;
+			}
+		}
+		for( d = rm_o_stp->s_index + 1; d < rm_n_descr; d++ ){
+			stp = &rm_descr[ d ];
+			rmin += stp->s_minlen;
+			if( rmax != UNBOUNDED ){
+				if( stp->s_maxlen == UNBOUNDED )
+					rmax = UNBOUNDED;
+				rmax += stp->s_maxlen;
+			}
+		}
+		rm_o_stp->s_bestpat.b_lminlen = lmin;
+		rm_o_stp->s_bestpat.b_lmaxlen = lmax;
+		rm_o_stp->s_bestpat.b_rminlen = rmin;
+		rm_o_stp->s_bestpat.b_rmaxlen = rmax;
+
+		if( rm_o_stp->s_bestpat.b_lmaxlen == UNBOUNDED )
+			rm_o_stp = NULL;
+	}
+}
+
 static	int	pk_cmp( STREL_T **d1, STREL_T **d2 )
 {
 
 	return( ( *d1 )->s_index - ( *d2 )->s_index );
+}
+
+static	void	dump_bestpat( FILE *fp, STREL_T *stp )
+{
+	float	o_ecnt;
+	int	o_pos, o_len;
+	int	o_bmin, o_bmax, o_lmin, o_lmax, o_rmin, o_rmax;
+
+	o_ecnt = stp->s_bestpat.b_ecnt;
+	o_pos = stp->s_bestpat.b_pos;
+	o_len = stp->s_bestpat.b_len;
+	o_bmin = stp->s_bestpat.b_minlen;
+	o_bmax = stp->s_bestpat.b_maxlen;
+	o_lmin = stp->s_bestpat.b_lminlen;
+	o_lmax = stp->s_bestpat.b_lmaxlen;
+	o_rmin = stp->s_bestpat.b_rminlen;
+	o_rmax = stp->s_bestpat.b_rmaxlen;
+
+	fprintf( fp, "bestpat: descr[%d], d_minl = %d, d_maxl = ",
+		stp->s_index, rm_o_stp->s_minlen );
+	if( stp->s_maxlen == UNBOUNDED )
+		fprintf( fp, "UNBND" );
+	else
+		fprintf( fp, "%d", rm_o_stp->s_maxlen );
+	fprintf( fp, "\n" );
+
+	fprintf( fp,
+	"bestpat: subpat: ecnt = %4.2f, pos,len = %d,%d\n",
+		o_ecnt, o_pos, o_len );
+	fprintf( fp, "bestpat: subpat: p_minl = %d, p_maxl = %d\n",
+		o_bmin, o_bmax );
+	fprintf( fp, "bestpat: subpat: lctx = %d:", o_lmin );
+	if( o_lmax == UNBOUNDED )
+		fprintf( fp, "UNBND" );
+	else
+		fprintf( fp, "%d", o_lmax );
+	fprintf( fp, ", rctx = %d:", o_rmin );
+	if( o_rmax == UNBOUNDED )
+		fprintf( fp, "UNBND" );
+	else
+		fprintf( fp, "%d", o_rmax );
+	fprintf( fp, "\n" );
 }
