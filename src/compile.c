@@ -62,6 +62,7 @@ static	void	chk_tagorder();
 static	void	mk_links();
 static	void	duptags_error();
 static	int	chk_parms();
+static	void	chk_site();
 
 int	RM_init()
 {
@@ -325,6 +326,7 @@ int	SE_link( n_descr, descr )
 int	n_descr;
 STREL_T	descr[];
 {
+	SITE_T	*sip;
 
 	if( n_descr == 0 ){
 		errormsg( 0, "SE_link: Descriptor has 0 elements." );
@@ -336,6 +338,9 @@ STREL_T	descr[];
 
 	if( chk_parms( n_descr, descr ) )
 		return( 1 );
+
+	for( sip = rm_sites; sip; sip = sip->s_next )
+		chk_site( sip );
 
 	return( 0 );
 }
@@ -1200,6 +1205,7 @@ int	ptype;
 	posp->p_type = ptype;
 	posp->p_lineno = rm_lineno;
 	posp->p_tag = NULL;
+	posp->p_dindex = UNDEF;
 	posp->p_l2r = 1;	/* 1 = 1..$; 0 = $..1	*/
 	posp->p_offset = 0;
 
@@ -1243,7 +1249,7 @@ NODE_T	*expr;
 	int	i;
 	POS_T	*posp;
 	PAIRSET_T	*ps;
-	SITE_T	*sp, *sp1;
+	SITE_T	*sip, *sip1;
 
 	posp = ( POS_T * )malloc( rm_n_pos * sizeof( POS_T ) );
 	if( posp == NULL ){
@@ -1252,24 +1258,60 @@ NODE_T	*expr;
 	}
 	for( i = 0; i < rm_n_pos; i++ )
 		posp[ i ] = rm_pos[ i ];
-	sp = ( SITE_T * )malloc( sizeof( SITE_T ) );
-	if( sp == NULL ){
+	sip = ( SITE_T * )malloc( sizeof( SITE_T ) );
+	if( sip == NULL ){
 		rm_emsg_lineno = rm_pos[ 0 ].p_lineno;
-		errormsg( 1, "SI_close: can't allocate sp." );
+		errormsg( 1, "SI_close: can't allocate sip." );
 	}
-	sp->s_next = NULL;
-	sp->s_pos = posp;
-	sp->s_n_pos = rm_n_pos;
+	sip->s_next = NULL;
+	sip->s_pos = posp;
+	sip->s_n_pos = rm_n_pos;
 	ps = expr->n_val.v_value.v_pval;
-	sp->s_pairset = pairop( "copy", ps, NULL );
+	sip->s_pairset = pairop( "copy", ps, NULL );
 
 	if( rm_sites == NULL )
-		rm_sites = sp;
+		rm_sites = sip;
 	else{
-		for( sp1 = rm_sites; sp1->s_next; sp1 = sp1->s_next)
+		for( sip1 = rm_sites; sip1->s_next; sip1 = sip1->s_next)
 			;
-		sp1->s_next = sp;
+		sip1->s_next = sip;
 	}
 
 	rm_n_pos = 0;
+}
+
+static	void	chk_site( sip )
+SITE_T	*sip;
+{
+	int	i, j;
+	POS_T	*posp;
+	char	*sp;
+	STREL_T	*stp;
+
+	for( posp = sip->s_pos, i = 0; i < sip->s_n_pos; i++, posp++ ){
+		if( ( sp = posp->p_tag ) == NULL ){
+			rm_emsg_lineno = posp->p_lineno;
+			errormsg( 0,
+				"chk_site: all positions must be tagged." );
+		}else{
+			stp = rm_descr;
+			for( j = 0; j < rm_n_descr; j++, stp++ ){
+				if( stp->s_tag == NULL )
+					continue;
+				if( stp->s_type != posp->p_type )
+					continue;
+				if( !strcmp( sp, stp->s_tag ) ){
+					posp->p_dindex = stp->s_index;
+					break;
+				}
+			}
+			if( posp->p_dindex == UNDEF ){
+				sprintf( emsg,
+				"chk_site: position with undefined tag '%s'.",
+					sp );
+				rm_emsg_lineno = posp->p_lineno;
+				errormsg( 0, emsg );
+			}
+		}
+	}
 }
