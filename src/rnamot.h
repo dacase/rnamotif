@@ -96,6 +96,10 @@ typedef	struct	strel_t	{
 	int	s_scope;
 	int	s_minlen;
 	int	s_maxlen;
+	int	s_minglen;
+	int	s_maxglen;
+	int	s_minilen;
+	int	s_maxilen;
 	char	*s_seq;
 	int	s_mismatch;
 	int	s_mispair;
