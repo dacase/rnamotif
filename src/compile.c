@@ -44,6 +44,8 @@ extern	int	rm_s_pos;
 extern	int	rm_n_pos;
 static	POS_T	*posp;
 
+extern	SITE_T	*rm_sites;
+
 NODE_T	*PR_close();
 
 static	IDENT_T	*enter_id();
@@ -1235,13 +1237,39 @@ void	POS_close()
 	}
 }
 
-void	SI_close()
+void	SI_close( expr )
+NODE_T	*expr;
 {
 	int	i;
 	POS_T	*posp;
+	PAIRSET_T	*ps;
+	SITE_T	*sp, *sp1;
 
-	fprintf( stderr, "SITE: %d positions.\n", rm_n_pos );
-	for( posp = rm_pos, i = 0; i < rm_n_pos; i++, posp++ )
-		RM_dump_pos( stderr, posp );
+	posp = ( POS_T * )malloc( rm_n_pos * sizeof( POS_T ) );
+	if( posp == NULL ){
+		rm_emsg_lineno = rm_pos[ 0 ].p_lineno;
+		errormsg( 1, "SI_close: can't allocate posp." );
+	}
+	for( i = 0; i < rm_n_pos; i++ )
+		posp[ i ] = rm_pos[ i ];
+	sp = ( SITE_T * )malloc( sizeof( SITE_T ) );
+	if( sp == NULL ){
+		rm_emsg_lineno = rm_pos[ 0 ].p_lineno;
+		errormsg( 1, "SI_close: can't allocate sp." );
+	}
+	sp->s_next = NULL;
+	sp->s_pos = posp;
+	sp->s_n_pos = rm_n_pos;
+	ps = expr->n_val.v_value.v_pval;
+	sp->s_pairset = pairop( "copy", ps, NULL );
+
+	if( rm_sites == NULL )
+		rm_sites = sp;
+	else{
+		for( sp1 = rm_sites; sp1->s_next; sp1 = sp1->s_next)
+			;
+		sp1->s_next = sp;
+	}
+
 	rm_n_pos = 0;
 }
