@@ -19,6 +19,8 @@ extern	int	rm_b2bc[];
 
 extern	SEARCH_T	**rm_searches;
 
+extern	VALUE_T	*rm_sval;
+
 extern	int	circf;	/* reg. exp. ^ kludge	*/
 
 static	char	fm_emsg[ 256 ];
@@ -28,7 +30,6 @@ static	char	*fm_sdef;
 static	int	fm_comp;
 static	int	fm_slen;
 static	char	*fm_sbuf;
-static	double	fm_score;
 static	int	*fm_winbuf;	/* windowsize + 2, 1 before, 1 after	*/
 static	int	*fm_window;	/* fm_winbuf[1]				*/
 static	int	fm_windowsize;
@@ -257,7 +258,7 @@ static	int	find_ss( SEARCH_T *srp )
 		rv = 1;
 		if( !chk_sites( rm_n_descr, rm_descr, rm_sites ) ){
 			rv = 0;
-		}else if( RM_score( fm_comp, fm_slen, fm_sbuf, &fm_score ) )
+		}else if( RM_score( fm_comp, fm_slen, fm_sbuf ) )
 			print_match( stdout,
 				fm_sid, fm_comp, rm_n_descr, rm_descr );
 /*
@@ -1596,8 +1597,22 @@ static	void	print_match( FILE *fp, char sid[], int comp,
 
 	if( fm_dtype == DT_FASTN )
 		fprintf( fp, ">%s %s\n", sid, fm_sdef );
-	fprintf( fp, "%-12s %8.3lf %d", sid, fm_score, comp );
-	fprintf( fp, " %7d %4d", offset, len );
+	fprintf( fp, "%-12s", sid );
+	switch( rm_sval->v_type ){
+	case T_INT :
+		fprintf( fp, " %8d", rm_sval->v_value.v_ival );
+		break;
+	case T_FLOAT :
+		fprintf( fp, " %8.3lf", rm_sval->v_value.v_dval );
+		break;
+	case T_STRING :
+		fprintf( fp, " %8s", rm_sval->v_value.v_pval );
+		break;
+	default :
+		fprintf( fp, " %8.3lf", 0.0 );
+		break;
+	}
+	fprintf( fp, " %d %7d %4d", comp, offset, len );
 
 	for( d = 0; d < n_descr; d++, stp++ ){
 		if( stp->s_matchlen > 0 ){

@@ -5,6 +5,9 @@
 #include "rnamot.h"
 #include "y.tab.h"
 
+#define	FMTLIST		"bBdiouxXfeEgGcCsSpn%"
+#define	FMTFLAGS	"'-+ #0"
+
 #define	MIN(a,b)	((a)<(b)?(a):(b))
 
 #define	ISLVAL(s)	\
@@ -51,7 +54,6 @@ static	int	loopstkp = 0;
 static	int	sc_comp;
 static	int	sc_slen;
 static	char	*sc_sbuf;
-static	double	*sc_score;
 
 #define	OP_NOOP		0	/* No Op	 	*/
 #define	OP_ACPT		1	/* Accept the candidate	*/
@@ -128,21 +130,23 @@ static	char	*opnames[ N_OP ] = {
 	"jmp" 
 };
 
-#define	SC_EFN		0
-#define	SC_LENGTH	1
-#define	SC_MISMATCHES	2
-#define	SC_MISPAIRS	3
-#define	SC_PAIRED	4
-#define	SC_STRID	5
-#define	N_SC		6	
+#define	SC_STRID	0
+#define	SC_EFN		1
+#define	SC_LENGTH	2
+#define	SC_MISMATCHES	3
+#define	SC_MISPAIRS	4
+#define	SC_PAIRED	5
+#define	SC_SPRINTF	6
+#define	N_SC		7	
 
 static	char	*scnames[ N_SC ] = {
+	"STRID",
 	"efn",
 	"length",
 	"mismatches",
 	"mispairs",
 	"paired",
-	"STRID"
+	"sprintf"
 };
 
 typedef	struct	inst_t	{
@@ -167,6 +171,10 @@ static	int	esp;		/* element stack pointer*/
 
 static	char	emsg[ 256 ];
 
+#define	SPRINTFBUF_SIZE	10000
+static	char	sprintfbuf[ SPRINTFBUF_SIZE ];
+static	char	*sbp;
+
 void	RM_action( NODE_T * );
 void	RM_endaction( void );
 void	RM_if( NODE_T * );
@@ -188,7 +196,7 @@ void	RM_clear( void );
 void	RM_expr( int, NODE_T * );
 void	RM_linkscore( void );
 void	RM_dumpscore( FILE * );
-int	RM_score( int, int, char [], double * );
+int	RM_score( int, int, char [] );
 
 static	void	fixexpr( NODE_T * );
 static	void	genexpr( int, NODE_T * );
@@ -201,6 +209,8 @@ static	void	do_fcl( INST_T * );
 static	void	do_scl( INST_T * );
 static	int	paired( STREL_T *, int, int );
 static	int	strid( int, VALUE_T * );
+static	int	do_sprintf( INST_T * );
+static	int	do_fmt( INST_T *, char *, int, int * );
 static	void	do_strf( INST_T * );
 static	void	do_lda( INST_T * );
 static	void	do_lod( INST_T * );
@@ -438,10 +448,6 @@ void	RM_linkscore( void )
 	v_svars.v_type = T_INT;
 	v_svars.v_value.v_ival = rm_n_descr;
 	RM_enter_id( "NSE", T_INT, C_VAR, S_GLOBAL, 1, &v_svars );
-	v_svars.v_type = T_FLOAT;
-	v_svars.v_value.v_dval = 0.0;
-	idp = RM_enter_id( "SCORE", T_FLOAT, C_VAR, S_GLOBAL, 1, &v_svars );
-	sc_score = &idp->i_val.v_value.v_dval;
 }
 
 void	RM_dumpscore( FILE *fp )
@@ -455,12 +461,11 @@ void	RM_dumpscore( FILE *fp )
 	}
 }
 
-int	RM_score( int comp, int slen, char sbuf[], double *score )
+int	RM_score( int comp, int slen, char sbuf[] )
 {
 	INST_T	*ip;
 	int	rval;
 	
-	*score = 0.0;
 	if( l_prog <= 0 )
 		return( 1 );
 
@@ -487,7 +492,6 @@ dumpstk( stdout, "before op" );
 			break;
 
 		case OP_ACPT :
-			*score = *sc_score;
 			rval = 1;
 			goto SCORED;
 			break;
@@ -617,7 +621,6 @@ dumpstk( stdout, "after op " );
 	}
 
 SCORED : ;
-	*score = *sc_score;
 
 #ifdef MEMDEBUG
 	tm_report();
@@ -844,6 +847,10 @@ static	void	fix_call( NODE_T *np )
 
 	sc = is_syscall( np );
 	switch( sc ){
+	case SC_STRID :
+		rm_emsg_lineno = np->n_lineno;
+		RM_errormsg( 1, "fix_call: STRID can not be called by user." );
+		break;
 	case SC_EFN :
 		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
 			pcnt++;
@@ -902,9 +909,7 @@ static	void	fix_call( NODE_T *np )
 		np1 = np1->n_right;
 		np->n_right = np1;
 		break;
-	case SC_STRID :
-		rm_emsg_lineno = np->n_lineno;
-		RM_errormsg( 1, "fix_call: STRID can not be called by user." );
+	case SC_SPRINTF :
 		break;
 	default :
 		rm_emsg_lineno = np->n_lineno;
@@ -933,13 +938,26 @@ static	void	do_scl( INST_T *ip )
 {
 	char	*cp;
 	VALUE_T	*v_id;
-	int	stype, idx, pos, len;
+	int	i, stype, idx, pos, len;
 	int	idx2, pos2, len2;
 	STREL_T	*stp, *stp2;
 	IDENT_T	*idp;
 	float	rval;
 
 	switch( ip->i_val.v_value.v_ival ){
+	case SC_STRID :
+		v_id = &mem[ sp  ];
+		stype = mem[ sp - 1 ].v_value.v_ival;
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+		mem[ sp ].v_type = T_INT;
+		idx = mem[ sp ].v_value.v_ival = strid( stype, v_id );
+		if( v_id->v_type == T_STRING )
+			tm_free( v_id->v_value.v_pval );
+		esp++;
+		estk[ esp ] = idx;
+		break;
+
 	case SC_EFN :
 		if( !rm_efninit ){
 			rm_efninit = 1;
@@ -1031,6 +1049,7 @@ static	void	do_scl( INST_T *ip )
 		mem[ sp ].v_type = T_FLOAT;
 		mem[ sp ].v_value.v_dval = rval;
 		break;
+
 	case SC_LENGTH :
 		cp = mem[ sp ].v_value.v_pval;
 		len = strlen( cp );
@@ -1040,6 +1059,7 @@ static	void	do_scl( INST_T *ip )
 		mem[ sp ].v_type = T_INT;
 		mem[ sp ].v_value.v_ival = len;
 		break; 
+
 	case SC_MISMATCHES :
 		idx = mem[ sp - 2 ].v_value.v_ival;
 		if( idx < 0 || idx >= rm_n_descr ){
@@ -1055,6 +1075,7 @@ static	void	do_scl( INST_T *ip )
 		mem[ sp ].v_type = T_INT;
 		mem[ sp ].v_value.v_ival = stp->s_n_mismatches;
 		break;
+
 	case SC_MISPAIRS :
 		idx = mem[ sp - 2 ].v_value.v_ival;
 		if( idx < 0 || idx >= rm_n_descr ){
@@ -1070,6 +1091,7 @@ static	void	do_scl( INST_T *ip )
 		mem[ sp ].v_type = T_INT;
 		mem[ sp ].v_value.v_ival = stp->s_n_mispairs;
 		break;
+
 	case SC_PAIRED :
 		idx = mem[ sp - 2 ].v_value.v_ival;
 		if( idx < 0 || idx >= rm_n_descr ){
@@ -1106,17 +1128,22 @@ static	void	do_scl( INST_T *ip )
 		mem[ sp ].v_value.v_ival = paired( stp, pos, len );
 		break;
 
-	case SC_STRID :
-		v_id = &mem[ sp  ];
-		stype = mem[ sp - 1 ].v_value.v_ival;
+	case SC_SPRINTF :
+		do_sprintf( ip );
+		cp = ( char * )malloc( strlen( sprintfbuf ) + 1 );
+		if( cp == NULL ){
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, "do_strf: can't allocate cp1." );
+		}
+		strcpy( cp, sprintfbuf );
+		for( i = sp; i > mp; i-- ){
+			if( mem[ i ].v_type == T_STRING )
+				tm_free( mem[ i ].v_value.v_pval );
+		}
 		sp = mp;
 		mp = mem[ mp ].v_value.v_ival;
-		mem[ sp ].v_type = T_INT;
-		idx = mem[ sp ].v_value.v_ival = strid( stype, v_id );
-		if( v_id->v_type == T_STRING )
-			tm_free( v_id->v_value.v_pval );
-		esp++;
-		estk[ esp ] = idx;
+		mem[ sp ].v_type = T_STRING;
+		mem[ sp ].v_value.v_pval = cp;
 		break;
 
 	default :
@@ -1263,6 +1290,346 @@ static	int	strid( int stype, VALUE_T *v_id )
 	return( idx );
 }
 
+static	int	do_sprintf( INST_T *ip )
+{
+	int	c_arg, n_args;
+	char	*fstr;
+	char	fmt[ 256 ];
+	char	*fp, *pp, *epp;
+	int	rval = 0;
+
+	n_args = sp - mp;
+	fstr = mem[ mp + 1 ].v_value.v_pval;
+	sbp = sprintfbuf;
+	for( c_arg = 0, fp = fstr; pp = strchr( fp, '%' ); ){
+		strncpy( sbp, fp, pp - fp );
+		sbp[ pp - fp ] = '\0';
+		sbp += strlen( sbp );
+		epp = strpbrk( &pp[ 1 ], FMTLIST );
+		strncpy( fmt, pp, epp - pp + 1 );
+		fmt[ epp - pp + 1 ] = '\0';
+		if( rval = do_fmt( ip, fmt, n_args, &c_arg ) )
+			break;
+		fp = epp + 1;
+	}
+	strcpy( sbp, fp );
+	return( rval );
+}
+
+static	int	do_fmt( INST_T *ip, char *fmt, int n_args, int *c_arg )
+{
+	int	l_fmt, nprt;
+	int	type;
+	char	work[ 256 ];
+	char	posp[ 20 ], flags[ 20 ], width[ 20 ], prec[ 20 ], size[ 20 ];
+	char	*efp, *sp;
+	char	*dot, *star, *dollar;
+	char	*wp;
+	int	u_arg, r_arg;
+	int	w_ind, u_wid, r_wid, p_ind, u_prec, r_prec;
+	int	i_argc, u_argc;
+	VALUE_T	*v_arg, *v_wid, *v_prec;
+	int	rval = 0;
+
+	nprt = 0;
+	w_ind = 0; u_wid = 0;
+	p_ind = 0; u_prec = 0; 
+	i_argc = 0;
+
+	l_fmt = strlen( fmt );
+	efp = &fmt[ l_fmt - 1 ];
+	type = *efp--;
+
+	sp = size;
+	if( *efp == 'h' || *efp == 'l' || *efp == 'L' )
+		*sp++ = *efp--;
+	if( *efp == 'l' )
+		*sp++ = *efp--;
+	*sp = '\0';
+
+	strncpy( work, &fmt[ 1 ], efp - &fmt[ 1 ] + 1 );
+	work[ efp - &fmt[ 1 ] + 1 ] = '\0';
+
+	if( dot = strchr( work, '.' ) ){
+		strcpy( prec, dot );
+		*dot = '\0'; 
+		if( prec[ 1 ] == '*' ){
+			p_ind = 1;
+			if( isdigit( prec[ 2 ] ) )
+				u_prec = atoi( &prec[ 2 ] );
+			else{
+				u_prec = -1;
+				i_argc++;
+			}
+		}
+	}else
+		*prec = '\0';
+
+	if( star = strchr( work, '*' ) ){
+		w_ind = 1;
+		strcpy( width, star );
+		*star = '\0';
+		if( isdigit( width[ 1 ] ) ) 
+			u_wid = atoi( &width[ 1 ] );
+		else{
+			u_wid = -1;
+			i_argc++;
+		}
+		if( dollar = strchr( work, '$' ) ){
+			dollar++;
+			strncpy( posp, work, dollar - work );
+			posp[ dollar - work ] = '\0'; 
+			strcpy( flags, dollar );
+		}else{
+			*posp = '\0';
+			strcpy( flags, work );
+		}
+	}else if( dollar = strchr( work, '$' ) ){
+		dollar++;
+		strncpy( posp, work, dollar - work );
+		posp[ dollar - work ] = '\0'; 
+		wp = dollar + strspn( dollar, FMTFLAGS );
+		strncpy( flags, dollar, wp - dollar );
+		flags[ wp - dollar ] = '\0';
+		strcpy( width, wp );
+	}else{
+		*posp = '\0';
+		wp = work + strspn( work, FMTFLAGS );
+		strncpy( flags, work, wp - work );
+		flags[ wp - work ] = '\0';
+		strcpy( width, wp );
+	}
+
+	u_arg = *posp ? atoi( posp ) : -1 - i_argc;
+
+	if( w_ind && p_ind ){
+		if( u_wid == -1 && u_prec == -1 )
+			u_prec = -2;
+	}
+
+	v_arg = NULL;
+	r_arg = u_arg < 0 ? *c_arg - u_arg : u_arg;
+	if( r_arg < 1 || r_arg >= n_args ){
+		rm_emsg_lineno = ip->i_lineno;
+		sprintf( emsg, "do_fmt: No such argument (%d).", r_arg );
+		RM_errormsg( 0, emsg );
+		rval = 1;
+		goto DONE;
+	}else
+		v_arg = &mem[ mp + r_arg + 1 ];
+
+	v_wid = NULL;
+	r_wid = u_wid < 0 ? *c_arg - u_wid : u_wid;
+	if( r_wid < 0 || r_wid >= n_args ){
+		rm_emsg_lineno = ip->i_lineno;
+		sprintf( emsg, "do_fmt: No such width argument (%d).", r_wid );
+		RM_errormsg( 0, emsg );
+		rval = 1;
+		goto DONE;
+	}else if( r_wid != 0 ){
+		v_wid = &mem[ mp + r_wid + 1 ];
+		if( v_wid->v_type != T_INT ){
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 0, "do_fmt: Ind. width must be int." );
+			rval = 1;
+			goto DONE;
+		}
+	}
+
+	v_prec = NULL;
+	r_prec = u_prec < 0 ? *c_arg - u_prec : u_prec;
+	if( r_prec < 0 || r_prec >= n_args ){
+		rm_emsg_lineno = ip->i_lineno;
+		sprintf( emsg,
+			"do_fmt: No such prec. argument (%d).", r_prec );
+		RM_errormsg( 0, emsg );
+		rval = 1;
+		goto DONE;
+	}else if( r_prec != 0 ){
+		v_wid = &mem[ mp + r_prec + 1 ];
+		if( v_prec->v_type != T_INT ){
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 0, "do_fmt: Ind. prec. must be int." );
+			rval = 1;
+			goto DONE;
+		}
+	}
+
+	u_argc = 1;
+	u_argc += r_wid != 0 ? 1 : 0;
+	u_argc += r_prec != 0 ? 1 : 0;
+
+	*c_arg += *posp ? i_argc : i_argc + 1;
+
+	switch( type ){
+	case 'b' :
+	case 'B' :
+	case 'e' :
+	case 'E' :
+	case 'f' :
+	case 'g' :
+	case 'G' :
+		if( v_arg->v_type != T_FLOAT ){
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg,
+				"do_fmt: '%c' format requires float arg.",
+				type );
+			RM_errormsg( 0, emsg );
+			rval = 1;
+			goto DONE;
+		}	
+		switch( u_argc ){
+		case 1 :
+			nprt = sprintf( sbp, fmt, v_arg->v_value.v_dval );
+			break;
+		case 2 :
+			nprt = sprintf( sbp, fmt,
+				v_wid ? v_wid->v_value.v_ival
+					: v_prec->v_value.v_ival,
+				v_arg->v_value.v_dval );
+			break;
+		case 3 :
+			nprt = sprintf( sbp, fmt,
+				v_wid->v_value.v_ival, v_prec->v_value.v_ival,
+				v_arg->v_value.v_dval );
+			break;
+		default :
+			break;
+		}
+		break;
+	case 'd' :
+	case 'i' :
+		if( v_arg->v_type != T_INT ){
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg,
+				"do_fmt: '%c' format requires int arg.",
+				type );
+			RM_errormsg( 0, emsg );
+			rval = 1;
+			goto DONE;
+		}	
+		switch( u_argc ){
+		case 1 :
+			nprt = sprintf( sbp, fmt, v_arg->v_value.v_ival );
+			break;
+		case 2 :
+			nprt = sprintf( sbp, fmt,
+				v_wid ? v_wid->v_value.v_ival
+					: v_prec->v_value.v_ival,
+				v_arg->v_value.v_ival );
+			break;
+		case 3 :
+			nprt = sprintf( sbp, fmt,
+				v_wid->v_value.v_ival, v_prec->v_value.v_ival,
+				v_arg->v_value.v_ival );
+			break;
+		default :
+			break;
+		}
+		break;
+	case 'o' :
+	case 'u' :
+	case 'x' :
+	case 'X' :
+		if( v_arg->v_type != T_INT ){
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg,
+				"do_fmt: '%c' format requires int arg.",
+				type );
+			RM_errormsg( 0, emsg );
+			rval = 1;
+			goto DONE;
+		}	
+		switch( u_argc ){
+		case 1 :
+			nprt = sprintf( sbp, fmt,
+				( unsigned )v_arg->v_value.v_ival );
+			break;
+		case 2 :
+			nprt = sprintf( sbp, fmt,
+				v_wid ? v_wid->v_value.v_ival
+					: v_prec->v_value.v_ival,
+				( unsigned )v_arg->v_value.v_ival );
+			break;
+		case 3 :
+			nprt = sprintf( sbp, fmt,
+				v_wid->v_value.v_ival, v_prec->v_value.v_ival,
+				( unsigned )v_arg->v_value.v_ival );
+			break;
+		default :
+			break;
+		}
+		break;
+	case 's' :
+	case 'S' :
+		if( v_arg->v_type != T_STRING ){
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg,
+				"do_fmt: '%c' format requires string/seq arg.",
+				type );
+			RM_errormsg( 0, emsg );
+			rval = 1;
+			goto DONE;
+		}	
+		switch( u_argc ){
+		case 1 :
+			nprt = sprintf( sbp, fmt,
+				v_arg->v_value.v_pval );
+			break;
+		case 2 :
+			nprt = sprintf( sbp, fmt,
+				v_wid ? v_wid->v_value.v_ival
+					: v_prec->v_value.v_ival,
+				v_arg->v_value.v_pval );
+			break;
+		case 3 :
+			nprt = sprintf( sbp, fmt,
+				v_wid->v_value.v_ival, v_prec->v_value.v_ival,
+				v_arg->v_value.v_pval );
+			break;
+		default :
+			break;
+		}
+		break;
+	case 'n' :
+		if( v_arg->v_type == T_INT )
+			v_arg->v_value.v_ival = nprt;
+		else if( v_arg->v_type == T_FLOAT )
+			v_arg->v_value.v_dval = nprt;
+		else{
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, "do_fmt: '%c' format requires int arg.",
+				type );
+			RM_errormsg( 0, emsg );
+			rval = 1;
+			goto DONE;
+		}
+		break;
+	case '%' :
+		*sbp = '%';
+		sbp[ 1 ] = '\0';
+		nprt++;
+		break;
+	case 'c' :
+	case 'C' :
+	case 'p' :
+	default :
+		rm_emsg_lineno = ip->i_lineno;
+		sprintf( emsg, "do_fmt: '%c' unsupported format.", type );
+		RM_errormsg( 0, emsg );
+		rval = 1;
+		goto DONE;
+		break;
+	}
+
+DONE : ;
+
+	sbp += nprt;
+	*sbp = '\0';
+
+	return( rval );
+}
+
 static	void	do_strf( INST_T *ip )
 {
 	int	index;
@@ -1351,7 +1718,7 @@ static	void	do_lod( INST_T *ip )
 	if( idp == NULL ){
 		rm_emsg_lineno = UNDEF;
 		sprintf( emsg, "do_lod: variable '%s' is undefined.",
-			idp->i_name );
+			ip->i_val.v_value.v_pval );
 		RM_errormsg( 1, emsg );
 	}else{
 		switch( idp->i_type ){
@@ -1457,9 +1824,9 @@ static	void	do_sto( INST_T *ip )
 		break;
 	case T_IJ( T_UNDEF, T_FLOAT ):
 		v_tm1->v_type = T_FLOAT;
-		idp->i_type = T_INT;
-		idp->i_val.v_type = T_INT;
-		idp->i_val.v_value.v_ival = v_top->v_value.v_ival;
+		idp->i_type = T_FLOAT;
+		idp->i_val.v_type = T_FLOAT;
+		idp->i_val.v_value.v_dval = v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_UNDEF, T_STRING ):
 		cp = ( char * )tm_malloc(

@@ -1,4 +1,4 @@
-test: nanlin pk1 qu+tr score.1 score.2 trna mp.ends efn
+test: nanlin pk1 qu+tr score.1 score.2 trna mp.ends efn sprintf
 
 nanlin:
 	@echo =====================================================
@@ -64,6 +64,15 @@ mp.ends:
 	@-rm -f $@.test
 
 efn:
+	@echo =====================================================
+	@echo   "Running $@ test:"
+	@echo
+	@../src/rnamotif -descr $@.descr gbrna.111.0.fastn | ../src/rmfmt -l > $@.test
+	@-diff $@.chk $@.test && echo "  PASSED" \
+		|| echo "   FAILED (possibly; see if diffs above look OK)"
+	@-rm -f $@.test
+
+sprintf:
 	@echo =====================================================
 	@echo   "Running $@ test:"
 	@echo

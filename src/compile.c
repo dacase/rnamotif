@@ -86,6 +86,8 @@ int	*rm_basepr;
 int	rm_efnusestdbp;
 PAIRSET_T	*rm_efnstdbp;
 
+VALUE_T	*rm_sval;
+
 extern	int	circf;		/* RE ^ kludge	*/
 
 static	char	emsg[ 256 ];
@@ -140,6 +142,7 @@ int	RM_init( int argc, char *argv[] )
 	char	*dfnp, *dbfnp;
 	VALUE_T	val;
 	FILE	*cfp;
+	IDENT_T	*ip;
 
 	dfnp = NULL;	/* descriptor file name	*/
 	dbfnp = NULL;	/* database file name	*/
@@ -352,6 +355,11 @@ int	RM_init( int argc, char *argv[] )
 	np = PR_close();
 	rm_efnstdbp = np->n_val.v_value.v_pval;
 	RM_enter_id( "efn_stdbp", T_PAIRSET, C_VAR, S_GLOBAL, 0, &np->n_val );
+
+	val.v_type = T_UNDEF;
+	val.v_value.v_pval = NULL;
+	ip = RM_enter_id( "SCORE", T_UNDEF, C_VAR, S_GLOBAL, 1, &val ); 
+	rm_sval = &ip->i_val;
 
 	rm_lineno = 1;
 

@@ -1,3 +1,16 @@
+1.3.4	2000-nov-29
+	Added new builtin sprintf() which works like the awk version.
+	It takes 1+ args, the first of which is a format, and the 2 and
+	subsequent are arguments to be `interpolated' into the format.
+	It returns a character string with is usually assigned to the
+	predefined variable SCORE.
+
+	Also fixed rmfmt to deal with >1 score colums in light of the
+	new ability of rnamotif to create such files.  A single numeric
+	SCORE behaves like the previous versions, >1, but fixed score
+	fields is sorted on name & position only, and >1 but variable is
+	not sorted.
+
 1.3.3	2000-nov-15
 	Several (tricky) modifications done to permit users to set/reset
 	parameters from the cmd line.  The trick was to get the parser to

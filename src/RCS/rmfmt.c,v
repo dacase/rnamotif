@@ -1,79 +1,44 @@
-head	1.12;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
 
-1.12
-date	2000.10.07.03.48.26;	author macke;	state Exp;
-branches;
-next	1.11;
-
-1.11
-date	2000.06.12.17.43.09;	author macke;	state Exp;
-branches;
-next	1.10;
-
-1.10
-date	2000.06.12.03.58.39;	author macke;	state Exp;
-branches;
-next	1.9;
-
-1.9
-date	99.11.08.20.33.32;	author macke;	state Exp;
-branches;
-next	1.8;
-
-1.8
-date	99.10.22.18.20.26;	author macke;	state Exp;
-branches;
-next	1.7;
-
-1.7
-date	99.08.27.19.10.15;	author macke;	state Exp;
-branches;
-next	1.6;
-
-1.6
-date	99.08.21.03.40.44;	author macke;	state Exp;
-branches;
-next	1.5;
-
 1.5
-date	99.07.26.22.54.23;	author macke;	state Exp;
+date	2000.11.29.18.08.34;	author macke;	state Exp;
 branches;
 next	1.4;
 
 1.4
-date	99.07.08.03.14.33;	author macke;	state Exp;
+date	2000.11.29.17.16.17;	author macke;	state Exp;
 branches;
 next	1.3;
 
 1.3
-date	99.07.08.01.34.26;	author macke;	state Exp;
+date	2000.11.29.04.59.37;	author macke;	state Exp;
 branches;
 next	1.2;
 
 1.2
-date	99.06.22.05.49.14;	author macke;	state Exp;
+date	2000.11.28.23.43.12;	author macke;	state Exp;
 branches;
 next	1.1;
 
 1.1
-date	99.06.19.03.59.44;	author macke;	state Exp;
+date	2000.11.27.22.04.25;	author macke;	state Exp;
 branches;
 next	;
 
 
 desc
-@formatter for rnamot output.  Left aligns each sequence column.
+@new version that deals with multi-field score.
 @
 
 
-1.12
+1.5
 log
-@changed all headers to ANSI from K&R.
+@Ooops. Backwards logic on sort/scored.
 @
 text
 @#include <stdio.h>
@@ -82,22 +47,34 @@ text
 
 #define	U_MSG_S	"usage: %s [ -a ] [ -l ] [ rm-output-file ]\n"
 
-#define	MAX(a,b)	((a)<(b)?(a):(b))
+#define	MIN(a,b)	((a)<(b)?(a):(b))
+#define	MAX(a,b)	((a)>(b)?(a):(b))
 
 #define	MAXFIELDS	200
-#define	FIELD1		4
+#define	OFIELD1		1
+#define	DFIELD1		4
 #define	MAXW		20
 static	char	*fields[ MAXFIELDS ];
-static	int	n_fields, t_fields, field1;
+static	char	*sfields[ MAXFIELDS ];
+static	int	smaxw;
+static	char	*ofields[ MAXFIELDS ];
+static	int	*ofmt;
+static	int	*omaxw;
+static	int	n_fields, n_ofields, n_sfields, n_sfields1, m_sfields;
+
+#define	LINE_SIZE	50000
+static	char	ra_line[ LINE_SIZE ];
+static	char	line[ LINE_SIZE ];
+static	char	dline[ LINE_SIZE ];
 
 #define	WBSIZE	70
 
-static	int	*maxw;
-
 #define	FMT_LEFT	0
 #define	FMT_RIGHT	1
-static	int	*fmt;
-static	int	*getfmt( int, int, char *[] );
+static	int	getline( char [], FILE * );
+static	void	ungetline( char [] );
+static	int	*getfmt( int, int, char *[], int * );
+static	int	isnumber( char [] );
 static	int	fcmprs( int, char [] );
 static	void	align( FILE *, int, char [], char [] );
 
@@ -107,12 +84,9 @@ main( int argc, char *argv[] )
 	FILE	*ifp, *tfp1, *tfp2;
 	char	*tfnp1, *tfnp2;
 	char	cmd[ 256 ];
-#define	LINE_SIZE	50000
-	char	line[ LINE_SIZE ];
-	char	dline[ LINE_SIZE ];
 	char	*sp, *vbp;
-	int	ac, f, fw, fs;
-	int	aopt, lopt, scored;
+	int	ac, f, fw, fs, of1, df1;
+	int	aopt, lopt, scored, sort;
 
 	ifname = NULL;
 	aopt = 0;	/* 1 = make fastn alignment		*/ 
@@ -146,13 +120,10 @@ main( int argc, char *argv[] )
 		exit( 1 );
 	}
 
-	scored = 0;	/* #RM scored line seen */
-	field1 = FIELD1;
-	for( t_fields = 0; fgets( line, sizeof( line ), ifp ); ){
+	while( getline( line, ifp ) ){
 		if( *line == '>' ){
-			if( aopt )
-				fputs( line, tfp1 );
-			continue;
+			ungetline( line );
+			break;
 		}
 		n_fields = split( line, fields, " \t\n" );
 		if( n_fields == 0 )
@@ -161,57 +132,97 @@ main( int argc, char *argv[] )
 			if( n_fields < 2 )
 				continue;
 			if( !strcmp( fields[ 1 ], "descr" ) ){
-				fmt = getfmt( n_fields, field1, fields );
-				if( fmt == NULL )
+				ofmt = getfmt( n_fields, DFIELD1, fields,
+					&n_ofields );
+				if( ofmt == NULL )
 					exit( 1 );
-			}else if( !strcmp( fields[ 1 ], "scored" ) ){
-				field1++;
-				scored = 1;
 			}
 			if( !aopt )
 				fputs( line, stdout );
 			continue;
-		}else if( *fields[ 0 ] == '#' )
-			continue;
-		if( t_fields == 0 ){
-			t_fields = n_fields;
-			maxw = ( int * )malloc( ( t_fields ) * sizeof( int ) );
-			if( maxw == NULL ){
-				fprintf( stderr, "%s: can't allocate maxw.\n",
-					argv[ 0 ] );
-				exit( 1 );
-			}
-			for( f = 0; f < t_fields; f++ )
-				maxw[ f ] = 0;
 		}
+		for( f = 0; f < n_fields; f++ )
+			free( fields[ f ] );
+	}
+
+	omaxw = ( int * )malloc( ( n_ofields ) * sizeof( int ) );
+	if( omaxw == NULL ){
+		fprintf( stderr, "%s: can't allocate omaxw.\n",
+			argv[ 0 ] );
+		exit( 1 );
+	}
+	for( f = 0; f < n_ofields; f++ )
+		omaxw[ f ] = 0;
+
+	m_sfields = 0;
+	for( n_sfields1 = 0, scored = 1, sort = 1; getline( line, ifp ); ){
+		if( *line == '#' )
+			continue;	/* allow cat of rnamotif runs */
+		if( *line == '>' ){
+			if( aopt )
+				fputs( line, tfp1 );
+			continue;
+		}
+
+		n_fields = split( line, fields, " \t\n" );
+		df1 = n_fields - ( n_ofields - DFIELD1 );
+		of1 = df1 - ( DFIELD1 - OFIELD1 );
+		n_sfields = df1 - DFIELD1;
+		m_sfields = MAX( m_sfields, n_sfields );
+
+		if( n_sfields > 1 )
+			scored = 0;
+
+		if( n_sfields1 == 0 )
+			n_sfields1 = n_sfields;
+		else if( n_sfields != m_sfields )
+			sort = 0;
+
+		ofields[ 0 ] = fields[ 0 ];
+		for( f = of1; f < n_fields; f++ )
+			ofields[ f - of1 + 1 ] = fields[ f ];
+		for( f = 0; f < n_sfields; f++ )
+			sfields[ f ] = fields[ f + 1 ];
+
+		if( scored )
+			scored = isnumber( sfields[ 0 ] );
+
 		if( lopt ){
-			for( vbp = NULL, sp = fields[ 0 ]; *sp; sp++ ){
+			for( vbp = NULL, sp = ofields[ 0 ]; *sp; sp++ ){
 				if( *sp == '|' )
 					vbp = sp;
 			}
 			if( vbp != NULL )
-				strcpy( fields[ 0 ], &vbp[ 1 ] );
+				strcpy( ofields[ 0 ], &vbp[ 1 ] );
 		}
-		fw = strlen( fields[ 0 ] );
-		if( fw > maxw[ 0 ] )
-			maxw[ 0 ] = fw;
-		for( f = 1; f < field1; f++ ){
-			fw = strlen( fields[ f ] );
-			if( fw > maxw[ f ] )
-				maxw[ f ] = fw;
+		fw = strlen( ofields[ 0 ] );
+		if( fw > omaxw[ 0 ] )
+			omaxw[ 0 ] = fw;
+		for( fw = 0, f = 0; f < n_sfields; f++ ){
+			fw += strlen( sfields[ f ] );
 		}
-		for( f = field1; f < t_fields; f++ ){
-			fw = strlen( fields[ f ] );
+		fw += ( n_sfields - 1 );
+		if( fw > smaxw )
+			smaxw = fw;
+		for( f = OFIELD1; f < DFIELD1; f++ ){
+			fw = strlen( ofields[ f ] );
+			if( fw > omaxw[ f ] )
+				omaxw[ f ] = fw;
+		}
+		for( f = DFIELD1; f < n_ofields; f++ ){
+			fw = strlen( ofields[ f ] );
 			if( !aopt ){
-			if( fw > MAXW )
-				fw = fcmprs( fw, fields[ f ] );
+				if( fw > MAXW )
+					fw = fcmprs( fw, ofields[ f ] );
 			}
-			if( fw > maxw[ f ] )
-				maxw[ f ] = fw;
+			if( fw > omaxw[ f ] )
+				omaxw[ f ] = fw;
 		}
-		fprintf( tfp1, "%s", fields[ 0 ] );
-		for( f = 1; f < n_fields; f++ )
-			fprintf( tfp1, " %s", fields[ f ] );
+		fprintf( tfp1, "%s", ofields[ 0 ] );
+		for( f = 0; f < n_sfields; f++ ) 
+			fprintf( tfp1, " %s", sfields[ f ] );
+		for( f = OFIELD1; f < n_ofields; f++ )
+			fprintf( tfp1, " %s", ofields[ f ] );
 		fprintf( tfp1, "\n" );
 		for( f = 0; f < n_fields; f++ )
 			free( fields[ f ] );
@@ -225,11 +236,15 @@ main( int argc, char *argv[] )
 			sprintf( cmd,
 			"sort +1rn -2 +0 -1 +2n -3 +3n -4 +4n -5 %s > %s\n",
 				tfnp1, tfnp2 );
-		}else{
+		}else if( sort ){
 			sprintf( cmd,
-				"sort +0 -1 +1n -2 +2n -3 +3n -4 %s > %s\n",
+			"sort +0 -1 +%dn -%d +%dn -%d +%dn -%d %s > %s\n",
+				n_sfields+1, n_sfields+2,
+				n_sfields+2, n_sfields+3,
+				n_sfields+3, n_sfields+4,
 				tfnp1, tfnp2 );
-		}
+		}else
+			sprintf( cmd, "cp %s %s\n", tfnp1, tfnp2 );
 		system( cmd );
 
 		if( ( tfp2 = fopen( tfnp2, "r" ) ) == NULL ){
@@ -241,19 +256,63 @@ main( int argc, char *argv[] )
 
 		while( fgets( line, sizeof( line ), tfp2 ) ){
 			n_fields = split( line, fields, " \t\n" );
-			for( f = 0; f < t_fields; f++ ){
-				fw = strlen( fields[ f ] );
-				if( fmt[ f ] == FMT_LEFT ){
+			df1 = n_fields - ( n_ofields - DFIELD1 );
+			of1 = df1 - ( DFIELD1 - OFIELD1 );
+			n_sfields = df1 - DFIELD1;
+
+			ofields[ 0 ] = fields[ 0 ];
+			for( f = of1; f < n_fields; f++ )
+				ofields[ f - of1 + 1 ] = fields[ f ];
+			for( f = 0; f < n_sfields; f++ )
+				sfields[ f ] = fields[ f + 1 ];
+
+			for( f = 0; f < OFIELD1; f++ ){
+				fw = strlen( ofields[ f ] );
+				if( ofmt[ f ] == FMT_LEFT ){
 					if( f != 0 )
 						putchar( ' ' );
-					printf( "%s", fields[ f ] );
-					for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+					printf( "%s", ofields[ f ] );
+					for( fs = 0; fs < omaxw[f] - fw; fs++ )
 						putchar( ' ' );
 				}else{
 					printf( " " );
-					for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+					for( fs = 0; fs < omaxw[f] - fw; fs++ )
 						putchar( ' ' );
-					printf( "%s", fields[ f ] );
+					printf( "%s", ofields[ f ] );
+				}
+			}
+			if( m_sfields == 1 ){
+				fw = strlen( sfields[ 0 ] );
+				printf( " " );
+				for( fs = 0; fs < smaxw - fw; fs++ )
+					putchar( ' ' );
+				printf( "%s", sfields[ 0 ] );
+			}else{
+				for( fs = 0, f = 0; f < n_sfields; f++ ){
+					fw = strlen( sfields[ f ] );
+					if( f != 0 ){
+						putchar( ' ' );
+						fs++;
+					}
+					printf( "%s", sfields[ f ] );
+					fs += fw;
+				}
+				for( ; fs < smaxw; fs++ )
+					putchar( ' ' );
+			}
+			for( f = OFIELD1; f < n_ofields; f++ ){
+				fw = strlen( ofields[ f ] );
+				if( ofmt[ f ] == FMT_LEFT ){
+					if( f != 0 )
+						putchar( ' ' );
+					printf( "%s", ofields[ f ] );
+					for( fs = 0; fs < omaxw[f] - fw; fs++ )
+						putchar( ' ' );
+				}else{
+					printf( " " );
+					for( fs = 0; fs < omaxw[f] - fw; fs++ )
+						putchar( ' ' );
+					printf( "%s", ofields[ f ] );
 				}
 			}
 			printf( "\n" );
@@ -284,29 +343,89 @@ main( int argc, char *argv[] )
 	exit( 0 );
 }
 
-static	int	*getfmt( int n_fields, int field1, char *fields[] )
+static	int	getline( char line[], FILE *fp )
+{
+	int	i, c;
+	char	*lp;
+
+	if( *ra_line ){
+		strcpy( line, ra_line );
+		*ra_line = '\0';
+		return( 1 );
+	}
+	for( lp = line, i = 0; ( c = getc( fp ) ) != EOF; i++ ){
+		if( i < LINE_SIZE )
+			*lp++ = c;
+		if( c == '\n' )
+			break;
+	}
+	*lp = '\0';
+	return( lp > line );
+}
+
+static	void	ungetline( char line[] )
+{
+
+	strcpy( ra_line, line );
+}
+
+static	int	*getfmt( int n_fields, int df1, char *fields[], int *n_fmt )
 {
 	int	f;
 	int	*fmt;
 
-	fmt = ( int * )malloc( ( n_fields - 2 + field1 ) * sizeof( int ) );
+	*n_fmt = n_fields - 2 + df1;
+	fmt = ( int * )malloc( *n_fmt * sizeof( int ) );
 	if( fmt == NULL ){
 		fprintf( stderr, "getfmt: can't allocate fmt.\n" );
 		return( NULL );
 	}
 	fmt[ 0 ] = FMT_LEFT;
-	for( f = 1; f < field1; f++ )
+	for( f = 1; f < df1; f++ )
 		fmt[ f ] = FMT_RIGHT;
 	for( f = 2; f < n_fields; f++ ){
 		if( !strncmp( fields[ f ], "h3", 2 ) ||
 				!strncmp( fields[ f ], "t2", 2 ) ||
 				!strncmp( fields[ f ], "q2", 2 ) ||
 				!strncmp( fields[ f ], "q4", 2 ) )
-			fmt[ f - 2 + field1 ] = FMT_RIGHT;
+			fmt[ f - 2 + df1 ] = FMT_RIGHT;
 		else
-			fmt[ f - 2 + field1 ] = FMT_LEFT;
+			fmt[ f - 2 + df1 ] = FMT_LEFT;
 	}
+
 	return( fmt );
+}
+
+static	int	isnumber( char str[] )
+{
+	char	*sp;
+	int	mcnt, ecnt;
+	int	efmt;
+
+	sp = str;
+	if( *sp == '-' )
+		sp++;
+	for( mcnt = efmt = ecnt = 0; isdigit( *sp ); sp++ )
+		mcnt++;
+	if( *sp == '.' )
+		sp++;
+	for( ; isdigit( *sp ); sp++ )
+		mcnt++;
+	if( *sp == 'e' || *sp == 'E' ){
+		efmt = 1;
+		sp++;
+		if( *sp == '-' )
+			sp++;
+		for( ; isdigit( *sp ); sp++ )
+			ecnt++;
+	}
+	if( mcnt == 0 ) 
+		return( 0 );
+	if( efmt && ecnt == 0 )
+		return( 0 );
+	if( *sp != '\0' )
+		return( 0 );
+	return( 1 );
 }
 
 static	int	fcmprs( int flen, char field[] )
@@ -329,6 +448,7 @@ static	void	align( FILE *fp, int lopt, char dline[], char line[] )
 	static	char	l_name[ 256 ] = "";
 	static	int	l_cnt = 1;
 	int	f, fs, fw;
+	int	df1, of1;
 	char	*wp, work[ 50000 ];
 	int	w, wb, wlim, wlen;
 
@@ -345,12 +465,23 @@ static	void	align( FILE *fp, int lopt, char dline[], char line[] )
 		}
 	}
 	n_fields = split( line, fields, " \t\n" );
+	df1 = n_fields - ( n_ofields - DFIELD1 );
+	of1 = df1 - ( DFIELD1 - OFIELD1 );
+	n_sfields = df1 - DFIELD1;
+
+	ofields[ 0 ] = fields[ 0 ];
+	for( f = of1; f < n_fields; f++ )
+		ofields[ f - of1 + 1 ] = fields[ f ];
+	for( f = 0; f < n_sfields; f++ )
+		sfields[ f ] = fields[ f + 1 ];
+
 	if( lopt ){
 		sprintf( name, "%s_%s%s",
-			fields[0], fields[3], *fields[2] == '0' ? "d" : "c" );
+			ofields[0], ofields[2],
+			*ofields[1] == '0' ? "d" : "c" );
 	}else{
 		sprintf( name, "%s_%s_%s_%s",
-			fields[ 0 ], fields[ 2 ], fields[ 3 ], fields[ 4 ] );
+			ofields[0], ofields[1], ofields[2], ofields[3] );
 	}
 	if( !strcmp( l_name, name ) ){
 		l_cnt++;
@@ -359,29 +490,32 @@ static	void	align( FILE *fp, int lopt, char dline[], char line[] )
 		l_cnt = 1;
 		*ver = '\0';
 	}
-	fprintf( fp, ">%s%s %s %s", name, ver, fields[ 1 ], def );
+	fprintf( fp, ">%s%s %s", name, ver, sfields[ 0 ] );
+	for( f = 1; f < n_sfields; f++ )
+		fprintf( fp, " %s", sfields[ f ] );
+	fprintf( fp, " %s", def );
 	strcpy( l_name, name );
 
-	for( wp = work, f = field1; f < t_fields; f++ ){
-		if( f != field1 )
+	for( wp = work, f = DFIELD1; f < n_ofields; f++ ){
+		if( f != DFIELD1 )
 			*wp++ = '|';
-		fw = strlen( fields[ f ] );
-		if( fmt[ f ] == FMT_LEFT ){
-			sprintf( wp, "%s", fields[ f ] );
+		fw = strlen( ofields[ f ] );
+		if( ofmt[ f ] == FMT_LEFT ){
+			sprintf( wp, "%s", ofields[ f ] );
 			wp += strlen( wp );
-			for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+			for( fs = 0; fs < omaxw[ f ] - fw; fs++ )
 				*wp++ = '-';
 		}else{
-			for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+			for( fs = 0; fs < omaxw[ f ] - fw; fs++ )
 				*wp++ = '-';
-			sprintf( wp, "%s", fields[ f ] );
+			sprintf( wp, "%s", ofields[ f ] );
 			wp += strlen( wp );
 		}
 	}
 	*wp = '\0';
 	wlen = wp - work;
 	for( wp = work, wb = 0; wb < wlen; wb += WBSIZE ){
-		wlim = MAX( wb + WBSIZE, wlen );
+		wlim = MIN( wb + WBSIZE, wlen );
 		for( w = wb; w < wlim; w++ )
 			putc( *wp++, fp );
 		putc( '\n', fp );
@@ -393,399 +527,152 @@ static	void	align( FILE *fp, int lopt, char dline[], char line[] )
 @
 
 
-1.11
-log
-@extended to allow -l & -a together which results in a much smaller
-name for the aligned seqs.  Still, there will be some that are too
-big for ae2, but (*sigh*)
-@
-text
-@d22 5
-a26 7
-static	int	*getfmt();
-static	int	fcmprs();
-static	void	align();
-
-main( argc, argv )
-int	argc;
-char	*argv[];
-d209 1
-a209 4
-static	int	*getfmt( n_fields, field1, fields )
-int	n_fields;
-int	field1;
-char	*fields[];
-d234 1
-a234 3
-static	int	fcmprs( flen, field )
-int	flen;
-char	field[];
-d247 1
-a247 5
-static	void	align( fp, lopt, dline, line )
-FILE	*fp;
-int	lopt;
-char	dline[];
-char	line[];
-@
-
-
-1.10
-log
-@modified to produce fastn alignments when invoked with -a.
-@
-text
-@d196 1
-a196 1
-				align( stdout, dline, line );
-d200 1
-a200 1
-		align( stdout, dline, line );
-d254 1
-a254 1
-static	void	align( fp, dline, line )
-d256 1
-d281 7
-a287 2
-	sprintf( name, "%s_%s_%s_%s",
-		fields[ 0 ], fields[ 2 ], fields[ 3 ], fields[ 4 ] );
-d290 1
-a290 1
-		sprintf( ver, "_%d", l_cnt );
-d295 1
-a295 1
-	fprintf( fp, ">%s%s %s", name, ver, def );
-a297 17
-/*
-	for( f = field1; f < t_fields; f++ ){
-		if( f != field1 )
-			putchar( '|' );
-		fw = strlen( fields[ f ] );
-		if( fmt[ f ] == FMT_LEFT ){
-			printf( "%s", fields[ f ] );
-			for( fs = 0; fs < maxw[ f ] - fw; fs++ )
-				putchar( '-' );
-		}else{
-			for( fs = 0; fs < maxw[ f ] - fw; fs++ )
-				putchar( '-' );
-			printf( "%s", fields[ f ] );
-		}
-	}
-	printf( "\n" );
-*/
-a315 3
-/*
-	printf( "%s\n", work );
-*/
-@
-
-
-1.9
-log
-@added option -l to print only the `locus' ie the word following the
-last | in the 1st field (or the entire field if no |).
-@
-text
-@d2 1
-d5 1
-a5 1
-#define	U_MSG_S	"usage: %s [ -l ] [ rm-output-file ]\n"
-d7 2
-d13 3
-a15 1
-static	int	n_fields, t_fields;
-d24 1
-d34 3
-a36 1
-	char	line[ 10000 ];
-d38 2
-a39 2
-	int	ac, field1, f, fw, fs;
-	int	lopt, scored;
-a40 13
-/*
-	if( argc == 1 )
-		ifp = stdin;
-	else if( argc > 2 ){
-		fprintf( stderr, "usage: %s [ rm-output-file ]\n", argv[ 0 ] );
-		exit( 1 );
-	}else if( ( ifp = fopen( argv[ 1 ], "r" ) ) == NULL ){
-		fprintf( stderr, "%s: can't open rm-output-file '%s'\n",
-			argv[ 0 ], argv[ 1 ] );
-		exit( 1 );
-	}
-*/
-	lopt = 0;
-d42 2
-d45 3
-a47 1
-		if( !strcmp( argv[ ac ], "-l" ) )
-d49 1
-a49 1
-		else if( *argv[ ac ] == '-' ){
-d67 1
-a67 1
-	if( ( tfp1 = fopen( tfnp1, "w" ) ) == NULL ){
-d76 3
-a78 2
-		/* skip fastn def lines	*/
-		if( *line == '>' )
-d80 1
-d95 2
-a96 1
-			fputs( line, stdout );
-d129 1
-d132 1
-d143 3
-a145 1
-	fclose( tfp1 );
-d147 3
-a149 3
-	tfnp2 = tempnam( NULL, "srt" );
-	if( scored ){
-		sprintf( cmd,
-d151 7
-a157 6
-			tfnp1, tfnp2 );
-	}else{
-		sprintf( cmd, "sort +0 -1 +1n -2 +2n -3 +3n -4 %s > %s\n",
-			tfnp1, tfnp2 );
-	}
-	system( cmd );
-d159 6
-a164 6
-	if( ( tfp2 = fopen( tfnp2, "r" ) ) == NULL ){
-		fprintf( stderr,
-			"%s: can't open sorted temp-file '%s'\n",
-			argv[ 0 ], tfnp2 );
-		exit( 1 );
-	}
-d166 32
-a197 15
-	while( fgets( line, sizeof( line ), tfp2 ) ){
-		n_fields = split( line, fields, " \t\n" );
-		for( f = 0; f < t_fields; f++ ){
-			fw = strlen( fields[ f ] );
-			if( fmt[ f ] == FMT_LEFT ){
-				if( f != 0 )
-					putchar( ' ' );
-				printf( "%s", fields[ f ] );
-				for( fs = 0; fs < maxw[ f ] - fw; fs++ )
-					putchar( ' ' );
-			}else{
-				printf( " " );
-				for( fs = 0; fs < maxw[ f ] - fw; fs++ )
-					putchar( ' ' );
-				printf( "%s", fields[ f ] );
-d200 1
-a200 3
-		printf( "\n" );
-		for( f = 0; f < n_fields; f++ )
-			free( fields[ f ] );
-a201 1
-	fclose( tfp2 );
-a203 1
-	unlink( tfnp2 );
-d252 87
-@
-
-
-1.8
-log
-@check for presence of #RM scored line indicating the 2d column is the
-score.
-@
-text
-@d4 2
-d24 1
-d29 3
-a31 2
-	int	field1, f, fw, fs;
-	int	scored;
-d33 1
-d44 22
-d109 12
-a120 1
-		for( f = 0; f < field1; f++ ){
-@
-
-
-1.7
-log
-@skip lines that begin with '>' as they are fastn `def' lines and are not
-formatted.
-@
-text
-@d26 2
-a27 1
-	int	f, fw, fs;
-d47 2
-d57 4
-a60 2
-			if( n_fields > 1 && !strcmp( fields[ 1 ], "descr" ) ){
-				fmt = getfmt( n_fields, fields );
-d63 3
-a72 11
-/*
-			maxw = ( int * )
-				malloc( ( t_fields - FIELD1 ) * sizeof( int ) );
-			if( maxw == NULL ){
-				fprintf( stderr, "%s: can't allocate maxw.\n",
-					argv[ 0 ] );
-				exit( 1 );
-			}
-			for( f = 0; f < t_fields - FIELD1; f++ )
-				maxw[ f ] = 0;
-*/
-d82 1
-a82 10
-/*
-		for( f = 0; f < t_fields - FIELD1; f++ ){
-			fw = strlen( fields[ FIELD1 + f ] );
-			if( fw > MAXW )
-				fw = fcmprs( fw, fields[ FIELD1 + f ] );
-			if( fw > maxw[ f ] )
-				maxw[ f ] = fw;
-		}
-*/
-		for( f = 0; f < FIELD1; f++ ){
-d87 1
-a87 1
-		for( f = FIELD1; f < t_fields; f++ ){
-d104 8
-a111 2
-	sprintf( cmd, "sort +0 -1 +1n -2 +2n -3 +3n -4 %s > %s\n",
-		tfnp1, tfnp2 );
-a122 7
-/*
-		printf( "%-12s %s %7s %4s",
-			fields[ 0 ], fields[ 1 ], fields[ 2 ], fields[ 3 ] );
-*/
-/*
-		for( f = 0; f < t_fields - FIELD1; f++ ){
-*/
-d153 1
-a153 1
-static	int	*getfmt( n_fields, fields )
-d155 1
-d161 1
-a161 1
-	fmt = ( int * )malloc( ( n_fields - 2 + FIELD1 ) * sizeof( int ) );
-d167 1
-a167 1
-	for( f = 1; f < FIELD1; f++ )
-d174 1
-a174 1
-			fmt[ f - 2 + FIELD1 ] = FMT_RIGHT;
-d176 1
-a176 1
-			fmt[ f - 2 + FIELD1 ] = FMT_LEFT;
-@
-
-
-1.6
-log
-@compute len's of ALL fields including ident fields.  Fields 0-3 are
-the seqid, comp, offset & len.  Treat as strings with no max. length,
-unlike fields 4-$ which are compressed to nnn...(N)...nnn if they exceed
-20 in length.
-@
-text
-@d47 3
-@
-
-
-1.5
-log
-@change cmt from fmt to descr.  shorten fields longer than 20 to
-nnn...(N)...nnn
-@
-text
-@d62 1
-d72 9
-d82 1
-d90 13
-d126 1
-d129 2
-d132 3
-a134 1
-			fw = strlen( fields[ FIELD1 + f ] );
-d136 3
-a138 1
-				printf( " %s", fields[ FIELD1 + f ] );
-d145 1
-a145 1
-				printf( "%s", fields[ FIELD1 + f ] );
-d170 1
-a170 1
-	fmt = ( int * )malloc( ( n_fields - 2 ) * sizeof( int ) );
-d175 3
-d183 1
-a183 1
-			fmt[ f - 2 ] = FMT_RIGHT;
-d185 1
-a185 1
-			fmt[ f - 2 ] = FMT_LEFT;
-@
-
-
 1.4
 log
-@added code that reads a header #RM fmt d1 d2 ... dN and left justifies
-all but h3, t2, q2 and q4 which are right justified.  Useful? Maybe, maybe
-not.
+@looks like it's all there.  Time to test.
 @
 text
-@d6 1
-d16 1
-d25 1
-a25 1
-	char	line[ 1024 ];
-d51 1
-a51 1
-			if( n_fields > 1 && !strcmp( fields[ 1 ], "fmt" ) ){
-d56 1
-d64 5
-d74 2
-d145 4
-a148 4
-		if( !strcmp( fields[ f ], "h3" ) ||
-				!strcmp( fields[ f ], "t2" ) ||
-				!strcmp( fields[ f ], "q2" ) ||
-				!strcmp( fields[ f ], "q4" ) )
-d154 15
+@d144 2
+a145 2
+		if( sort )
+			sort = isnumber( sfields[ 0 ] );
 @
 
 
 1.3
 log
-@uncommmented calls to unlink() that got rid of the tmp files.
+@working save for adding score fields to -l output.  All info has been
+acquired, but not figured out what to do with.  Will sleep on.
 @
 text
-@d6 9
-d24 1
-a24 3
-	char	*fields[ MAXFIELDS ];
-	int	f, n_fields, t_fields;
-	int	*maxw, fw, fs;
-d46 11
-d96 10
-a105 3
-			printf( " %s", fields[ FIELD1 + f ] );
-			for( fs = 0; fs < maxw[ f ] - fw; fs++ )
-				putchar( ' ' );
-d120 24
+@d16 1
+a16 2
+static	int	*sfmt;
+static	int	*smaxw;
+a113 8
+	smaxw = ( int * )malloc( ( n_ofields ) * sizeof( int ) );
+	if( smaxw == NULL ){
+		fprintf( stderr, "%s: can't allocate smaxw.\n",
+			argv[ 0 ] );
+		exit( 1 );
+	}
+	for( f = 0; f < n_ofields; f++ )
+		smaxw[ f ] = 0;
+a114 1
+
+d116 2
+a131 2
+		else if( sort )
+			sort = isnumber( sfields[ 0 ] );
+d135 1
+a135 1
+		else if( n_sfields != n_sfields )
+d144 3
+d158 2
+a159 4
+		for( f = 0; f < n_sfields; f++ ){
+			fw = strlen( sfields[ f ] );
+			if( fw > smaxw[ f ] )
+				smaxw[ f ] = fw;
+d161 3
+d226 1
+a226 1
+			for( f = 0; f < of1; f++ ){
+d241 20
+a260 1
+			for( f = of1; f < n_ofields; f++ ){
+d343 1
+a343 1
+	for( f = df1; f < n_fields; f++ ){
+d348 1
+a348 1
+			fmt[ f ] = FMT_RIGHT;
+d350 1
+a350 1
+			fmt[ f ] = FMT_LEFT;
+d352 1
 @
 
 
 1.2
 log
-@sort results.
+@getting there.  Stuff is being saved.  Score fields are extracted.
+New logic required to decide if sort required.  New sort command required
+as #RM scored is always true.  Maybe tonight?
 @
 text
-@a87 1
+@d21 1
+a21 1
+static	int	n_fields, n_ofields, n_sfields, m_sfields;
+d35 1
+d47 1
+a47 1
+	int	aopt, lopt, scored;
+d125 1
+a125 1
+	while( getline( line, ifp ) ){
+d138 10
+a193 1
 /*
-a89 1
+d202 1
+a202 1
+		}else{
+d204 4
+a207 1
+				"sort +0 -1 +1n -2 +2n -3 +3n -4 %s > %s\n",
+d209 2
+a210 1
+		}
+d222 28
+a249 3
+			for( f = 0; f < t_fields; f++ ){
+				fw = strlen( fields[ f ] );
+				if( fmt[ f ] == FMT_LEFT ){
+d252 2
+a253 2
+					printf( "%s", fields[ f ] );
+					for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+d257 1
+a257 1
+					for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+d259 1
+a259 1
+					printf( "%s", fields[ f ] );
+a280 1
+*/
+d342 32
+a385 1
+/*
+d394 1
+d411 10
+d423 2
+a424 1
+			fields[0], fields[3], *fields[2] == '0' ? "d" : "c" );
+d427 1
+a427 1
+			fields[ 0 ], fields[ 2 ], fields[ 3 ], fields[ 4 ] );
+d436 4
+a439 1
+	fprintf( fp, ">%s%s %s %s", name, ver, fields[ 1 ], def );
+d442 2
+a443 2
+	for( wp = work, f = field1; f < t_fields; f++ ){
+		if( f != field1 )
+d445 3
+a447 3
+		fw = strlen( fields[ f ] );
+		if( fmt[ f ] == FMT_LEFT ){
+			sprintf( wp, "%s", fields[ f ] );
+d449 1
+a449 1
+			for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+d452 1
+a452 1
+			for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+d454 1
+a454 1
+			sprintf( wp, "%s", fields[ f ] );
+a469 1
 */
 @
 
@@ -795,34 +682,117 @@ log
 @Initial revision
 @
 text
-@d11 3
-a13 2
-	FILE	*ifp, *tfp;
-	char	*tfnp;
-d30 2
-a31 2
-	tfnp = tmpnam( NULL );
-	if( ( tfp = fopen( tfnp, "w+" ) ) == NULL ){
-d33 1
-a33 1
-			argv[ 0 ], tfnp );
-d51 1
-a51 1
-		fprintf( tfp, "%s", fields[ 0 ] );
-d53 2
-a54 2
-			fprintf( tfp, " %s", fields[ f ] );
-		fprintf( tfp, "\n" );
-d58 1
-d60 11
-a70 1
-	rewind( tfp );
-d72 1
-a72 1
-	while( fgets( line, sizeof( line ), tfp ) ){
-d86 1
-d88 4
-a91 2
-	fclose( tfp );
-	unlink( tfnp );
+@d7 2
+a8 1
+#define	MAX(a,b)	((a)<(b)?(a):(b))
+d11 2
+a12 1
+#define	FIELD1		4
+d15 7
+a21 1
+static	int	n_fields, t_fields, field1;
+d23 5
+a29 2
+static	int	*maxw;
+
+d32 3
+a34 2
+static	int	*fmt;
+static	int	*getfmt( int, int, char *[] );
+a43 3
+#define	LINE_SIZE	50000
+	char	line[ LINE_SIZE ];
+	char	dline[ LINE_SIZE ];
+d45 1
+a45 1
+	int	ac, f, fw, fs;
+d80 1
+a80 3
+	scored = 0;	/* #RM scored line seen */
+	field1 = FIELD1;
+	for( t_fields = 0; fgets( line, sizeof( line ), ifp ); ){
+d82 2
+a83 3
+			if( aopt )
+				fputs( line, tfp1 );
+			continue;
+d92 3
+a94 2
+				fmt = getfmt( n_fields, field1, fields );
+				if( fmt == NULL )
+a95 3
+			}else if( !strcmp( fields[ 1 ], "scored" ) ){
+				field1++;
+				scored = 1;
+d100 28
+a127 1
+		}else if( *fields[ 0 ] == '#' )
+a128 10
+		if( t_fields == 0 ){
+			t_fields = n_fields;
+			maxw = ( int * )malloc( ( t_fields ) * sizeof( int ) );
+			if( maxw == NULL ){
+				fprintf( stderr, "%s: can't allocate maxw.\n",
+					argv[ 0 ] );
+				exit( 1 );
+			}
+			for( f = 0; f < t_fields; f++ )
+				maxw[ f ] = 0;
+d130 13
+d144 1
+a144 1
+			for( vbp = NULL, sp = fields[ 0 ]; *sp; sp++ ){
+d149 1
+a149 1
+				strcpy( fields[ 0 ], &vbp[ 1 ] );
+d151 12
+a162 7
+		fw = strlen( fields[ 0 ] );
+		if( fw > maxw[ 0 ] )
+			maxw[ 0 ] = fw;
+		for( f = 1; f < field1; f++ ){
+			fw = strlen( fields[ f ] );
+			if( fw > maxw[ f ] )
+				maxw[ f ] = fw;
+d164 2
+a165 2
+		for( f = field1; f < t_fields; f++ ){
+			fw = strlen( fields[ f ] );
+d168 1
+a168 1
+					fw = fcmprs( fw, fields[ f ] );
+d170 2
+a171 2
+			if( fw > maxw[ f ] )
+				maxw[ f ] = fw;
+d173 5
+a177 3
+		fprintf( tfp1, "%s", fields[ 0 ] );
+		for( f = 1; f < n_fields; f++ )
+			fprintf( tfp1, " %s", fields[ f ] );
+d183 1
+d242 1
+d252 27
+a278 1
+static	int	*getfmt( int n_fields, int field1, char *fields[] )
+d283 2
+a284 1
+	fmt = ( int * )malloc( ( n_fields - 2 + field1 ) * sizeof( int ) );
+d290 1
+a290 1
+	for( f = 1; f < field1; f++ )
+d292 1
+a292 1
+	for( f = 2; f < n_fields; f++ ){
+d297 1
+a297 1
+			fmt[ f - 2 + field1 ] = FMT_RIGHT;
+d299 1
+a299 1
+			fmt[ f - 2 + field1 ] = FMT_LEFT;
+d316 1
+d377 1
+a377 1
+		wlim = MAX( wb + WBSIZE, wlen );
+d386 1
 @
