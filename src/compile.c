@@ -69,6 +69,7 @@ static	int	chk_strel_parms();
 static	int	chk_1_strel_parms();
 static	int	chk_len_seq();
 static	int	chk_site();
+static	STREL_T	*set_scopes();
 
 int	RM_init( argc, argv )
 int	argc;
@@ -232,8 +233,8 @@ int	stype;
 	stp->s_index = rm_n_descr - 1;
 	stp->s_lineno = rm_lineno;
 	stp->s_tag = NULL;
-	stp->s_inner = NULL;
 	stp->s_next = NULL;
+	stp->s_inner = NULL;
 	stp->s_mates = NULL;
 	stp->s_n_mates = 0;
 	stp->s_scopes = NULL;
@@ -541,6 +542,8 @@ STREL_T	descr[];
 	}
 	if( rm_error )
 		return( rm_error );
+
+	set_scopes( 0, n_descr - 1, descr );
 
 	return( rm_error );
 }
@@ -1913,4 +1916,36 @@ SITE_T	*sip;
 	}
 
 	return( err );
+}
+
+static	STREL_T	*set_scopes( fd, ld, descr )
+int	fd;
+int	ld;
+STREL_T	descr[];
+{
+	int	d, nd, s;
+	int	fd1, ld1;
+	STREL_T	*stp, *stp1, *stp2;
+
+	for( d = fd; d <= ld; d = nd ){
+		stp = &descr[ d ];
+		if( stp->s_n_scopes == 0 ){
+			nd = d + 1;
+			if( nd <= ld )
+				stp->s_next = &descr[ nd ];
+			continue;
+		}
+		for( s = 0; s < stp->s_n_scopes - 1; s++ ){
+			stp1 = stp->s_scopes[ s ];
+			stp2 = stp->s_scopes[ s + 1 ];
+			fd1 = stp1->s_index + 1;
+			ld1 = stp2->s_index - 1;
+			stp1->s_inner = set_scopes( fd1, ld1, descr );
+		}
+		stp1 = stp->s_scopes[ stp->s_n_scopes - 1 ];
+		nd = stp1->s_index + 1;
+		if( nd <= ld )
+			stp->s_next = &descr[ nd ];
+	}
+	return( &descr[ fd ] );
 }
