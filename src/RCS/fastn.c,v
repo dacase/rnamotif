@@ -1,0 +1,364 @@
+head	1.7;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.7
+date	2000.02.10.00.11.05;	author macke;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2000.01.30.02.20.55;	author macke;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	99.09.13.16.48.59;	author macke;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	99.08.27.19.11.02;	author macke;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	99.08.21.03.37.19;	author macke;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	99.06.22.00.59.03;	author macke;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	99.06.19.21.56.23;	author macke;	state Exp;
+branches;
+next	;
+
+
+desc
+@test program for read fastn files.
+@
+
+
+1.7
+log
+@redid to read 1 char at a time instead of line at a time, so
+as to be able to truncate very long lines.
+@
+text
+@#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+
+static	int	skipbl2nl();
+
+int	FN_fgetseq( fp, sid, s_sdef, sdef, s_sbuf, sbuf )
+FILE	*fp;
+char	sid[];
+int	s_sdef;
+char	sdef[];
+int	s_sbuf;
+char	sbuf[];
+{
+	char	*dp, *sp;
+	int	c, cnt;
+
+	*sid = '\0';
+	*sdef = '\0';
+	*sbuf = '\0';
+	
+	if( ( c = getc( fp ) ) == EOF )
+		return( 0 );
+	else if( c != '>' ){
+		fprintf( stderr,
+			"FN_fgetseq: fastn file does not begin with '>'.\n" );
+		return( 0 );
+	}
+
+	if( ( c = skipbl2nl( fp ) ) == EOF || c == '\n' ){
+		fprintf( stderr,
+			"FN_fgetseq: fastn file has unnamed entry.\n" );
+		return( 0 );
+	}
+
+	dp = sid;
+	for( *dp++ = c; ( c = getc( fp ) ) != EOF; ){
+		if( !isspace( c ) )
+			*dp++ = c;
+		else
+			break;
+	}
+	*dp = '\0';
+	if( c == EOF ){
+		fprintf( stderr,
+			"FN_fgetseq: last entry: '%s': has no sequence.\n",
+			sid );
+		return( 0 );
+	}else if( c != '\n' )
+		c = skipbl2nl( fp );
+
+	if( c != '\n' ){
+		dp = sdef;
+		*dp++ = c;
+		for( cnt = 1; c = getc( fp ); ){
+			if( c == '\n' || c == EOF )
+				break;
+			cnt++;
+			if( cnt < s_sdef )
+				*dp++ = c;
+		}
+		*dp = '\0';
+		if( cnt >= s_sdef ){
+			fprintf( stderr,
+		"FN_fgetseq: entry: '%s': def len: %d, truncated to %d.\n",
+				sid, cnt, s_sdef - 1 );
+		}
+	}
+	if( c == EOF ){
+		fprintf( stderr,
+		"FN_fgetseq: last entry of fastn file has no sequence.\n" );
+		return( 0 );
+	}
+
+	for( cnt = 0, sp = sbuf; ( c = getc( fp ) ) != EOF; ){
+		if( c == '>' ){
+			ungetc( c, fp );
+			break;
+		}else if( isalpha( c ) ){
+			cnt++;
+			if( cnt < s_sbuf )
+				*sp++ = tolower( c );
+		}
+	}
+	*sp = '\0';
+	if( cnt >= s_sbuf ){
+		fprintf( stderr,
+		"FN_fgetseq: entry: '%s': seq len: %d, truncated to %d.\n",
+			sid, cnt, s_sbuf - 1 );
+	}
+
+	return( sp - sbuf );
+}
+
+static	int	skipbl2nl( fp )
+FILE	*fp;
+{
+	int	c;
+
+	while( isspace( c = getc( fp ) ) )
+		if( c == '\n' )
+			break;
+	return( c );
+}
+@
+
+
+1.6
+log
+@increase size of line buf to 20480.  Add code to discard any chars
+beyond this size in the def line with a msg to stderr.
+@
+text
+@d5 1
+a5 2
+#define	LINESIZE	20480
+static	char	line[ LINESIZE ];
+d7 1
+a7 3
+static	void	skip();
+
+int	FN_fgetseq( fp, sid, sdef, s_sbuf, sbuf )
+d10 1
+d15 1
+a15 1
+	char	*elp, *lp, *sp;
+d21 30
+a50 2
+	if( fgets( line, sizeof( line ), fp ) == NULL )
+		return( 0 ); 
+d52 5
+a56 5
+	elp = strpbrk( line, "\r\n" );
+	if( elp == NULL ){
+		elp = &line[ LINESIZE - 1 ];
+		for( cnt = 0; ( c = getc( fp ) ) != EOF; cnt++ ){
+			if( c == '\n' )
+d58 3
+d62 8
+d71 1
+a71 4
+"FN_fgetseq: entry: '%-.20s': def line truncated to %d, %d chars ignored.\n",
+			line, LINESIZE, cnt );
+/*
+		skip( fp );
+a72 1
+*/
+d75 1
+a75 16
+	for( lp = &line[ 1 ]; isspace( *lp ); lp++ )
+		;
+	sp = strchr( lp, ' ' );
+	if( sp == NULL ){
+		strncpy( sid, lp, elp - line );
+		sid[ elp - line ] = '\0';
+	}else{
+		strncpy( sid, lp, sp - line );
+		sid[ sp - lp ] = '\0';
+		while( *sp == ' ' )
+			sp++;
+		strncpy( sdef, sp, elp - sp );
+		sdef[ elp - sp ] = '\0';
+	}
+
+	for( sp = sbuf; ( c = getc( fp ) ) != EOF; ){
+d79 5
+a83 2
+		}else if( isalpha( c ) )
+			*sp++ = tolower( c );
+d86 5
+d95 1
+a95 1
+static	void	skip( fp )
+d100 4
+a103 4
+	while( ( c = getc( fp ) ) != '>' && c != EOF )
+		;
+	if( c == '>' )
+		ungetc( c, fp );
+@
+
+
+1.5
+log
+@allow for space betweent the > and the sid.
+@
+text
+@d5 2
+a6 1
+static	char	line[ 10240 ];
+d18 1
+a18 1
+	int	c;
+d28 9
+a36 1
+		fprintf( stderr, "FN_fgetseq: bad fastn entry: '%s'.\n", line );
+d39 1
+@
+
+
+1.4
+log
+@return entire def: >..\n. as opposed to returning the 1st (ctl-A)
+sep. entry.
+@
+text
+@d32 3
+a34 1
+	sp = strchr( line, ' ' );
+d36 2
+a37 2
+		strncpy( sid, &line[ 1 ], elp - line - 1 );
+		sid[ elp - line - 1 ] = '\0';
+d39 2
+a40 2
+		strncpy( sid, &line[ 1 ], sp - line - 1 );
+		sid[ sp - line - 1 ] = '\0';
+@
+
+
+1.3
+log
+@return the entire seq. identifier instead of just the locus.
+Also return the 1st (' [^\1]*\1') def for proposed use in `isis' format
+output.
+@
+text
+@d25 1
+a25 5
+	/* Ctl-A separates entries on the ID line of a fastn file	*/
+	/* So this may be wrong in that it returns only the first	*/
+	/* such def if there are more than 1				*/
+
+	elp = strpbrk( line, "\001\r\n" );
+@
+
+
+1.2
+log
+@fastn reader (FN_fgetseq()).
+@
+text
+@d5 5
+a9 1
+int	FN_fgetseq( fp, locus, s_sbuf, sbuf )
+d11 2
+a12 1
+char	locus[];
+a15 1
+	char	line[ 1024 ];
+d19 2
+a20 1
+	*locus = '\0';
+d25 5
+a29 1
+	elp = strpbrk( line, " \r\n" );
+d31 2
+a32 2
+		fprintf( stderr, "bad fastn entry: %s", line );
+		skip();
+d36 11
+a46 10
+	for( lp = elp - 1; lp >= line && *lp != '|'; lp-- )
+		;
+	if( *lp == '|' )
+		lp++;
+	if( elp - lp == 0 ){
+		elp = lp - 1;
+		for( lp -= 2; lp >= line && *lp != '|'; lp-- ) 
+			;
+		if( *lp == '|' )
+			lp++;
+a47 2
+	strncpy( locus, lp, elp - lp );
+	locus[ elp - lp ] = '\0';
+d57 1
+d61 2
+a62 1
+int	skip()
+d64 1
+d66 4
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d5 1
+a5 18
+#define	SBUF_SIZE	5000000
+static	char	sbuf[ SBUF_SIZE ];
+static	int	slen;
+static	char	locus[ 20 ];
+
+main( argc, argv )
+int	argc;
+char	*argv[];
+{
+	FILE	*ifp = stdin;
+
+	while( slen = DB_get_seq( ifp, locus, SBUF_SIZE, sbuf ) ){
+		printf( "%-12s: %5d: %.15s...\n", locus, slen, sbuf );
+	}
+	exit( 0 );
+}
+
+int	DB_get_seq( fp, locus, s_sbuf, sbuf )
+@

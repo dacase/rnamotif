@@ -1,0 +1,217 @@
+head	1.7;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.7
+date	2000.02.10.18.45.04;	author macke;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	99.11.08.16.50.43;	author macke;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	99.10.23.15.17.07;	author macke;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	99.10.08.18.03.29;	author macke;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	99.09.28.19.08.02;	author macke;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	99.09.13.16.52.35;	author macke;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	99.09.11.03.19.25;	author macke;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.7
+log
+@*** empty log message ***
+@
+text
+@1.2.0	2000-feb-09
+	Removed restriction on pknots that limited them to two helices. This
+	required modifications to both the compile phase (compile.c) and
+	the search phase (find_motif.c)  The new search algorithm fixes an
+	(apparantly) overlooked bug in the old search algorithm that joined
+	the loop over the 3' end of the 1st helix with the 3' end of the 
+	region in which the pknot must be found.  The new algorithm correctly
+	treats these loops as independent; as a result many more pknots are
+	found.
+
+	Also redid fastn.c to read fastn records char by char rather than
+	line by line.  The original line by line method incorrectly handled
+	defintion lines that were longer than the line buf.  The new fastn.c
+	routines add chars from the def line to line buf until line buf is
+	full, then discard the rest of the def line with a message to stderr
+	that the def line was XXXX chars long and was truncated to TTT chars.
+
+	Fixed bug that considered the descriptor score indexes to be on the
+	interval [0,n_descr) to put them on the correct interval [1,n_descr]
+
+	Finally, added new builtin symbol 'show_progress' which is normally
+	0, but when set to 1 will print the name of each entry as it is read
+	by the main loop.  I added it to make sure that the new pknot finder
+	which is slower than the old one was actually working!
+
+1.1.1	1999-nov-08
+	Modified helix finding codes to allow a helix to begin and/or end with
+	a mismatch.  This is normally off, but may be turned on at two levels:
+	If the *_ends variable (* = {wc, phlx, tr, qu}) is set its value becomes
+	the default end condition for all helices of the specified type.  The
+	values of these variables are the strings "pp", "pm", "mp" and "mm"
+	(case doesn't matter) which mean 5'&3' paired; 5' paired, 3' mispair OK;
+	5' mispair ok, 3' paired; and mispairs ok at either or both 5'&3'.  Note
+	that mispairs are not required, just permitted.  To select for a mispair
+	at that position use the score section.  The default value is "pp".  In
+	addition, the ends may be specified at the str-el level using the ends=
+	parameter.  This uses the same values as the global symbols, but the
+	scope is limited to that str-el.
+
+1.1.0	1999-oct-23
+	Added builtins mispairs(), mismatches() and paired() to score
+	system.
+
+	Added new variables NSE (number of structure elements) and SCORE.
+	NSE is used to loop over the descr elements.
+	SCORE is used to hold the value of the candidate's score and is
+	printed by print_match() when the candidate is acccepted.
+
+1.0.5	1999-oct-08
+	Added code to implement pairfrac to the p*, h*, t* and q*
+	structure elements.
+
+	First released version that has a working score system.  Scoring
+	system can examine subseqeunces of the sequences that match the
+	descriptor elements for the current match candidate.
+
+1.0.4	1999-sep-28
+	Added float parms pairfrac & matchfrac to strels.  Reorganized 
+	eval() to use the scheme (T_IJ()) used in score().
+
+	Fixed bug that was setting the offset to the matched string in the
+	3' part of wc-hlx to the 3' most base instead of the 5' most base.
+
+1.0.3	1999-sep-10
+	Added awk-like score section to the grammar & lex input.  Currently
+	score takes no action.
+
+	Changed input slightly:
+		1. the = between the sites and the pairset is now required
+		   to be the res. word "in"
+		2. parameter defs must now end with semicolon.
+
+	Fixed bug that was checking if the outermost w/c helix could be
+	extended.
+
+	Fixed bug that assumed no spaces between the > and the id in a fastn
+	file.
+
+1.0.2	1999-sep-03
+	Added code to section that checks for seq= matches that converts
+	any u's in the input data to t's allowing it work on rna as well as
+	dna data.
+
+	fixed (apparantly) unreported bug that stopped checking an sites,
+	as the chk_site() code was called by chk_motif() which was commented
+	out as chk_motif() was too strict
+
+1.0.1	1999-aug-27
+	Reformatted output for fastn input to include 2 lines
+	for each hit. Line 1 is the `def' line from the fastn
+	file (must begin with >) and line 2 is the sequence
+	as before except that the name is now the 1st word
+	minus the > of the fastn line
+
+	Also fixed bug in find_triplex() that computed the 
+	length of the 2d interior as 1 too small.
+
+1.0.0	1999-aug-03
+	First working version that included all the features. 
+	
+@
+
+
+1.6
+log
+@*** empty log message ***
+@
+text
+@d1 25
+d30 9
+a38 8
+	the default end condition for all helices of the specified type.  The values
+	of these variables are the strings "pp", "pm", "mp" and "mm" (case doesn't
+	matter) which mean 5'&3' paired; 5' paired, 3' mispair OK; 5' mispair ok, 3' paired;
+	and mispairs ok at either or both 5'&3'.  Note that mispairs are not required, just
+	permitted.  To select for a mispair at that position use the score section.
+	The default value is "pp".  In addition, the ends may be specified at the str-el
+	level using the ends= parameter.  This uses the same values as the global symbols,
+	but the scope is limited to that str-el.
+@
+
+
+1.5
+log
+@*** empty log message ***
+@
+text
+@d1 13
+@
+
+
+1.4
+log
+@*** empty log message ***
+@
+text
+@d1 9
+@
+
+
+1.3
+log
+@*** empty log message ***
+@
+text
+@d1 8
+@
+
+
+1.2
+log
+@*** empty log message ***
+@
+text
+@d1 7
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d13 3
+@

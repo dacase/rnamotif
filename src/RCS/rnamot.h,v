@@ -1,0 +1,1025 @@
+head	1.50;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.50
+date	2000.02.10.01.31.50;	author macke;	state Exp;
+branches;
+next	1.49;
+
+1.49
+date	99.11.08.20.34.36;	author macke;	state Exp;
+branches;
+next	1.48;
+
+1.48
+date	99.10.31.19.20.11;	author macke;	state Exp;
+branches;
+next	1.47;
+
+1.47
+date	99.10.23.15.14.26;	author macke;	state Exp;
+branches;
+next	1.46;
+
+1.46
+date	99.10.08.18.03.48;	author macke;	state Exp;
+branches;
+next	1.45;
+
+1.45
+date	99.10.08.17.18.49;	author macke;	state Exp;
+branches;
+next	1.44;
+
+1.44
+date	99.09.30.01.04.31;	author macke;	state Exp;
+branches;
+next	1.43;
+
+1.43
+date	99.09.28.05.35.01;	author macke;	state Exp;
+branches;
+next	1.42;
+
+1.42
+date	99.09.17.21.46.54;	author macke;	state Exp;
+branches;
+next	1.41;
+
+1.41
+date	99.09.16.01.15.06;	author macke;	state Exp;
+branches;
+next	1.40;
+
+1.40
+date	99.09.11.03.15.23;	author macke;	state Exp;
+branches;
+next	1.39;
+
+1.39
+date	99.09.10.19.04.23;	author macke;	state Exp;
+branches;
+next	1.38;
+
+1.38
+date	99.09.03.18.22.05;	author macke;	state Exp;
+branches;
+next	1.37;
+
+1.37
+date	99.08.27.19.14.05;	author macke;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	99.08.04.00.07.27;	author macke;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	99.06.29.18.04.39;	author macke;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	99.06.28.23.57.50;	author macke;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	99.06.21.22.16.27;	author macke;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	99.06.20.02.13.24;	author macke;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	99.05.24.21.24.29;	author macke;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	99.05.12.20.33.59;	author macke;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	99.05.10.05.22.03;	author macke;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	99.05.04.03.19.22;	author macke;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	99.05.01.06.05.53;	author macke;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	99.04.28.02.20.29;	author macke;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	99.04.04.21.12.26;	author macke;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	99.03.27.21.12.16;	author macke;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	99.03.27.02.41.16;	author macke;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	99.03.25.05.32.55;	author macke;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	99.03.15.02.49.48;	author macke;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	99.03.14.20.48.04;	author macke;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	99.02.28.02.43.44;	author macke;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	99.02.03.05.44.38;	author macke;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	99.01.11.00.23.23;	author macke;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	99.01.09.04.11.28;	author macke;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	99.01.02.18.59.21;	author macke;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	98.12.30.22.57.13;	author macke;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	98.12.29.22.56.39;	author macke;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	98.12.27.11.09.58;	author macke;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	98.12.24.05.44.55;	author macke;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	98.12.23.03.29.34;	author macke;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	98.12.20.00.40.12;	author macke;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	98.12.19.19.47.26;	author macke;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	98.12.19.03.32.15;	author macke;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	98.12.16.06.02.01;	author macke;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	98.12.15.04.30.08;	author macke;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	98.12.14.21.39.26;	author macke;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	98.12.14.04.32.30;	author macke;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	98.12.13.02.40.23;	author macke;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	98.12.12.05.20.58;	author macke;	state Exp;
+branches;
+next	;
+
+
+desc
+@header file for rnamot.
+@
+
+
+1.50
+log
+@updated version to 1.2.0 (2000-feb-09)
+@
+text
+@#ifndef	__RNAMOT__
+#define	__RNAMOT__
+
+#define	VERSION	"v1.2.0 2000-feb-09"
+
+#define	U_MSG_S	\
+"usage: %s [ options ] -descr descr-file [ -dtype dtype ] [ seq-file ]\n\n\
+options:\n\
+\t-c\n\
+\t-d\n\
+\t-h\n\
+\t-v\n\
+\t-help\n\
+\n\
+-descr descr-file\n\
+\n\
+-dtype { genbank | fastn }\n"
+
+#define	UNDEF	(-1)
+#define	UNBOUNDED	0x7fffffff
+
+#define	DT_FASTN	0
+#define	DT_GENBANK	1
+
+#define	T_UNDEF		0
+#define	T_INT		1
+#define	T_FLOAT		2
+#define	T_STRING	3
+#define	T_PAIR		4
+#define	T_POS		5
+#define	T_IDENT		6
+#define	N_TYPE		7
+#define	T_IJ(i,j)	((i)*N_TYPE+(j))
+
+#define	C_UNDEF		0
+#define	C_LIT		1
+#define	C_VAR		2
+#define	C_EXPR		3
+
+#define	S_UNDEF		0
+#define	S_GLOBAL	1
+#define	S_STREL		2
+#define	S_SITE		3
+
+	/* context for the parser/lexer	*/
+#define	CTX_START	0
+#define	CTX_PARMS	1
+#define	CTX_DESCR	2
+#define	CTX_SITES	3
+#define	CTX_SCORE	4
+
+typedef	struct	value_t	{
+	int	v_type;
+	union	{
+		int	v_ival;
+		float	v_fval;
+		void	*v_pval;
+	} v_value;
+} VALUE_T;
+
+typedef	struct	ident_t	{
+	char	*i_name;
+	int	i_type;
+	int	i_class;
+	int	i_scope;
+	int	i_reinit;
+	VALUE_T	i_val;
+} IDENT_T;
+
+#define	BCODE_A		0
+#define	BCODE_C		1
+#define	BCODE_G		2
+#define	BCODE_T		3
+#define	BCODE_N		4
+#define N_BCODES	5
+
+typedef	int	BP_MAT_T[ N_BCODES ][ N_BCODES ];
+typedef	int	BT_MAT_T[ N_BCODES ][ N_BCODES ][ N_BCODES ];
+typedef	int	BQ_MAT_T[ N_BCODES ][ N_BCODES ][ N_BCODES ][ N_BCODES ];
+
+typedef	struct	pair_t	{
+	int	p_n_bases;
+	char	p_bases[ 4 ];
+} PAIR_T;
+
+typedef	struct	pairset_t	{
+	int	ps_n_pairs;
+	PAIR_T	*ps_pairs;
+	void	*ps_mat[ 2 ];	/* 1 for duplex, 2 for 3-plex, 4-plex */
+} PAIRSET_T;
+
+typedef	struct	pairlist_t	{
+	struct	pairlist_t	*pl_next;
+	PAIRSET_T	*pl_pset;
+} PAIRLIST_T;
+
+typedef	struct	node_t	{
+	int	n_sym;
+	int	n_type;
+	int	n_class;
+	int	n_lineno;
+	VALUE_T	n_val;
+	struct	node_t	*n_left;
+	struct	node_t	*n_right;
+} NODE_T;
+
+typedef	struct	addr_t	{
+	int	a_l2r;
+	int	a_offset;
+} ADDR_T;
+
+typedef	struct	pos_t	{
+	int	p_type;
+	int	p_lineno;
+	char	*p_tag;
+	int	p_dindex;
+	ADDR_T	p_addr;
+} POS_T;
+
+typedef	struct	site_t	{
+	struct	site_t	*s_next;
+	POS_T	*s_pos;
+	int	s_n_pos;
+	PAIRSET_T	*s_pairset;
+} SITE_T;
+
+#define	SA_PROPER	001
+#define	SA_5PAIRED	002
+#define	SA_3PAIRED	004
+#define	SA_N_ATTR	3
+
+typedef	struct	strel_t	{
+	int	s_checked;	/* used during linking		*/
+	int	s_type;
+	int	s_attr;		/* holds set of SA_*		*/
+	char	s_index;	/* index into descr array	*/
+	int	s_lineno;
+	int	s_searchno;	/* index into searches[]	*/
+	int	s_matchoff;	/* matched string starts here	*/
+	int	s_matchlen;	/* matched string is this long	*/
+	int	s_n_mismatches;	/* number of mismatches		*/
+	int	s_n_mispairs;	/* number of mismatches		*/
+	char	*s_tag;
+	struct	strel_t	*s_next;
+	struct	strel_t	*s_prev;
+	struct	strel_t	*s_inner;
+	struct	strel_t	*s_outer;
+	struct	strel_t	**s_mates;
+	int	s_n_mates;
+	struct	strel_t	**s_scopes;
+	int	s_n_scopes;
+	int	s_scope;
+	int	s_minlen;
+	int	s_maxlen;
+	int	s_minglen;
+	int	s_maxglen;
+	int	s_minilen;
+	int	s_maxilen;
+	ADDR_T	s_start;
+	ADDR_T	s_stop;
+	char	*s_seq;
+	char	*s_expbuf;
+	char	*s_e_expbuf;
+	int	s_mismatch;
+	float	s_matchfrac;
+	int	s_mispair;
+	float	s_pairfrac;
+	PAIRSET_T	*s_pairset;
+} STREL_T;
+
+typedef	struct	search_t	{
+	STREL_T	*s_descr;
+	STREL_T	*s_forward;
+	STREL_T	*s_backup;
+	int	s_zero;
+	int	s_dollar;
+} SEARCH_T;
+
+#endif
+@
+
+
+1.49
+log
+@update version to 1.1.1
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.1.1 1999-nov-08"
+@
+
+
+1.48
+log
+@changed s_proper to be s_attr | SA_PROPER
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.1.0 1999-oct-23"
+@
+
+
+1.47
+log
+@updated VERSION to 1.1.0
+@
+text
+@d127 5
+d135 1
+a135 1
+	int	s_proper;	/* false = pseudoknot		*/
+@
+
+
+1.46
+log
+@updated version to 1.0.5.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.0.5 1999-oct-08"
+@
+
+
+1.45
+log
+@added new fields s_n_mismatches, s_n_mispairs to STREL_T. This fields
+will hold the number of mismathces & mispairs in the currently matching
+seqeunces.  This will make they available to the score section via the
+builtins: mismatches() and mispairs().
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.0.4 1999-sep-28"
+@
+
+
+1.44
+log
+@changed version to 1.0.4
+@
+text
+@d136 2
+@
+
+
+1.43
+log
+@added new fields s_matchfrac, s_pairfrac to STREL_T; define macro
+T_IJ() for use in evaluating the types to binary operations.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.0.3 1999-sep-10"
+@
+
+
+1.42
+log
+@added field i_reinit to IDENT_T. This is set to 0 if the symbol is
+created during the parm phase and to 1 if created during the score phase.
+i_reinit symbols are initialized each time the score function is called.
+@
+text
+@d33 1
+d158 1
+d160 1
+@
+
+
+1.41
+log
+@added new define N_TYPE which is the number of rnamot data types.
+@
+text
+@d65 1
+@
+
+
+1.40
+log
+@changed version to 1.0.3
+@
+text
+@d32 1
+@
+
+
+1.39
+log
+@moved defs ot CTX_* from rmgrm.y to here.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.0.2 1999-sep-03"
+@
+
+
+1.38
+log
+@updated version to 1.0.2
+@
+text
+@d43 7
+@
+
+
+1.37
+log
+@changed version from 1.0.0 to 1.0.1
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.0.1 1999-aug-27"
+@
+
+
+1.36
+log
+@added VERSION symbol that is printed out for the -v option;
+updated U_MSG_S.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.0.0 1999-aug-03"
+@
+
+
+1.35
+log
+@only 2 ps_mat required.
+@
+text
+@d4 2
+d12 1
+@
+
+
+1.34
+log
+@changed ps_mat to be an array that can hold upto 3 bmat's.
+@
+text
+@d76 1
+a76 1
+	void	*ps_mat[ 3 ];	/* 1 for duplex, 2 for 3-plex, 3 for 4-plex */
+@
+
+
+1.33
+log
+@swapped values of DT_GENBANK & DT_FASTN.
+@
+text
+@d76 1
+a76 1
+	void	*ps_mat;
+@
+
+
+1.32
+log
+@added help msg. New constants DT_GENBANK, DT_FASTN for which type of
+data to read.
+@
+text
+@d19 2
+a20 2
+#define	DT_GENBANK	0
+#define	DT_FASTN	1
+@
+
+
+1.31
+log
+@removed def of DBASE_T to new file dbase.h. This part is very system dependent
+and deserved to be encapsulated better.
+@
+text
+@d4 12
+d18 3
+@
+
+
+1.30
+log
+@added new fields int s_matchoff, s_matchlen to STREL_T to hold the
+details of the current match.
+@
+text
+@a141 6
+typedef	struct	dbase_t	{
+	int	d_first;
+	int	d_last;
+	int	d_current;
+} DBASE_T;
+
+@
+
+
+1.29
+log
+@added char* fields s_expbuf, s_e_expbuf to STREL_T to hold the compiled
+regexp versions of any seq= args.
+@
+text
+@d106 2
+@
+
+
+1.28
+log
+@defined the BCODE_* for the bases a, c, g, t=u, n and the new types
+BP_MAT_T, BT_MAT_T and BQ_MAT_T which hold 5x5, 5x5x5 & 5x5x5x5 matrices
+that are attached to each pairset defining the legal base pairs, trips &
+quad for that 2d struct el.
+Also added new field ps_mat to hold this array.
+@
+text
+@d125 2
+@
+
+
+1.27
+log
+@added s_searchno to STREL_T so that strel's & searches are doubly linked.
+renamed s_next of SEARCH_T to s_forward; added fields s_zero & s_dollar
+to SEARCH_T to hold the actual range of the current search.
+@
+text
+@d42 11
+d61 1
+@
+
+
+1.26
+log
+@added new type SEARCH_T which hold details about what to search for,
+what to search for next (on success) and where to backup on failure.
+@
+text
+@d88 1
+a88 1
+	int	s_checked;	/* used during linking	*/
+d90 2
+a91 2
+	int	s_proper;	/* false = pseudoknot	*/
+	char	s_index;	/* index into descr array */
+d93 1
+d120 1
+a120 1
+	STREL_T	*s_next;
+d122 2
+@
+
+
+1.25
+log
+@added new type: ADDR_T which holds a boolean, l2r == 1, for left to right
+and an offset.  Folded the POS_T fields p_l2r, p_offset into p_addr.
+added new fields ADDR_T s_start, s_stop to STREL_T which hold the stop &
+stop values for each element.
+@
+text
+@d117 6
+@
+
+
+1.24
+log
+@added field s_outer to STREL_T
+@
+text
+@d67 5
+d77 1
+a77 2
+	int	p_l2r;
+	int	p_offset;
+d109 2
+@
+
+
+1.23
+log
+@added new field s_prev to STREL_T.
+@
+text
+@d93 1
+@
+
+
+1.22
+log
+@added new fields s_minglen, s_maxglen, s_minilen, s_maxilen to hold the
+min/max values of an entire structure element: scopes[0:#-1] and the
+local inner scopes.  s_minglen, s_maxglen are defined only for multiscope
+strels & only for scope[0].  Inner for all but ss & the last element of
+a group.
+@
+text
+@d91 1
+@
+
+
+1.21
+log
+@reorder fields s_inner, s_next in STREL_T to s_next, s_inner.
+@
+text
+@d99 4
+@
+
+
+1.20
+log
+@added s_proper to STREL_T: false -> pknot.
+added s_scopes to STREL_T to hold the delimiters of interior regions
+of recognized structures.
+rename s_in to s_inner.
+@
+text
+@d90 1
+a91 1
+	struct	strel_t	*s_next;
+@
+
+
+1.19
+log
+@added new field s_in to STREL_T
+@
+text
+@d86 1
+d90 1
+a90 1
+	struct	strel_t	*s_in;
+d94 3
+@
+
+
+1.18
+log
+@added struct DBASE_T which will be the object by which rnamot connects
+to the sequences that it has to search.
+@
+text
+@d89 1
+@
+
+
+1.17
+log
+@removed s_sites, s_n_sites from STREL_T as they can't really be checked
+here.
+@
+text
+@d100 6
+@
+
+
+1.16
+log
+@added new constant UNBOUNDED which is the large positive 32 bit int.
+@
+text
+@a97 2
+	SITE_T	*s_sites;
+	int	s_n_sites;
+@
+
+
+1.15
+log
+@added field p_dindex to type POS_T used to connect it to its actual
+structure element.
+@
+text
+@d5 1
+@
+
+
+1.14
+log
+@added field s_next to SITE_T
+@
+text
+@d70 1
+@
+
+
+1.13
+log
+@added types POS_T & SITE_T which are used to hold specific site or
+interactions between single bases on 2 or more strands.
+@
+text
+@d75 1
+@
+
+
+1.12
+log
+@added field s_checked to STREL_T for use by SE_link().  convertd
+s_mates to STREL_T ** & added field s_n_mates.
+@
+text
+@a4 1
+#define	LASTVAL	(-2)
+d11 2
+a12 1
+#define	T_IDENT		5
+d66 14
+d95 2
+a96 1
+	char	*s_sites;
+@
+
+
+1.11
+log
+@changed field names in PAIRSET_T from s_pairs to s_mates and s_pairdata to
+s_pairset.
+@
+text
+@d67 1
+d73 2
+a74 1
+	struct	strel_t	*s_mates;
+@
+
+
+1.10
+log
+@converted pairlist to pairset; then added pairlist, a real list back.
+@
+text
+@d72 1
+a72 1
+	struct	strel_t	*s_pairs;
+d78 1
+a78 1
+	char	*s_pairdata;
+@
+
+
+1.9
+log
+@added types PAIR_T & PAIRLIST_T
+@
+text
+@d46 5
+d52 2
+a53 2
+	int	pl_n_pairs;
+	PAIR_T	*pl_pairs;
+@
+
+
+1.8
+log
+@change S_LOCAL to S_STREL, S_SITE, to be able to insure that STREL syms
+are used in strels & SITE syms in sites.
+@
+text
+@d41 10
+@
+
+
+1.7
+log
+@added field n_lineno to NODE_T.
+@
+text
+@d21 2
+a22 1
+#define	S_LOCAL		2
+d54 1
+@
+
+
+1.6
+log
+@added new type T_IDENT, indicating that the value of v_pval is
+an IDENT_T *
+@
+text
+@d44 1
+@
+
+
+1.5
+log
+@combined all pointers in VALUE_T into void *;
+added S_* scope stuff for ids.
+@
+text
+@d12 1
+@
+
+
+1.4
+log
+@change field i_value to i_val to resemeble n_val of NODE_T
+@
+text
+@d18 4
+d27 1
+a27 2
+		char	*v_cval;
+		char	*v_pval;
+d35 1
+@
+
+
+1.3
+log
+@added parse tree stuff: T_*, C_* NODE_T.  VALUE_T has value and type now.
+@
+text
+@d32 1
+a32 1
+	VALUE_T	i_value;
+@
+
+
+1.2
+log
+@added s_index to STREL_T; defined UNDEF, LONGEST.
+@
+text
+@d5 1
+a5 1
+#define	LONGEST	(-2)
+d7 11
+d19 1
+a19 1
+	int	v_sym;
+d27 16
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d4 3
+d19 1
+@

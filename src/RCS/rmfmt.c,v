@@ -1,0 +1,535 @@
+head	1.9;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.9
+date	99.11.08.20.33.32;	author macke;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	99.10.22.18.20.26;	author macke;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	99.08.27.19.10.15;	author macke;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	99.08.21.03.40.44;	author macke;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	99.07.26.22.54.23;	author macke;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	99.07.08.03.14.33;	author macke;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	99.07.08.01.34.26;	author macke;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	99.06.22.05.49.14;	author macke;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	99.06.19.03.59.44;	author macke;	state Exp;
+branches;
+next	;
+
+
+desc
+@formatter for rnamot output.  Left aligns each sequence column.
+@
+
+
+1.9
+log
+@added option -l to print only the `locus' ie the word following the
+last | in the 1st field (or the entire field if no |).
+@
+text
+@#include <stdio.h>
+#include <string.h>
+
+#define	U_MSG_S	"usage: %s [ -l ] [ rm-output-file ]\n"
+
+#define	MAXFIELDS	200
+#define	FIELD1		4
+#define	MAXW		20
+static	char	*fields[ MAXFIELDS ];
+static	int	n_fields, t_fields;
+
+static	int	*maxw;
+
+#define	FMT_LEFT	0
+#define	FMT_RIGHT	1
+static	int	*fmt;
+static	int	*getfmt();
+static	int	fcmprs();
+
+main( argc, argv )
+int	argc;
+char	*argv[];
+{
+	char	*ifname;
+	FILE	*ifp, *tfp1, *tfp2;
+	char	*tfnp1, *tfnp2;
+	char	cmd[ 256 ];
+	char	line[ 10000 ];
+	char	*sp, *vbp;
+	int	ac, field1, f, fw, fs;
+	int	lopt, scored;
+
+/*
+	if( argc == 1 )
+		ifp = stdin;
+	else if( argc > 2 ){
+		fprintf( stderr, "usage: %s [ rm-output-file ]\n", argv[ 0 ] );
+		exit( 1 );
+	}else if( ( ifp = fopen( argv[ 1 ], "r" ) ) == NULL ){
+		fprintf( stderr, "%s: can't open rm-output-file '%s'\n",
+			argv[ 0 ], argv[ 1 ] );
+		exit( 1 );
+	}
+*/
+	lopt = 0;
+	ifname = NULL;
+	for( ac = 1; ac < argc; ac++ ){
+		if( !strcmp( argv[ ac ], "-l" ) )
+			lopt = 1;
+		else if( *argv[ ac ] == '-' ){
+			fprintf( stderr, U_MSG_S, argv[ 0 ] );
+			exit( 1 );
+		}else if( ifname != NULL ){
+			fprintf( stderr, U_MSG_S, argv[ 0 ] );
+			exit( 1 );
+		}else
+			ifname = argv[ ac ];
+	}
+	if( ifname == NULL ){
+		ifp = stdin;
+	}else if( ( ifp = fopen( ifname, "r" ) ) == NULL ){
+		fprintf( stderr, "%s: can't read rm-output-file '%s'\n",
+			argv[ 0 ], ifname );
+		exit( 1 );
+	}
+
+	tfnp1 = tempnam( NULL, "raw" );
+	if( ( tfp1 = fopen( tfnp1, "w" ) ) == NULL ){
+		fprintf( stderr, "%s: can't open temp-file '%s'\n",
+			argv[ 0 ], tfnp1 );
+		exit( 1 );
+	}
+
+	scored = 0;	/* #RM scored line seen */
+	field1 = FIELD1;
+	for( t_fields = 0; fgets( line, sizeof( line ), ifp ); ){
+		/* skip fastn def lines	*/
+		if( *line == '>' )
+			continue;
+		n_fields = split( line, fields, " \t\n" );
+		if( n_fields == 0 )
+			continue;
+		else if( !strcmp( fields[ 0 ], "#RM" ) ){
+			if( n_fields < 2 )
+				continue;
+			if( !strcmp( fields[ 1 ], "descr" ) ){
+				fmt = getfmt( n_fields, field1, fields );
+				if( fmt == NULL )
+					exit( 1 );
+			}else if( !strcmp( fields[ 1 ], "scored" ) ){
+				field1++;
+				scored = 1;
+			}
+			fputs( line, stdout );
+			continue;
+		}else if( *fields[ 0 ] == '#' )
+			continue;
+		if( t_fields == 0 ){
+			t_fields = n_fields;
+			maxw = ( int * )malloc( ( t_fields ) * sizeof( int ) );
+			if( maxw == NULL ){
+				fprintf( stderr, "%s: can't allocate maxw.\n",
+					argv[ 0 ] );
+				exit( 1 );
+			}
+			for( f = 0; f < t_fields; f++ )
+				maxw[ f ] = 0;
+		}
+		if( lopt ){
+			for( vbp = NULL, sp = fields[ 0 ]; *sp; sp++ ){
+				if( *sp == '|' )
+					vbp = sp;
+			}
+			if( vbp != NULL )
+				strcpy( fields[ 0 ], &vbp[ 1 ] );
+		}
+		fw = strlen( fields[ 0 ] );
+		if( fw > maxw[ 0 ] )
+			maxw[ 0 ] = fw;
+		for( f = 1; f < field1; f++ ){
+			fw = strlen( fields[ f ] );
+			if( fw > maxw[ f ] )
+				maxw[ f ] = fw;
+		}
+		for( f = field1; f < t_fields; f++ ){
+			fw = strlen( fields[ f ] );
+			if( fw > MAXW )
+				fw = fcmprs( fw, fields[ f ] );
+			if( fw > maxw[ f ] )
+				maxw[ f ] = fw;
+		}
+		fprintf( tfp1, "%s", fields[ 0 ] );
+		for( f = 1; f < n_fields; f++ )
+			fprintf( tfp1, " %s", fields[ f ] );
+		fprintf( tfp1, "\n" );
+		for( f = 0; f < n_fields; f++ )
+			free( fields[ f ] );
+	}
+	fclose( tfp1 );
+
+	tfnp2 = tempnam( NULL, "srt" );
+	if( scored ){
+		sprintf( cmd,
+			"sort +1rn -2 +0 -1 +2n -3 +3n -4 +4n -5 %s > %s\n",
+			tfnp1, tfnp2 );
+	}else{
+		sprintf( cmd, "sort +0 -1 +1n -2 +2n -3 +3n -4 %s > %s\n",
+			tfnp1, tfnp2 );
+	}
+	system( cmd );
+
+	if( ( tfp2 = fopen( tfnp2, "r" ) ) == NULL ){
+		fprintf( stderr,
+			"%s: can't open sorted temp-file '%s'\n",
+			argv[ 0 ], tfnp2 );
+		exit( 1 );
+	}
+
+	while( fgets( line, sizeof( line ), tfp2 ) ){
+		n_fields = split( line, fields, " \t\n" );
+		for( f = 0; f < t_fields; f++ ){
+			fw = strlen( fields[ f ] );
+			if( fmt[ f ] == FMT_LEFT ){
+				if( f != 0 )
+					putchar( ' ' );
+				printf( "%s", fields[ f ] );
+				for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+					putchar( ' ' );
+			}else{
+				printf( " " );
+				for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+					putchar( ' ' );
+				printf( "%s", fields[ f ] );
+			}
+		}
+		printf( "\n" );
+		for( f = 0; f < n_fields; f++ )
+			free( fields[ f ] );
+	}
+	fclose( tfp2 );
+
+	unlink( tfnp1 );
+	unlink( tfnp2 );
+
+	if( ifp != stdin )
+		fclose( ifp );
+
+	exit( 0 );
+}
+
+static	int	*getfmt( n_fields, field1, fields )
+int	n_fields;
+int	field1;
+char	*fields[];
+{
+	int	f;
+	int	*fmt;
+
+	fmt = ( int * )malloc( ( n_fields - 2 + field1 ) * sizeof( int ) );
+	if( fmt == NULL ){
+		fprintf( stderr, "getfmt: can't allocate fmt.\n" );
+		return( NULL );
+	}
+	fmt[ 0 ] = FMT_LEFT;
+	for( f = 1; f < field1; f++ )
+		fmt[ f ] = FMT_RIGHT;
+	for( f = 2; f < n_fields; f++ ){
+		if( !strncmp( fields[ f ], "h3", 2 ) ||
+				!strncmp( fields[ f ], "t2", 2 ) ||
+				!strncmp( fields[ f ], "q2", 2 ) ||
+				!strncmp( fields[ f ], "q4", 2 ) )
+			fmt[ f - 2 + field1 ] = FMT_RIGHT;
+		else
+			fmt[ f - 2 + field1 ] = FMT_LEFT;
+	}
+	return( fmt );
+}
+
+static	int	fcmprs( flen, field )
+int	flen;
+char	field[];
+{
+	char	tmp[ 10000 ];
+
+	if( flen > MAXW ){
+		sprintf( tmp, "%.*s...(%d)...%.*s",
+			3, field, flen, 3, &field[ flen - 3 ] );
+		strcpy( field, tmp );
+		return( strlen( field ) );
+	}else
+		return( flen );
+}
+@
+
+
+1.8
+log
+@check for presence of #RM scored line indicating the 2d column is the
+score.
+@
+text
+@d4 2
+d24 1
+d29 3
+a31 2
+	int	field1, f, fw, fs;
+	int	scored;
+d33 1
+d44 22
+d109 12
+a120 1
+		for( f = 0; f < field1; f++ ){
+@
+
+
+1.7
+log
+@skip lines that begin with '>' as they are fastn `def' lines and are not
+formatted.
+@
+text
+@d26 2
+a27 1
+	int	f, fw, fs;
+d47 2
+d57 4
+a60 2
+			if( n_fields > 1 && !strcmp( fields[ 1 ], "descr" ) ){
+				fmt = getfmt( n_fields, fields );
+d63 3
+a72 11
+/*
+			maxw = ( int * )
+				malloc( ( t_fields - FIELD1 ) * sizeof( int ) );
+			if( maxw == NULL ){
+				fprintf( stderr, "%s: can't allocate maxw.\n",
+					argv[ 0 ] );
+				exit( 1 );
+			}
+			for( f = 0; f < t_fields - FIELD1; f++ )
+				maxw[ f ] = 0;
+*/
+d82 1
+a82 10
+/*
+		for( f = 0; f < t_fields - FIELD1; f++ ){
+			fw = strlen( fields[ FIELD1 + f ] );
+			if( fw > MAXW )
+				fw = fcmprs( fw, fields[ FIELD1 + f ] );
+			if( fw > maxw[ f ] )
+				maxw[ f ] = fw;
+		}
+*/
+		for( f = 0; f < FIELD1; f++ ){
+d87 1
+a87 1
+		for( f = FIELD1; f < t_fields; f++ ){
+d104 8
+a111 2
+	sprintf( cmd, "sort +0 -1 +1n -2 +2n -3 +3n -4 %s > %s\n",
+		tfnp1, tfnp2 );
+a122 7
+/*
+		printf( "%-12s %s %7s %4s",
+			fields[ 0 ], fields[ 1 ], fields[ 2 ], fields[ 3 ] );
+*/
+/*
+		for( f = 0; f < t_fields - FIELD1; f++ ){
+*/
+d153 1
+a153 1
+static	int	*getfmt( n_fields, fields )
+d155 1
+d161 1
+a161 1
+	fmt = ( int * )malloc( ( n_fields - 2 + FIELD1 ) * sizeof( int ) );
+d167 1
+a167 1
+	for( f = 1; f < FIELD1; f++ )
+d174 1
+a174 1
+			fmt[ f - 2 + FIELD1 ] = FMT_RIGHT;
+d176 1
+a176 1
+			fmt[ f - 2 + FIELD1 ] = FMT_LEFT;
+@
+
+
+1.6
+log
+@compute len's of ALL fields including ident fields.  Fields 0-3 are
+the seqid, comp, offset & len.  Treat as strings with no max. length,
+unlike fields 4-$ which are compressed to nnn...(N)...nnn if they exceed
+20 in length.
+@
+text
+@d47 3
+@
+
+
+1.5
+log
+@change cmt from fmt to descr.  shorten fields longer than 20 to
+nnn...(N)...nnn
+@
+text
+@d62 1
+d72 9
+d82 1
+d90 13
+d126 1
+d129 2
+d132 3
+a134 1
+			fw = strlen( fields[ FIELD1 + f ] );
+d136 3
+a138 1
+				printf( " %s", fields[ FIELD1 + f ] );
+d145 1
+a145 1
+				printf( "%s", fields[ FIELD1 + f ] );
+d170 1
+a170 1
+	fmt = ( int * )malloc( ( n_fields - 2 ) * sizeof( int ) );
+d175 3
+d183 1
+a183 1
+			fmt[ f - 2 ] = FMT_RIGHT;
+d185 1
+a185 1
+			fmt[ f - 2 ] = FMT_LEFT;
+@
+
+
+1.4
+log
+@added code that reads a header #RM fmt d1 d2 ... dN and left justifies
+all but h3, t2, q2 and q4 which are right justified.  Useful? Maybe, maybe
+not.
+@
+text
+@d6 1
+d16 1
+d25 1
+a25 1
+	char	line[ 1024 ];
+d51 1
+a51 1
+			if( n_fields > 1 && !strcmp( fields[ 1 ], "fmt" ) ){
+d56 1
+d64 5
+d74 2
+d145 4
+a148 4
+		if( !strcmp( fields[ f ], "h3" ) ||
+				!strcmp( fields[ f ], "t2" ) ||
+				!strcmp( fields[ f ], "q2" ) ||
+				!strcmp( fields[ f ], "q4" ) )
+d154 15
+@
+
+
+1.3
+log
+@uncommmented calls to unlink() that got rid of the tmp files.
+@
+text
+@d6 9
+d24 1
+a24 3
+	char	*fields[ MAXFIELDS ];
+	int	f, n_fields, t_fields;
+	int	*maxw, fw, fs;
+d46 11
+d96 10
+a105 3
+			printf( " %s", fields[ FIELD1 + f ] );
+			for( fs = 0; fs < maxw[ f ] - fw; fs++ )
+				putchar( ' ' );
+d120 24
+@
+
+
+1.2
+log
+@sort results.
+@
+text
+@a87 1
+/*
+a89 1
+*/
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d11 3
+a13 2
+	FILE	*ifp, *tfp;
+	char	*tfnp;
+d30 2
+a31 2
+	tfnp = tmpnam( NULL );
+	if( ( tfp = fopen( tfnp, "w+" ) ) == NULL ){
+d33 1
+a33 1
+			argv[ 0 ], tfnp );
+d51 1
+a51 1
+		fprintf( tfp, "%s", fields[ 0 ] );
+d53 2
+a54 2
+			fprintf( tfp, " %s", fields[ f ] );
+		fprintf( tfp, "\n" );
+d58 1
+d60 11
+a70 1
+	rewind( tfp );
+d72 1
+a72 1
+	while( fgets( line, sizeof( line ), tfp ) ){
+d86 1
+d88 4
+a91 2
+	fclose( tfp );
+	unlink( tfnp );
+@

@@ -1,0 +1,7760 @@
+head	1.95;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.95
+date	2000.02.10.00.11.56;	author macke;	state Exp;
+branches;
+next	1.94;
+
+1.94
+date	2000.01.18.00.11.17;	author macke;	state Exp;
+branches;
+next	1.93;
+
+1.93
+date	2000.01.05.05.02.05;	author macke;	state Exp;
+branches;
+next	1.92;
+
+1.92
+date	2000.01.04.19.17.08;	author macke;	state Exp;
+branches;
+next	1.91;
+
+1.91
+date	2000.01.03.20.08.40;	author macke;	state Exp;
+branches;
+next	1.90;
+
+1.90
+date	99.11.07.22.53.42;	author macke;	state Exp;
+branches;
+next	1.89;
+
+1.89
+date	99.10.31.01.21.11;	author macke;	state Exp;
+branches;
+next	1.88;
+
+1.88
+date	99.10.29.02.24.26;	author macke;	state Exp;
+branches;
+next	1.87;
+
+1.87
+date	99.10.19.16.44.50;	author macke;	state Exp;
+branches;
+next	1.86;
+
+1.86
+date	99.10.18.19.51.34;	author macke;	state Exp;
+branches;
+next	1.85;
+
+1.85
+date	99.10.07.22.16.35;	author macke;	state Exp;
+branches;
+next	1.84;
+
+1.84
+date	99.10.07.18.19.19;	author macke;	state Exp;
+branches;
+next	1.83;
+
+1.83
+date	99.10.03.19.02.16;	author macke;	state Exp;
+branches;
+next	1.82;
+
+1.82
+date	99.09.28.19.05.00;	author macke;	state Exp;
+branches;
+next	1.81;
+
+1.81
+date	99.09.28.03.50.13;	author macke;	state Exp;
+branches;
+next	1.80;
+
+1.80
+date	99.09.17.17.08.28;	author macke;	state Exp;
+branches;
+next	1.79;
+
+1.79
+date	99.09.16.23.14.37;	author macke;	state Exp;
+branches;
+next	1.78;
+
+1.78
+date	99.09.16.22.50.34;	author macke;	state Exp;
+branches;
+next	1.77;
+
+1.77
+date	99.09.14.16.50.33;	author macke;	state Exp;
+branches;
+next	1.76;
+
+1.76
+date	99.09.10.19.03.37;	author macke;	state Exp;
+branches;
+next	1.75;
+
+1.75
+date	99.09.08.20.45.53;	author macke;	state Exp;
+branches;
+next	1.74;
+
+1.74
+date	99.09.03.16.14.13;	author macke;	state Exp;
+branches;
+next	1.73;
+
+1.73
+date	99.08.20.16.35.04;	author macke;	state Exp;
+branches;
+next	1.72;
+
+1.72
+date	99.08.04.00.07.53;	author macke;	state Exp;
+branches;
+next	1.71;
+
+1.71
+date	99.08.02.22.40.29;	author macke;	state Exp;
+branches;
+next	1.70;
+
+1.70
+date	99.07.26.22.34.50;	author macke;	state Exp;
+branches;
+next	1.69;
+
+1.69
+date	99.07.11.00.28.19;	author macke;	state Exp;
+branches;
+next	1.68;
+
+1.68
+date	99.06.29.22.58.32;	author macke;	state Exp;
+branches;
+next	1.67;
+
+1.67
+date	99.06.29.21.10.10;	author macke;	state Exp;
+branches;
+next	1.66;
+
+1.66
+date	99.06.28.23.58.14;	author macke;	state Exp;
+branches;
+next	1.65;
+
+1.65
+date	99.06.22.21.15.37;	author macke;	state Exp;
+branches;
+next	1.64;
+
+1.64
+date	99.06.22.01.00.29;	author macke;	state Exp;
+branches;
+next	1.63;
+
+1.63
+date	99.06.21.22.17.04;	author macke;	state Exp;
+branches;
+next	1.62;
+
+1.62
+date	99.06.20.02.10.45;	author macke;	state Exp;
+branches;
+next	1.61;
+
+1.61
+date	99.06.19.03.55.19;	author macke;	state Exp;
+branches;
+next	1.60;
+
+1.60
+date	99.05.31.14.35.00;	author macke;	state Exp;
+branches;
+next	1.59;
+
+1.59
+date	99.05.28.20.19.25;	author macke;	state Exp;
+branches;
+next	1.58;
+
+1.58
+date	99.05.28.04.26.21;	author macke;	state Exp;
+branches;
+next	1.57;
+
+1.57
+date	99.05.28.01.17.51;	author macke;	state Exp;
+branches;
+next	1.56;
+
+1.56
+date	99.05.23.21.11.41;	author macke;	state Exp;
+branches;
+next	1.55;
+
+1.55
+date	99.05.12.20.33.04;	author macke;	state Exp;
+branches;
+next	1.54;
+
+1.54
+date	99.05.10.05.21.24;	author macke;	state Exp;
+branches;
+next	1.53;
+
+1.53
+date	99.05.04.15.39.42;	author macke;	state Exp;
+branches;
+next	1.52;
+
+1.52
+date	99.05.04.03.21.30;	author macke;	state Exp;
+branches;
+next	1.51;
+
+1.51
+date	99.05.01.06.09.18;	author macke;	state Exp;
+branches;
+next	1.50;
+
+1.50
+date	99.04.28.22.08.59;	author macke;	state Exp;
+branches;
+next	1.49;
+
+1.49
+date	99.04.28.02.23.38;	author macke;	state Exp;
+branches;
+next	1.48;
+
+1.48
+date	99.04.20.01.39.04;	author macke;	state Exp;
+branches;
+next	1.47;
+
+1.47
+date	99.04.19.02.01.53;	author macke;	state Exp;
+branches;
+next	1.46;
+
+1.46
+date	99.04.12.04.39.51;	author macke;	state Exp;
+branches;
+next	1.45;
+
+1.45
+date	99.04.05.17.25.50;	author macke;	state Exp;
+branches;
+next	1.44;
+
+1.44
+date	99.04.05.00.53.28;	author macke;	state Exp;
+branches;
+next	1.43;
+
+1.43
+date	99.04.05.00.51.11;	author macke;	state Exp;
+branches;
+next	1.42;
+
+1.42
+date	99.04.04.21.16.24;	author macke;	state Exp;
+branches;
+next	1.41;
+
+1.41
+date	99.03.27.21.12.49;	author macke;	state Exp;
+branches;
+next	1.40;
+
+1.40
+date	99.03.27.02.47.10;	author macke;	state Exp;
+branches;
+next	1.39;
+
+1.39
+date	99.03.27.02.30.17;	author macke;	state Exp;
+branches;
+next	1.38;
+
+1.38
+date	99.03.25.05.35.00;	author macke;	state Exp;
+branches;
+next	1.37;
+
+1.37
+date	99.03.15.02.50.22;	author macke;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	99.03.14.20.50.59;	author macke;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	99.03.09.20.29.56;	author macke;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	99.02.28.04.05.26;	author macke;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	99.02.27.00.40.40;	author macke;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	99.02.22.23.26.15;	author macke;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	99.02.21.01.47.29;	author macke;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	99.01.29.20.47.47;	author macke;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	99.01.11.00.26.23;	author macke;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	99.01.10.04.49.26;	author macke;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	99.01.09.04.11.59;	author macke;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	99.01.02.19.10.48;	author macke;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	99.01.02.19.00.42;	author macke;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	98.12.30.22.58.33;	author macke;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	98.12.29.22.58.31;	author macke;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	98.12.27.21.15.14;	author macke;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	98.12.27.14.49.55;	author macke;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	98.12.27.11.11.30;	author macke;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	98.12.26.04.20.03;	author macke;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	98.12.25.02.38.11;	author macke;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	98.12.24.22.36.35;	author macke;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	98.12.24.05.42.58;	author macke;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	98.12.23.19.43.53;	author macke;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	98.12.23.04.34.59;	author macke;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	98.12.23.03.31.14;	author macke;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	98.12.22.19.11.51;	author macke;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	98.12.20.00.40.40;	author macke;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	98.12.19.19.50.34;	author macke;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	98.12.19.03.29.28;	author macke;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	98.12.18.04.36.00;	author macke;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	98.12.17.05.03.51;	author macke;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	98.12.16.06.02.35;	author macke;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	98.12.15.04.42.49;	author macke;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	98.12.14.04.29.32;	author macke;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	98.12.13.02.38.12;	author macke;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	98.12.12.05.21.24;	author macke;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	98.12.11.05.21.14;	author macke;	state Exp;
+branches;
+next	;
+
+
+desc
+@utilities for isis rnamot program.
+@
+
+
+1.95
+log
+@redid find_pknots() to use the full transitive closure algorithm
+for finding snarls.
+@
+text
+@#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+
+#include "rnamot.h"
+#include "y.tab.h"
+
+extern	FILE	*yyin;
+
+int	rm_error;
+int	rm_context = CTX_START;
+VALUE_T	rm_tokval;
+int	rm_lineno;
+int	rm_emsg_lineno;
+char	rm_dfname[ 256 ] = "--stdin--";
+int	rm_copt = 0;
+int	rm_dopt = 0;
+int	rm_hopt = 0;
+int	rm_popt = 0;
+int	rm_vopt = 0;
+FILE	*rm_dbfp;
+int	rm_dtype = DT_FASTN;
+
+#define	VALSTKSIZE	20
+static	VALUE_T	valstk[ VALSTKSIZE ];
+static	int	n_valstk;
+
+#define	RM_GLOBAL_IDS_SIZE	50
+IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ];
+int	rm_n_global_ids = 0;
+
+#define	LOCAL_IDS_SIZE	20
+static	IDENT_T	*local_ids[ LOCAL_IDS_SIZE ];
+static	int	n_local_ids;
+
+#define	ISBASE(b)	((b)=='a'||(b)=='c'||(b)=='g'||(b)=='t'||(b)=='u'|| \
+			 (b)=='A'||(b)=='C'||(b)=='G'||(b)=='T'||(b)=='U')
+
+#define	RM_R2L(st)	\
+	((st)==SYM_P3||(st)==SYM_H3||(st)==SYM_T2||(st)==SYM_Q2||(st)==SYM_Q4)
+
+#define	CURPAIR_SIZE	20
+static	char	*curpair[ CURPAIR_SIZE ];
+int	n_curpair;
+
+#define	RM_DESCR_SIZE	100
+STREL_T	rm_descr[ RM_DESCR_SIZE ];
+int	rm_s_descr = RM_DESCR_SIZE;
+int	rm_n_descr;
+int	rm_dminlen;	/* min len. of entire motif	*/
+int	rm_dmaxlen;	/* max len. of entire motif	*/
+static	STREL_T	*stp;
+#define	SCOPE_STK_SIZE	100
+static	STREL_T	*scope_stk[ SCOPE_STK_SIZE ];
+static	int	t_scope_stk;
+static	PAIRSET_T	*def_pairset = NULL;
+
+#define	RM_POS_SIZE	10
+POS_T	rm_pos[ RM_POS_SIZE ];
+int	rm_s_pos = RM_POS_SIZE;
+int	rm_n_pos;
+static	POS_T	*posp;
+
+SITE_T	*rm_sites = NULL;
+
+#define	RM_B2BC_SIZE	256
+int	rm_b2bc[ RM_B2BC_SIZE ];
+int	rm_s_b2bc = RM_B2BC_SIZE;
+char	rm_bc2b[ N_BCODES ] = { 'a', 'c', 'g', 't', 'n' };
+static	char	*rm_iupac[ RM_B2BC_SIZE ];
+static	int	rm_s_iupac = RM_B2BC_SIZE;
+
+SEARCH_T	**rm_searches;
+int	rm_n_searches;
+
+extern	int	circf;		/* RE ^ kludge	*/
+
+static	char	emsg[ 256 ];
+
+NODE_T	*PR_close();
+
+IDENT_T	*RM_enter_id();
+IDENT_T	*RM_find_id();
+
+static	int	ends2attr();
+static	void	eval();
+static	int	loadidval();
+static	void	storeexprval();
+static	PAIRSET_T	*pairop();
+static	void	*mk_bmatp();
+static	void	*mk_rbmatp();
+static	POS_T	*posop();
+
+static	char	*str2seq();
+static	int	seqlen();
+static	int	link_tags();
+static	void	chk_tagorder();
+static	void	mk_links();
+static	void	duptags_error();
+static	int	chk_proper_nesting();
+static	void	find_pknots0();
+static	void	find_pknots1();
+static	void	find_pknots();
+static	int	chk_strel_parms();
+static	int	chk_1_strel_parms();
+static	int	chk_len_seq();
+static	int	chk_site();
+static	STREL_T	*set_scopes();
+static	void	find_gi_len();
+static	void	find_limits();
+static	void	find_search_order();
+static	void	set_search_order_links();
+
+static	void	find_limits();
+static	void	find_1_limit();
+static	void	find_start();
+static	void	find_stop();
+static	int	closes_unbnd();
+static	int	min_prefixlen();
+static	int	max_prefixlen();
+static	int	min_suffixlen();
+
+static	int	pk_cmp();
+
+int	RM_init( argc, argv )
+int	argc;
+char	*argv[];
+{
+	int	ac, i, err;
+	IDENT_T	*ip;
+	NODE_T	*np;
+	char	*dfnp, *dbfnp;
+	VALUE_T	val;
+
+	dfnp = NULL;	/* descriptor file name	*/
+	dbfnp = NULL;	/* database file name	*/
+	for( err = 0, ac = 1; ac < argc; ac++ ){
+		if( !strcmp( argv[ ac ], "-c" ) )
+			rm_copt = 1;
+		else if( !strcmp( argv[ ac ], "-d" ) )
+			rm_dopt = 1;
+		else if( !strcmp( argv[ ac ], "-h" ) )
+			rm_hopt = 1;
+		else if( !strcmp( argv[ ac ], "-p" ) )
+			rm_popt = 1;
+		else if( !strcmp( argv[ ac ], "-v" ) )
+			rm_vopt = 1;
+		else if( !strcmp( argv[ ac ], "-descr" ) ){
+			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
+			}else if( dfnp != NULL ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
+			}else{
+				ac++;
+				dfnp = argv[ ac ];
+			}
+		}else if( !strcmp( argv[ ac ], "-dtype" ) ){
+			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
+			}else{
+				ac++;
+				if( !strcmp( argv[ ac ], "genbank" ) )
+					rm_dtype = DT_GENBANK;
+				else if( !strcmp( argv[ ac ], "fastn" ) )
+					rm_dtype = DT_FASTN;
+				else{
+					fprintf( stderr, U_MSG_S, argv[ 0 ] );
+					err = 1;
+					break;
+				}
+			}
+		}else if( *argv[ ac ] == '-' ){
+			fprintf( stderr, U_MSG_S, argv[ 0 ] );
+			err = 1;
+			break;
+		}else if( dbfnp != NULL ){
+			fprintf( stderr, U_MSG_S, argv[ 0 ] );
+			err = 1;
+			break;
+		}else
+			dbfnp = argv[ ac ];
+	}
+	if( err )
+		return( 1 );
+
+	if( dfnp != NULL ){
+		if( ( yyin = fopen( dfnp, "r" ) ) == NULL ){
+			fprintf( stderr,
+				"%s: can't read descr-file '%s'\n",
+				argv[ 0 ], dfnp );
+			return( 1 );
+		}else
+			strcpy( rm_dfname, dfnp );
+	}
+
+	if( dbfnp != NULL ){
+		if( ( rm_dbfp = fopen( dbfnp, "r" ) ) == NULL ){
+			fprintf( stderr,
+				"%s: can't read database-file '%s'\n",
+				argv[ 0 ], dbfnp ); 
+			if( yyin != stdin )
+				fclose( yyin );
+			return( 1 );
+		}
+	}else
+		rm_dbfp = stdin;
+
+	for( i = 0; i < rm_s_b2bc; i++ )
+		rm_b2bc[ i ] = BCODE_N;
+	rm_b2bc[ 'a' ] = BCODE_A; rm_b2bc[ 'A' ] = BCODE_A;
+	rm_b2bc[ 'c' ] = BCODE_C; rm_b2bc[ 'C' ] = BCODE_C;
+	rm_b2bc[ 'g' ] = BCODE_G; rm_b2bc[ 'G' ] = BCODE_G;
+	rm_b2bc[ 't' ] = BCODE_T; rm_b2bc[ 'T' ] = BCODE_T;
+	rm_b2bc[ 'u' ] = BCODE_T; rm_b2bc[ 'U' ] = BCODE_T;
+	rm_b2bc[ 'n' ] = BCODE_N; rm_b2bc[ 'N' ] = BCODE_N;
+
+	for( i = 0; i < rm_s_iupac; i++ )
+		rm_iupac[ i ] = NULL;
+	rm_iupac[ 'a' ] ="a";	   rm_iupac[ 'A' ] ="a";
+	rm_iupac[ 'b' ] ="[cgt]";  rm_iupac[ 'B' ] ="[cgt]";
+	rm_iupac[ 'c' ] ="c";	   rm_iupac[ 'C' ] ="c";
+	rm_iupac[ 'd' ] ="[agt]";  rm_iupac[ 'D' ] ="[agt]";
+	rm_iupac[ 'g' ] ="g";	   rm_iupac[ 'G' ] ="g";
+	rm_iupac[ 'h' ] ="[act]";  rm_iupac[ 'H' ] ="[act]";
+	rm_iupac[ 'k' ] ="[gt]";   rm_iupac[ 'K' ] ="[gt]";
+	rm_iupac[ 'm' ] ="[ac]";   rm_iupac[ 'M' ] ="[ac]";
+	rm_iupac[ 'n' ] ="[acgt]"; rm_iupac[ 'N' ] ="[acgt]";
+	rm_iupac[ 'r' ] ="[ag]";   rm_iupac[ 'R' ] ="[ag]";
+	rm_iupac[ 's' ] ="[cg]";   rm_iupac[ 'S' ] ="[cg]";
+	rm_iupac[ 't' ] ="t";	   rm_iupac[ 'T' ] ="t";
+	rm_iupac[ 'u' ] ="t";	   rm_iupac[ 'U' ] ="t";
+	rm_iupac[ 'v' ] ="[acg]";  rm_iupac[ 'V' ] ="[acg]";
+	rm_iupac[ 'w' ] ="[at]";   rm_iupac[ 'W' ] ="[at]";
+	rm_iupac[ 'y' ] ="[ct]";   rm_iupac[ 'Y' ] ="[ct]";
+
+	rm_lineno = 0;
+	curpair[0] = "a:u";
+	curpair[1] = "c:g";
+	curpair[2] = "g:c";
+	curpair[3] = "u:a";
+	n_curpair = 4;
+	np = PR_close();
+	RM_enter_id( "wc", T_PAIR, C_VAR, S_GLOBAL, 0, &np->n_val );
+
+	curpair[0] = "g:u";
+	curpair[1] = "u:g";
+	n_curpair = 2;
+	np = PR_close();
+	RM_enter_id( "gu", T_PAIR, C_VAR, S_GLOBAL, 0, &np->n_val );
+
+	curpair[0] = "a:u:u";
+	n_curpair = 1;
+	np = PR_close();
+	RM_enter_id( "tr", T_PAIR, C_VAR, S_GLOBAL, 0, &np->n_val );
+
+	curpair[0] = "g:g:g:g";
+	n_curpair = 1;
+	np = PR_close();
+	RM_enter_id( "qu", T_PAIR, C_VAR, S_GLOBAL, 0, &np->n_val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 1;
+	RM_enter_id( "chk_both_strs", T_INT, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 1;
+	RM_enter_id( "iupac", T_INT, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 3;
+	RM_enter_id( "wc_minlen", T_INT, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 30;
+	RM_enter_id( "wc_maxlen", T_INT, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_STRING;
+	val.v_value.v_pval = "pp";
+	RM_enter_id( "wc_ends", T_STRING, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_STRING;
+	val.v_value.v_pval = "pp";
+	RM_enter_id( "phlx_ends", T_STRING, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_STRING;
+	val.v_value.v_pval = "pp";
+	RM_enter_id( "tr_ends", T_STRING, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_STRING;
+	val.v_value.v_pval = "pp";
+	RM_enter_id( "qu_ends", T_STRING, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 6000;
+	RM_enter_id( "windowsize", T_INT, C_VAR, S_GLOBAL, 0, &val );
+
+	rm_lineno = 1;
+
+	return( 0 );
+}
+
+void	PARM_add( expr )
+NODE_T	*expr;
+{
+
+	n_valstk = 0;
+	eval( expr, 1 );
+}
+
+void	PR_open()
+{
+
+	n_curpair = 0;
+}
+
+void	PR_add( np )
+NODE_T	*np;
+{
+
+	if( n_curpair >= CURPAIR_SIZE )
+		RM_errormsg( 1, "PR_add: current pair too large." );
+	curpair[ n_curpair ] = np->n_val.v_value.v_pval;
+	n_curpair++;
+}
+
+NODE_T	*PR_close()
+{
+	int	i, b, needbase;
+	PAIR_T	*pp;
+	PAIRSET_T	*ps;
+	char	*bp;
+	NODE_T	*np;
+
+	ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
+	if( ps == NULL )
+		RM_errormsg( 1, "PR_close: can't allocate pairlist." );
+	pp = ( PAIR_T * )malloc( n_curpair * sizeof( PAIR_T ) );
+	if( pp == NULL )
+		RM_errormsg( 1, "PR_close: can't allocate pair." );
+	ps->ps_n_pairs = n_curpair;
+	ps->ps_pairs = pp;
+	for( pp = ps->ps_pairs, i = 0; i < ps->ps_n_pairs; i++, pp++ ){
+		for( needbase = 1, b = 0, bp = curpair[ i ]; *bp; bp++ ){
+			if( ISBASE( *bp ) ){
+				if( needbase ){
+					if( b >= 4 ){
+						RM_errormsg( 0,
+			"PR_close: At most 4 bases in a pair-string." );
+						break;
+					}else{
+						pp->p_n_bases = b + 1;
+						pp->p_bases[ b ]= *bp;
+						b++;
+						needbase = 0;
+					}
+				}else{
+					RM_errormsg( 0,
+		"PR_close: pair-string is base-letter : base-letter : ..." );
+					break;
+				}
+			}else if( *bp == ':' ){
+				if( needbase ){
+					RM_errormsg( 0,
+		"PR_close: pair-string is base-letter : base-letter : ..." );
+					break;
+				}
+				needbase = 1;
+			}else{
+				RM_errormsg( 0,
+		"PR_close: pair-string is base-letter : base-letter : ..." );
+				break;
+			}
+		}
+		if( pp->p_n_bases < 2 || pp->p_n_bases > 4 ){
+			RM_errormsg( 0,
+				"PR_close: pair-string has 2-4 bases." );
+		}
+	}
+	ps->ps_mat[ 0 ] = NULL;
+	ps->ps_mat[ 1 ] = NULL;
+	ps = pairop( "check", ps, NULL );
+
+	np = ( NODE_T * )malloc( sizeof( NODE_T ) );
+	if( np == NULL ){
+		RM_errormsg( 1, "PR_close: can't allocate np." );
+	}
+	np->n_sym = SYM_LCURLY;
+	np->n_type = T_PAIR;
+	np->n_class = C_LIT;
+	np->n_lineno = rm_lineno;
+	np->n_val.v_type = T_PAIR;
+	np->n_val.v_value.v_pval = ps;
+	np->n_left = NULL;
+	np->n_right = NULL;
+	return( np );
+}
+
+void	SE_open( stype )
+int	stype;
+{
+	VALUE_T	val;
+	IDENT_T	*ip;
+	PAIRSET_T *ps;
+
+	n_valstk = 0;
+	if( stype == SYM_SE ){
+		rm_emsg_lineno = rm_lineno;
+		RM_errormsg( 1,
+			"SE_open: strel 'se' allowed only in score section." );
+	}
+	if( rm_n_descr == rm_s_descr ){
+		rm_emsg_lineno = rm_lineno;
+		sprintf( emsg, "SE_open: descr array size(%d) exceeded.",
+			rm_s_descr );
+		RM_errormsg( 1, emsg );
+	}
+	stp = &rm_descr[ rm_n_descr ];
+	rm_n_descr++;
+	stp->s_checked = 0;
+	stp->s_type = stype;
+	stp->s_attr = 0;
+	stp->s_index = rm_n_descr - 1;
+	stp->s_lineno = rm_lineno;
+	stp->s_searchno = UNDEF;
+	stp->s_matchoff = UNDEF;
+	stp->s_matchlen = UNDEF;
+	stp->s_n_mismatches = UNDEF;
+	stp->s_n_mispairs = UNDEF;
+	stp->s_tag = NULL;
+	stp->s_next = NULL;
+	stp->s_prev = NULL;
+	stp->s_inner = NULL;
+	stp->s_outer = NULL;
+	stp->s_mates = NULL;
+	stp->s_n_mates = 0;
+	stp->s_scopes = NULL;
+	stp->s_n_scopes = 0;
+	stp->s_scope = UNDEF;
+	stp->s_minlen = UNDEF;
+	stp->s_maxlen = UNDEF;
+	stp->s_minglen = UNDEF;
+	stp->s_maxglen = UNDEF;
+	stp->s_minilen = UNDEF;
+	stp->s_maxilen = UNDEF;
+	stp->s_start.a_l2r = 0;
+	stp->s_start.a_offset = UNDEF;
+	stp->s_stop.a_l2r = 0;
+	stp->s_stop.a_offset = UNDEF;
+	stp->s_seq = NULL;
+	stp->s_expbuf = NULL;
+	stp->s_e_expbuf = NULL;
+	stp->s_mismatch = 0;
+	stp->s_matchfrac = 1.0;
+	stp->s_mispair = UNDEF;
+	stp->s_pairfrac = UNDEF;
+	stp->s_pairset = NULL;
+	
+	n_local_ids = 0;
+	val.v_type = T_STRING;
+	val.v_value.v_pval = NULL;
+	ip = RM_enter_id( "tag", T_STRING, C_VAR, S_STREL, 0, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = UNDEF;
+	ip = RM_enter_id( "minlen", T_INT, C_VAR, S_STREL, 0, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = UNDEF;
+	ip = RM_enter_id( "maxlen", T_INT, C_VAR, S_STREL, 0, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = UNDEF;
+	ip = RM_enter_id( "len", T_INT, C_VAR, S_STREL, 0, &val );
+
+	val.v_type = T_STRING;
+	val.v_value.v_pval = NULL;
+	ip = RM_enter_id( "seq", T_STRING, C_VAR, S_STREL, 0, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = UNDEF;
+	ip = RM_enter_id( "mismatch", T_INT, C_VAR, S_STREL, 0, &val );
+
+	val.v_type = T_FLOAT;
+	val.v_value.v_fval = 1.0;
+	ip = RM_enter_id( "matchfrac", T_FLOAT, C_VAR, S_STREL, 0, &val );
+
+	if( stype != SYM_SS ){ 
+		val.v_type = T_INT;
+		val.v_value.v_ival = UNDEF;
+		ip = RM_enter_id( "mispair", T_INT, C_VAR, S_STREL, 0, &val );
+
+		val.v_type = T_FLOAT;
+		val.v_value.v_fval = UNDEF;
+		ip = RM_enter_id( "pairfrac",
+			T_FLOAT, C_VAR, S_STREL, 0, &val );
+
+		val.v_type = T_STRING;
+		val.v_value.v_pval = NULL;
+		ip = RM_enter_id( "ends", T_STRING, C_VAR, S_STREL, 0, &val );
+
+		switch( stype ){
+		case SYM_SS :
+			stp->s_pairset = NULL;
+			break;
+		case SYM_H5 :
+		case SYM_H3 :
+			ip = RM_find_id( "wc" );
+			def_pairset = ip->i_val.v_value.v_pval;
+			ip = RM_find_id( "wc_ends" );
+			stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
+			break;
+		case SYM_P5 :
+		case SYM_P3 :
+			ip = RM_find_id( "wc" );
+			def_pairset = ip->i_val.v_value.v_pval;
+			ip = RM_find_id( "phlx_ends" );
+			stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
+			break;
+		case SYM_T1 :
+		case SYM_T2 :
+		case SYM_T3 :
+			ip = RM_find_id( "tr" );
+			def_pairset = ip->i_val.v_value.v_pval;
+			ip = RM_find_id( "tr_ends" );
+			stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
+			break;
+		case SYM_Q1 :
+		case SYM_Q2 :
+		case SYM_Q3 :
+		case SYM_Q4 :
+			ip = RM_find_id( "qu" );
+			def_pairset = ip->i_val.v_value.v_pval;
+			ip = RM_find_id( "qu_ends" );
+			stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
+			break;
+		}
+		val.v_type = T_PAIR;
+		val.v_value.v_pval = NULL;
+		ip = RM_enter_id( "pair", T_PAIR, C_VAR, S_STREL, 0, &val );
+	}
+}
+
+void	SE_addval( expr )
+NODE_T	*expr;
+{
+	int	op;
+	NODE_T	*npl, *npr;
+	char	*id;
+	char	*sp;
+
+	n_valstk = 0;
+	eval( expr, 0 );
+}
+
+void	SE_close()
+{
+	int	i, s_minlen, s_maxlen, s_len, s_mispair, s_pairfrac;
+	int	l_seq;
+	IDENT_T	*ip, *ip1;
+
+	s_minlen = 0;
+	s_maxlen = 0;
+	for( i = 0; i < n_local_ids; i++ ){
+		ip = local_ids[ i ];
+		if( !strcmp( ip->i_name, "tag" ) ){
+			stp->s_tag = ip->i_val.v_value.v_pval;
+		}else if( !strcmp( ip->i_name, "minlen" ) ){
+			s_minlen = ip->i_val.v_value.v_ival != UNDEF;
+			stp->s_minlen = ip->i_val.v_value.v_ival;
+		}else if( !strcmp( ip->i_name, "maxlen" ) ){
+			s_maxlen = ip->i_val.v_value.v_ival != UNDEF;
+			stp->s_maxlen = ip->i_val.v_value.v_ival;
+		}else if( !strcmp( ip->i_name, "len" ) ){
+			s_len = ip->i_val.v_value.v_ival != UNDEF;
+			if( s_len ){
+				if( s_minlen || s_maxlen ){
+					rm_emsg_lineno = stp->s_lineno;
+					RM_errormsg( 0,
+				"len= can't be used with minlen=/maxlen=." );
+				}else{
+					stp->s_minlen=ip->i_val.v_value.v_ival;
+					stp->s_maxlen=ip->i_val.v_value.v_ival;
+				}
+			}
+		}else if( !strcmp( ip->i_name, "seq" ) ){
+			stp->s_seq = str2seq( ip->i_val.v_value.v_pval );
+		}else if( !strcmp( ip->i_name, "mismatch" ) ){
+			stp->s_mismatch = ip->i_val.v_value.v_ival;
+		}else if( !strcmp( ip->i_name, "matchfrac" ) ){
+			if( ip->i_val.v_value.v_fval < 0. ||
+				ip->i_val.v_value.v_fval > 1. ){
+				rm_emsg_lineno = stp->s_lineno;
+				RM_errormsg( 0,
+				"matchfrac must be >= 0 and <= 1." );
+			}else
+				stp->s_matchfrac = ip->i_val.v_value.v_fval;
+		}else if( !strcmp( ip->i_name, "mispair" ) ){
+			s_mispair = ip->i_val.v_value.v_ival != UNDEF;
+			stp->s_mispair = ip->i_val.v_value.v_ival;
+		}else if( !strcmp( ip->i_name, "pairfrac" ) ){
+			s_pairfrac = ip->i_val.v_value.v_fval != UNDEF;
+			if( s_pairfrac ){
+				if( s_mispair ){
+					rm_emsg_lineno = stp->s_lineno;
+					RM_errormsg( 0,
+				"pairfrac= can't be used with mispair=." );
+				}else if( ip->i_val.v_value.v_fval < 0. ||
+					ip->i_val.v_value.v_fval > 1. ){
+					rm_emsg_lineno = stp->s_lineno;
+					RM_errormsg( 0,
+					"pairfrac must be >= 0 and <= 1." );
+				}
+			}
+			stp->s_pairfrac = ip->i_val.v_value.v_fval;
+		}else if( !strcmp( ip->i_name, "pair" ) ){
+			stp->s_pairset = ip->i_val.v_value.v_pval;
+		}else if( !strcmp( ip->i_name, "ends" ) ){
+			if( ip->i_val.v_value.v_pval != NULL ){
+				stp->s_attr &= ~( SA_5PAIRED | SA_3PAIRED );
+				stp->s_attr |=
+					ends2attr( ip->i_val.v_value.v_pval );
+			}
+		}
+	}
+	def_pairset = NULL;
+	n_local_ids = 0;
+}
+
+int	SE_link( n_descr, descr )
+int	n_descr;
+STREL_T	descr[];
+{
+	SITE_T	*sip;
+	int	err;
+
+	if( n_descr == 0 ){
+		RM_errormsg( 0, "SE_link: Descriptor has 0 elements." );
+		return( 1 );
+	}
+
+	if( link_tags( n_descr, descr ) )
+		return( 1 );
+
+	if( chk_strel_parms( n_descr, descr ) )
+		return( 1 );
+
+	for( err = 0, sip = rm_sites; sip; sip = sip->s_next )
+		err |= chk_site( sip );
+
+	if( err )
+		return( err );
+
+	find_gi_len( 0, descr, &rm_dminlen, &rm_dmaxlen );
+
+	find_limits( 0, descr );
+
+	rm_searches = ( SEARCH_T ** )malloc( rm_n_descr*sizeof( SEARCH_T * ) );
+	if( rm_searches == NULL ){
+		sprintf( emsg, "SE_link: can't allocate rm_searches." );
+		RM_errormsg( 1, emsg );
+	}
+	rm_n_searches = 0;
+	find_search_order( 0, descr );
+	set_search_order_links( rm_n_searches, rm_searches );
+
+	return( err );
+}
+
+static	int	link_tags( n_descr, descr )
+int	n_descr;
+STREL_T	descr[];
+{
+	int	i, j;
+	STREL_T	*stp, *stp1, *stp2, *stp3;
+	STREL_T	*tags[ 4 ];
+	int	n_tags;
+	STREL_T	*tstk[ 50 ];
+	int	n_tstk;
+	char	*tp;
+
+	/* insure that all triple & quadriple helix els. are tagged	*/
+	for( stp = descr, i = 0; i < n_descr; i++, stp++ ){
+		if( stp->s_type == SYM_SS ||
+			stp->s_type == SYM_H5 ||
+			stp->s_type == SYM_H3 ||
+			stp->s_type == SYM_P5 ||
+			stp->s_type == SYM_P3 )
+		{
+			continue;
+		}
+		if( stp->s_tag == NULL ){
+			rm_emsg_lineno = stp->s_lineno;
+			RM_errormsg( 0,
+			"all triple/quad. helix els. must be tagged." );
+		}
+	}
+
+	/* link all explicitly tagged elements	*/
+	for( stp = descr, i = 0; i < n_descr; i++, stp++ ){
+		if( stp->s_checked )
+			continue;
+		stp->s_checked = 1;
+		if( stp->s_tag == NULL )
+			continue;
+		tp = stp->s_tag;
+		tags[ 0 ] = stp;
+		n_tags = 1;
+		for( j = i + 1; j < n_descr; j++ ){
+			stp1 = &descr[ j ];
+			if( stp1->s_checked )
+				continue;
+			if( stp1->s_tag == NULL )
+				continue;
+			if( strcmp( tp, stp1->s_tag ) )
+				continue;
+			stp1->s_checked = 1;
+			if( n_tags < 4 )
+				tags[ n_tags ] = stp1;
+			n_tags++;
+		}
+		chk_tagorder( n_tags, tags );
+	}
+
+	/* link remaining untagged duplexes	*/
+	for( n_tstk = 0, stp = descr, i = 0; i < n_descr; i++, stp++ ){
+		if( stp->s_tag != NULL )
+			continue;
+		if( stp->s_type == SYM_SS )
+			continue;
+		else if( stp->s_type == SYM_H5 || stp->s_type == SYM_P5 ){
+			tstk[ n_tstk ] = stp;
+			n_tstk++;
+		}else if( stp->s_type == SYM_H3 || stp->s_type == SYM_P3 ){
+			if( n_tstk == 0 ){
+				rm_emsg_lineno = stp->s_lineno;
+				sprintf( emsg,
+				"%s element has no matching %s element.",
+					stp->s_type == SYM_H3 ? "h3" : "h5",
+					stp->s_type == SYM_H3 ? "p3" : "p5" );
+				RM_errormsg( 0, emsg );
+			}else{
+				tags[ 0 ] = tstk[ n_tstk - 1 ];
+				n_tstk--;
+				tags[ 1 ] = stp;
+				n_tags = 2;
+				chk_tagorder( n_tags, tags );
+			}
+		}
+	}
+	if( n_tstk > 0 ){
+		for( i = 0; i < n_tstk; i++ ){
+			stp = tstk[ i ];
+			rm_emsg_lineno = stp->s_lineno;
+			sprintf( emsg,
+				"%s element has no matching %s element.",
+				stp->s_type == SYM_H5 ? "h5" : "h3",
+				stp->s_type == SYM_H5 ? "p5" : "p3" );
+		}
+	}
+	if( rm_error )
+		return( rm_error );
+
+	for( i = 0; i < n_descr; i++ ){
+		stp = &descr[ i ];
+		if( stp->s_type == SYM_SS )
+			stp->s_attr |= SA_PROPER;
+		else if( stp->s_type == SYM_H5 || stp->s_type == SYM_P5 ){
+			stp1 = stp->s_mates[ 0 ];
+			if( chk_proper_nesting( stp, stp1, descr ) ){
+				stp->s_attr |= SA_PROPER;
+				stp->s_mates[ 0 ]->s_attr |= SA_PROPER;
+			}
+		}else if( stp->s_type == SYM_T1 ){
+			stp1 = stp->s_mates[ 0 ];
+			if( !chk_proper_nesting( stp, stp1, descr ) ){
+				rm_emsg_lineno = stp->s_lineno;
+				RM_errormsg( 0,
+				"Triplex elements must be properly nested." );
+				continue;
+			}
+			stp2 = stp->s_mates[ 1 ];
+			if( chk_proper_nesting( stp1, stp2, descr ) ){
+				stp->s_attr |= SA_PROPER;
+				stp->s_mates[ 0 ]->s_attr |= SA_PROPER;
+				stp->s_mates[ 1 ]->s_attr |= SA_PROPER;
+			}
+		}else if( stp->s_type == SYM_Q1 ){
+			stp1 = stp->s_mates[ 0 ];
+			if( !chk_proper_nesting( stp, stp1, descr ) ){
+				rm_emsg_lineno = stp->s_lineno;
+				RM_errormsg( 0,
+				"Quad elements must be properly nested." );
+				continue;
+			}
+			stp2 = stp->s_mates[ 1 ];
+			if( !chk_proper_nesting( stp1, stp2, descr ) ){
+				rm_emsg_lineno = stp->s_lineno;
+				RM_errormsg( 0,
+				"Quad elements must be properly nested." );
+				continue;
+			}
+			stp3 = stp->s_mates[ 2 ];
+			if( chk_proper_nesting( stp2, stp3, descr ) ){
+				stp->s_attr |= SA_PROPER;
+				stp->s_mates[ 0 ]->s_attr |= SA_PROPER;
+				stp->s_mates[ 1 ]->s_attr |= SA_PROPER;
+				stp->s_mates[ 2 ]->s_attr |= SA_PROPER;
+			}
+		}
+	}
+	if( rm_error )
+		return( rm_error );
+
+	for( i = 0; i < n_descr; i++ )
+		descr[ i ].s_checked = 0;
+	for( i = 0; i < n_descr; i++ ){
+		stp = &descr[ i ];
+		if( stp->s_checked )
+			continue;
+		if( stp->s_type == SYM_H5 )
+			find_pknots( stp, n_descr, descr );
+	}
+	if( rm_error )
+		return( rm_error );
+
+	t_scope_stk = 0;
+	scope_stk[ t_scope_stk ] = NULL;
+	set_scopes( 0, n_descr - 1, descr );
+	return( rm_error );
+}
+
+static	void	chk_tagorder( n_tags, tags )
+int	n_tags;
+STREL_T	*tags[];
+{
+	int	t1, t2, t3, t4;
+
+	t1 = tags[ 0 ]->s_type;
+	if( t1 == SYM_SS ){
+		if( n_tags > 1 )
+			duptags_error( 1, n_tags, tags );
+	}else if( t1 == SYM_H5 ){
+		if( n_tags < 2 ){
+			sprintf( emsg, "wc-helix '%s' has no h3() element.", 
+				tags[ 0 ]->s_tag );
+			rm_emsg_lineno = tags[ 0 ]->s_lineno;
+			RM_errormsg( 0, emsg );
+		}else{
+			t2 = tags[ 1 ]->s_type;
+			if( t2 == SYM_H3 ){
+				if( n_tags == 2 ){
+					mk_links( n_tags, tags );
+					return;		/* h5 ... h3 pair, OK */
+				}else
+					duptags_error( 2, n_tags, tags );
+			}else
+				duptags_error( 1, n_tags, tags );
+		}
+	}else if( t1 == SYM_P5 ){
+		if( n_tags < 2 ){
+			sprintf( emsg,
+				"parallel-helix '%s' has no h3() element.", 
+				tags[ 0 ]->s_tag );
+			rm_emsg_lineno = tags[ 0 ]->s_lineno;
+			RM_errormsg( 0, emsg );
+		}else{
+			t2 = tags[ 1 ]->s_type;
+			if( t2 == SYM_P3 ){
+				if( n_tags == 2 ){
+					mk_links( n_tags, tags );
+					return;		/* p5 p3 pair, OK */
+				}else
+					duptags_error( 2, n_tags, tags );
+			}else
+				duptags_error( 1, n_tags, tags );
+		}
+	}else if( t1 == SYM_T1 ){
+		if( n_tags < 3 ){
+			sprintf( emsg,
+				"triplex '%s' is has < 3 elements.",
+				tags[ 0 ]->s_tag );
+			rm_emsg_lineno = tags[ 0 ]->s_lineno;
+			RM_errormsg( 0, emsg );
+		}else{
+			t2 = tags[ 1 ]->s_type;
+			t3 = tags[ 2 ]->s_type;
+			if( t2 == SYM_T2 && t3 == SYM_T3 ){
+				if( n_tags == 3 ){
+					mk_links( n_tags, tags );
+					return;
+				}else
+					duptags_error( 3, n_tags, tags );
+			}else
+				duptags_error( 2, n_tags, tags );
+		}
+	}else if( t1 == SYM_Q1 ){
+		if( n_tags < 4 ){
+			sprintf( emsg,
+				"4-plex '%s' is has < 4 elements.",
+				tags[ 0 ]->s_tag );
+			rm_emsg_lineno = tags[ 0 ]->s_lineno;
+			RM_errormsg( 0, emsg );
+		}else{
+			t2 = tags[ 1 ]->s_type;
+			t3 = tags[ 2 ]->s_type;
+			t4 = tags[ 3 ]->s_type;
+			if( t2 == SYM_Q2 && t3 == SYM_Q3 && t4 == SYM_Q4){
+				if( n_tags == 4 ){
+					mk_links( n_tags, tags );
+					return;
+				}else
+					duptags_error( 4, n_tags, tags );
+			}else
+				duptags_error( 3, n_tags, tags );
+		}
+	}else{
+		sprintf( emsg, "1st use of tag '%s' is out of order.",
+			tags[ 0 ]->s_tag );
+		rm_emsg_lineno = tags[ 0 ]->s_lineno;
+		RM_errormsg( 0, emsg );
+	}
+}
+
+static	void	mk_links( n_tags, tags )
+int	n_tags;
+STREL_T	*tags[];
+{
+	int	i, j, k;
+	STREL_T	**stpm;
+	STREL_T	**stps;
+
+	for( i = 0; i < n_tags; i++ ){
+		stpm = ( STREL_T ** )malloc(( n_tags-1 )* sizeof( STREL_T * ));
+		for( k = 0, j = 0; j < n_tags; j++ ){
+			if( j != i ){
+				stpm[ k ] = tags[ j ];
+				k++;
+			}
+		}
+		tags[ i ]->s_mates = stpm;
+		tags[ i ]->s_n_mates = n_tags - 1;
+
+		stps = ( STREL_T ** )malloc(( n_tags )* sizeof( STREL_T * ));
+		for( j = 0; j < n_tags; j++ ){
+			stps[ j ] = tags[ j ];
+		}
+		tags[ i ]->s_scopes = stps;
+		tags[ i ]->s_n_scopes = n_tags;
+		tags[ i ]->s_scope = i;
+	}
+}
+
+static	void	duptags_error( need, n_tags, tags )
+int	need;
+int	n_tags;
+STREL_T	*tags[];
+{
+	int	i;
+
+	for( i = need; i < n_tags; i++ ){
+		sprintf( emsg, "duplicate tag '%s'.", tags[ i ]->s_tag );
+		rm_emsg_lineno = tags[ i ]->s_lineno;
+		RM_errormsg( 0, emsg );
+	}
+}
+
+static	int	chk_proper_nesting( stp0, stp1, descr )
+STREL_T	*stp0;
+STREL_T	*stp1;
+STREL_T	descr[];
+{
+	int	i, i0, i1, j;
+	STREL_T	*stp, *stpj;
+
+	i0 = stp0->s_index;
+	i1 = stp1->s_index;
+	for( i = i0 + 1; i < i1; i++ ){
+		stp = &descr[ i ];
+		for( j = 0; j < stp->s_n_mates; j++ ){
+			stpj = stp->s_mates[ j ];
+			if( stpj->s_index < i0 || stpj->s_index > i1 )
+				return( 0 );
+		}
+	}
+	return( 1 );
+}
+
+static	void	find_pknots0( stp, n_descr, descr )
+STREL_T	*stp;
+int	n_descr;
+STREL_T	descr[];
+{
+	int	i, j, k;
+	int	pk, h5, h3;
+	STREL_T	*stp1, *stp2, *stp3;
+	STREL_T	*pknot[ 4 ];
+	STREL_T	**stps;
+
+	if( stp->s_type == SYM_SS ){
+		stp->s_checked = 1;
+		return;
+	}
+	if( stp->s_attr & SA_PROPER ){
+		stp->s_checked = 1;
+		for( j = 0; j < stp->s_n_mates; j++ ){
+			stp1 = stp->s_mates[ j ];
+			stp1->s_checked = 1;
+		}
+		return;
+	}
+
+	/* improper structure: only pknots permitted:	*/
+	stp2 = stp->s_mates[ 0 ];
+	for( pk = 0, j = stp->s_index + 1; j < n_descr; j++ ){
+		stp1 = &descr[ j ];
+		if( stp1->s_type != SYM_H5 )
+			continue;
+		stp3 = stp1->s_mates[ 0 ];
+		if( stp3->s_index > stp2->s_index ){
+			stp1->s_checked = 1;
+			stp2->s_checked = 1;
+			stp3->s_checked = 1;
+			pk = 1;
+			break;
+		}
+	}
+
+	if( !pk ){
+		rm_emsg_lineno = stp->s_lineno;
+		sprintf( emsg,
+			"find_pknots0: INTERNAL ERROR: improper helix %d.",
+			stp->s_index );
+		RM_errormsg( 1, emsg );
+	}
+
+	pknot[ 0 ] = stp;
+	pknot[ 1 ] = stp1;
+	pknot[ 2 ] = stp2;
+	pknot[ 3 ] = stp3;
+	for( i = 0; i < 3; i++ ){
+		h5 = pknot[ i ]->s_index;
+		h3 = pknot[ i + 1 ]->s_index;
+		for( j = h5 + 1; j < h3; j++ ){
+			stp1 = &descr[ j ];
+			for( k = 0; k < stp1->s_n_mates; k++ ){
+				stp2 = stp1->s_mates[ k ];
+				if( stp2->s_index < h5 || stp2->s_index > h3 ){
+					rm_emsg_lineno = pknot[i]->s_lineno;
+					RM_errormsg( 0,
+					"find_pknots0: improper pseudoknot." );
+					return;
+				}
+			}
+		}
+	}
+
+	if( rm_error )
+		return;
+
+	for( i = 0; i < 4; i++ ){
+		stps = ( STREL_T ** )malloc( 4 * sizeof( STREL_T * ) );
+		if( stps == NULL )
+			RM_errormsg( 1, "find_pknots0: can't alloc stps." );
+		for( j = 0; j < 4; j++ )
+			stps[ j ] = pknot[ j ];
+		free( pknot[i]->s_scopes );
+		pknot[i]->s_scopes = stps;
+		pknot[i]->s_n_scopes = 4;
+		pknot[i]->s_scope = i;
+	}
+}
+
+static	void	find_pknots1( stp, n_descr, descr )
+STREL_T	*stp;
+int	n_descr;
+STREL_T	descr[];
+{
+	int	i, j, k;
+	int	pk, h5, h3;
+	STREL_T	*stp1, *stp2, *stp3;
+	static	STREL_T	**pknot = NULL;
+	int	n_pknot;
+	STREL_T	**stps;
+
+	if( stp->s_type == SYM_SS ){
+		stp->s_checked = 1;
+		return;
+	}
+	if( stp->s_attr & SA_PROPER ){
+		stp->s_checked = 1;
+		for( j = 0; j < stp->s_n_mates; j++ ){
+			stp1 = stp->s_mates[ j ];
+			stp1->s_checked = 1;
+		}
+		return;
+	}
+
+	if( pknot == NULL ){
+		pknot = ( STREL_T ** )malloc( n_descr * sizeof( STREL_T * ) );
+		if( pknot == NULL )
+			RM_errormsg(1, "find_pknots1: can't allocate pknot.");
+	}
+
+	/* determine the extent of snarl */
+	stp3 = stp->s_mates[ 0 ];
+	pknot[ 0 ] = stp;
+	pknot[ 1 ] = stp3;
+	n_pknot = 2;
+	for( i = stp->s_index + 1; i < stp3->s_index; i++ ){
+		stp1 = &descr[ i ];
+		if( stp1->s_type != SYM_H5 )
+			continue;
+		stp2 = stp1->s_mates[ 0 ];
+		if( stp2->s_index < stp3->s_index ){
+			for( j = 0; j < n_pknot; j++ ){
+				if( stp1->s_index < pknot[ j ]->s_index &&
+					stp2->s_index > pknot[ j ]->s_index ){
+					pknot[ n_pknot ] = stp1;
+					pknot[ n_pknot + 1 ] = stp2;
+					n_pknot += 2;
+					break;
+				}
+			}
+		}else{
+			pknot[ n_pknot ] = stp1;
+			pknot[ n_pknot + 1 ] = stp2;
+			n_pknot += 2;
+			stp3 = stp2;
+		}
+	}
+
+	qsort( pknot, n_pknot, sizeof( int ), pk_cmp );
+
+	for( i = 0; i < n_pknot; i++ ){
+		stps = ( STREL_T ** )malloc( n_pknot * sizeof( STREL_T * ) );
+		if( stps == NULL )
+			RM_errormsg( 1, "find_pknots1: can't allocate stps." );
+		for( j = 0; j < n_pknot; j++ )
+			stps[ j ] = pknot[ j ];
+		free( pknot[ i ]->s_scopes );
+		pknot[ i ]->s_checked = 1;
+		pknot[ i ]->s_scopes = stps;
+		pknot[ i ]->s_n_scopes = n_pknot;
+		pknot[ i ]->s_scope = i;
+	}
+}
+static	void	find_pknots( stp, n_descr, descr )
+STREL_T	*stp;
+int	n_descr;
+STREL_T	descr[];
+{
+	int	fd, fd0, fd1;
+	int	ld, ld1;
+	int	d, d0, d1;
+	int	diff;
+	int	i, j;
+	STREL_T	*stp1, *stp2, *stp3;
+	static	int	*pknot = NULL;
+	int	n_pknot;
+	STREL_T	**stps;
+
+	if( stp->s_type == SYM_SS ){
+		stp->s_checked = 1;
+		return;
+	}
+	if( stp->s_attr & SA_PROPER ){
+		stp->s_checked = 1;
+		for( j = 0; j < stp->s_n_mates; j++ ){
+			stp1 = stp->s_mates[ j ];
+			stp1->s_checked = 1;
+		}
+		return;
+	}
+
+	if( pknot == NULL ){
+		pknot = ( int * )malloc( n_descr * sizeof( int * ) );
+		if( pknot == NULL )
+			RM_errormsg(1, "find_pknots: can't allocate pknot.");
+	}
+
+	stp3 = stp->s_mates[ 0 ];
+	fd0 = fd = stp->s_index;
+	ld = stp3->s_index; 
+
+	for( d = 0; d < fd; d++ )
+		pknot[ d ] = UNDEF; 
+	for( d = fd; d < ld; d++ )
+		pknot[ d ] = stp->s_index;
+	pknot[ ld ] = ld;
+	for( d = ld + 1; d < n_descr; d++ )
+		pknot[ d ] = UNDEF;
+
+	for( diff = 1; diff; ){
+		for( diff = 0, d = fd + 1; d < ld; d++ ){
+			stp1 = &rm_descr[ d ];
+			if( stp1->s_type == SYM_H5 ){
+				if( stp1->s_attr & SA_PROPER )
+					continue;
+				else if( stp1->s_checked )
+					continue;
+			}else
+				continue;
+			stp2 = stp1->s_mates[ 0 ];
+			fd1 = stp1->s_index;
+			ld1 = stp2->s_index;
+			if( pknot[ fd1 ] == pknot[ ld1 ] )
+				continue;
+			stp1->s_checked = 1;
+			diff = 1;
+			for( d0 = pknot[ fd1 ], d1 = fd1; d1 < ld1; d1++ ){
+				if( pknot[ d1 ] == d0 )
+					pknot[ d1 ] = fd1; 
+				else
+					break;
+			}
+			if( ld1 < ld ){
+				for( d0=pknot[ld1], d1=ld1; d1 < ld; d1++ ){
+					if( pknot[ d1 ] == d0 )
+						pknot[ d1 ] = ld1;
+					else
+						break;
+				}
+			}else{
+				for( d0=pknot[ld], d1=ld+1; d1 < ld1; d1++ )
+					pknot[ d1 ] = d0;
+				pknot[ ld1 ] = ld1;
+				ld = ld1;
+			}
+		}
+	}
+
+	for( d = fd; d <= ld; d++ )
+		pknot[ d - fd0 ] = pknot[ d ];
+	ld -= fd;
+
+	d0 = pknot[ 0 ];
+	n_pknot = 1;
+	for( d = 1; d <= ld; d++ ){
+		if( pknot[ d ] != d0 ){
+			d0 = pknot[ d ];
+			pknot[ n_pknot ] = pknot[ d ];
+			n_pknot++;
+		}
+	}
+
+	pknot[ n_pknot ] = UNDEF; 
+
+	for( i = 0; i < n_pknot; i++ ){
+		stps = ( STREL_T ** )malloc( n_pknot * sizeof( STREL_T * ) );
+		if( stps == NULL )
+			RM_errormsg( 1, "find_pknots: can't allocate stps." );
+		for( j = 0; j < n_pknot; j++ )
+			stps[ j ] = &rm_descr[ pknot[ j ] ];
+		stp1 = &rm_descr[ pknot[ i ] ];
+		free( stp1->s_scopes );
+		stp1->s_checked = 1;
+		stp1->s_scopes = stps;
+		stp1->s_n_scopes = n_pknot;
+		stp1->s_scope = i;
+	}
+}
+
+dump_pknot( fp, s_pknot, pknot )
+FILE	*fp;
+int	s_pknot;
+int	pknot[];
+{
+	int	p, lp;
+	int	first;
+
+	for( first = 1, lp = 0, p = 0; p < s_pknot; p++ ){
+		if( pknot[ p ] == UNDEF )
+			continue;
+		if( first ){
+			fprintf( fp, "fd = %3d: ", p );
+			first = 0;
+		}
+		fprintf( fp, " %3d", pknot[ p ] ); 
+		lp = p;
+		if( p < s_pknot - 1 ){
+			if( pknot[ p + 1 ] != UNDEF )
+				putc( ',', fp );
+		}
+	}
+	fprintf( fp, ": ld = %3d\n", lp );
+}
+
+static	int	chk_strel_parms( n_descr, descr )
+int	n_descr;
+STREL_T	descr[];
+{
+	int	i;
+	STREL_T	*stp;
+	int	err;
+
+	for( err = 0, stp = descr, i = 0; i < n_descr; i++, stp++ )
+		err |= chk_1_strel_parms( stp );
+	return( err );
+}
+
+static	int	chk_1_strel_parms( stp )
+STREL_T	*stp;
+{
+	int	err, pfrac;
+	int	stype;
+	STREL_T	*egroup[ 4 ];
+	int	i, n_egroup;
+	STREL_T	*stp1, *stpv;
+	int	ival;
+	float	fval;
+	PAIRSET_T	*pval;
+	IDENT_T	*ip;
+
+	err = 0;
+
+	/* all elements:	*/
+	if( stp->s_mismatch == UNDEF )
+		stp->s_mismatch = 0;
+
+	stype = stp->s_type;
+
+	/* all other parms of these elements are checked during the	*/
+	/* the checking of the associated "starting" element		*/
+	if(	stype == SYM_P3 ||
+		stype == SYM_H3 ||
+		stype == SYM_T2 || stype == SYM_T3 ||
+		stype == SYM_Q2 || stype == SYM_Q3 || stype == SYM_Q4 )
+	{
+		return( err );
+	}
+
+	/* assemble a group of related elements. ss is a trivial group	*/
+	/* with 1 member						*/
+	egroup[ 0 ] = stp;
+	for( i = 0; i < stp->s_n_mates; i++ )
+		egroup[ i + 1 ] = stp->s_mates[ i ];
+	n_egroup = stp->s_n_mates + 1;
+
+	/* check & set the lengths from minlen, maxlen & seq		*/ 
+	if(	stype == SYM_SS || stype == SYM_P5 || stype == SYM_H5 ||
+		stype == SYM_T1 || stype == SYM_Q1 )
+	{
+		err = chk_len_seq( n_egroup, egroup ); 
+	}
+
+	/* check & set the mispair, pairfrac & pair values	*/
+	if(	stype == SYM_P5 || stype == SYM_H5 ||
+		stype == SYM_T1 || stype == SYM_Q1 )
+	{
+		for( pfrac = 0, stpv = NULL, i = 0; i < n_egroup; i++ ){
+			stp1 = egroup[ i ];
+			if( stp1->s_mispair != UNDEF ){
+				if( stpv == NULL )
+					stpv = stp1;
+				else if( stpv->s_mispair != stp1->s_mispair ){
+					err = 1;
+					rm_emsg_lineno = stp1->s_lineno;
+					RM_errormsg( 0,
+					"inconsistant mispair values." );
+				}
+			}else if( stp1->s_pairfrac != UNDEF ){
+				pfrac = 1;
+				if( stpv == NULL )
+					stpv = stp1;
+				else if( stpv->s_pairfrac != stp1->s_pairfrac ){
+					err = 1;
+					rm_emsg_lineno = stp1->s_lineno;
+					RM_errormsg( 0,
+					"inconsistant pairfrac values." );
+				}
+			}
+		}
+		if( !err ){
+			if( pfrac ){
+				fval = stpv ? stpv->s_pairfrac : 1.;
+				for( i = 0; i < n_egroup; i++ ){
+					stp1 = egroup[ i ];
+					stp1->s_pairfrac = fval;
+					stp1->s_mispair = 0;
+				}
+			}else{
+				ival = stpv ? stpv->s_mispair : 0;
+				for( i = 0; i < n_egroup; i++ ){
+					stp1 = egroup[ i ];
+					stp1->s_mispair = ival;
+					stp1->s_pairfrac = 1.0;
+				}
+			}
+		}
+
+		for( stpv = NULL, i = 0; i < n_egroup; i++ ){
+			stp1 = egroup[ i ];
+			if( stp1->s_pairset != NULL ){
+				if( stpv == NULL )
+					stpv = stp1;
+				else if( !pairop( "equal", stpv->s_pairset,
+					stp1->s_pairset ) ){
+					err = 1;
+					rm_emsg_lineno = stp1->s_lineno;
+					RM_errormsg( 0,
+					"inconsistant pairset values." );
+				}
+			}
+		}
+		if( stpv == NULL ){
+			if( stype == SYM_P5 || stype == SYM_H5 ){
+				ip = RM_find_id( "wc" );
+				pval = ip->i_val.v_value.v_pval;
+			}else if( stype == SYM_T1 ){
+				ip = RM_find_id( "tr" );
+				pval = ip->i_val.v_value.v_pval;
+			}else if( stype == SYM_Q1 ){
+				ip = RM_find_id( "qu" );
+				pval = ip->i_val.v_value.v_pval;
+			}
+		}else
+			pval = stpv->s_pairset;
+		if( !err ){
+			for( i = 0; i < n_egroup; i++ ){
+				stp1 = egroup[ i ];
+				if( stp1->s_pairset == NULL )
+					stp1->s_pairset = pairop( "copy",
+						pval, NULL );
+			}
+		}
+	}
+
+	return( err );
+}
+
+static	int	chk_len_seq( n_egroup, egroup )
+int	n_egroup;
+STREL_T	*egroup[];
+{
+	int	err, seq;
+	int	exact, exact1, inexact, mmok;
+	int	i, l_seq;
+	int	minl, maxl;
+	int	se_minl, se_maxl;
+	int	si_minl, si_maxl;
+	int	s_minl, s_maxl;
+	STREL_T	*stp;
+	IDENT_T	*ip;
+
+	err = 0;
+	for( minl = UNDEF, i = 0; i < n_egroup; i++ ){
+		stp = egroup[ i ];
+		if( stp->s_minlen != UNDEF ){
+			if( minl == UNDEF )
+				minl = stp->s_minlen;
+			else if( stp->s_minlen != minl ){
+				err = 1;
+				rm_emsg_lineno = stp->s_lineno;
+				RM_errormsg( 0, "inconsistant minlen values." );
+			}
+		}
+	}
+
+	for( maxl = UNDEF, i = 0; i < n_egroup; i++ ){
+		stp = egroup[ i ];
+		if( stp->s_maxlen != UNDEF ){
+			if( maxl == UNDEF )
+				maxl = stp->s_maxlen;
+			else if( stp->s_maxlen != maxl ){
+				err = 1;
+				rm_emsg_lineno = stp->s_lineno;
+				RM_errormsg( 0, "inconsistant maxlen values." );
+			}
+		}
+	}
+
+	for( i = 0; i < n_egroup; i++ ){
+		stp = egroup[ i ];
+		if( stp->s_seq != NULL ){
+			l_seq = strlen( stp->s_seq );
+			l_seq = 2*l_seq > 256 ? 2*l_seq : 256;
+			stp->s_expbuf =
+				( char * )malloc( l_seq*sizeof(char) );
+			if( stp->s_expbuf == NULL ){
+				rm_emsg_lineno = stp->s_lineno;
+				RM_errormsg( 1,
+					"can't allocate s_expbuf." );
+			}
+			stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
+			compile( stp->s_seq, stp->s_expbuf,
+				stp->s_e_expbuf, '\0' );
+		}
+	}
+
+	se_minl = se_maxl = UNDEF;
+	si_minl = si_maxl = UNDEF;
+	exact = 0;
+	inexact = 0;
+	seq = 0;
+	for( i = 0; i < n_egroup; i++ ){
+		stp = egroup[ i ];
+		if( stp->s_seq == NULL )
+			continue;
+		circf = *stp->s_seq == '^';
+		if(mm_seqlen(stp->s_expbuf, &s_minl, &s_maxl, &exact1, &mmok)){
+			if( !mmok && stp->s_mismatch != 0 ){
+				err = 1;
+				rm_emsg_lineno = stp->s_lineno;
+				RM_errormsg( 0,
+		"specified seq= and mismatch= >0 are not consistant." );
+			}
+			seq = 1;
+			if( exact1 ){
+				if( se_minl == UNDEF ){
+					exact = 1;
+					se_minl = s_minl;
+					se_maxl = s_maxl;
+				}else{
+					if( s_minl != se_minl ){
+						err = 1;
+						rm_emsg_lineno = stp->s_lineno;
+						RM_errormsg( 0,
+						"inconsistant seq lengths." );
+					}
+					if( s_maxl != se_maxl ){
+						err = 1;
+						rm_emsg_lineno = stp->s_lineno;
+						RM_errormsg( 0,
+						"inconsistant seq lengths." );
+					}
+				}
+			}else{
+				inexact = 1;
+				if( si_minl == UNDEF ){
+					si_minl = s_minl;
+					si_maxl = s_maxl;
+				}else{
+					if( s_minl > si_minl )
+						si_minl = s_minl;
+					if( s_maxl > si_maxl )
+						si_maxl = s_maxl;
+				}
+			}
+		}
+	}
+
+	if( exact ){
+		if( inexact ){
+			if( si_minl > se_maxl ){
+				err = 1;
+				rm_emsg_lineno = egroup[ 0 ]->s_lineno;
+				RM_errormsg( 0, "inconsistant seq lengths." );
+			}
+		}
+		if( minl == UNDEF )
+			minl = se_minl;
+		else if( minl != se_minl ){
+			err = 1;
+			rm_emsg_lineno = egroup[ 0 ]->s_lineno;
+			RM_errormsg( 0, "inconsistant seq & minlen parms." );
+		}
+		if( maxl == UNDEF )
+			maxl = se_maxl;
+		else if( maxl != se_maxl ){
+			err = 1;
+			rm_emsg_lineno = egroup[ 0 ]->s_lineno;
+			RM_errormsg( 0, "inconsistant seq & maxlen parms." );
+		}
+	}else if( inexact ){
+		if( minl == UNDEF )
+			minl = si_minl;
+		if( maxl == UNDEF )
+			maxl = si_maxl;
+		else if( maxl < si_minl ){
+			err = 1;
+			rm_emsg_lineno = egroup[ 0 ]->s_lineno;
+			RM_errormsg( 0, "inconsistant seq & maxlen parms." );
+		}
+	}
+
+	if( minl == UNDEF ){
+		stp = egroup[ 0 ];
+		if( stp->s_type == SYM_H5 ){
+			ip = RM_find_id( "wc_minlen" );
+			minl = ip->i_val.v_value.v_ival;
+		}else
+			minl = 1;
+	}
+	if( maxl == UNDEF ){
+		stp = egroup[ 0 ];
+		if( stp->s_type == SYM_H5 ){
+			ip = RM_find_id( "wc_maxlen" );
+			maxl = ip->i_val.v_value.v_ival;
+		}else
+			maxl = UNBOUNDED;
+	}
+
+	if( !err ){
+		for( i = 0; i < n_egroup; i++ ){
+			stp = egroup[ i ];
+			stp->s_minlen = minl;
+			stp->s_maxlen = maxl;
+/*
+			if( stp->s_seq != NULL ){
+				l_seq = strlen( stp->s_seq );
+				l_seq = 2*l_seq > 256 ? 2*l_seq : 256;
+				stp->s_expbuf =
+					( char * )malloc( l_seq*sizeof(char) );
+				if( stp->s_expbuf == NULL ){
+					rm_emsg_lineno = stp->s_lineno;
+					RM_errormsg( 1,
+						"can't allocate s_expbuf." );
+				}
+				stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
+				compile( stp->s_seq, stp->s_expbuf,
+					stp->s_e_expbuf, '\0' );
+			}
+*/
+		}
+	}
+
+	return( err );
+}
+
+IDENT_T	*RM_enter_id( name, type, class, scope, reinit, vp )
+char	name[];
+int	type;
+int	class;
+int	reinit;
+VALUE_T	*vp;
+{
+	IDENT_T	*ip;
+	char	*np;
+
+	if( scope == S_GLOBAL ){
+		if( rm_n_global_ids >= RM_GLOBAL_IDS_SIZE ){
+			RM_errormsg( 1, 
+				"RM_enter_id: global symbol tab overflow." );
+		}
+		ip = &rm_global_ids[ rm_n_global_ids ];
+		rm_n_global_ids++;
+	}else{
+		if( n_local_ids >= LOCAL_IDS_SIZE ){
+			RM_errormsg( 1,
+				"RM_enter_id: local symbol tab overflow." );
+		}
+		ip = ( IDENT_T * )malloc( sizeof( IDENT_T ) );
+		if( ip == NULL ){
+			RM_errormsg( 1, "RM_enter_id: can't alloc local ip." );
+		}
+		local_ids[ n_local_ids ] = ip;
+		n_local_ids++;
+	}
+	np = ( char * )malloc( strlen( name ) + 1 );
+	if( np == NULL ){
+		RM_errormsg( 1, "RM_enter_id: can't alloc np for name." );
+	}
+	strcpy( np, name );
+	ip->i_name = np;
+	ip->i_type = type;
+	ip->i_class = class;
+	ip->i_scope = scope;
+	ip->i_reinit = reinit;
+	ip->i_val.v_type = type;
+	ip->i_val.v_value.v_pval = NULL;
+	if( vp != NULL ){
+		if( type == T_INT ){
+			ip->i_val.v_value.v_ival = vp->v_value.v_ival;
+		}else if( type == T_FLOAT ){
+			ip->i_val.v_value.v_fval = vp->v_value.v_fval;
+		}else if( type == T_STRING ){
+			if( vp->v_value.v_pval == NULL ) 
+				ip->i_val.v_value.v_pval = NULL;
+			else{
+				np = ( char * )
+					malloc(strlen(vp->v_value.v_pval)+1);
+				if( np == NULL ){
+					RM_errormsg( 1,
+				"RM_enter_id: can't alloc np for string val." );
+				}
+				strcpy( np, vp->v_value.v_pval );
+				ip->i_val.v_value.v_pval = np;
+			}
+		}else if( type == T_PAIR ){
+			ip->i_val.v_value.v_pval = pairop( "copy", 
+				vp->v_value.v_pval, NULL );
+		}
+	}
+	return( ip );
+}
+
+IDENT_T	*RM_find_id( name )
+char	name[];
+{
+	int	i;
+	IDENT_T	*ip;
+	
+	for( i = 0; i < n_local_ids; i++ ){
+	 	ip = local_ids[ i ];
+		if( !strcmp( name, ip->i_name ) )
+			return( ip );
+	}
+	for( ip = rm_global_ids, i = 0; i < rm_n_global_ids; i++, ip++ ){
+		if( !strcmp( name, ip->i_name ) )
+			return( ip );
+	}
+	return( NULL );
+}
+
+static	int	ends2attr( str )
+char	str[];
+{
+	int	slen;
+	char	l_str[ 10 ], *sp, *lp;
+
+	if( str == NULL || *str == '\0' )
+		return( 0 );
+	slen = strlen( str );
+	if( slen != 2 ){
+		rm_emsg_lineno = rm_lineno;
+		RM_errormsg( 0,
+			"ends2attr: end values are \"pp\", \"mp\", \"pm\" & \"mm\"." );
+		return( 0 );
+	}
+	for( lp = l_str, sp = str; *sp; sp++ ){
+		*lp++ = isupper( *sp ) ? tolower( *sp ) : *sp;
+	}
+	*lp = '\0';
+	if( !strcmp( l_str, "pp" ) )
+		return( SA_5PAIRED | SA_3PAIRED );
+	else if( !strcmp( l_str, "mp" ) )
+		return( SA_3PAIRED );
+	else if( !strcmp( l_str, "pm" ) )
+		return( SA_5PAIRED );
+	else if( !strcmp( l_str, "mm" ) )
+		return( 0 );
+	else{
+		rm_emsg_lineno = rm_lineno;
+		RM_errormsg( 0,
+			"ends2attr: end values are \"pp\", \"mp\", \"pm\" & \"mm\"." );
+		return( 0 );
+	}
+}
+
+static	void	eval( expr, d_ok )
+NODE_T	*expr;
+int	d_ok;
+{
+	char	*sp, *l_sp, *r_sp;
+	IDENT_T	*ip, *ip1;
+	int	l_type, r_type;
+	VALUE_T	*vp;
+	PAIRSET_T	*n_ps, *l_ps, *r_ps;
+	POS_T	*l_pos, *r_pos, *n_pos;
+
+	if( expr ){
+		eval( expr->n_left, d_ok );
+		eval( expr->n_right, d_ok );
+		rm_emsg_lineno = expr->n_lineno;
+		switch( expr->n_sym ){
+
+		case SYM_INT :
+			valstk[ n_valstk ].v_type = T_INT;
+			valstk[ n_valstk ].v_value.v_ival =
+				expr->n_val.v_value.v_ival;
+			n_valstk++;
+			break;
+
+		case SYM_FLOAT :
+			valstk[ n_valstk ].v_type = T_FLOAT;
+			valstk[ n_valstk ].v_value.v_fval =
+				expr->n_val.v_value.v_fval;
+			n_valstk++;
+			break;
+
+		case SYM_STRING :
+			sp = ( char * )
+				malloc(strlen( expr->n_val.v_value.v_pval )+1);
+			if( sp == NULL ){
+				RM_errormsg( 1,
+				"eval: can't allocate sp for string." );
+			}
+			strcpy( sp, expr->n_val.v_value.v_pval );
+			valstk[ n_valstk ].v_type = T_STRING;
+			valstk[ n_valstk ].v_value.v_pval = sp;
+			n_valstk++;
+			break;
+
+		case SYM_LCURLY :
+			valstk[ n_valstk ].v_type = T_PAIR;
+			valstk[ n_valstk ].v_value.v_pval = 
+				expr->n_val.v_value.v_pval;
+			n_valstk++;
+			break;
+
+		case SYM_DOLLAR :
+			valstk[ n_valstk ].v_type = T_POS;
+			valstk[ n_valstk ].v_value.v_pval = 
+				expr->n_val.v_value.v_pval;
+			n_valstk++;
+			break;
+
+		case SYM_IDENT :
+			ip = RM_find_id( expr->n_val.v_value.v_pval );
+			if( ip == NULL ){
+				if( d_ok ){
+					ip=RM_enter_id(
+						expr->n_val.v_value.v_pval,
+						T_UNDEF, C_VAR, S_GLOBAL, 0,
+						NULL);
+				}else{
+					sprintf( emsg, "eval: unknown id '%s'.",
+						expr->n_val.v_value.v_pval );
+					RM_errormsg( 1, emsg );
+				}
+			}
+			valstk[ n_valstk ].v_type = T_IDENT;
+			valstk[ n_valstk ].v_value.v_pval = ip;
+			n_valstk++;
+			break;
+
+		case SYM_PLUS :
+			l_type = valstk[ n_valstk - 2 ].v_type;
+			if( l_type == T_IDENT )
+				l_type = loadidval( &valstk[ n_valstk - 2 ] );
+			r_type = valstk[ n_valstk - 1 ].v_type;
+			if( r_type == T_IDENT )
+				r_type = loadidval( &valstk[ n_valstk - 1 ] );
+
+			switch( T_IJ( l_type, r_type ) ){ 
+			case T_IJ( T_INT, T_INT ) :
+				valstk[ n_valstk - 2 ].v_value.v_ival +=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+				break;
+			case T_IJ( T_INT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_ival +=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_FLOAT, T_INT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval +=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+				break;
+			case T_IJ( T_FLOAT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval +=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_STRING, T_STRING ) :
+				l_sp = valstk[ n_valstk - 2 ].v_value.v_pval;
+				r_sp = valstk[ n_valstk - 1 ].v_value.v_pval;
+				sp = ( char * )malloc( strlen( l_sp ) +
+					strlen( r_sp ) + 1 );
+				if( sp == NULL ){
+					RM_errormsg( 1,
+					"eval: can't alloc sp for str +." );
+				}
+				strcpy( sp, l_sp );
+				strcat( sp, r_sp );
+				valstk[ n_valstk - 2 ].v_value.v_pval = sp;
+				break;
+			case T_IJ( T_PAIR, T_PAIR ) :
+				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
+				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
+				n_ps = pairop( "add", l_ps, r_ps );
+				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
+				break;
+			default :
+				RM_errormsg( 1, "eval: type mismatch '+'." );
+				break;
+			}
+			n_valstk--;
+			break;
+
+		case SYM_MINUS :
+			l_type = valstk[ n_valstk - 2 ].v_type;
+			if( l_type == T_IDENT )
+				l_type = loadidval( &valstk[ n_valstk - 2 ] );
+			r_type = valstk[ n_valstk - 1 ].v_type;
+			if( r_type == T_IDENT )
+				r_type = loadidval( &valstk[ n_valstk - 1 ] );
+
+			switch( T_IJ( l_type, r_type ) ){
+			case T_IJ( T_INT, T_INT ) :
+				valstk[ n_valstk - 2 ].v_value.v_ival -=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+				break;
+			case T_IJ( T_INT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_ival -=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_FLOAT, T_INT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval -=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+				break;
+			case T_IJ( T_FLOAT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval -=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_PAIR, T_PAIR ) :
+				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
+				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
+				n_ps = pairop( "sub", l_ps, r_ps );
+				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
+				break;
+			case T_IJ( T_POS, T_INT ) :
+				l_pos = valstk[ n_valstk - 2 ].v_value.v_pval;
+				posop( "cvt", &valstk[ n_valstk - 1 ], NULL );
+				r_pos = valstk[ n_valstk - 1 ].v_value.v_pval;
+				n_pos = posop( "sub", l_pos, r_pos );
+				valstk[ n_valstk - 2 ].v_value.v_pval = n_pos;
+				break;
+			default :
+				RM_errormsg( 1, "eval: type mismatch '-'." );
+				break;
+			}
+			n_valstk--;
+			break;
+
+		case SYM_ASSIGN :
+			ip = valstk[ n_valstk - 2 ].v_value.v_pval;
+			l_type = ip->i_type;
+			r_type = valstk[ n_valstk - 1 ].v_type;
+			if( r_type == T_IDENT )
+				r_type = loadidval( &valstk[ n_valstk - 1 ] );
+			if( l_type == T_UNDEF ){
+				l_type = r_type; 
+				ip->i_type = l_type;
+			}
+
+			switch(  T_IJ( l_type, r_type ) ){
+			case T_IJ( T_INT, T_INT ) :
+				break;
+			case T_IJ( T_INT, T_FLOAT ) :
+				valstk[n_valstk-1].v_value.v_ival =
+					valstk[n_valstk-1].v_value.v_fval;
+				break;
+			case T_IJ( T_FLOAT, T_INT ) :
+				valstk[n_valstk-1].v_value.v_fval =
+					valstk[n_valstk-1].v_value.v_ival;
+				break;
+			case T_IJ( T_FLOAT, T_FLOAT ) :
+				break;
+			case T_IJ( T_STRING, T_STRING ) :
+				break;
+			case T_IJ( T_PAIR, T_PAIR ) :
+				break;
+			case T_IJ( T_POS, T_INT ) :
+				posop( "cvt", &valstk[ n_valstk - 1 ], NULL );
+				break;
+			case T_IJ( T_POS, T_POS ) :
+				break;
+			default :
+				RM_errormsg( 1, "eval: type mismatch '='." );
+				break;
+			}
+			storeexprval( ip, &valstk[ n_valstk-1 ] );
+			n_valstk -= 2;
+			break;
+
+		case SYM_PLUS_ASSIGN :
+			ip = valstk[ n_valstk - 2 ].v_value.v_pval;
+			l_type = loadidval( &valstk[ n_valstk - 2 ] );
+			r_type = valstk[ n_valstk - 1 ].v_type;
+			if( r_type == T_IDENT )
+				r_type = loadidval( &valstk[ n_valstk - 1 ] );
+
+			switch( T_IJ( l_type, r_type ) ){
+			case T_IJ( T_INT, T_INT ) :
+				valstk[ n_valstk - 2 ].v_value.v_ival +=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+				break;
+			case T_IJ( T_INT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_ival +=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_FLOAT, T_INT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval +=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+				break;
+			case T_IJ( T_FLOAT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval +=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_STRING, T_STRING ) :
+				l_sp = valstk[ n_valstk - 2 ].v_value.v_pval;
+				r_sp = valstk[ n_valstk - 1 ].v_value.v_pval;
+				sp = ( char * )malloc( strlen( l_sp ) +
+					strlen( r_sp ) + 1 );
+				if( sp == NULL ){
+					RM_errormsg( 1,
+					"eval: can't alloc sp for str +." );
+				}
+				strcpy( sp, l_sp );
+				strcat( sp, r_sp );
+				valstk[ n_valstk - 2 ].v_value.v_pval = sp;
+				break;
+			case T_IJ( T_PAIR, T_PAIR ) :
+				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
+				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
+				n_ps = pairop( "add", l_ps, r_ps );
+				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
+				break;
+			default :
+				RM_errormsg( 1, "eval: type mismatch '+='." );
+				break;
+			}
+			storeexprval( ip, &valstk[ n_valstk - 2 ] );
+			n_valstk -= 2;
+			break;
+
+		case SYM_MINUS_ASSIGN :
+			ip = valstk[ n_valstk - 2 ].v_value.v_pval;
+			l_type = loadidval( &valstk[ n_valstk - 2 ] );
+			r_type = valstk[ n_valstk - 1 ].v_type;
+			if( r_type == T_IDENT )
+				r_type = loadidval( &valstk[ n_valstk - 1 ] );
+
+			switch( T_IJ( l_type, r_type ) ){
+			case T_IJ( T_INT, T_INT ) :
+				valstk[ n_valstk - 2 ].v_value.v_ival -=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+				break;
+			case T_IJ( T_INT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_ival -=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_FLOAT, T_INT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval -=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+				break;
+			case T_IJ( T_FLOAT, T_FLOAT ) :
+				valstk[ n_valstk - 2 ].v_value.v_fval -=
+					valstk[ n_valstk - 1 ].v_value.v_fval;
+				break;
+			case T_IJ( T_PAIR, T_PAIR ) :
+				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
+				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
+				n_ps = pairop( "sub", l_ps, r_ps );
+				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
+				break;
+			default :
+				RM_errormsg( 1, "eval: type mismatch '+='." );
+				break;
+			}
+			storeexprval( ip, &valstk[ n_valstk - 2 ] );
+			n_valstk -= 2;
+			break;
+
+		default :
+			sprintf( emsg, "eval: operator %d not implemented.",
+				expr->n_sym );
+			RM_errormsg( 1, emsg );
+			break;
+		}
+	}
+}
+
+static	int	loadidval( vp )
+VALUE_T	*vp;
+{
+	int	type;
+	IDENT_T	*ip;
+	char	*sp;
+	int	i;
+	PAIRSET_T	*ps ;
+
+	ip = vp->v_value.v_pval;
+	type = ip->i_type;
+	if( type == T_INT ){
+		if( ip->i_val.v_value.v_ival == UNDEF ){
+			sprintf( emsg,
+				"loadidval: id '%s' has int value UNDEF.",
+				ip->i_name );
+			RM_errormsg( 1, emsg );
+		}
+		vp->v_type = T_INT;
+		vp->v_value.v_ival = ip->i_val.v_value.v_ival;
+	}else if( type == T_STRING ){
+		if( ip->i_val.v_value.v_pval == NULL ){
+			sprintf( emsg,
+				"loadidval: id '%s' has string value NULL.",
+				ip->i_name );
+			RM_errormsg( 1, emsg );
+		}
+		sp = ( char * )malloc( strlen( ip->i_val.v_value.v_pval ) + 1 );
+		if( sp == NULL ){
+			RM_errormsg( 1, "loadidval: can't allocate sp.",
+				ip->i_name );
+		}
+		vp->v_type = T_STRING;
+		strcpy( sp, ip->i_val.v_value.v_pval );
+		vp->v_value.v_pval = sp;
+	}else if( type == T_PAIR ){
+		if( ip->i_val.v_value.v_pval == NULL ){
+			if( def_pairset != NULL )
+				ps = def_pairset;
+			else{
+				sprintf( emsg,
+				"loadidval: id '%s' has pair value NULL.",
+					 ip->i_name );
+				RM_errormsg( 1, emsg );
+			}
+		}else
+			ps = ip->i_val.v_value.v_pval;
+		vp->v_type = T_PAIR;
+		vp->v_value.v_pval = pairop( "copy", ps, NULL );
+	}
+	return( type );
+}
+
+static	void	storeexprval( ip, vp )
+IDENT_T	*ip;
+VALUE_T	*vp;
+{
+	int	type;
+	char	*sp;
+
+	type = vp->v_type;
+	if( type == T_INT ){
+		ip->i_type = T_INT;
+		ip->i_val.v_type = T_INT;
+		ip->i_val.v_value.v_ival = vp->v_value.v_ival;
+	}else if( type == T_FLOAT ){
+		ip->i_type = T_FLOAT;
+		ip->i_val.v_type = T_FLOAT;
+		ip->i_val.v_value.v_fval = vp->v_value.v_fval;
+	}else if( type == T_STRING ){
+		ip->i_type = T_STRING;
+		sp = ( char * )malloc( strlen( vp->v_value.v_pval ) + 1 );
+		if( sp == NULL ){
+			RM_errormsg( 1, "storeexprval: can't allocate sp." );
+		}
+		strcpy( sp, vp->v_value.v_pval ); 
+		ip->i_val.v_type = T_STRING;
+		ip->i_val.v_value.v_pval = sp;
+	}else if( type == T_PAIR ){
+		ip->i_type = T_PAIR;
+		ip->i_val.v_type = T_PAIR;
+		ip->i_val.v_value.v_pval = vp->v_value.v_pval;
+	}else if( type == T_POS ){
+		ip->i_type = T_POS;
+		ip->i_val.v_type = T_POS;
+		ip->i_val.v_value.v_pval = vp->v_value.v_pval;
+	}
+}
+
+static	PAIRSET_T	*pairop( op, ps1, ps2 )
+char	op[];
+PAIRSET_T	*ps1;
+PAIRSET_T	*ps2;
+{
+	int	i, j, c, b, nb, sz, diff, fnd;
+	PAIRSET_T	*n_ps;
+	PAIR_T	*n_pp, *pp, *ppi, *ppj;
+	void	*bmatp;
+
+	if( !strcmp( op, "check" ) ){
+		if( ps1 == NULL ){
+			RM_errormsg( 1, "pairop: check: ps1 == NULL." );
+		}
+		pp = ps1->ps_pairs;
+		for( nb = UNDEF, i = 0; i < ps1->ps_n_pairs; i++, pp++ ){
+			b = pp->p_n_bases;
+			if( nb == UNDEF )
+				nb = b;
+			else if( b != nb ){
+				sprintf( emsg,
+	"pairop: check: pairset contains elements with %d and %d bases.",
+					nb, b );
+				RM_errormsg( 0, emsg );
+				return( ps1 );
+			}
+			for( j = 0; j < b; j++ ){
+				c = pp->p_bases[ j ];
+				pp->p_bases[ j ] = isupper( c ) ?
+					tolower( c ) : c;
+			}
+		}
+		for( i = 0; i < ps1->ps_n_pairs - 1; i++ ){
+			ppi = &ps1->ps_pairs[ i ];
+			if( ppi->p_n_bases == 0 )
+				continue;
+			for( j = i + 1; j < ps1->ps_n_pairs; j++ ){
+				ppj = &ps1->ps_pairs[ j ];
+				if( ppj->p_n_bases == 0 )
+					continue;
+				for( diff = 0, b = 0; b < ppi->p_n_bases; b++ ){
+					if( ppi->p_bases[b]!=ppj->p_bases[b]){
+						diff = 1;
+						break;
+					}
+				}
+				if( !diff ){
+					ppj->p_n_bases = 0;
+					RM_errormsg( 0,
+		"pairop: check: pairset contains duplicate pair-strings." );
+				}
+			}
+		}
+		for( j = 0, i = 0; i < ps1->ps_n_pairs; i++ ){
+			ppj = &ps1->ps_pairs[ j ];
+			ppi = &ps1->ps_pairs[ i ];
+			if( ppi->p_n_bases != 0 ){
+				*ppj = *ppi;
+				j++;
+			}
+		}
+		ps1->ps_n_pairs = j;
+		pp = ps1->ps_pairs;
+		if( pp->p_n_bases == 2 )
+			ps1->ps_mat[ 0 ] = mk_bmatp( ps1 );
+		else{
+			ps1->ps_mat[ 1 ] = mk_bmatp( ps1 );
+			ps1->ps_mat[ 0 ] = mk_rbmatp( ps1 );
+		}
+		return( ps1 );
+	}else if( !strcmp( op, "copy" ) ){
+		if( ps1 == NULL )
+			return( NULL );
+		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
+		if( n_ps == NULL ){
+			RM_errormsg( 1, "pairop: copy: can't allocate n_ps." );
+		}
+		n_pp = ( PAIR_T * )malloc( ps1->ps_n_pairs*sizeof( PAIR_T ) );
+		if( n_pp == NULL ){
+			RM_errormsg( 1, "pairop: copy: can't allocate n_pp." );
+		}
+		n_ps->ps_n_pairs = ps1->ps_n_pairs;
+		n_ps->ps_pairs = n_pp;
+		for( i = 0; i < n_ps->ps_n_pairs; i++ )
+			n_ps->ps_pairs[ i ] = ps1->ps_pairs[ i ];
+		pp = n_ps->ps_pairs;
+		if( pp->p_n_bases == 2 )
+			n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
+		else{
+			n_ps->ps_mat[ 1 ] = mk_bmatp( n_ps );
+			n_ps->ps_mat[ 0 ] = mk_rbmatp( n_ps );
+		}
+		return( n_ps );
+	}else if( !strcmp( op, "add" ) ){
+		ppi = ps1->ps_pairs;
+		ppj = ps2->ps_pairs;
+		if( ppi->p_n_bases != ppj->p_n_bases ){
+			sprintf( emsg,
+			"pairop: add: pairsets have %d and %d elements.",
+				ppi->p_n_bases, ppj->p_n_bases );
+			RM_errormsg( 1, emsg );
+		}
+		sz = ps1->ps_n_pairs + ps2->ps_n_pairs;
+		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
+		if( n_ps == NULL ){
+			RM_errormsg( 1, "pairop: add: can't allocate n_ps." );
+		}
+		n_pp = ( PAIR_T * )malloc( sz * sizeof( PAIR_T ) );
+		if( n_pp == NULL ){
+			RM_errormsg( 1, "pairop: add: can't allocate n_pp." );
+		}
+		n_ps->ps_n_pairs = ps1->ps_n_pairs;
+		n_ps->ps_pairs = n_pp;
+		for( i = 0; i < n_ps->ps_n_pairs; i++ )
+			n_ps->ps_pairs[ i ] = ps1->ps_pairs[ i ];
+		n_pp = &n_ps->ps_pairs[ n_ps->ps_n_pairs ];
+		for( j = 0; j < ps2->ps_n_pairs; j++ ){
+			ppj = &ps2->ps_pairs[ j ];
+			for( i = 0; i < ps1->ps_n_pairs; i++ ){
+				ppi = &ps1->ps_pairs[ i ];
+				for( b = 0; b < ppi->p_n_bases; b++ ){
+					if( ppi->p_bases[b]!=ppj->p_bases[b]){
+						*n_pp = *ppj;
+						n_pp++;
+						n_ps->ps_n_pairs++;
+						goto ADDED;
+					}
+				}
+			}
+			ADDED : ;
+		}
+		pp = n_ps->ps_pairs;
+		if( pp->p_n_bases == 2 )
+			n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
+		else{
+			n_ps->ps_mat[ 1 ] = mk_bmatp( n_ps );
+			n_ps->ps_mat[ 0 ] = mk_rbmatp( n_ps );
+		}
+		return( n_ps );
+	}else if( !strcmp( op, "sub" ) ){
+		ppi = ps1->ps_pairs;
+		ppj = ps2->ps_pairs;
+		if( ppi->p_n_bases != ppj->p_n_bases ){
+			sprintf( emsg,
+			"pairop: sub: pairsets have %d and %d elements.",
+				ppi->p_n_bases, ppj->p_n_bases );
+			RM_errormsg( 1, emsg );
+		}
+		sz = ps1->ps_n_pairs;
+		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
+		if( n_ps == NULL ){
+			RM_errormsg( 1, "pairop: add: can't allocate n_ps." );
+		}
+		n_pp = ( PAIR_T * )malloc( sz * sizeof( PAIR_T ) );
+		if( n_pp == NULL ){
+			RM_errormsg( 1, "pairop: add: can't allocate n_pp." );
+		}
+		n_ps->ps_n_pairs = ps1->ps_n_pairs;
+		n_ps->ps_pairs = n_pp;
+		for( i = 0; i < n_ps->ps_n_pairs; i++ )
+			n_ps->ps_pairs[ i ] = ps1->ps_pairs[ i ];
+		for( j = 0; j < ps2->ps_n_pairs; j++ ){
+			ppj = &ps2->ps_pairs[ j ];
+			for( i = 0; i < n_ps->ps_n_pairs; i++ ){
+				n_pp = &n_ps->ps_pairs[ i ];
+				for( b = 0; b < n_pp->p_n_bases; b++ ){
+					if( n_pp->p_bases[b]!=ppj->p_bases[b])
+						goto NOSUB;
+				}
+				n_pp->p_n_bases = 0;
+			}
+			NOSUB : ;
+		}
+		for( j = 0, i = 0; i < ps1->ps_n_pairs; i++ ){
+			ppj = &n_ps->ps_pairs[ j ];
+			ppi = &n_ps->ps_pairs[ i ];
+			if( ppi->p_n_bases != 0 ){
+				*ppj = *ppi;
+				j++;
+			}
+		}
+		n_ps->ps_n_pairs = j;
+		pp = n_ps->ps_pairs;
+		if( pp->p_n_bases == 2 )
+			n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
+		else{
+			n_ps->ps_mat[ 1 ] = mk_bmatp( n_ps );
+			n_ps->ps_mat[ 0 ] = mk_rbmatp( n_ps );
+		}
+		return( n_ps );
+	}else if( !strcmp( op, "equal" ) ){
+		if( ps1->ps_n_pairs != ps2->ps_n_pairs )
+			return( NULL );
+		ppi = ps1->ps_pairs;
+		ppj = ps2->ps_pairs;
+		if( ppi->p_n_bases != ppj->p_n_bases )
+			return( NULL );
+		for( i = 0; i < ps1->ps_n_pairs; i++, ppi++ ){
+			ppj = ps2->ps_pairs;
+			for( j = 0; j < ps2->ps_n_pairs; j++, ppj++ ){
+				for( fnd = 1, b = 0; b < ppi->p_n_bases; b++ ){
+					if( ppi->p_bases[b]!=ppj->p_bases[b] ){
+						fnd = 0;
+						break;
+					}
+				}
+				if( fnd )
+					break;
+			}
+			if( !fnd )
+				return( NULL );
+		}
+		return( ps1 );
+	}else{
+		sprintf( emsg, "pairop: unknown op '%s'.", op );
+		RM_errormsg( 1, emsg );
+		return( NULL );
+	}
+}
+
+static	void*	mk_bmatp( ps )
+PAIRSET_T	*ps;
+{
+	PAIR_T	*pp;
+	int	i, nb;
+	int	bi1, bi2, bi3, bi4;
+	void	*bmatp;
+	BP_MAT_T	*bpmatp;
+	BT_MAT_T	*btmatp;
+	BQ_MAT_T	*bqmatp;
+
+	pp = &ps->ps_pairs[ 0 ];
+	nb = pp->p_n_bases;
+	if( nb == 2 ){
+		bmatp = bpmatp = ( BP_MAT_T * )malloc( sizeof( BP_MAT_T ) );
+		if( bpmatp == NULL )
+			RM_errormsg( 1, "mk_bmatp: can't alloc bpmatp." );
+		memset( bmatp, 0, sizeof( BP_MAT_T ) );
+		for( i = 0; i < ps->ps_n_pairs; i++ ){
+			pp = &ps->ps_pairs[ i ];
+			bi1 = rm_b2bc[ pp->p_bases[ 0 ] ];
+			bi2 = rm_b2bc[ pp->p_bases[ 1 ] ];
+			(*bpmatp)[bi1][bi2] = 1;
+		}
+	}else if( nb == 3 ){
+		bmatp = btmatp = ( BT_MAT_T * )malloc( sizeof( BT_MAT_T ) );
+		if( btmatp == NULL )
+			RM_errormsg( 1, "mk_bmatp: can't alloc btmatp." );
+		memset( bmatp, 0, sizeof( BT_MAT_T ) );
+		for( i = 0; i < ps->ps_n_pairs; i++ ){
+			pp = &ps->ps_pairs[ i ];
+			bi1 = rm_b2bc[ pp->p_bases[ 0 ] ];
+			bi2 = rm_b2bc[ pp->p_bases[ 1 ] ];
+			bi3 = rm_b2bc[ pp->p_bases[ 2 ] ];
+			(*btmatp)[bi1][bi2][bi3] = 1;
+		}
+	}else if( nb == 4 ){
+		bmatp = bqmatp = ( BQ_MAT_T * )malloc( sizeof( BQ_MAT_T ) );
+		if( bqmatp == NULL )
+			RM_errormsg( 1, "mk_bmatp: can't alloc bqmatp." );
+		memset( bmatp, 0, sizeof( BQ_MAT_T ) );
+		for( i = 0; i < ps->ps_n_pairs; i++ ){
+			pp = &ps->ps_pairs[ i ];
+			bi1 = rm_b2bc[ pp->p_bases[ 0 ] ];
+			bi2 = rm_b2bc[ pp->p_bases[ 1 ] ];
+			bi3 = rm_b2bc[ pp->p_bases[ 2 ] ];
+			bi4 = rm_b2bc[ pp->p_bases[ 3 ] ];
+			(*bqmatp)[bi1][bi2][bi3][bi4] = 1;
+		}
+	}
+	return( bmatp );
+}
+
+static	void*	mk_rbmatp( ps )
+PAIRSET_T	*ps;
+{
+	PAIR_T	*pp;
+	int	i, nb;
+	int	bi1, bi2, bi3, bi4;
+	void	*bmatp;
+	BP_MAT_T	*bpmatp;
+	BT_MAT_T	*btmatp;
+	BQ_MAT_T	*bqmatp;
+
+	pp = &ps->ps_pairs[ 0 ];
+	nb = pp->p_n_bases;
+	bmatp = bpmatp = ( BP_MAT_T * )malloc( sizeof( BP_MAT_T ) );
+	if( bpmatp == NULL )
+		RM_errormsg( 1, "pairop: mk_rbmatp: can't alloc bpmatp." );
+	memset( bmatp, 0, sizeof( BP_MAT_T ) );
+
+	if( nb == 3 ){
+		btmatp = ( BT_MAT_T * )ps->ps_mat[ 1 ];
+		for( bi1 = 0; bi1 < N_BCODES; bi1++ ){
+			for( bi2 = 0; bi2 < N_BCODES; bi2++ ){
+				for( bi3 = 0; bi3 < N_BCODES; bi3++ ){
+					if( (*btmatp)[bi1][bi2][bi3] )
+						(*bpmatp)[bi1][bi3] = 1;
+				}
+			}
+		}
+	}else if( nb == 4 ){
+		bqmatp = ( BQ_MAT_T * )ps->ps_mat[ 1 ];
+		for( bi1 = 0; bi1 < N_BCODES; bi1++ ){
+			for( bi2 = 0; bi2 < N_BCODES; bi2++ ){
+				for( bi3 = 0; bi3 < N_BCODES; bi3++ ){
+					for( bi4 = 0; bi4 < N_BCODES; bi4++ ){
+					    if((*bqmatp)[bi1][bi2][bi3][bi4])
+						(*bpmatp)[bi1][bi4] = 1;
+					}
+				}
+			}
+		}
+	}
+	return( bmatp );
+}
+
+static	POS_T	*posop( op, ptr, r_pos )
+char	op[];
+void	*ptr;
+POS_T	*r_pos;
+{
+	VALUE_T	*vp;
+	POS_T	*n_pos, *l_pos;
+
+	if( !strcmp( op, "cvt" ) ){
+		vp = ( VALUE_T * )ptr;
+		if( vp->v_value.v_ival < 0 ){
+			RM_errormsg( 1,
+		"posop: cvt: only ints > 0 can be convert to positions." );
+		}
+		n_pos = ( POS_T * )malloc( sizeof( POS_T ) );
+		if( n_pos == NULL ){
+			RM_errormsg( 1, "posop: cvt: can't alloc n_pos." );
+		}
+		n_pos->p_type = SYM_DOLLAR;
+		n_pos->p_lineno = rm_emsg_lineno;
+		n_pos->p_tag = NULL;
+		n_pos->p_addr.a_l2r = 1;
+		n_pos->p_addr.a_offset = vp->v_value.v_ival;
+		vp->v_type = T_POS;
+		vp->v_value.v_pval = n_pos;
+		return( n_pos );
+	}else if( !strcmp( op, "sub" ) ){
+		l_pos = ( POS_T * )ptr;
+		if( l_pos->p_addr.a_l2r || !r_pos->p_addr.a_l2r ){
+			RM_errormsg( 1,
+"posop: sub: expr must have the form '% - expr'; expr is int. valued > 0." );
+		}
+		n_pos = ( POS_T * )malloc( sizeof( POS_T ) );
+		if( n_pos == NULL ){
+			RM_errormsg( 1, "posop: sub: can't alloc n_pos." );
+		}
+		n_pos->p_type = SYM_DOLLAR;
+		n_pos->p_lineno = rm_emsg_lineno;
+		n_pos->p_tag = NULL;
+		n_pos->p_addr.a_l2r = 0;
+		n_pos->p_addr.a_offset =
+			l_pos->p_addr.a_offset + r_pos->p_addr.a_offset;
+		return( n_pos );
+	}else{
+		sprintf( emsg, "posop: unknown op '%s'.", op );
+		RM_errormsg( 1, emsg );
+		return( NULL );
+	}
+}
+
+static	char	*str2seq( str )
+char	str[];
+{
+	char	*s1, *s2, *s3, *sp;
+	int	iupac, c;
+	IDENT_T	*ip;
+	char	seq[ 1024 ];
+
+	if( str == NULL || *str == '\0' )
+		return( NULL );
+	ip = RM_find_id( "iupac" );
+	if( ip )
+		iupac = ip->i_val.v_value.v_ival;
+	for( s1 = str, s2 = seq; *s1; s1++ ){
+		c = isupper( *s1 ) ? tolower( *s1 ) : *s1;
+		if( c == 'u' )
+			c = 't';
+		if( iupac ){
+			if( s3 = rm_iupac[ c ] ){
+				strcpy( s2, s3 );
+				s2 += strlen( s3 );
+			}else
+				*s2++ = c;
+		}else
+			*s2++ = c;
+	}
+	*s2 = '\0';
+	sp = ( char * )malloc( strlen( seq ) + 1 );
+	if( sp == NULL ){
+		RM_errormsg( 1, "str2seq: can't alloc sp." );
+	}
+	strcpy( sp, seq );
+	return( sp );
+}
+
+static	int	seqlen( seq, minlen, maxlen, exact, kclos )
+char	seq[];
+int	*minlen;
+int	*maxlen;
+int	*exact;
+int	*kclos;
+{
+	char	*sp, *sp1;
+	int	rbr;
+	int	minl, maxl;
+	int	circ, dollar;
+
+	/* no string! */
+	if( seq == NULL || *seq == '\0' )
+		return( 0 );
+
+	/* useful exception to strict rules of RE*	*/
+	if( *seq == '*' ){
+		*minlen = 0;
+		*maxlen = UNBOUNDED;
+		*kclos = 1;
+		return( 1 );
+	}
+
+	circ = 0;
+	dollar = 0;
+	minl = 0;
+	maxl = 0;
+	sp = seq;
+	*kclos = 0;
+	if( *sp == '^' ){	/* leading ^ anchors to position 1 */
+		circ = 1;
+		sp++;
+	}
+	while( *sp ){
+		if( *sp == '.' ){
+			if( sp[ 1 ] == '*' ){
+				maxl = UNBOUNDED;
+				*kclos = 1;
+				sp++;
+			}else{
+				minl++;
+				if( maxl != UNBOUNDED )
+					maxl++;
+			}
+		}else if( *sp == '[' ){
+			sp++;
+			if( *sp == '^' )
+				sp++;
+			if( *sp == ']' )
+				sp++;
+			for( rbr = 0; *sp; sp++ ){
+				if( *sp == ']' ){
+					rbr = 1;
+					break;
+				}
+			}
+			if( !rbr ){
+				sprintf( emsg,
+					"unclosed char class in pat '%s'",
+					seq );
+				RM_errormsg( 0, emsg );
+				return( 0 );
+			}
+			if( sp[ 1 ] == '*' ){
+				maxl = UNBOUNDED;
+				*kclos = 1;
+				sp++;
+			}else{
+				minl++;
+				if( maxl != UNBOUNDED )
+					maxl++;
+			}
+		}else if( *sp == '$' ){
+			if( sp[ 1 ] == '*' ){
+				maxl = UNBOUNDED;
+				*kclos = 1;
+				sp++;
+			}else if( sp[ 1 ] != '\0' ){
+				minl++;
+				if( maxl != UNBOUNDED )
+					maxl++;
+			}else
+				dollar = 1;
+		}else if( *sp == '\\' ){
+			if( sp[ 1 ] != '(' && sp[ 1 ] != ')' ){
+				minl++;
+				if( maxl != UNBOUNDED )
+					maxl++;
+			}
+			sp++;
+		}else if( sp[ 1 ] == '*' ){
+			maxl = UNBOUNDED;
+			*kclos = 1;
+			sp++;
+		}else{
+			minl++;
+			if( maxl != UNBOUNDED )
+				maxl++;
+		}
+		sp++;
+	}
+	*minlen = minl;
+	if( circ && dollar )
+		*maxlen = maxl;
+	else
+		*maxlen = UNBOUNDED;
+	*exact = circ && dollar;
+	return( 1 );
+}
+
+void	POS_open( ptype )
+int	ptype;
+{
+	VALUE_T	val;
+	IDENT_T	*ip;
+
+	n_valstk = 0;
+	if( ptype == SYM_SE ){
+		rm_emsg_lineno = rm_lineno;
+		RM_errormsg( 1,
+		"POS_open: site type 'se' allowed only in score section." );
+	}
+	if( rm_n_pos == rm_s_pos ){
+		rm_emsg_lineno = rm_lineno;
+		sprintf( emsg,
+			"POS_open: pos array size(%d) exceeded.", rm_s_pos );
+		RM_errormsg( 1, emsg );
+	}
+	posp = &rm_pos[ rm_n_pos ];
+	rm_n_pos++;
+	posp->p_type = ptype;
+	posp->p_lineno = rm_lineno;
+	posp->p_tag = NULL;
+	posp->p_dindex = UNDEF;
+	posp->p_addr.a_l2r = 1;	/* 1 = 1..$; 0 = $..1	*/
+	posp->p_addr.a_offset = 0;
+
+	n_local_ids = 0;
+	val.v_type = T_STRING;
+	val.v_value.v_pval = NULL;
+	ip = RM_enter_id( "tag", T_STRING, C_VAR, S_SITE, 0, &val );
+
+	val.v_type = T_POS;
+	val.v_value.v_pval = NULL;
+	ip = RM_enter_id( "pos", T_POS, C_VAR, S_SITE, 0, &val );
+}
+
+void	POS_addval( expr )
+NODE_T	*expr;
+{
+
+}
+
+void	POS_close( parms )
+int	parms;
+{
+	int	i;
+	IDENT_T	*ip;
+	POS_T	*i_pos;
+
+	if( !parms ){
+		RM_errormsg( 1,
+			"POS_close: site descr. requires pos parameter." );
+	}
+	for( i = 0; i < n_local_ids; i++ ){
+		ip = local_ids[ i ];
+		if( !strcmp( ip->i_name, "tag" ) ){
+			posp->p_tag = ip->i_val.v_value.v_pval;
+		}else if( !strcmp( ip->i_name, "pos" ) ){
+			i_pos = ip->i_val.v_value.v_pval;
+			posp->p_addr.a_l2r = i_pos->p_addr.a_l2r;
+			posp->p_addr.a_offset = i_pos->p_addr.a_offset;
+		}
+	}
+	n_local_ids = 0;
+}
+
+void	SI_close( expr )
+NODE_T	*expr;
+{
+	int	i;
+	POS_T	*posp;
+	PAIRSET_T	*ps;
+	SITE_T	*sip, *sip1;
+
+	posp = ( POS_T * )malloc( rm_n_pos * sizeof( POS_T ) );
+	if( posp == NULL ){
+		rm_emsg_lineno = rm_pos[ 0 ].p_lineno;
+		RM_errormsg( 1, "SI_close: can't allocate posp." );
+	}
+	for( i = 0; i < rm_n_pos; i++ )
+		posp[ i ] = rm_pos[ i ];
+	sip = ( SITE_T * )malloc( sizeof( SITE_T ) );
+	if( sip == NULL ){
+		rm_emsg_lineno = rm_pos[ 0 ].p_lineno;
+		RM_errormsg( 1, "SI_close: can't allocate sip." );
+	}
+	sip->s_next = NULL;
+	sip->s_pos = posp;
+	sip->s_n_pos = rm_n_pos;
+	ps = expr->n_val.v_value.v_pval;
+	sip->s_pairset = pairop( "copy", ps, NULL );
+
+	if( rm_sites == NULL )
+		rm_sites = sip;
+	else{
+		for( sip1 = rm_sites; sip1->s_next; sip1 = sip1->s_next)
+			;
+		sip1->s_next = sip;
+	}
+
+	rm_n_pos = 0;
+}
+
+static	int	chk_site( sip )
+SITE_T	*sip;
+{
+	int	err;
+	int	i, j;
+	POS_T	*posp;
+	char	*sp;
+	STREL_T	*stp;
+
+	err = 0;
+	if( sip->s_n_pos != sip->s_pairset->ps_pairs[ 0 ].p_n_bases ){
+		err = 1;
+		rm_emsg_lineno = sip->s_pos[ 0 ].p_lineno;
+		RM_errormsg( 0,
+	"chk_site: Number of positions in site must agree with pairset." );
+	}
+	for( posp = sip->s_pos, i = 0; i < sip->s_n_pos; i++, posp++ ){
+		if( ( sp = posp->p_tag ) == NULL ){
+			err = 1;
+			rm_emsg_lineno = posp->p_lineno;
+			RM_errormsg( 0, "all positions must be tagged." );
+		}else{
+			stp = rm_descr;
+			for( j = 0; j < rm_n_descr; j++, stp++ ){
+				if( stp->s_tag == NULL )
+					continue;
+				if( stp->s_type != posp->p_type )
+					continue;
+				if( !strcmp( sp, stp->s_tag ) ){
+					posp->p_dindex = stp->s_index;
+					break;
+				}
+			}
+			if( posp->p_dindex == UNDEF ){
+				err = 1;
+				sprintf( emsg,
+					"position with undefined tag '%s'.",
+					sp );
+				rm_emsg_lineno = posp->p_lineno;
+				RM_errormsg( 0, emsg );
+			}
+		}
+	}
+	for( posp = sip->s_pos, i = 0; i < sip->s_n_pos; i++, posp++ ){
+		if( posp->p_dindex == UNDEF )
+			continue;
+		stp = &rm_descr[ posp->p_dindex ];
+		if( posp->p_addr.a_l2r ){
+			if( posp->p_addr.a_offset > stp->s_minlen ){
+				err = 1;
+				rm_emsg_lineno = posp->p_lineno;
+				RM_errormsg( 0,
+					"position offset > strel minlen." );
+			}
+		}else if( posp->p_addr.a_offset + 1 > stp->s_minlen ){
+			err = 1;
+			rm_emsg_lineno = posp->p_lineno;
+			RM_errormsg( 0, "position offset > strel minlen." );
+		}
+	}
+
+	return( err );
+}
+
+static	STREL_T	*set_scopes( fd, ld, descr )
+int	fd;
+int	ld;
+STREL_T	descr[];
+{
+	int	d, nd, s;
+	int	fd1, ld1;
+	STREL_T	*stp, *stp1, *stp2;
+
+	if( fd > ld )
+		return( NULL );
+
+	for( d = fd; d <= ld; d = nd ){
+		stp = &descr[ d ];
+		stp->s_outer = scope_stk[ t_scope_stk ];
+		if( stp->s_n_scopes == 0 ){
+			nd = d + 1;
+			if( nd <= ld ){
+				stp->s_next = &descr[ nd ];
+				stp->s_next->s_prev = stp;
+			}
+			continue;
+		}
+		t_scope_stk++;
+		scope_stk[ t_scope_stk ] = stp;
+		for( s = 0; s < stp->s_n_scopes - 1; s++ ){
+			stp1 = stp->s_scopes[ s ];
+			stp2 = stp->s_scopes[ s + 1 ];
+			fd1 = stp1->s_index + 1;
+			ld1 = stp2->s_index - 1;
+			t_scope_stk++;
+			scope_stk[ t_scope_stk ] = stp1;
+			stp1->s_inner = set_scopes( fd1, ld1, descr );
+			t_scope_stk--;
+			stp2->s_outer = scope_stk[ t_scope_stk ];
+		}
+		stp2 = stp->s_scopes[ stp->s_n_scopes - 1 ];
+		t_scope_stk--;
+		nd = stp2->s_index + 1;
+		if( nd <= ld ){
+			stp->s_next = &descr[ nd ];
+			stp->s_next->s_prev = stp;
+		}
+	}
+	return( &descr[ fd ] );
+}
+
+static	void	find_gi_len( fd, descr, tminlen, tmaxlen )
+int	fd;
+STREL_T	descr[];
+int	*tminlen;
+int	*tmaxlen;
+{
+	int	d, d1, d2, nd;
+	int	gminlen, gmaxlen;
+	int	minlen2, minlen3;
+	int	maxlen2, maxlen3;
+	STREL_T	*stp, *stp1, *stp2, *stp3;
+
+	*tminlen = 0;
+	*tmaxlen = 0;
+	for( d = fd; ; d = nd ){
+		stp = &descr[ d ];
+		gminlen = stp->s_minlen;
+		gmaxlen = stp->s_maxlen;
+		for( d1 = 0; d1 < stp->s_n_scopes - 1; d1++ ){
+			stp1 = stp->s_scopes[ d1 ];
+			stp2 = stp->s_scopes[ d1+1 ];
+			if( stp1->s_inner ){
+				stp3 = stp1->s_inner;
+				find_gi_len( stp3->s_index,
+					descr, &minlen3, &maxlen3 );
+				stp1->s_minilen = minlen3;
+				stp1->s_maxilen = maxlen3;
+				gminlen += minlen3;
+				if( gmaxlen != UNBOUNDED ){
+					if( maxlen3 == UNBOUNDED )
+						gmaxlen = UNBOUNDED;
+					else
+						gmaxlen += maxlen3;
+				}
+			}else{
+				stp1->s_minilen = 0;
+				stp1->s_maxilen = 0;
+			}
+			gminlen += stp2->s_minlen;
+			if( gmaxlen != UNBOUNDED ){
+				if( stp2->s_maxlen == UNBOUNDED )
+					gmaxlen = UNBOUNDED;
+				else
+					gmaxlen += stp2->s_maxlen;
+			}
+		} 
+		stp->s_minglen = gminlen;
+		stp->s_maxglen = gmaxlen;
+		*tminlen += gminlen;
+		if( *tmaxlen != UNBOUNDED ){
+			if( gmaxlen == UNBOUNDED )
+				*tmaxlen = UNBOUNDED;
+			else
+				*tmaxlen += gmaxlen; 
+		}
+		if( stp->s_next )
+			nd = stp->s_next->s_index;
+		else
+			break;
+	} 
+}
+
+static	void	find_limits( fd, descr )
+int	fd;
+STREL_T	descr[];
+{
+	int	d, nd, s;
+	STREL_T	*stp, *stp1, *stp2;
+
+	for( d = fd; ; d = nd ){
+		stp = &descr[ d ];
+		find_1_limit( stp, descr );
+		for( s = 1; s < stp->s_n_scopes; s++ ){
+			stp1 = stp->s_scopes[ s - 1 ];
+			stp2 = stp->s_scopes[ s ];
+			if( stp1->s_index + 1 < stp2->s_index )
+				find_limits( stp1->s_index+1, descr );
+			find_1_limit( stp2, descr );
+		}
+		stp1 = stp->s_next;
+		if( stp1 == NULL )
+			return;
+		else
+			nd = stp1->s_index;
+	} 
+}
+
+static	void	find_1_limit( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	int	start, stop, l2r;
+	char	name[ 20 ], tstr[ 20 ];
+	char	*bp, buf[ 200 ];
+
+	find_start( stp, descr );
+	find_stop( stp, descr );
+}
+
+static	void	find_start( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	int	start;
+
+	if( stp->s_scope == UNDEF ){	/* ss	*/
+		stp->s_start.a_l2r = 1;
+		stp->s_start.a_offset = 0;
+	}else if( stp->s_scope == 0 ){	/* start a group	*/
+		stp->s_start.a_l2r = 1;
+		stp->s_start.a_offset = 0;
+	}else{
+		if( RM_R2L( stp->s_type ) ){
+			if( closes_unbnd( stp, descr ) ){
+				stp->s_start.a_offset =
+					min_suffixlen( stp, descr );
+				stp->s_start.a_l2r = 0;
+			}else{
+				stp->s_start.a_offset =
+					max_prefixlen( stp, descr );
+				stp->s_start.a_offset += stp->s_maxlen - 1;
+				stp->s_start.a_l2r = 1;
+			}
+		}else{
+			stp->s_start.a_offset = min_prefixlen( stp, descr );
+			stp->s_start.a_l2r = 1;
+		}
+	}
+}
+
+static	void	find_stop( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	int	i, unbnd;
+	int	stop;
+	STREL_T	*stp1;
+
+	if( RM_R2L( stp->s_type ) ){
+		stp->s_stop.a_offset =
+			stp->s_minlen + min_prefixlen( stp, descr ) - 1;
+		stp->s_stop.a_l2r = 1;
+	}else{
+		stp->s_stop.a_offset = 
+			stp->s_minlen + min_suffixlen( stp, descr );
+		if( stp->s_stop.a_offset > 0 )
+			stp->s_stop.a_offset--;
+		stp->s_stop.a_l2r = 0;
+	}
+}
+
+static	int	closes_unbnd( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+
+	if( stp->s_maxlen == UNBOUNDED )
+		return( 1 );
+	if( max_prefixlen( stp, descr ) == UNBOUNDED )
+		return( 1 );
+	return( 0 );
+}
+
+static	int	min_prefixlen( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	STREL_T	*stp0, *stp1;
+	int	s, plen;
+
+	if( stp->s_scope == UNDEF )
+		return( 0 );
+	stp0 = stp->s_scopes[ 0 ];
+	for( plen = 0, s = stp->s_index - 1; s >= stp0->s_index; s-- ){
+		stp1 = &descr[ s ];
+		plen += stp1->s_minlen;
+	}
+	return( plen );
+}
+
+static	int	max_prefixlen( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	STREL_T	*stp0, *stp1;
+	int	s, plen;
+
+	if( stp->s_scope == UNDEF )
+		return( 0 );
+	stp0 = stp->s_scopes[ 0 ];
+	for( plen = 0, s = stp->s_index - 1; s >= stp0->s_index; s-- ){
+		stp1 = &descr[ s ];
+		if( stp1->s_maxlen == UNBOUNDED )
+			return( UNBOUNDED );
+		else
+			plen += stp1->s_maxlen;
+	}
+	return( plen );
+}
+
+static	int	min_suffixlen( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	STREL_T	*stp0, *stp1, *stpn;
+	int	s, slen;
+
+	slen = 0;
+	if( stp->s_scope == UNDEF ){
+		for( stp1 = stp->s_next; stp1; stp1 = stp1->s_next )
+			if( stp1->s_scope == 0 )
+				slen += stp1->s_minglen;
+			else
+				slen += stp1->s_minlen;
+		return( slen );
+	}
+
+	slen = 0;
+	stpn = stp->s_scopes[ stp->s_n_scopes - 1 ];
+	for( s = stp->s_index + 1; s <= stpn->s_index; s++ ){
+		stp1 = &descr[ s ];
+		slen += stp1->s_minlen;
+	}
+	stp0 = stp->s_scopes[ 0 ];
+	for( stp1 = stp0->s_next; stp1; stp1 = stp1->s_next )
+		slen += stp1->s_minlen;
+	return( slen );
+}
+
+static	void	find_search_order( fd, descr )
+int	fd;
+STREL_T	descr[];
+{
+	int	d, nd, s;
+	STREL_T	*stp, *stp1, *stp2;
+	SEARCH_T	*srp;
+
+	for( d = fd; ; d = nd ){
+		stp = &descr[ d ];
+		switch( stp->s_type ){
+		case SYM_SS :
+			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
+			if( srp == NULL ){
+				sprintf( emsg,
+			"find_search_order: can't allocate srp for ss." );
+				RM_errormsg( 1, emsg );
+			}
+			srp->s_descr = stp;
+			stp->s_searchno = rm_n_searches;
+			srp->s_forward = NULL;
+			srp->s_backup = NULL;
+			srp->s_zero = UNDEF;
+			srp->s_dollar = UNDEF;
+			rm_searches[ rm_n_searches ] = srp;
+			rm_n_searches++;
+			break;
+
+		case SYM_H5 :
+			if( stp->s_attr & SA_PROPER ){
+				srp = ( SEARCH_T * )malloc(sizeof( SEARCH_T ));
+				if( srp == NULL ){
+					sprintf( emsg,
+			"find_search_order: can't allocate srp for hlx h5." );
+					RM_errormsg( 1, emsg );
+				}
+				srp->s_descr = stp;
+				stp->s_searchno = rm_n_searches;
+				srp->s_forward = NULL;
+				srp->s_backup = NULL;
+				rm_searches[ rm_n_searches ] = srp;
+				rm_n_searches++;
+				stp1 = stp->s_inner;
+				if( stp1 != NULL )
+					find_search_order( stp1->s_index,
+						descr );
+			}else{	/* snarl */
+/*
+				for( s = 0; s < stp->s_n_scopes; s++ ){
+					stp1 = stp->s_scopes[ s ];
+					if( stp1->s_type == SYM_H5 ){
+						srp = ( SEARCH_T * )
+						    malloc(sizeof(SEARCH_T));
+						if( srp == NULL ){
+							sprintf( emsg,
+			"find_search_order: can't allocate srp for hlx h5." );
+							RM_errormsg( 1, emsg );
+						}
+						srp->s_descr = stp1;
+						stp1->s_searchno=rm_n_searches;
+						srp->s_forward = NULL;
+						srp->s_backup = NULL;
+						rm_searches[rm_n_searches]=srp;
+						rm_n_searches++;
+					}
+					stp2 = stp1->s_inner;
+					if( stp2 != NULL )
+						find_search_order(
+							stp2->s_index, descr );
+				}
+*/
+				for( s = 0; s < stp->s_n_scopes; s++ ){
+					stp1 = stp->s_scopes[ s ];
+					if( stp1->s_type == SYM_H5 ){
+						srp = ( SEARCH_T * )
+						    malloc(sizeof(SEARCH_T));
+						if( srp == NULL ){
+							sprintf( emsg,
+			"find_search_order: can't allocate srp for hlx h5." );
+							RM_errormsg( 1, emsg );
+						}
+						srp->s_descr = stp1;
+						stp1->s_searchno=rm_n_searches;
+						srp->s_forward = NULL;
+						srp->s_backup = NULL;
+						rm_searches[rm_n_searches]=srp;
+						rm_n_searches++;
+					}
+				}
+				for( s = 0; s < stp->s_n_scopes; s++ ){
+					stp1 = stp->s_scopes[ s ];
+					stp2 = stp1->s_inner;
+					if( stp2 != NULL )
+						find_search_order(
+							stp2->s_index, descr );
+				}
+			}
+			break;
+
+		case SYM_P5 :
+			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
+			if( srp == NULL ){
+				rm_emsg_lineno = stp->s_lineno;
+				sprintf( emsg,
+		"find_search_order: can't allocate srp for p-hlx p5." );
+				RM_errormsg( 1, emsg );
+			}
+			srp->s_descr = stp;
+			stp->s_searchno = rm_n_searches;
+			srp->s_forward = NULL;
+			srp->s_backup = NULL;
+			rm_searches[ rm_n_searches ] = srp;
+			rm_n_searches++;
+			stp1 = stp->s_inner;
+			if( stp1 != NULL )
+				find_search_order( stp1->s_index, descr );
+			rm_emsg_lineno = stp->s_lineno;
+			break;
+
+		case SYM_T1 :
+			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
+			if( srp == NULL ){
+				rm_emsg_lineno = stp->s_lineno;
+				sprintf( emsg,
+		"find_search_order: can't allocate srp for triple t1." );
+				RM_errormsg( 1, emsg );
+			}
+			srp->s_descr = stp;
+			stp->s_searchno = rm_n_searches;
+			srp->s_forward = NULL;
+			srp->s_backup = NULL;
+			rm_searches[ rm_n_searches ] = srp;
+			rm_n_searches++;
+			stp1 = stp->s_inner;
+			if( stp1 != NULL )
+				find_search_order( stp1->s_index, descr );
+			stp1 = stp->s_scopes[ 1 ];
+			stp2 = stp1->s_inner;
+			if( stp2 != NULL )
+				find_search_order( stp2->s_index, descr );
+			break;
+
+		case SYM_Q1 :
+			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
+			if( srp == NULL ){
+				rm_emsg_lineno = stp->s_lineno;
+				sprintf( emsg,
+		"find_search_order: can't allocate srp for quad q1." );
+				RM_errormsg( 1, emsg );
+			}
+			srp->s_descr = stp;
+			stp->s_searchno = rm_n_searches;
+			srp->s_forward = NULL;
+			srp->s_backup = NULL;
+			rm_searches[ rm_n_searches ] = srp;
+			rm_n_searches++;
+			stp1 = stp->s_inner;
+			if( stp1 != NULL )
+				find_search_order( stp1->s_index, descr );
+			stp1 = stp->s_scopes[ 1 ];
+			stp2 = stp1->s_inner;
+			if( stp2 != NULL )
+				find_search_order( stp2->s_index, descr );
+			stp1 = stp->s_scopes[ 2 ];
+			stp2 = stp1->s_inner;
+			if( stp2 != NULL )
+				find_search_order( stp2->s_index, descr );
+			break;
+
+		case SYM_H3 :
+		case SYM_P3 :
+		case SYM_T2 :
+		case SYM_T3 :
+		case SYM_Q2 :
+		case SYM_Q3 :
+		case SYM_Q4 :
+			break;
+
+		default :
+			rm_emsg_lineno = stp->s_lineno;
+			sprintf( emsg, "find_search_order: illegal sybmol %d.",
+				stp->s_type );
+			RM_errormsg( 1, emsg );
+			break;
+		}
+		stp1 = stp->s_next;
+		if( stp1 == NULL )
+			return;
+		else
+			nd = stp1->s_index;
+	}
+}
+
+static	void	set_search_order_links( n_searches, searches )
+int	n_searches;
+SEARCH_T	*searches[];
+{
+	int	s;
+	STREL_T	*stp, *stp1;
+
+	for( s = 0; s < n_searches - 1; s++ )
+		searches[ s ]->s_forward = searches[ s + 1 ]->s_descr;
+	for( s = 1; s < n_searches; s++ ){
+		stp = searches[ s ]->s_descr;
+		if( stp->s_prev != NULL )
+			searches[ s ]->s_backup = stp->s_prev;
+		else{ 
+			stp1 = stp->s_outer;
+			if( stp1 == NULL )
+				searches[ s ]->s_backup = NULL;
+			else if( stp1->s_attr & SA_PROPER )
+				searches[ s ]->s_backup = stp1;
+			else{	/* pknot	*/
+				stp1 = stp1->s_scopes[ 0 ];
+				searches[ s ]->s_backup = stp1;
+			}
+		}
+	}
+}
+
+static	int	pk_cmp( d1, d2 )
+STREL_T	**d1;
+STREL_T	**d2;
+{
+
+	return( ( *d1 )->s_index - ( *d2 )->s_index );
+}
+@
+
+
+1.94
+log
+@fixed find_search_order() to do all the helices of a snarl first then
+the interiors in the order in which they are found.  set_search_links()
+does not do the backup right, but as it is not currently used, this doesn't
+matter.
+@
+text
+@d102 1
+d1079 1
+a1079 1
+static	void	find_pknots( stp, n_descr, descr )
+d1107 1
+a1107 1
+			RM_errormsg(1, "find_pknots: can't allocate pknot.");
+d1143 1
+a1143 1
+			RM_errormsg( 1, "find_pknots: can't allocate stps." );
+d1152 140
+@
+
+
+1.93
+log
+@oops! was setting s_descr in the find_search_order() to the 1st
+h5 in a snarl rather than the current h5.
+@
+text
+@a109 1
+static	void	find_search_order0();
+a2962 171
+static	void	find_search_order0( fd, descr )
+int	fd;
+STREL_T	descr[];
+{
+	int	d, nd;
+	STREL_T	*stp, *stp1, *stp2;
+	SEARCH_T	*srp;
+
+	for( d = fd; ; d = nd ){
+		stp = &descr[ d ];
+		switch( stp->s_type ){
+		case SYM_SS :
+			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
+			if( srp == NULL ){
+				sprintf( emsg,
+			"find_search_order0: can't allocate srp for ss." );
+				RM_errormsg( 1, emsg );
+			}
+			srp->s_descr = stp;
+			stp->s_searchno = rm_n_searches;
+			srp->s_forward = NULL;
+			srp->s_backup = NULL;
+			srp->s_zero = UNDEF;
+			srp->s_dollar = UNDEF;
+			rm_searches[ rm_n_searches ] = srp;
+			rm_n_searches++;
+			break;
+
+		case SYM_H5 :
+			if( stp->s_attr & SA_PROPER ){
+				srp = ( SEARCH_T * )malloc(sizeof( SEARCH_T ));
+				if( srp == NULL ){
+					sprintf( emsg,
+			"find_search_order0: can't allocate srp for hlx h5." );
+					RM_errormsg( 1, emsg );
+				}
+				srp->s_descr = stp;
+				stp->s_searchno = rm_n_searches;
+				srp->s_forward = NULL;
+				srp->s_backup = NULL;
+				rm_searches[ rm_n_searches ] = srp;
+				rm_n_searches++;
+				stp1 = stp->s_inner;
+				if( stp1 != NULL )
+					find_search_order0( stp1->s_index,
+						descr );
+			}else{	/* pseudoknot */
+				srp = ( SEARCH_T * )malloc(sizeof( SEARCH_T ));
+				if( srp == NULL ){
+					sprintf( emsg,
+			"find_search_order0: can't allocate srp for pk.1 h5." );
+					RM_errormsg( 1, emsg );
+				}
+				srp->s_descr = stp;
+				stp->s_searchno = rm_n_searches;
+				srp->s_forward = NULL;
+				srp->s_backup = NULL;
+				rm_searches[ rm_n_searches ] = srp;
+				rm_n_searches++;
+
+				stp1 = stp->s_inner;
+				if( stp1 != NULL )
+					find_search_order0( stp1->s_index,
+						descr );
+				stp1 = stp->s_scopes[ 1 ];
+				stp2 = stp1->s_inner;
+				if( stp2 != NULL )
+					find_search_order0( stp2->s_index,
+						descr );
+				stp1 = stp->s_scopes[ 2 ];
+				stp2 = stp1->s_inner;
+				if( stp2 != NULL )
+					find_search_order0( stp2->s_index,
+						descr );
+			}
+			break;
+
+		case SYM_P5 :
+			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
+			if( srp == NULL ){
+				rm_emsg_lineno = stp->s_lineno;
+				sprintf( emsg,
+		"find_search_order0: can't allocate srp for p-hlx p5." );
+				RM_errormsg( 1, emsg );
+			}
+			srp->s_descr = stp;
+			stp->s_searchno = rm_n_searches;
+			srp->s_forward = NULL;
+			srp->s_backup = NULL;
+			rm_searches[ rm_n_searches ] = srp;
+			rm_n_searches++;
+			stp1 = stp->s_inner;
+			if( stp1 != NULL )
+				find_search_order0( stp1->s_index, descr );
+			rm_emsg_lineno = stp->s_lineno;
+			break;
+
+		case SYM_T1 :
+			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
+			if( srp == NULL ){
+				rm_emsg_lineno = stp->s_lineno;
+				sprintf( emsg,
+		"find_search_order0: can't allocate srp for triple t1." );
+				RM_errormsg( 1, emsg );
+			}
+			srp->s_descr = stp;
+			stp->s_searchno = rm_n_searches;
+			srp->s_forward = NULL;
+			srp->s_backup = NULL;
+			rm_searches[ rm_n_searches ] = srp;
+			rm_n_searches++;
+			stp1 = stp->s_inner;
+			if( stp1 != NULL )
+				find_search_order0( stp1->s_index, descr );
+			stp1 = stp->s_scopes[ 1 ];
+			stp2 = stp1->s_inner;
+			if( stp2 != NULL )
+				find_search_order0( stp2->s_index, descr );
+			break;
+
+		case SYM_Q1 :
+			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
+			if( srp == NULL ){
+				rm_emsg_lineno = stp->s_lineno;
+				sprintf( emsg,
+		"find_search_order0: can't allocate srp for quad q1." );
+				RM_errormsg( 1, emsg );
+			}
+			srp->s_descr = stp;
+			stp->s_searchno = rm_n_searches;
+			srp->s_forward = NULL;
+			srp->s_backup = NULL;
+			rm_searches[ rm_n_searches ] = srp;
+			rm_n_searches++;
+			stp1 = stp->s_inner;
+			if( stp1 != NULL )
+				find_search_order0( stp1->s_index, descr );
+			stp1 = stp->s_scopes[ 1 ];
+			stp2 = stp1->s_inner;
+			if( stp2 != NULL )
+				find_search_order0( stp2->s_index, descr );
+			stp1 = stp->s_scopes[ 2 ];
+			stp2 = stp1->s_inner;
+			if( stp2 != NULL )
+				find_search_order0( stp2->s_index, descr );
+			break;
+
+		case SYM_H3 :
+		case SYM_P3 :
+		case SYM_T2 :
+		case SYM_T3 :
+		case SYM_Q2 :
+		case SYM_Q3 :
+		case SYM_Q4 :
+			break;
+
+		default :
+			rm_emsg_lineno = stp->s_lineno;
+			sprintf( emsg, "find_search_order0: illegal sybmol %d.",
+				stp->s_type );
+			RM_errormsg( 1, emsg );
+			break;
+		}
+		stp1 = stp->s_next;
+		if( stp1 == NULL )
+			return;
+		else
+			nd = stp1->s_index;
+	}
+}
+
+d3010 24
+d3051 3
+@
+
+
+1.92
+log
+@oops, forgot that I was using stp1 to step through the h5's of a snarl,
+instead of stp and as a result the searchno was being left at UNDEF.\
+@
+text
+@d3192 1
+a3192 1
+						srp->s_descr = stp;
+@
+
+
+1.91
+log
+@modified find_pknots() and find_search_order() to permit arbitrarily
+complex nestings of h5/h3.
+@
+text
+@d3193 1
+a3193 1
+						stp->s_searchno = rm_n_searches;
+@
+
+
+1.90
+log
+@forgot to remove any previous values of the SA_5PAIRED or SA_3PAIRED atts
+when setting a local ends= variable.
+@
+text
+@d101 1
+d110 1
+d123 2
+d994 1
+a994 1
+static	void	find_pknots( stp, n_descr, descr )
+d1036 2
+a1037 1
+		sprintf( emsg, "fpk: INTERNAL ERROR: improper helix %d.",
+d1056 1
+a1056 1
+						"improper pseudoknot." );
+d1069 1
+a1069 1
+			RM_errormsg( 1, "find_pknot: can't alloc stps." );
+d1079 75
+d2964 1
+a2964 1
+static	void	find_search_order( fd, descr )
+d2979 1
+a2979 1
+			"find_search_order: can't allocate srp for ss." );
+d2997 1
+a2997 1
+			"find_search_order: can't allocate srp for hlx h5." );
+d3008 1
+a3008 1
+					find_search_order( stp1->s_index,
+d3014 1
+a3014 1
+			"find_search_order: can't allocate srp for pk.1 h5." );
+d3026 1
+a3026 1
+					find_search_order( stp1->s_index,
+d3031 1
+a3031 1
+					find_search_order( stp2->s_index,
+d3036 1
+a3036 1
+					find_search_order( stp2->s_index,
+d3046 166
+d3326 8
+@
+
+
+1.89
+log
+@changed s_proper to s_attr | SA_PROPER.  Added code to support default end rules
+for wchlx, phlx, triplex, quad: wc_ends, phlx_ends, tr_ends, qu_ends as well as
+an ends= parm for invdividual strels.
+@
+text
+@d620 5
+a624 2
+			if( ip->i_val.v_value.v_pval != NULL )
+				stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
+@
+
+
+1.88
+log
+@fixed bug that failed to set the l_type when setting the ip->i_type
+in '='.  Thus x = ... in a parm stmt failed because x had type T_UNDEF.
+@
+text
+@d85 1
+d279 16
+d423 1
+a423 1
+	stp->s_proper = 0;
+d499 4
+d509 5
+d518 2
+d526 2
+d535 2
+d561 1
+a561 1
+	IDENT_T	*ip;
+d619 3
+d765 1
+a765 1
+			stp->s_proper = 1;
+d769 2
+a770 2
+				stp->s_proper = 1;
+				stp->s_mates[ 0 ]->s_proper = 1;
+d782 3
+a784 3
+				stp->s_proper = 1;
+				stp->s_mates[ 0 ]->s_proper = 1;
+				stp->s_mates[ 1 ]->s_proper = 1;
+d803 4
+a806 4
+				stp->s_proper = 1;
+				stp->s_mates[ 0 ]->s_proper = 1;
+				stp->s_mates[ 1 ]->s_proper = 1;
+				stp->s_mates[ 2 ]->s_proper = 1;
+d1002 1
+a1002 1
+	if( stp->s_proper ){
+d1488 35
+d2910 1
+a2910 1
+			if( stp->s_proper ){
+d3069 1
+a3069 1
+			else if( stp1->s_proper )
+@
+
+
+1.87
+log
+@test & reject strel type of 'se' in descr & sites sections.  Accept them
+only in the score section.
+@
+text
+@d1632 4
+a1635 2
+			if( l_type == T_UNDEF )
+				ip->i_type = r_type;
+@
+
+
+1.86
+log
+@initialize s_n_mismatches & s_n_mispairs to UNDEF.
+@
+text
+@d391 5
+d398 1
+a398 1
+		sprintf( emsg, "SE_new: descr array size(%d) exceeded.",
+d2372 5
+@
+
+
+1.85
+log
+@fixed problem in logic with mispair/pairfrac.
+@
+text
+@d407 2
+@
+
+
+1.84
+log
+@set pairfrac to UNDEF, if still undef when the strel is closed set to 1.0;
+fixed bug in RM_enter_id() that never set the value for T_FLOST.
+@
+text
+@d432 2
+a433 2
+	stp->s_mispair = 0;
+	stp->s_pairfrac = 1.0;
+d467 1
+a467 1
+		val.v_value.v_ival = 0;
+d471 1
+a471 1
+		val.v_value.v_fval = 1.0;
+d520 2
+a521 1
+	int	i, s_minlen, s_maxlen, s_len, l_seq;
+d542 1
+a542 1
+				"len= can't be used with minlen=/maxlen=" );
+d561 1
+d564 14
+a577 7
+			if( ip->i_val.v_value.v_fval < 0. ||
+				ip->i_val.v_value.v_fval > 1. ){
+				rm_emsg_lineno = stp->s_lineno;
+				RM_errormsg( 0,
+				"pairfrac must be >= 0 and <= 1." );
+			}else
+				stp->s_pairfrac = ip->i_val.v_value.v_fval;
+d1045 1
+a1045 1
+	int	err;
+d1051 1
+d1087 1
+a1087 1
+	/* check & set the mispair & pair values	*/
+d1091 1
+a1091 1
+		for( stpv = NULL, i = 0; i < n_egroup; i++ ){
+d1102 10
+d1115 14
+a1128 4
+			ival = stpv ? stpv->s_mispair : 0;
+			for( i = 0; i < n_egroup; i++ ){
+				stp1 = egroup[ i ];
+				stp1->s_mispair = ival;
+@
+
+
+1.83
+log
+@changed refs to errormsg to RM_errormsg.
+@
+text
+@d462 1
+a462 1
+	val.v_value.v_fval = UNDEF;
+d467 1
+a467 1
+		val.v_value.v_ival = UNDEF;
+d471 3
+a473 2
+		val.v_value.v_fval = UNDEF;
+		ip = RM_enter_id( "pairfrac", T_FLOAT, C_VAR, S_STREL, 0, &val );
+d1375 2
+@
+
+
+1.82
+log
+@added float ops to eval() and related code. Reorganized along the
+lines of the operators in score().
+@
+text
+@d306 1
+a306 1
+		errormsg( 1, "PR_add: current pair too large." );
+d321 1
+a321 1
+		errormsg( 1, "PR_close: can't allocate pairlist." );
+d324 1
+a324 1
+		errormsg( 1, "PR_close: can't allocate pair." );
+d332 1
+a332 1
+						errormsg( 0,
+d342 1
+a342 1
+					errormsg( 0,
+d348 1
+a348 1
+					errormsg( 0,
+d354 1
+a354 1
+				errormsg( 0,
+d360 2
+a361 1
+			errormsg( 0, "PR_close: pair-string has 2-4 bases." );
+d370 1
+a370 1
+		errormsg( 1, "PR_close: can't allocate np." );
+d395 1
+a395 1
+		errormsg( 1, emsg );
+d539 1
+a539 1
+					errormsg( 0,
+d554 1
+a554 1
+				errormsg( 0,
+d564 1
+a564 1
+				errormsg( 0,
+d584 1
+a584 1
+		errormsg( 0, "SE_link: Descriptor has 0 elements." );
+d607 1
+a607 1
+		errormsg( 1, emsg );
+d640 1
+a640 1
+			errormsg( 0,
+d687 1
+a687 1
+				errormsg( 0, emsg );
+d724 1
+a724 1
+				errormsg( 0,
+d738 1
+a738 1
+				errormsg( 0,
+d745 1
+a745 1
+				errormsg( 0,
+d794 1
+a794 1
+			errormsg( 0, emsg );
+d812 1
+a812 1
+			errormsg( 0, emsg );
+d830 1
+a830 1
+			errormsg( 0, emsg );
+d849 1
+a849 1
+			errormsg( 0, emsg );
+d867 1
+a867 1
+		errormsg( 0, emsg );
+d910 1
+a910 1
+		errormsg( 0, emsg );
+d979 1
+a979 1
+		errormsg( 1, emsg );
+d995 2
+a996 1
+					errormsg( 0, "improper pseudoknot." );
+d1009 1
+a1009 1
+			errormsg( 1, "find_pknot: can't alloc stps." );
+d1088 1
+a1088 1
+					errormsg( 0,
+d1110 1
+a1110 1
+					errormsg( 0,
+d1164 1
+a1164 1
+				errormsg( 0, "inconsistant minlen values." );
+d1177 1
+a1177 1
+				errormsg( 0, "inconsistant maxlen values." );
+d1191 1
+a1191 1
+				errormsg( 1,
+d1214 1
+a1214 1
+				errormsg( 0,
+d1227 1
+a1227 1
+						errormsg( 0,
+d1233 1
+a1233 1
+						errormsg( 0,
+d1257 1
+a1257 1
+				errormsg( 0, "inconsistant seq lengths." );
+d1265 1
+a1265 1
+			errormsg( 0, "inconsistant seq & minlen parms." );
+d1272 1
+a1272 1
+			errormsg( 0, "inconsistant seq & maxlen parms." );
+d1282 1
+a1282 1
+			errormsg( 0, "inconsistant seq & maxlen parms." );
+d1316 1
+a1316 1
+					errormsg( 1,
+d1342 1
+a1342 1
+			errormsg( 1, 
+d1349 1
+a1349 1
+			errormsg( 1,
+d1354 1
+a1354 1
+			errormsg( 1, "RM_enter_id: can't alloc local ip." );
+d1361 1
+a1361 1
+		errormsg( 1, "RM_enter_id: can't alloc np for name." );
+d1381 1
+a1381 1
+					errormsg( 1,
+d1448 1
+a1448 1
+				errormsg( 1,
+d1482 1
+a1482 1
+					errormsg( 1, emsg );
+d1521 1
+a1521 1
+					errormsg( 1,
+d1535 1
+a1535 1
+				errormsg( 1, "eval: type mismatch '+'." );
+d1580 1
+a1580 1
+				errormsg( 1, "eval: type mismatch '-'." );
+d1618 1
+a1618 1
+				errormsg( 1, "eval: type mismatch '='." );
+d1655 1
+a1655 1
+					errormsg( 1,
+d1669 1
+a1669 1
+				errormsg( 1, "eval: type mismatch '+='." );
+d1707 1
+a1707 1
+				errormsg( 1, "eval: type mismatch '+='." );
+d1717 1
+a1717 1
+			errormsg( 1, emsg );
+d1739 1
+a1739 1
+			errormsg( 1, emsg );
+d1748 1
+a1748 1
+			errormsg( 1, emsg );
+d1752 1
+a1752 1
+			errormsg( 1, "loadidval: can't allocate sp.",
+d1766 1
+a1766 1
+				errormsg( 1, emsg );
+d1796 1
+a1796 1
+			errormsg( 1, "storeexprval: can't allocate sp." );
+d1824 1
+a1824 1
+			errormsg( 1, "pairop: check: ps1 == NULL." );
+d1835 1
+a1835 1
+				errormsg( 0, emsg );
+d1860 1
+a1860 1
+					errormsg( 0,
+d1887 1
+a1887 1
+			errormsg( 1, "pairop: copy: can't allocate n_ps." );
+d1891 1
+a1891 1
+			errormsg( 1, "pairop: copy: can't allocate n_pp." );
+d1912 1
+a1912 1
+			errormsg( 1, emsg );
+d1917 1
+a1917 1
+			errormsg( 1, "pairop: add: can't allocate n_ps." );
+d1921 1
+a1921 1
+			errormsg( 1, "pairop: add: can't allocate n_pp." );
+d1958 1
+a1958 1
+			errormsg( 1, emsg );
+d1963 1
+a1963 1
+			errormsg( 1, "pairop: add: can't allocate n_ps." );
+d1967 1
+a1967 1
+			errormsg( 1, "pairop: add: can't allocate n_pp." );
+d2027 1
+a2027 1
+		errormsg( 1, emsg );
+d2048 1
+a2048 1
+			errormsg( 1, "mk_bmatp: can't alloc bpmatp." );
+d2059 1
+a2059 1
+			errormsg( 1, "mk_bmatp: can't alloc btmatp." );
+d2071 1
+a2071 1
+			errormsg( 1, "mk_bmatp: can't alloc bqmatp." );
+d2100 1
+a2100 1
+		errormsg( 1, "pairop: mk_rbmatp: can't alloc bpmatp." );
+d2140 1
+a2140 1
+			errormsg( 1,
+d2145 1
+a2145 1
+			errormsg( 1, "posop: cvt: can't alloc n_pos." );
+d2158 1
+a2158 1
+			errormsg( 1,
+d2163 1
+a2163 1
+			errormsg( 1, "posop: sub: can't alloc n_pos." );
+d2174 1
+a2174 1
+		errormsg( 1, emsg );
+d2208 1
+a2208 1
+		errormsg( 1, "str2seq: can't alloc sp." );
+d2275 1
+a2275 1
+				errormsg( 0, emsg );
+d2336 1
+a2336 1
+		errormsg( 1, emsg );
+d2371 1
+a2371 1
+		errormsg( 1,
+d2398 1
+a2398 1
+		errormsg( 1, "SI_close: can't allocate posp." );
+d2405 1
+a2405 1
+		errormsg( 1, "SI_close: can't allocate sip." );
+d2437 1
+a2437 1
+		errormsg( 0,
+d2444 1
+a2444 1
+			errormsg( 0, "all positions must be tagged." );
+d2463 1
+a2463 1
+				errormsg( 0, emsg );
+d2475 1
+a2475 1
+				errormsg( 0,
+d2481 1
+a2481 1
+			errormsg( 0, "position offset > strel minlen." );
+d2780 1
+a2780 1
+				errormsg( 1, emsg );
+d2798 1
+a2798 1
+					errormsg( 1, emsg );
+d2815 1
+a2815 1
+					errormsg( 1, emsg );
+d2847 1
+a2847 1
+				errormsg( 1, emsg );
+d2867 1
+a2867 1
+				errormsg( 1, emsg );
+d2890 1
+a2890 1
+				errormsg( 1, emsg );
+d2924 1
+a2924 1
+			errormsg( 1, emsg );
+@
+
+
+1.81
+log
+@began the process of adding matchfrac & pairfrac values.
+@
+text
+@d1427 1
+d1434 8
+d1454 1
+d1461 1
+d1468 1
+d1487 1
+d1495 7
+a1501 4
+			if( l_type != r_type ){
+				errormsg( 1, "eval: type mismatch '+'." );
+			}
+			if( l_type == T_INT ){
+d1503 4
+d1508 6
+a1513 1
+			}else if( l_type == T_STRING ){
+d1525 2
+a1526 1
+			}else if( l_type == T_PAIR ){
+d1531 4
+d1538 1
+d1546 7
+a1552 9
+			if( l_type != r_type ){
+				if( l_type == T_POS && r_type == T_INT ){
+					posop("cvt", &valstk[n_valstk-1], NULL);
+				}else{
+					errormsg( 1,
+						"eval: type mismatch '-'." );
+				}
+			}
+			if( l_type == T_INT ){
+d1554 4
+d1559 6
+a1564 4
+			}else if( l_type == T_STRING ){
+				errormsg( 1,
+				"eval: '-' not defined for strings." );
+			}else if( l_type == T_PAIR ){
+d1569 2
+a1570 1
+			}else if( l_type == T_POS ){
+d1572 1
+d1576 4
+d1583 1
+d1592 26
+a1617 7
+			else if( l_type != r_type ){
+				if( l_type == T_POS && r_type == T_INT ){
+					posop("cvt", &valstk[n_valstk-1], NULL);
+				}else{
+					errormsg( 1,
+						"eval: type mismatch '='." );
+				}
+d1622 1
+d1629 7
+a1635 4
+			if( l_type != r_type ){
+				errormsg( 1, "eval: type mismatch '+='." );
+			}
+			if( l_type == T_INT ){
+d1637 4
+d1642 6
+a1647 1
+			}else if( l_type == T_STRING ){
+d1659 2
+a1660 1
+			}else if( l_type == T_PAIR ){
+d1665 4
+d1673 1
+d1680 7
+a1686 4
+			if( l_type != r_type ){
+				errormsg( 1, "eval: type mismatch '-='." );
+			}
+			if( l_type == T_INT ){
+d1688 4
+d1693 6
+a1698 4
+			}else if( l_type == T_STRING ){
+				errormsg( 1,
+				"eval: '-' not defined for strings." );
+			}else if( l_type == T_PAIR ){
+d1703 4
+d1711 1
+d1713 1
+a1713 2
+			sprintf( emsg,
+				"eval: operator %d not implemented.",
+d1786 4
+@
+
+
+1.80
+log
+@added code to RM_enter_id() to set i_reinit field.  This is needed so
+the score functions knows which of its variables to reinitialize each time
+the scoring program is run.  Also, if == 0, it means that that variable is
+readonly for to the scoring routine.
+@
+text
+@d430 1
+d432 1
+d460 4
+d469 4
+a546 17
+/*
+			if( stp->s_seq && *stp->s_seq != '\0' ){
+				l_seq = strlen( stp->s_seq );
+				l_seq = 2*l_seq > 256 ? 2*l_seq : 256 ;
+				stp->s_expbuf =
+					( char * )malloc( l_seq*sizeof(char) );
+				if( stp->s_expbuf == NULL ){
+					rm_emsg_lineno = stp->s_lineno;
+					errormsg( 1,
+						"can't allocate s_expbuf." );
+				}
+				stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
+				compile( stp->s_seq,
+					stp->s_expbuf, stp->s_e_expbuf, '\0' );
+			}else
+				stp->s_seq = NULL;
+*/
+d549 8
+d559 8
+@
+
+
+1.79
+log
+@rename enter_id() to RM_enter_id() as it will be used by score.
+Also modified it so that if its value parm is NULL, (usd in the compile
+phase to evaluate paramters) no value is assigned.
+@
+text
+@d244 1
+a244 1
+	RM_enter_id( "wc", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+d250 1
+a250 1
+	RM_enter_id( "gu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+d255 1
+a255 1
+	RM_enter_id( "tr", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+d260 1
+a260 1
+	RM_enter_id( "qu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+d264 1
+a264 1
+	RM_enter_id( "chk_both_strs", T_INT, C_VAR, S_GLOBAL, &val );
+d268 1
+a268 1
+	RM_enter_id( "iupac", T_INT, C_VAR, S_GLOBAL, &val );
+d272 1
+a272 1
+	RM_enter_id( "wc_minlen", T_INT, C_VAR, S_GLOBAL, &val );
+d276 1
+a276 1
+	RM_enter_id( "wc_maxlen", T_INT, C_VAR, S_GLOBAL, &val );
+d280 1
+a280 1
+	RM_enter_id( "windowsize", T_INT, C_VAR, S_GLOBAL, &val );
+d436 1
+a436 1
+	ip = RM_enter_id( "tag", T_STRING, C_VAR, S_STREL, &val );
+d440 1
+a440 1
+	ip = RM_enter_id( "minlen", T_INT, C_VAR, S_STREL, &val );
+d444 1
+a444 1
+	ip = RM_enter_id( "maxlen", T_INT, C_VAR, S_STREL, &val );
+d448 1
+a448 1
+	ip = RM_enter_id( "len", T_INT, C_VAR, S_STREL, &val );
+d452 1
+a452 1
+	ip = RM_enter_id( "seq", T_STRING, C_VAR, S_STREL, &val );
+d456 1
+a456 1
+	ip = RM_enter_id( "mismatch", T_INT, C_VAR, S_STREL, &val );
+d461 1
+a461 1
+		ip = RM_enter_id( "mispair", T_INT, C_VAR, S_STREL, &val );
+d490 1
+a490 1
+		ip = RM_enter_id( "pair", T_PAIR, C_VAR, S_STREL, &val );
+d1319 1
+a1319 1
+IDENT_T	*RM_enter_id( name, type, class, scope, vp )
+d1323 1
+d1357 1
+d1452 4
+a1455 2
+					ip=RM_enter_id(expr->n_val.v_value.v_pval,
+						T_UNDEF, C_VAR, S_GLOBAL, NULL);
+d2242 1
+a2242 1
+	ip = RM_enter_id( "tag", T_STRING, C_VAR, S_SITE, &val );
+d2246 1
+a2246 1
+	ip = RM_enter_id( "pos", T_POS, C_VAR, S_SITE, &val );
+@
+
+
+1.78
+log
+@changed name of find_id() to RM_find_id() as it is used in many places.
+@
+text
+@d82 1
+a82 1
+static	IDENT_T	*enter_id();
+d84 1
+d244 1
+a244 1
+	enter_id( "wc", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+d250 1
+a250 1
+	enter_id( "gu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+d255 1
+a255 1
+	enter_id( "tr", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+d260 1
+a260 1
+	enter_id( "qu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+d264 1
+a264 1
+	enter_id( "chk_both_strs", T_INT, C_VAR, S_GLOBAL, &val );
+d268 1
+a268 1
+	enter_id( "iupac", T_INT, C_VAR, S_GLOBAL, &val );
+d272 1
+a272 1
+	enter_id( "wc_minlen", T_INT, C_VAR, S_GLOBAL, &val );
+d276 1
+a276 1
+	enter_id( "wc_maxlen", T_INT, C_VAR, S_GLOBAL, &val );
+d280 1
+a280 1
+	enter_id( "windowsize", T_INT, C_VAR, S_GLOBAL, &val );
+d436 1
+a436 1
+	ip = enter_id( "tag", T_STRING, C_VAR, S_STREL, &val );
+d440 1
+a440 1
+	ip = enter_id( "minlen", T_INT, C_VAR, S_STREL, &val );
+d444 1
+a444 1
+	ip = enter_id( "maxlen", T_INT, C_VAR, S_STREL, &val );
+d448 1
+a448 1
+	ip = enter_id( "len", T_INT, C_VAR, S_STREL, &val );
+d452 1
+a452 1
+	ip = enter_id( "seq", T_STRING, C_VAR, S_STREL, &val );
+d456 1
+a456 1
+	ip = enter_id( "mismatch", T_INT, C_VAR, S_STREL, &val );
+d461 1
+a461 1
+		ip = enter_id( "mispair", T_INT, C_VAR, S_STREL, &val );
+d490 1
+a490 1
+		ip = enter_id( "pair", T_PAIR, C_VAR, S_STREL, &val );
+d1319 1
+a1319 1
+static	IDENT_T	*enter_id( name, type, class, scope, vp )
+a1328 3
+/*
+		if( rm_n_global_ids >= rm_s_global_ids ){
+*/
+d1331 1
+a1331 1
+				"enter_id: global symbol tab overflow." );
+d1337 2
+a1338 1
+			errormsg( 1, "enter_id: local symbol tab overflow." );
+d1342 1
+a1342 1
+			errormsg( 1, "enter_id: can't alloc local ip." );
+d1349 1
+a1349 1
+		errormsg( 1, "enter_id: can't alloc np for name." );
+d1358 15
+a1372 11
+	if( type == T_INT ){
+		ip->i_val.v_value.v_ival = vp->v_value.v_ival;
+	}else if( type == T_STRING ){
+		if( vp->v_value.v_pval == NULL ) 
+			ip->i_val.v_value.v_pval = NULL;
+		else{
+			np = ( char * )
+				malloc(strlen(vp->v_value.v_pval)+1);
+			if( np == NULL ){
+				errormsg( 1,
+				"enter_id: can't alloc np for string val." );
+d1374 3
+a1376 2
+			strcpy( np, vp->v_value.v_pval );
+			ip->i_val.v_value.v_pval = np;
+a1377 3
+	}else if( type == T_PAIR ){
+		ip->i_val.v_value.v_pval = pairop( "copy", 
+			vp->v_value.v_pval, NULL );
+d1450 1
+a1450 1
+					ip=enter_id(expr->n_val.v_value.v_pval,
+d2238 1
+a2238 1
+	ip = enter_id( "tag", T_STRING, C_VAR, S_SITE, &val );
+d2242 1
+a2242 1
+	ip = enter_id( "pos", T_POS, C_VAR, S_SITE, &val );
+@
+
+
+1.77
+log
+@added new flat -p for dumping the scoring program.
+@
+text
+@d83 1
+a83 1
+IDENT_T	*find_id();
+d470 1
+a470 1
+			ip = find_id( "wc" );
+d476 1
+a476 1
+			ip = find_id( "tr" );
+d483 1
+a483 1
+			ip = find_id( "qu" );
+d1105 1
+a1105 1
+				ip = find_id( "wc" );
+d1108 1
+a1108 1
+				ip = find_id( "tr" );
+d1111 1
+a1111 1
+				ip = find_id( "qu" );
+d1277 1
+a1277 1
+			ip = find_id( "wc_minlen" );
+d1285 1
+a1285 1
+			ip = find_id( "wc_maxlen" );
+d1381 1
+a1381 1
+IDENT_T	*find_id( name )
+d1446 1
+a1446 1
+			ip = find_id( expr->n_val.v_value.v_pval );
+d2076 1
+a2076 1
+	ip = find_id( "iupac" );
+@
+
+
+1.76
+log
+@renamed formerly static var context (rmgrm.y) to rm_context
+as it is now shared between the parser & the lexer.
+@
+text
+@d19 1
+d138 2
+@
+
+
+1.75
+log
+@added default clause to eval() case that exit with error if it
+encounters an operator it is not ready for.
+@
+text
+@d11 1
+@
+
+
+1.74
+log
+@began modifications that will eliminate the need to place a ss(len=0)
+Core dump problems are fixed, but the pknot search orders is not.
+@
+text
+@d1600 6
+@
+
+
+1.73
+log
+@changed RM_init() to set rm_vopt if -v was specified and then continue
+with the init (if error free).  This allows the main program to print
+the version and exit(0), as `rnamot -v' is a normal not error invocation.
+@
+text
+@a760 1
+
+d2374 3
+d2446 3
+d2487 2
+a2488 1
+			find_limits( stp1->s_index+1, descr );
+@
+
+
+1.72
+log
+@added code to display VERSION and exit if called with -v
+option.
+@
+text
+@d18 1
+d136 3
+a138 5
+		else if( !strcmp( argv[ ac ], "-v" ) ){
+			fprintf( stderr, "rnamot: %s\n", VERSION );
+			err = 1;
+			return( err );
+		}else if( !strcmp( argv[ ac ], "-descr" ) ){
+@
+
+
+1.71
+log
+@use mm_seqlen() to determine the length of the sequence as
+well as its fitness for mismatch=X, X>0 checking.  No
+*, \{n,m\}, n!=m or \<\> allowed.
+@
+text
+@d135 5
+a139 1
+		else if( !strcmp( argv[ ac ], "-descr" ) ){
+@
+
+
+1.70
+log
+@fixed annoying bug that printed the 2d arg as the name of the
+database file that couldn't be opened.  Removed commented (old)
+code that store the seq= value.  Added new code that makes it
+an error to usea * in seq= if the mismatch= value is > 0.
+@
+text
+@d73 2
+d529 1
+d545 1
+d1128 2
+a1129 2
+	int	exact, exact1, inexact, kclos;
+	int	i;
+d1164 18
+d1189 5
+a1193 2
+		if( seqlen( stp->s_seq, &s_minl, &s_maxl, &exact1, &kclos ) ){
+			if( kclos && stp->s_mismatch != 0 ){
+d1197 1
+a1197 1
+				"'*' in seq= not allowed with  mismatch= >0." );
+d1290 16
+@
+
+
+1.69
+log
+@added iupac translation.
+@
+text
+@d191 1
+a191 1
+				argv[ 0 ], argv[ 1 ] ); 
+a525 18
+/*
+			stp->s_seq = ip->i_val.v_value.v_pval;
+			if( stp->s_seq && *stp->s_seq != '\0' ){
+				l_seq = strlen( stp->s_seq );
+				l_seq = 2*l_seq > 256 ? 2*l_seq : 256 ;
+				stp->s_expbuf =
+					( char * )malloc( l_seq*sizeof(char) );
+				if( stp->s_expbuf == NULL ){
+					rm_emsg_lineno = stp->s_lineno;
+					errormsg( 1,
+						"can't allocate s_expbuf." );
+				}
+				stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
+				compile( stp->s_seq,
+					stp->s_expbuf, stp->s_e_expbuf, '\0' );
+			}else
+				stp->s_seq = NULL;
+*/
+d1123 2
+a1124 1
+	int	err, exact, exact1, inexact, seq;
+d1167 7
+a1173 1
+		if( seqlen( stp->s_seq, &s_minl, &s_maxl, &exact1 ) ){
+d2048 1
+a2048 1
+static	int	seqlen( seq, minlen, maxlen, exact )
+d2053 1
+d2068 1
+d2077 1
+d2086 1
+d2114 1
+d2124 1
+d2141 1
+@
+
+
+1.68
+log
+@added parens around *bpmatp in mk_rbmat() in order to op prec. right;
+initial version was transposing the arrays.
+@
+text
+@d67 2
+d87 1
+d208 19
+d252 3
+a254 5
+/*
+	val.v_type = T_STRING;
+	val.v_value.v_pval = "RNA";
+	enter_id( "database", T_STRING, C_VAR, S_GLOBAL, &val );
+*/
+d258 1
+a258 1
+	enter_id( "chk_both_strs", T_INT, C_VAR, S_GLOBAL, &val );
+d526 1
+d543 17
+d2022 35
+@
+
+
+1.67
+log
+@added code to generate reduced pair mat from full pair to be used with
+paired() for nucleating 3-,4-plexes.
+@
+text
+@d1916 1
+a1916 1
+						*bpmatp[bi1][bi3] = 1;
+d1927 1
+a1927 1
+						*bpmatp[bi1][bi4] = 1;
+@
+
+
+1.66
+log
+@changed ps_mat to be an array.  Using only ps_mat[0] right now, but will
+put in a 2-plx for 1.3 for triples and 2 2-plx 1..4 and 23 for quads.
+@
+text
+@d82 1
+d333 2
+a334 1
+	ps->ps_mat[ 0 ] = NULL; ps->ps_mat[ 1 ] = NULL; ps->ps_mat[ 1 ] = NULL;
+d1681 7
+a1687 1
+		ps1->ps_mat[ 0 ] = mk_bmatp( ps1 );
+d1704 7
+a1710 1
+		n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
+d1750 7
+a1756 1
+		n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
+d1801 7
+a1807 1
+		n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
+d1855 1
+a1855 1
+			errormsg( 1, "pairop: check: can't alloc bpmatp." );
+d1866 1
+a1866 1
+			errormsg( 1, "pairop: check: can't alloc btmatp." );
+d1878 1
+a1878 1
+			errormsg( 1, "pairop: check: can't alloc bqmatp." );
+d1887 44
+@
+
+
+1.65
+log
+@finished find_search_order(): added p-hlx, triple, quads.
+@
+text
+@d332 1
+a332 1
+	ps->ps_mat = NULL;
+d1679 1
+a1679 1
+		ps1->ps_mat = mk_bmatp( ps1 );
+d1696 1
+a1696 1
+		n_ps->ps_mat = mk_bmatp( n_ps );
+d1736 1
+a1736 1
+		n_ps->ps_mat = mk_bmatp( n_ps );
+d1781 1
+a1781 1
+		n_ps->ps_mat = mk_bmatp( n_ps );
+@
+
+
+1.64
+log
+@added new variable chk_both_strs = 1 (def.) for both strands = 0 for
+only the strand in the entry.
+@
+text
+@a2510 21
+/*
+				stp1 = stp->s_inner;
+				if( stp1 != NULL )
+					find_search_order( stp1->s_index,
+						descr );
+*/
+/*
+				stp1 = stp->s_scopes[ 1 ];
+				srp = ( SEARCH_T * )malloc(sizeof( SEARCH_T ));
+				if( srp == NULL ){
+					sprintf( emsg,
+			"find_search_order: can't allocate srp for pk.2 h5." );
+					errormsg( 1, emsg );
+				}
+				srp->s_descr = stp1;
+				stp->s_searchno = rm_n_searches;
+				srp->s_forward = NULL;
+				srp->s_backup = NULL;
+				rm_searches[ rm_n_searches ] = srp;
+				rm_n_searches++;
+*/
+d2530 16
+a2546 2
+			errormsg( 1,
+		"find_search_order: parallel helix finder not implemented." );
+d2548 1
+d2550 20
+a2569 3
+			rm_emsg_lineno = stp->s_lineno;
+			errormsg( 1,
+		"find_search_order: triple helix finder not implemented." );
+d2571 1
+d2573 24
+a2596 3
+			rm_emsg_lineno = stp->s_lineno;
+			errormsg( 1,
+		"find_search_order: quad helix finder not implemented." );
+@
+
+
+1.63
+log
+@changed default datatype from GENBANK to FASTN.
+@
+text
+@d229 1
+d233 5
+@
+
+
+1.62
+log
+@many change involved with the cmd line: dsecriptor file from the
+-descr X option, data from a file that can either be genbank `hits' format
+or fastn. `hits' currently default, but likely this will change.  Print
+usage/help msg for cmd line errors.
+@
+text
+@d19 1
+a19 1
+int	rm_dtype = DT_GENBANK;
+@
+
+
+1.61
+log
+@changed typo of '0' in call to compile() to '\0'.
+@
+text
+@d14 1
+a14 1
+char	rm_fname[ 256 ] = "--stdin--";
+d18 2
+d117 1
+a117 1
+	char	*fnp;
+d120 3
+a122 1
+	for( err = 0, fnp = NULL, ac = 1; ac < argc; ac++ ){
+d129 32
+a160 3
+		else if( *argv[ ac ] == '-' ){
+			fprintf( stderr, "%s: unknown option '%s'\n",
+				argv[ 0 ], argv[ ac ] );
+d162 3
+a164 4
+		}else if( fnp != NULL ){
+			fprintf( stderr,
+				"usage: %s [ options ] [ descr-file ]\n",
+				argv[ 0 ] );
+d166 1
+d168 1
+a168 1
+			fnp = argv[ ac ];
+d172 3
+a174 2
+	if( fnp != NULL ){
+		if( ( yyin = fopen( fnp, "r" ) ) == NULL ){
+d177 1
+a177 1
+				argv[ 0 ], fnp );
+d180 1
+a180 1
+			strcpy( rm_fname, fnp );
+d182 12
+@
+
+
+1.60
+log
+@change find_search_order() & set_set_order_links() for pknots to consider
+the 2 helices of the pknot to be a single search vs 2.  s_backup link is
+the 1st h3 for pknots instead of the 2d in some cases.
+@
+text
+@d465 1
+a465 1
+					stp->s_expbuf, stp->s_e_expbuf, '0' );
+@
+
+
+1.59
+log
+@fixed fmt stmt that was missing its arg; converted PARM_add() to void,
+converted exit(1) calls in RM_init() to return(1), return(0) for success.
+@
+text
+@d2459 1
+d2464 2
+d2479 1
+d2481 5
+d2543 1
+a2543 1
+	STREL_T	*stp;
+d2551 11
+a2561 2
+		else 
+			searches[ s ]->s_backup = stp->s_outer;
+@
+
+
+1.58
+log
+@converted non-64 bit compliant static init of rm_global_ids[] to use
+actual executed code in RM_init().
+@
+text
+@d138 1
+a138 1
+		exit( 1 );
+d144 1
+a144 1
+			exit( 1 );
+d200 2
+d204 1
+a204 1
+PARM_add( expr )
+d1977 2
+a1978 1
+		sprintf( emsg, "POS_open: pos array size(%d) exceeded." );
+@
+
+
+1.57
+log
+@moved all global variables from rnamot.c to here.  This will make it
+easier to embed the rnamot code in other main programs.
+@
+text
+@d24 2
+a25 13
+IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ] = {
+	{ "wc", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
+	{ "gu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
+	{ "tr", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
+	{ "qu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
+ /*5*/	{ "database", T_STRING, C_VAR, S_GLOBAL, { T_STRING, "RNA" } },
+	{ "overlap", T_INT, C_VAR, S_GLOBAL, { T_INT, 0 } },
+	{ "wc_minlen", T_INT, C_VAR, S_GLOBAL, { T_INT, 3 } },
+	{ "wc_maxlen", T_INT, C_VAR, S_GLOBAL, { T_INT, 30 } },
+ /*9*/	{ "windowsize", T_INT, C_VAR, S_GLOBAL, { T_INT, 6000 } }
+};
+int	rm_s_global_ids = RM_GLOBAL_IDS_SIZE;
+int	rm_n_global_ids = 9;
+d116 1
+a163 1
+	ip = find_id( "wc" );
+d165 1
+a165 1
+	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
+a169 1
+	ip = find_id( "gu" );
+d171 1
+a171 1
+	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
+a174 1
+	ip = find_id( "tr" );
+d176 1
+a176 1
+	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
+a179 1
+	ip = find_id( "qu" );
+d181 17
+a197 1
+	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
+d1198 1
+d1200 2
+@
+
+
+1.56
+log
+@change alloc of s_expbuf to MAX(2*l_seq,256)
+@
+text
+@d10 8
+a17 10
+extern	int	rm_error;
+extern	VALUE_T	rm_tokval;
+extern	int	rm_lineno;
+extern	int	rm_emsg_lineno;
+extern	char	rm_fname[];
+extern	int	rm_copt;
+extern	int	rm_dopt;
+extern	int	rm_hopt;
+
+static	char	emsg[ 256 ];
+d23 14
+a36 3
+extern	IDENT_T	rm_global_ids[];
+extern	int	rm_s_global_ids;
+extern	int	rm_n_global_ids;
+d52 6
+a57 7
+PAIRLIST_T	*pairlists[ 5 ];	/* #str = (0,1,) 2,3,4	*/
+
+extern	int	rm_dminlen;
+extern	int	rm_dmaxlen;
+extern	STREL_T	rm_descr[];
+extern	int	rm_s_descr;
+extern	int	rm_n_descr;
+d64 4
+a67 3
+extern	POS_T	rm_pos[];
+extern	int	rm_s_pos;
+extern	int	rm_n_pos;
+d70 1
+a70 1
+extern	SITE_T	*rm_sites;
+d72 4
+a75 2
+extern	int	rm_b2bc[];
+extern	int	rm_s_b2bc;
+d77 4
+a80 2
+extern	SEARCH_T	**rm_searches;
+extern	int	rm_n_searches;
+@
+
+
+1.55
+log
+@added code to initialize the new fields s_matchoff, s_matchlen of the
+STREL_T.
+@
+text
+@d438 1
+d440 1
+a440 1
+					( char * )malloc(2*l_seq*sizeof(char));
+d446 1
+a446 1
+				stp->s_e_expbuf = &stp->s_expbuf[ 2*l_seq ];
+@
+
+
+1.54
+log
+@added code to compile any specified seq="" value into the proper form
+for regexp.
+@
+text
+@d303 2
+@
+
+
+1.53
+log
+@moved init of rm_b2bc[] to follow arg parsing as it is required to
+initialize base pair values;
+set n_ps->ps_mat to mk_bmatp() so as to return a valid binary base
+`pairing' matrix.
+@
+text
+@d324 2
+d405 1
+a405 1
+	int	i, s_minlen, s_maxlen, s_len;
+d434 14
+@
+
+
+1.52
+log
+@added code to initialize rm_b2bc[];
+allocate & set the various ps_mat for the pairset associated with each
+structure.
+@
+text
+@d146 9
+a183 9
+	for( i = 0; i < rm_s_b2bc; i++ )
+		rm_b2bc[ i ] = UNDEF;
+	rm_b2bc[ 'a' ] = BCODE_A; rm_b2bc[ 'A' ] = BCODE_A;
+	rm_b2bc[ 'c' ] = BCODE_C; rm_b2bc[ 'C' ] = BCODE_C;
+	rm_b2bc[ 'g' ] = BCODE_G; rm_b2bc[ 'G' ] = BCODE_G;
+	rm_b2bc[ 't' ] = BCODE_T; rm_b2bc[ 'T' ] = BCODE_T;
+	rm_b2bc[ 'u' ] = BCODE_T; rm_b2bc[ 'U' ] = BCODE_T;
+	rm_b2bc[ 'n' ] = BCODE_N; rm_b2bc[ 'N' ] = BCODE_N;
+
+d1605 1
+a1605 1
+		n_ps->ps_mat = NULL;
+d1645 1
+a1645 1
+		n_ps->ps_mat = NULL;
+d1690 1
+a1690 1
+		n_ps->ps_mat = NULL;
+@
+
+
+1.51
+log
+@added code to initialize new field s_searchno of STREL_T; also to link
+each searchable STREL_T with its SEARCH_T field; changed name s_next of
+SEARCH_T to s_forward.
+@
+text
+@d63 3
+d77 1
+d110 1
+a110 1
+	int	ac, err;
+d175 9
+d263 1
+d1534 1
+d1588 1
+d1605 1
+d1645 1
+d1690 1
+d1720 53
+@
+
+
+1.50
+log
+@set n_local_ids to 0 at the end of SE_close() and POS_close() to insure
+that find_id() can be use for global symbols after the compilation phase.
+@
+text
+@d288 1
+d2307 2
+a2308 1
+			srp->s_next = NULL;
+d2310 2
+d2325 2
+a2326 1
+				srp->s_next = NULL;
+d2342 2
+a2343 1
+				srp->s_next = NULL;
+d2359 2
+a2360 1
+				srp->s_next = NULL;
+d2425 1
+a2425 1
+		searches[ s ]->s_next = searches[ s + 1 ]->s_descr;
+@
+
+
+1.49
+log
+@added code to save the search order in rm_searches and to set the forward
+and backward search links.
+@
+text
+@d426 1
+d1914 1
+@
+
+
+1.48
+log
+@added initial version of the code that sets up the search order.
+@
+text
+@d63 3
+d91 1
+d456 6
+d463 1
+d2291 1
+d2297 11
+a2307 1
+fprintf( stderr, "%3d: ss\n", stp->s_index );
+d2312 11
+a2322 1
+fprintf( stderr, "%3d: h5\n", stp->s_index );
+d2328 11
+a2338 1
+fprintf( stderr, "%3d: h5\n", stp->s_index );
+d2344 12
+a2355 1
+fprintf( stderr, "%3d: h5\n", stp1->s_index );
+d2405 18
+@
+
+
+1.47
+log
+@changed names of rm_tminlen, rm_tmaxlen to rm_dminlen, rm_dmaxlen where
+d stands for descr vs t for total
+@
+text
+@d87 1
+d452 2
+d2272 81
+@
+
+
+1.46
+log
+@added code to chk_len_seq() to set the minlen/maxlen of h5/h3 pairs to
+the current value of wc_minlen/wc_maxlen if they have not been set
+explicitly via the minlen,maxlen,len kws or implicitly via a seq="XXX"
+kw.
+@
+text
+@d45 2
+a46 2
+extern	int	rm_tminlen;
+extern	int	rm_tmaxlen;
+d447 1
+a447 1
+	find_gi_len( 0, descr, &rm_tminlen, &rm_tmaxlen );
+@
+
+
+1.45
+log
+@added code to check for single optional filename.
+@
+text
+@d990 1
+d1096 16
+a1111 4
+	if( minl == UNDEF )
+		minl = 1;
+	if( maxl == UNDEF )
+		maxl = UNBOUNDED;
+@
+
+
+1.44
+log
+@added code to set rm_hopt (-h) which if true means dump the descr in
+hierarchical format.
+@
+text
+@d8 2
+d101 1
+a101 1
+	int	ac;
+d104 1
+d106 1
+a106 1
+	for( ac = 1; ac < argc; ac++ ){
+d113 22
+@
+
+
+1.43
+log
+@moved find_limits() and associated code from find_motif.c to here.
+@
+text
+@d15 1
+d108 2
+@
+
+
+1.42
+log
+@modified code dealing with POS_T fields p_l2r, p_offset to deal with the
+fact that these fields were collected into ADDR_T.  Added code to initial
+new STREL_T ADDR_T fields s_start, s_stop.
+@
+text
+@d32 4
+d82 11
+a92 1
+static	void	find_tlen();
+d419 3
+a421 1
+	find_tlen( 0, descr, &rm_tminlen, &rm_tmaxlen );
+d2005 1
+a2005 1
+static	void	find_tlen( fd, descr, tminlen, tmaxlen )
+d2028 1
+a2028 1
+				find_tlen( stp3->s_index,
+d2062 166
+@
+
+
+1.41
+log
+@added code to set_scopes() to set outer as well as inner scopes.
+@
+text
+@d257 4
+d1651 2
+a1652 2
+		n_pos->p_l2r = 1;
+		n_pos->p_offset = vp->v_value.v_ival;
+d1658 1
+a1658 1
+		if( l_pos->p_l2r || !r_pos->p_l2r ){
+d1669 3
+a1671 2
+		n_pos->p_l2r = 0;
+		n_pos->p_offset = l_pos->p_offset + r_pos->p_offset;
+d1802 2
+a1803 2
+	posp->p_l2r = 1;	/* 1 = 1..$; 0 = $..1	*/
+	posp->p_offset = 0;
+d1838 2
+a1839 2
+			posp->p_l2r = i_pos->p_l2r;
+			posp->p_offset = i_pos->p_offset;
+d1928 2
+a1929 2
+		if( posp->p_l2r ){
+			if( posp->p_offset > stp->s_minlen ){
+d1935 1
+a1935 1
+		}else if( posp->p_offset + 1 > stp->s_minlen ){
+@
+
+
+1.40
+log
+@added code to set_scopes() to set the s_prev links as well as s_next.
+Also added line to SE_new() to set s_prev = NULL.
+@
+text
+@d44 3
+d245 1
+d563 2
+d1951 1
+d1960 2
+d1967 2
+d1970 2
+d1973 3
+a1975 2
+		stp1 = stp->s_scopes[ stp->s_n_scopes - 1 ];
+		nd = stp1->s_index + 1;
+@
+
+
+1.39
+log
+@moved find_tlen() which finds the lens of the various inner scopes and
+scoped groups from find_motif() to SE_link().
+@
+text
+@d240 1
+d1947 1
+a1947 1
+			if( nd <= ld )
+d1949 2
+d1962 1
+a1962 1
+		if( nd <= ld )
+d1964 2
+@
+
+
+1.38
+log
+@added code to initialize s_minglen, s_maxglen, s_minilen, s_maxilen to
+SE_new()
+@
+text
+@d38 2
+d75 1
+d393 6
+a398 1
+	return( 0 );
+d1963 59
+@
+
+
+1.37
+log
+@added code that sets the next/inner fields of each STREL_T.
+@
+text
+@d245 4
+@
+
+
+1.36
+log
+@getting it ready to deal with interior scopes.
+@
+text
+@d72 1
+d236 1
+a237 1
+	stp->s_next = NULL;
+d546 2
+d1919 32
+@
+
+
+1.35
+log
+@added code to detect and helix pairs that are actually pknots
+and adjust their scopes to show it.  Also disallowed improper
+triples & quads.
+@
+text
+@d235 1
+a235 1
+	stp->s_in = NULL;
+d542 2
+a784 1
+
+@
+
+
+1.34
+log
+@added new func chk_proper_nesting() which sets the s_proper field of
+the STREL_T group to true if this structure is properly nested.
+@
+text
+@d67 1
+d239 3
+d494 4
+a497 1
+			if( !chk_proper_nesting( stp, stp1, descr ) )
+d499 1
+d508 4
+a511 1
+			if( !chk_proper_nesting( stp, stp1, descr ) )
+d513 1
+d515 4
+a518 1
+			if( !chk_proper_nesting( stp1, stp2, descr ) )
+d520 1
+d530 13
+d643 2
+a644 1
+	STREL_T	**stp;
+d647 1
+a647 1
+		stp = ( STREL_T ** )malloc(( n_tags - 1 )* sizeof( STREL_T * ));
+d650 1
+a650 1
+				stp[ k ] = tags[ j ];
+d654 1
+a654 1
+		tags[ i ]->s_mates = stp;
+d656 8
+d700 84
+@
+
+
+1.33
+log
+@change seq len finder to set maxlen to UNBOUNDED unless specifically limite
+by ^ & $.
+@
+text
+@d66 1
+d230 1
+d234 1
+d389 1
+a389 1
+	STREL_T	*stp, *stp1;
+d475 39
+d641 21
+@
+
+
+1.32
+log
+@added -d opt to RM_init().
+added logic that checks that len= is not used with either of minlen= or
+maxlen=
+@
+text
+@d1563 4
+a1566 1
+	*maxlen = maxl;
+@
+
+
+1.31
+log
+@modified RM_init() to take as parms argc, argv, so it can set args from
+the command line.  Added new local id for strel: len, which sets both
+minlen & maxlen to its value.  Added parm to POS_close() which is true
+if a parameter list was encountered.  p-list are optional for strel but
+required for positions.
+@
+text
+@d14 1
+d82 2
+d317 1
+a317 1
+	int	i, minlen, maxlen;
+d320 2
+d327 1
+d330 1
+d333 11
+a343 2
+			stp->s_minlen = ip->i_val.v_value.v_ival;
+			stp->s_maxlen = ip->i_val.v_value.v_ival;
+@
+
+
+1.30
+log
+@made find_id() visible so it could be used to get the database information.
+@
+text
+@d8 2
+a9 1
+extern	char	rm_fname[ 256 ];
+a10 1
+extern	int	rm_error;
+d12 2
+a13 1
+extern	VALUE_T	rm_tokval;
+d70 3
+a72 1
+int	RM_init()
+d74 1
+d78 5
+d252 4
+d325 3
+d1589 2
+a1590 1
+void	POS_close()
+d1596 4
+@
+
+
+1.29
+log
+@modified chk_site() to return 1 if bad; added code to chk_site() to test
+if the position referred to is in the strel, ie <= minlen.
+@
+text
+@d52 1
+a52 1
+static	IDENT_T	*find_id();
+d883 1
+a883 1
+static	IDENT_T	*find_id( name )
+@
+
+
+1.28
+log
+@lengths checked and set from a combination of explicit lengths & the
+implied length of any sequence parms in the group.
+@
+text
+@d67 1
+a67 1
+static	void	chk_site();
+a228 2
+	stp->s_sites = NULL;
+	stp->s_n_sites = 0;
+d330 1
+d343 2
+a344 2
+	for( sip = rm_sites; sip; sip = sip->s_next )
+		chk_site( sip );
+d1628 1
+a1628 1
+static	void	chk_site( sip )
+d1631 1
+d1637 1
+d1639 1
+d1646 1
+d1648 1
+a1648 2
+			errormsg( 0,
+				"chk_site: all positions must be tagged." );
+d1662 1
+d1664 1
+a1664 1
+				"chk_site: position with undefined tag '%s'.",
+d1671 19
+@
+
+
+1.27
+log
+@added new pairop: equal, used to determine if the pair values in a 2d
+structure are consistant; set s_mismatch, s_mispair & s_pairset.  Added
+code to compute the lower & upper limits of the length of the seq pattern.
+@
+text
+@d66 1
+d624 1
+d692 132
+d1436 1
+a1436 1
+static	int	seqlen( seq, minlen, maxlen )
+d1440 1
+d1445 5
+d1455 1
+a1455 1
+		return;
+d1458 2
+d1463 2
+a1464 1
+	if( *sp == '^' )	/* leading ^ anchors to position 1 */
+d1466 1
+d1490 4
+a1493 1
+/* ERROR: unclosed char class	*/
+d1512 2
+a1513 1
+			}
+d1533 1
+@
+
+
+1.26
+log
+@chk_site() now checks that the number of positions in the site agrees with
+the pairset.
+@
+text
+@d59 1
+a59 1
+static	void	seqlen();
+d64 2
+a65 1
+static	int	chk_parms();
+d249 1
+a249 1
+	val.v_value.v_ival = 0;
+d254 1
+a254 1
+		val.v_value.v_ival = 0;
+d340 1
+a340 1
+	if( chk_parms( n_descr, descr ) )
+d569 1
+a569 1
+static	int	chk_parms( n_descr, descr )
+d575 74
+d650 34
+a683 12
+	for( stp = descr, i = 0; i < n_descr; i++, stp++ ){
+		switch( stp->s_type ){
+		case SYM_SS :
+			break;
+		case SYM_H5 :
+			break;
+		case SYM_P5 :
+			break;
+		case SYM_T1 :
+			break;
+		case SYM_Q1 :
+			break;
+d686 2
+a687 1
+	return( 0 );
+d750 8
+a757 8
+	static	IDENT_T	*find_id( name )
+	char	name[];
+	{
+		int	i;
+		IDENT_T	*ip;
+		
+		for( i = 0; i < n_local_ids; i++ ){
+		ip = local_ids[ i ];
+d1067 1
+a1067 1
+	int	i, j, c, b, nb, sz, diff;
+d1223 23
+d1302 1
+a1302 1
+static	void	seqlen( seq, minlen, maxlen )
+d1307 79
+a1385 3
+
+	*minlen = strlen( seq );
+	*maxlen = strlen( seq );
+@
+
+
+1.25
+log
+@started in on code to check sites and link them up to their descriptors.
+rt now chks that all descriptors are tagged and that the tags actually
+point back to real structure elements.
+@
+text
+@d1291 5
+@
+
+
+1.24
+log
+@added code to SI_close() to add the pairset to the current site, then
+add the site to the site list in rm_sites.
+@
+text
+@d65 1
+d329 1
+d342 3
+d1208 1
+d1252 1
+a1252 1
+	SITE_T	*sp, *sp1;
+d1261 2
+a1262 2
+	sp = ( SITE_T * )malloc( sizeof( SITE_T ) );
+	if( sp == NULL ){
+d1264 1
+a1264 1
+		errormsg( 1, "SI_close: can't allocate sp." );
+d1266 3
+a1268 3
+	sp->s_next = NULL;
+	sp->s_pos = posp;
+	sp->s_n_pos = rm_n_pos;
+d1270 1
+a1270 1
+	sp->s_pairset = pairop( "copy", ps, NULL );
+d1273 1
+a1273 1
+		rm_sites = sp;
+d1275 1
+a1275 1
+		for( sp1 = rm_sites; sp1->s_next; sp1 = sp1->s_next)
+d1277 1
+a1277 1
+		sp1->s_next = sp;
+d1281 36
+@
+
+
+1.23
+log
+@begin collecting site information.
+@
+text
+@d47 2
+d1240 2
+a1241 1
+void	SI_close()
+d1245 28
+a1273 3
+	fprintf( stderr, "SITE: %d positions.\n", rm_n_pos );
+	for( posp = rm_pos, i = 0; i < rm_n_pos; i++, posp++ )
+		RM_dump_pos( stderr, posp );
+@
+
+
+1.22
+log
+@changed names: chk_tags -> link_tags; link_tags -> mk_links; started on
+checking all the parms of a helix.
+@
+text
+@d42 5
+d55 1
+d204 1
+a204 1
+		sprintf( emsg, "SE_new: : descr array size(%d) exceeded.",
+d225 1
+d622 2
+a623 3
+	if( type == T_UNDEF )
+		ip->i_val.v_value.v_pval = NULL;
+	else if( type == T_INT ){
+d672 1
+d703 6
+d766 6
+a771 1
+				errormsg( 1, "eval: type mismatch '-'." );
+d784 5
+d801 6
+a806 2
+				errormsg( 1, "eval: type mismatch '='." );
+				exit( 1 );
+d950 4
+d1125 49
+d1182 65
+@
+
+
+1.21
+log
+@removed \n from all error msgs as errormsg() appends one. Insure that
+all t. & q. elements are tagged; check & link all t. & q. elements;
+check and link all untagged h5,h3 & p5,p3 elements.
+@
+text
+@d10 1
+d52 1
+a52 1
+static	void	chk_tags();
+d54 1
+a54 1
+static	void	link_tags();
+d56 1
+a311 16
+	if( stp->s_minlen != UNDEF ){
+		if( stp->s_maxlen == UNDEF )
+			stp->s_maxlen = stp->s_minlen;
+	}else if( stp->s_maxlen != UNDEF )
+		stp->s_minlen = stp->s_maxlen;
+	else if( stp->s_seq != NULL )
+		seqlen( stp->s_seq, &stp->s_minlen, &stp->s_maxlen );
+	else{
+		rm_emsg_lineno = stp->s_lineno;
+		errormsg( 0, "strel must have seq or len spec." );
+	}
+
+	if( stp->s_minlen > stp->s_maxlen ){
+		rm_emsg_lineno = stp->s_lineno;
+		errormsg( 0, "strel minlen > maxlen." );
+	}
+d325 5
+a329 1
+	chk_tags( n_descr, descr );
+d334 1
+a334 1
+static	void	chk_tags( n_descr, descr )
+d425 1
+d448 1
+a448 1
+					link_tags( n_tags, tags );
+d466 1
+a466 1
+					link_tags( n_tags, tags );
+d485 1
+a485 1
+					link_tags( n_tags, tags );
+d505 1
+a505 1
+					link_tags( n_tags, tags );
+d520 1
+a520 1
+static	void	link_tags( n_tags, tags )
+d552 24
+@
+
+
+1.20
+log
+@began checking & linking of the structure elements.  check for dup
+tags, that h5 & h3 with tags are in order & link them.  Untagged and
+p., t. & q. structures are not handled yet.
+@
+text
+@d112 1
+a112 1
+		errormsg( 1, "PR_add: current pair too large.\n" );
+d127 1
+a127 1
+		errormsg( 1, "PR_close: can't allocate pairlist.\n" );
+d130 1
+a130 1
+		errormsg( 1, "PR_close: can't allocate pair.\n" );
+d139 1
+a139 1
+			"PR_close: At most 4 bases in a pair-string.\n" );
+d149 1
+a149 1
+		"PR_close: pair-string is base-letter : base-letter : ...\n" );
+d155 1
+a155 1
+		"PR_close: pair-string is base-letter : base-letter : ...\n" );
+d161 1
+a161 1
+		"PR_close: pair-string is base-letter : base-letter : ...\n" );
+d166 1
+a166 1
+			errormsg( 0, "PR_close: pair-string has 2-4 bases.\n" );
+d173 1
+a173 1
+		errormsg( 1, "PR_close: can't allocate np.\n" );
+d196 1
+a196 1
+		sprintf( emsg, "SE_new: : descr array size(%d) exceeded.\n",
+d319 1
+a319 1
+		errormsg( 0, "strel must have seq or len spec.\n" );
+d324 1
+a324 1
+		errormsg( 0, "strel minlen > maxlen.\n" );
+d335 1
+a335 1
+		errormsg( 0, "SE_link: Descriptor has 0 elements.\n" );
+d352 2
+d356 18
+d398 37
+d449 1
+a449 1
+			sprintf( emsg, "helix '%s' has no h3() element.\n", 
+d453 10
+a463 9
+		t2 = tags[ 1 ]->s_type;
+		if( t2 == SYM_H3 ){
+			if( n_tags == 2 ){
+				link_tags( n_tags, tags );
+				return;		/* h5 ... h3 pair, OK */
+			}
+			duptags_error( 2, n_tags, tags );
+		}else
+			duptags_error( 1, n_tags, tags );
+d465 17
+d483 18
+d502 19
+d522 1
+a522 1
+		sprintf( emsg, "1st use of tag '%s' is out of order.\n",
+d557 1
+a557 1
+		sprintf( emsg, "duplicate tag '%s'.\n", tags[ i ]->s_tag );
+d575 1
+a575 1
+				"enter_id: global symbol tab overflow.\n" );
+d581 1
+a581 1
+			errormsg( 1, "enter_id: local symbol tab overflow.\n" );
+d585 1
+a585 1
+			errormsg( 1, "enter_id: can't alloc local ip.\n" );
+d592 1
+a592 1
+		errormsg( 1, "enter_id: can't alloc np for name.\n" );
+d612 1
+a612 1
+				"enter_id: can't alloc np for string val.\n" );
+d668 1
+a668 1
+				"eval: can't allocate sp for string.\n" );
+d688 1
+a688 2
+					sprintf( emsg,
+						"eval: unknown id '%s'.\n",
+d705 1
+a705 1
+				errormsg( 1, "eval: type mismatch '+'\n" );
+d717 1
+a717 1
+					"eval: can't alloc sp for str +.\n" );
+d738 1
+a738 1
+				errormsg( 1, "eval: type mismatch '-'\n" );
+d745 1
+a745 1
+				"eval: '-' not defined for strings.\n" );
+d763 1
+a763 1
+				errormsg( 1, "eval: type mismatch '='\n" );
+d776 1
+a776 1
+				errormsg( 1, "eval: type mismatch '+='\n" );
+d788 1
+a788 1
+					"eval: can't alloc sp for str +.\n" );
+d809 1
+a809 1
+				errormsg( 1, "eval: type mismatch '-='\n" );
+d816 1
+a816 1
+				"eval: '-' not defined for strings.\n" );
+d844 1
+a844 1
+				"loadidval: id '%s' has int value UNDEF.\n",
+d853 1
+a853 1
+				"loadidval: id '%s' has string value NULL.\n",
+d859 1
+a859 1
+			errormsg( 1, "loadidval: can't allocate sp.\n",
+d871 1
+a871 1
+				"loadidval: id '%s' has pair value NULL.\n",
+d899 1
+a899 1
+			errormsg( 1, "storeexprval: can't allocate sp.\n" );
+d922 1
+a922 1
+			errormsg( 1, "pairop: check: ps1 == NULL.\n" );
+d931 1
+a931 1
+	"pairop: check: pairset contains elements with %d and %d bases.\n",
+d959 1
+a959 1
+		"pairop: check: pairset contains duplicate pair-strings.\n" );
+d978 1
+a978 1
+			errormsg( 1, "pairop: copy: can't allocate n_ps.\n" );
+d982 1
+a982 1
+			errormsg( 1, "pairop: copy: can't allocate n_pp.\n" );
+d994 1
+a994 1
+			"pairop: add: pairsets have %d and %d elements.\n",
+d1001 1
+a1001 1
+			errormsg( 1, "pairop: add: can't allocate n_ps.\n" );
+d1005 1
+a1005 1
+			errormsg( 1, "pairop: add: can't allocate n_pp.\n" );
+d1033 1
+a1033 1
+			"pairop: sub: pairsets have %d and %d elements.\n",
+d1040 1
+a1040 1
+			errormsg( 1, "pairop: add: can't allocate n_ps.\n" );
+d1044 1
+a1044 1
+			errormsg( 1, "pairop: add: can't allocate n_pp.\n" );
+d1073 1
+a1073 1
+		sprintf( emsg, "pairop: unknown op '%s'.\n", op );
+@
+
+
+1.19
+log
+@initialize pair id of strel to NULL, but set a def_pairset to what it
+normally is, unless it has been explicitly set.
+@
+text
+@d51 4
+d202 1
+d209 1
+d327 122
+@
+
+
+1.18
+log
+@got pair op's in, including +=, -=.
+@
+text
+@d39 1
+d247 1
+a247 1
+			ps = ip->i_val.v_value.v_pval;
+d253 1
+a253 1
+			ps = ip->i_val.v_value.v_pval;
+d260 1
+a260 1
+			ps = ip->i_val.v_value.v_pval;
+d264 1
+a264 1
+		val.v_value.v_pval = ps;
+d320 1
+d628 4
+a631 1
+			sprintf( emsg,
+d633 3
+a635 2
+				 ip->i_name );
+			errormsg( 1, emsg );
+d682 3
+d735 2
+@
+
+
+1.17
+log
+@started in on pairop().  Currently includes op= "copy" & op= "check".
+@
+text
+@d408 1
+d482 4
+a485 2
+				pairop( "add", &valstk[ n_valstk - 2 ],
+					&valstk[ n_valstk - 1 ] );
+d506 4
+a509 2
+				pairop( "sub", &valstk[ n_valstk - 2 ],
+					&valstk[ n_valstk - 1 ] );
+d553 4
+d577 4
+d671 1
+a671 1
+	int	i, j, c, b, nb, diff;
+d739 87
+@
+
+
+1.16
+log
+@began to add pair ops.  loadidval() now copies the pairset value of
+the referenced id.  Still need to do add/subtract/store.  Also need to
+associate the default pair value with each strel.  Further need to set
+(actually not declare) mispair & pair for strel `ss' as it doesn't apply.
+@
+text
+@d47 1
+a47 1
+static	int	pairop();
+a98 1
+	fprintf( stderr, "Open Pair:\n");
+d160 3
+d164 1
+d186 1
+d232 34
+a265 7
+	val.v_type = T_INT;
+	val.v_value.v_ival = 0;
+	ip = enter_id( "mispair", T_INT, C_VAR, S_STREL, &val );
+
+	val.v_type = T_PAIR;
+	val.v_value.v_pval = NULL;
+	ip = enter_id( "pair", T_PAIR, C_VAR, S_STREL, &val );
+d376 2
+a377 1
+		ip->i_val.v_value.v_pval = NULL;
+d481 1
+a481 1
+				pairop( SYM_PLUS, &valstk[ n_valstk - 2 ],
+d503 1
+a503 1
+				pairop( SYM_ASSIGN, &valstk[ n_valstk - 2 ],
+d583 1
+a583 2
+	PAIR_T	*n_pp, *o_pp;
+	PAIRSET_T	*n_ps, *o_ps ;
+d618 1
+a618 13
+			o_ps = ip->i_val.v_value.v_pval;
+		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
+		if( n_ps == NULL ){
+			errormsg( 1, "loadidval: can't allocate n_ps.\n" );
+		}
+		n_pp = ( PAIR_T * )malloc( o_ps->ps_n_pairs*sizeof( PAIR_T ) );
+		if( n_pp == NULL ){
+			errormsg( 1, "loadidval: can't allocate n_pp.\n" );
+		}
+		n_ps->ps_n_pairs = o_ps->ps_n_pairs;
+		n_ps->ps_pairs = n_pp;
+		for( i = 0; i < n_ps->ps_n_pairs; i++ )
+			n_ps->ps_pairs[ i ] = o_ps->ps_pairs[ i ];
+d620 1
+a620 1
+		vp->v_value.v_pval = n_ps;
+d653 74
+a726 6
+static	int	pairop( op, vp1, vp2 )
+int	op;
+VALUE_T	*vp1;
+VALUE_T	*vp2;
+{
+
+@
+
+
+1.15
+log
+@removed dump routines to their own file `dump.c'; moved descr[], global_ids
+and the various line & file vars to be in ranmot.c and replaced them with
+extern refs.
+@
+text
+@d47 1
+d198 1
+a198 1
+	stp->s_pairs = NULL;
+d204 1
+a204 1
+	stp->s_pairdata = NULL;
+d269 1
+a269 1
+			stp->s_pairdata = NULL;
+d449 2
+d471 2
+d550 3
+d574 2
+a575 1
+			errormsg( 1, "loadidval: can't allocate sp.\n" );
+d581 19
+d601 1
+d632 8
+@
+
+
+1.14
+log
+@created RM_dump_id() routine.  Removed debug from PR_close() to RM_dump_id.
+@
+text
+@d8 5
+a12 5
+VALUE_T	rmval;
+int	rmlineno;
+int	rmerror = 0;
+int	rmemsglineno;
+char	rmfname[ 256 ] = "--stdin--";
+d19 3
+a21 10
+#define	GLOBAL_IDS_SIZE	50
+static	IDENT_T	global_ids[ GLOBAL_IDS_SIZE ] = {
+	{ "wc", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
+	{ "gu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
+	{ "tr", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
+	{ "qu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
+	{ "overlap", T_INT, C_VAR, S_GLOBAL, { T_INT, 0 } },
+	{ "database", T_STRING, C_VAR, S_GLOBAL, { T_STRING, NULL } }
+};
+static	int	n_global_ids = 6;
+d35 3
+a37 3
+#define	DESCRSIZE 100
+static	STREL_T	descr[ DESCRSIZE ];
+static	int	n_descr;
+a39 4
+void	RM_dump();
+void	RM_dump_id();
+void	RM_dump_descr();
+
+d55 1
+a55 1
+	rmlineno = 0;
+d84 1
+a84 1
+	rmlineno = 1;
+d169 1
+a169 1
+	np->n_lineno = rmlineno;
+d184 2
+a185 2
+	if( n_descr == DESCRSIZE ){
+		rmemsglineno = rmlineno;
+d187 1
+a187 1
+			DESCRSIZE );
+d190 2
+a191 2
+	stp = &descr[ n_descr ];
+	n_descr++;
+d193 2
+a194 2
+	stp->s_index = n_descr - 1;
+	stp->s_lineno = rmlineno;
+d279 1
+a279 1
+		rmemsglineno = stp->s_lineno;
+a280 1
+		rmerror = 1;
+d284 1
+a284 1
+		rmemsglineno = stp->s_lineno;
+a285 18
+		rmerror = 1;
+	}
+}
+
+void	RM_dump( fp, d_parms, d_descr, d_sites )
+FILE	*fp;
+int	d_parms;
+int	d_descr;
+int	d_sites;
+{
+	int	i;
+	IDENT_T	*ip;
+	STREL_T	*stp;
+
+	if( d_parms ){
+		fprintf( fp, "PARMS: %3d global symbols.\n", n_global_ids );
+		for( ip = global_ids, i = 0; i < n_global_ids; i++, ip++ )
+			RM_dump_id( fp, ip );
+a286 196
+
+	if( d_descr ){
+		fprintf( fp, "DESCR: %3d structure elements.\n", n_descr );
+		for( stp = descr, i = 0; i < n_descr; i++, stp++ )
+			RM_dump_descr( fp, stp );
+	}
+}
+
+void	RM_dump_id( fp, ip )
+FILE	*fp;
+IDENT_T	*ip;
+{
+	PAIR_T	*pp;
+	PAIRSET_T	*ps;
+	int	i, b;
+
+	fprintf( fp, "%s = {\n", ip->i_name );
+
+	fprintf( fp, "\ttype  = " );
+	switch( ip->i_type ){
+	case T_UNDEF :
+		fprintf( fp, "UNDEF\n" );
+		break;
+	case T_INT :
+		fprintf( fp, "INT\n" );
+		break;
+	case T_FLOAT :
+		fprintf( fp, "FLOAT\n" );
+		break;
+	case T_STRING :
+		fprintf( fp, "STRING\n" );
+		break;
+	case T_PAIR :
+		fprintf( fp, "PAIR\n" );
+		break;
+	case T_IDENT :
+		fprintf( fp, "IDENT\n" );
+		break;
+	default :
+		fprintf( fp, "-- BAD type %d\n", ip->i_type );
+		break;
+	}
+
+	fprintf( fp, "\tclass = " );
+	switch( ip->i_class ){
+	case C_UNDEF :
+		fprintf( fp, "UNDEF\n" );
+		break;
+	case C_LIT :
+		fprintf( fp, "LIT\n" );
+		break;
+	case C_VAR :
+		fprintf( fp, "VAR\n" );
+		break;
+	case C_EXPR :
+		fprintf( fp, "EXPR\n" );
+		break;
+	default :
+		fprintf( fp, "-- BAD class %d\n", ip->i_class );
+		break;
+	}
+		
+	fprintf( fp, "\tscope = " );
+	switch( ip->i_scope ){
+	case S_UNDEF :
+		fprintf( fp, "UNDEF\n" );
+		break;
+	case S_GLOBAL :
+		fprintf( fp, "GLOBAL\n" );
+		break;
+	case S_STREL :
+		fprintf( fp, "STREL\n" );
+		break;
+	case S_SITE :
+		fprintf( fp, "SITE\n" );
+		break;
+	default :
+		fprintf( fp, "-- BAD scope %d\n", ip->i_scope );
+		break;
+	}
+
+	fprintf( fp, "\tvalue = " );
+	switch( ip->i_val.v_type ){
+	case T_UNDEF :
+		fprintf( fp, "UNDEF\n" );
+		break;
+	case T_INT :
+		fprintf( fp, "%d\n", ip->i_val.v_value.v_ival );
+		break;
+	case T_FLOAT :
+		fprintf( fp, "%f\n", ip->i_val.v_value.v_fval );
+		break;
+	case T_STRING :
+		fprintf( fp, "%s\n", ip->i_val.v_value.v_pval ?
+					ip->i_val.v_value.v_pval : "NULL" );
+		break;
+	case T_PAIR :
+		fprintf( fp, "{ " );
+		ps = ip->i_val.v_value.v_pval;
+		for( pp = ps->ps_pairs, i = 0; i < ps->ps_n_pairs; i++, pp++ ){
+			for( b = 0; b < pp->p_n_bases; b++ ){
+				fprintf( stderr, "%c", pp->p_bases[ b ] );
+				if( b < pp->p_n_bases - 1 )
+					fprintf( stderr, ":" );
+			}
+			if( i < ps->ps_n_pairs - 1 )
+				fprintf( fp, ", " );
+		}
+		fprintf( fp, " }\n" );
+		break;
+	case T_IDENT :
+		fprintf( fp, "IDENT?\n" );
+		break;
+	default :
+		fprintf( fp, "-- BAD type %d\n", ip->i_val.v_type );
+		break;
+	}
+		
+	fprintf( fp, "}\n" );
+}
+
+void	RM_dump_descr( fp, stp )
+FILE	*fp;
+STREL_T	*stp;
+{
+
+	fprintf( fp, "descr[%3d] = {\n", stp->s_index + 1 );
+	fprintf( fp, "\ttype     = " );
+	switch( stp->s_type ){
+	case SYM_SS :
+		fprintf( fp, "ss" );
+		break;
+	case SYM_H5 :
+		fprintf( fp, "h5" );
+		break;
+	case SYM_H3 :
+		fprintf( fp, "h3" );
+		break;
+	case SYM_P5 :
+		fprintf( fp, "p5" );
+		break;
+	case SYM_P3 :
+		fprintf( fp, "p3" );
+		break;
+	case SYM_T1 :
+		fprintf( fp, "t1" );
+		break;
+	case SYM_T2 :
+		fprintf( fp, "t2" );
+		break;
+	case SYM_T3 :
+		fprintf( fp, "t3" );
+		break;
+	case SYM_Q1 :
+		fprintf( fp, "q1" );
+		break;
+	case SYM_Q2 :
+		fprintf( fp, "q2" );
+		break;
+	case SYM_Q3 :
+		fprintf( fp, "q3" );
+		break;
+	case SYM_Q4 :
+		fprintf( fp, "q4" );
+		break;
+	default :
+		fprintf( fp, "unknown (%d)", stp->s_type );
+		break;
+	}
+	fprintf( fp, "\n" );
+
+	fprintf( fp, "\tlineno   = %d\n", stp->s_lineno );
+
+	fprintf( fp, "\ttag      = '%s'\n",
+		stp->s_tag ? stp->s_tag : "(No tag)" );
+
+	fprintf( fp, "\tlen      = " );
+	if( stp->s_minlen == LASTVAL )
+		fprintf( fp, "LASTVAL" );
+	else
+		fprintf( fp, "%d", stp->s_minlen );
+	fprintf( fp, ":" );
+	if( stp->s_maxlen == LASTVAL )
+		fprintf( fp, "LASTVAL" );
+	else
+		fprintf( fp, "%d", stp->s_maxlen );
+	fprintf( fp, "\n" );
+
+	fprintf( fp, "\tseq      = '%s'\n",
+		stp->s_seq ? stp->s_seq : "(No seq)" );
+
+	fprintf( fp, "\tmismatch = %d\n", stp->s_mismatch );
+
+	fprintf( fp, "\tmispair  = %d\n", stp->s_mispair );
+
+	fprintf( fp, "}\n" );
+d299 1
+a299 1
+		if( n_global_ids >= GLOBAL_IDS_SIZE ){
+d303 2
+a304 2
+		ip = &global_ids[ n_global_ids ];
+		n_global_ids++;
+d360 1
+a360 1
+	for( ip = global_ids, i = 0; i < n_global_ids; i++, ip++ ){
+d379 1
+a379 1
+		rmemsglineno = expr->n_lineno;
+@
+
+
+1.13
+log
+@allow global ids to be declared/defined.  enter_id now a func returning
+type IDENT_T; put T_PAIR values onto to the valstk.
+@
+text
+@d26 1
+a26 1
+	{ "db", T_STRING, C_VAR, S_GLOBAL, { T_STRING, NULL } }
+d47 3
+a49 2
+void	SE_dump();
+void	SE_dump_descr();
+a172 11
+	fprintf( stderr, "Close Pair: %d elements.\n", n_curpair );
+	for( pp = ps->ps_pairs, i = 0; i < n_curpair; i++, pp++ ){
+		fprintf( stderr, "%3d: ", i + 1 );
+		for( b = 0; b < pp->p_n_bases; b++ ){
+			fprintf( stderr, "%c", pp->p_bases[ b ] );
+			if( b < pp->p_n_bases - 1 )
+				fprintf( stderr, ":" );
+		}
+		fprintf( stderr, "\n" );
+	}
+
+d181 1
+d302 1
+a302 1
+void	SE_dump( fp, d_pair, d_parm, d_descr, d_site )
+d304 1
+a304 2
+int	d_pair;
+int	d_parm;
+d306 1
+a306 1
+int	d_site;
+d308 2
+d311 6
+a316 1
+	int	i;
+d321 56
+a376 1
+			SE_dump_descr( fp, stp );
+d378 58
+d437 2
+a438 1
+void	SE_dump_descr( fp, stp )
+d444 1
+a444 1
+	fprintf( fp, "\ttype = " );
+d488 1
+a488 1
+	fprintf( fp, "\tlineno = %d\n", stp->s_lineno );
+d490 1
+a490 1
+	fprintf( fp, "\ttag  = '%s'\n",
+d493 1
+a493 1
+	fprintf( fp, "\tlen  = " );
+d505 1
+a505 1
+	fprintf( fp, "\tseq  = '%s'\n",
+d510 1
+a510 1
+	fprintf( fp, "\tmispair = %d\n", stp->s_mispair );
+a602 1
+dumpexpr( stderr, expr, 0 );
+d703 3
+a705 1
+			if( l_type != r_type ){
+d813 1
+d822 1
+d826 2
+@
+
+
+1.12
+log
+@initial global pair list.
+@
+text
+@d52 1
+a52 1
+static	void	enter_id();
+d102 1
+a102 1
+	eval( expr, 0 );
+d190 1
+a190 1
+	np->n_lineno = 0;
+d201 1
+d229 1
+a229 1
+	enter_id( "tag", T_STRING, C_VAR, S_STREL, &val );
+d233 1
+a233 1
+	enter_id( "minlen", T_INT, C_VAR, S_STREL, &val );
+d237 1
+a237 1
+	enter_id( "maxlen", T_INT, C_VAR, S_STREL, &val );
+d241 1
+a241 1
+	enter_id( "seq", T_STRING, C_VAR, S_STREL, &val );
+d245 1
+a245 1
+	enter_id( "mismatch", T_INT, C_VAR, S_STREL, &val );
+d249 1
+a249 1
+	enter_id( "mispair", T_INT, C_VAR, S_STREL, &val );
+d253 1
+a253 1
+	enter_id( "pair", T_PAIR, C_VAR, S_STREL, &val );
+d404 1
+a404 1
+static	void	enter_id( name, type, class, scope, vp )
+d441 3
+a443 1
+	if( type == T_INT ){
+d461 1
+d464 7
+a470 7
+static	IDENT_T	*find_id( name )
+char	name[];
+{
+	int	i;
+	IDENT_T	*ip;
+	
+	for( i = 0; i < n_local_ids; i++ ){
+d489 1
+d492 4
+a495 3
+		eval( expr->n_left );
+		eval( expr->n_right );
+		rmemsglineno - expr->n_lineno;
+d515 6
+d524 9
+a532 3
+				sprintf( emsg, "eval: unknown id '%s'.\n",
+					expr->n_val.v_value.v_pval );
+				errormsg( 1, emsg );
+@
+
+
+1.11
+log
+@more code on pairvalues. Now parsed off.  check for correct size but not
+self consistancy.  No node built & returned at this point.
+@
+text
+@d9 1
+a9 1
+int	rmlineno = 1;
+d40 2
+d50 2
+d60 45
+d126 1
+a126 1
+	PAIRLIST_T	*pl;
+d130 2
+a131 2
+	pl = ( PAIRLIST_T * )malloc( sizeof( PAIRLIST_T ) );
+	if( pl == NULL )
+d136 3
+a138 3
+	pl->pl_n_pairs = n_curpair;
+	pl->pl_pairs = pp;
+	for( pp = pl->pl_pairs, i = 0; i < pl->pl_n_pairs; i++, pp++ ){
+d173 1
+a173 1
+	for( pp = pl->pl_pairs, i = 0; i < n_curpair; i++, pp++ ){
+d183 12
+a194 1
+	return( NULL );
+d478 1
+a478 1
+static	void	eval( expr )
+d480 1
+@
+
+
+1.10
+log
+@check min/max len on SE_close(). Start checking len's vs seq.  Start pair
+structures.
+@
+text
+@d2 1
+d34 6
+d60 1
+d67 4
+a70 1
+	fprintf( stderr, "Add '%s' to pair.\n", np->n_val.v_value.v_pval ); 
+d75 58
+a133 1
+	fprintf( stderr, "Close Pair.\n");
+d144 1
+@
+
+
+1.9
+log
+@moved rmval from rmlex.l to compile.c
+moved rmlineno from rmlex.l to compile.c
+added new var rmemsglineno
+changed all fprintf( stderr calls to errormsg().
+@
+text
+@d9 1
+d47 22
+d84 1
+d99 1
+a99 1
+	enter_id( "tag", T_STRING, C_VAR, S_LOCAL, &val );
+d103 1
+a103 1
+	enter_id( "minlen", T_INT, C_VAR, S_LOCAL, &val );
+d107 1
+a107 1
+	enter_id( "maxlen", T_INT, C_VAR, S_LOCAL, &val );
+d111 1
+a111 1
+	enter_id( "seq", T_STRING, C_VAR, S_LOCAL, &val );
+d115 1
+a115 1
+	enter_id( "mismatch", T_INT, C_VAR, S_LOCAL, &val );
+d119 1
+a119 1
+	enter_id( "mispair", T_INT, C_VAR, S_LOCAL, &val );
+d123 1
+a123 1
+	enter_id( "pair", T_PAIR, C_VAR, S_LOCAL, &val );
+d140 1
+a140 1
+	int	i;
+d161 18
+d247 2
+d565 10
+@
+
+
+1.8
+log
+@add code to loadidval() to check for UNDEF ints & NULL strings.
+@
+text
+@d7 6
+d53 1
+a53 2
+		fprintf( stderr,
+		"SE_new: FATAL: descr array size(%d) exceeded.\n",
+d55 1
+a55 1
+		exit( 1 );
+d150 1
+a150 1
+		fprintf( stderr, "DESCR: %3d structure elements.\n", n_descr );
+d241 2
+a242 3
+			fprintf( stderr,
+			"enter_id: FATAL: global symbol tab overflow.\n" );
+			exit( 1 );
+d248 1
+a248 3
+			fprintf( stderr,
+			"enter_id: FATAL: local symbol tab overflow.\n" );
+			exit( 1 );
+d252 1
+a252 3
+			fprintf( stderr,
+				"enter_id: FATAL: can't alloc local ip.\n" );
+			exit( 1 );
+d259 1
+a259 3
+		fprintf( stderr,
+			"enter_id: FATAL: can't alloc np for name.\n" );
+		exit( 1 );
+d276 2
+a277 3
+				fprintf( stderr,
+			"enter_id: FATAL: can't alloc np for string val.\n" );
+				exit( 1 );
+d315 1
+d327 2
+a328 3
+				fprintf( stderr,
+			"eval: FATAL: can't allocate sp for string.\n" );
+				exit( 1 );
+d338 1
+a338 2
+				fprintf( stderr,
+					"eval: FATAL: unknown id '%s'.\n",
+d340 1
+a340 1
+				exit( 1 );
+d354 1
+a354 3
+				fprintf( stderr,
+					"eval: FATAL: type mismatch '+'\n" );
+				exit( 1 );
+d365 2
+a366 3
+					fprintf( stderr,
+				"eval: FATAL: can't alloc sp for str +.\n" );
+					exit( 1 );
+d383 1
+a383 3
+				fprintf( stderr,
+					"eval: FATAL: type mismatch '-'\n" );
+				exit( 1 );
+d389 2
+a390 3
+				fprintf( stderr,
+			"eval: FATAL: op '-' not defined for strings.\n" );
+				exit( 1 );
+d402 1
+a402 2
+				fprintf( stderr,
+					"eval: FATAL: type mismatch '='\n" );
+d415 1
+a415 3
+				fprintf( stderr,
+					"eval: FATAL: type mismatch '+='\n" );
+				exit( 1 );
+d426 2
+a427 3
+					fprintf( stderr,
+				"eval: FATAL: can't alloc sp for str +.\n" );
+					exit( 1 );
+d444 1
+a444 3
+				fprintf( stderr,
+					"eval: FATAL: type mismatch '-='\n" );
+				exit( 1 );
+d450 2
+a451 3
+				fprintf( stderr,
+			"eval: FATAL: op '-' not defined for strings.\n" );
+				exit( 1 );
+d472 2
+a473 2
+			fprintf( stderr,
+			"loadidval: FATAL: id '%s' has int value UNDEF.\n",
+d475 1
+a475 1
+			exit( 1 );
+d481 2
+a482 2
+			fprintf( stderr,
+			"loadidval: FATAL: id '%s' has string value NULL.\n",
+d484 1
+a484 1
+			exit( 1 );
+d488 1
+a488 3
+			fprintf( stderr,
+				"loadidval: FATAL: can't allocate sp.\n" );
+			exit( 1 );
+d514 1
+a514 3
+			fprintf( stderr,
+				"storeexprval: FATAL: can't allocate sp.\n" );
+			exit( 1 );
+@
+
+
+1.7
+log
+@+ implemented for strings, - for strings is error, +=, -= working.  Need to
+check for UNDEF val.
+@
+text
+@d488 6
+d497 6
+a502 1
+		vp->v_type = T_STRING;
+d509 1
+@
+
+
+1.6
+log
+@evaluate some int & string exprs.
+@
+text
+@d311 1
+a311 1
+	char	*sp;
+d366 12
+d398 3
+d410 1
+a410 1
+				r_type = loadidval( &valstk[ n_valstk ] );
+d420 29
+d452 20
+@
+
+
+1.5
+log
+@partial evaluator.  Want to think about it for a bit.
+@
+text
+@d37 2
+d111 2
+d114 18
+d200 3
+d215 6
+a220 2
+	fprintf( fp, "\ttag  = %s\n",
+		stp->s_tag ? stp->s_tag : "(No tag)" );
+a221 2
+	fprintf( fp, "\tseq  = %s\n",
+		stp->s_seq ? stp->s_seq : "(No seq)" );
+d312 1
+a312 1
+	IDENT_T	*ip;
+d346 1
+a346 1
+			valstk[ n_valstk ].v_type = ip->i_type;
+d352 2
+d355 2
+d372 2
+d375 2
+d391 12
+d405 1
+d408 1
+d413 54
+@
+
+
+1.4
+log
+@major changes: SE_*() is SE_new() and SE_addval().  The former is unchanged
+but the 2 accepts an expression that is used to select the property and
+set its value.
+@
+text
+@a6 13
+	/* These are the "contexts" that the parser operates under	*/
+	/* required, as several items have the same shape, ie descr's	*/
+	/* but are descr's in the descr section, but sites in the	*/
+	/* site section.						*/
+
+#define	CTX_START	0
+#define	CTX_PARM	1
+#define	CTX_DESCR	2
+#define	CTX_SITE	3
+#define	CTX_ERROR	4
+
+static	int	rmc_context = CTX_START;
+
+d11 8
+a18 7
+static	IDENT_T	idtab[] = {
+	{ "wc", T_PAIR, C_VAR },
+	{ "gu", T_PAIR, C_VAR },
+	{ "tr", T_PAIR, C_VAR },
+	{ "qu", T_PAIR, C_VAR },
+	{ "overlap", T_INT, C_VAR },
+	{ "db", T_STRING, C_VAR }
+d20 5
+a24 1
+static	int	n_idtab = sizeof( idtab ) / sizeof( IDENT_T );
+d34 6
+a39 2
+void	set_context( sym )
+int	sym;
+d41 1
+d43 2
+a44 42
+	switch( sym ){
+	case SYM_PARM :
+		if( rmc_context < CTX_PARM )
+			rmc_context = CTX_PARM;
+		else if( rmc_context == CTX_PARM ){
+			fprintf( stderr,
+		"set_context: FATAL: At most 1 `parm' section permitted.\n" );
+			exit( 1 );
+		}else if( rmc_context > CTX_PARM ){
+			fprintf( stderr,
+	"set_context: FATAL: section order is pair, `parm', descr, site.\n" );
+			exit( 1 );
+		}
+		break;
+	case SYM_DESCR :
+		n_descr = 0;
+		if( rmc_context < CTX_DESCR )
+			rmc_context = CTX_DESCR;
+		else if( rmc_context == CTX_DESCR ){
+			fprintf( stderr,
+		"set_context: FATAL: At most 1 `descr' section permitted.\n" );
+			exit( 1 );
+		}else if( rmc_context > CTX_DESCR ){
+			fprintf( stderr,
+	"set_context: FATAL: section order is pair, parm, `descr', site.\n" );
+			exit( 1 );
+		}
+		break;
+	case SYM_SITE :
+		if( rmc_context == CTX_DESCR )
+			rmc_context = CTX_SITE;
+		else if( rmc_context == CTX_SITE ){
+			fprintf( stderr,
+		"set_context: FATAL: At most 1 `site' section permitted.\n" );
+			exit( 1 );
+		}else if( rmc_context < CTX_DESCR ){
+			fprintf( stderr,
+	"set_context: FATAL: section order is pair, parm, descr, `site'.\n" );
+			exit( 1 );
+		}
+		break;
+	default :
+d46 2
+a47 1
+			"set_context: FATAL: unexpected symbol: %d.\n", sym );
+a48 1
+		break;
+d50 43
+d95 2
+a96 2
+void	SE_new( stype )
+int	stype;
+d98 4
+d104 1
+a104 22
+	if( rmc_context == CTX_DESCR ){
+		if( n_descr == DESCRSIZE ){
+			fprintf( stderr,
+			"SE_new: FATAL: descr array size(%d) exceeded.\n",
+				DESCRSIZE );
+			exit( 1 );
+		}
+		stp = &descr[ n_descr ];
+		n_descr++;
+		stp->s_type = stype;
+		stp->s_index = n_descr - 1;
+		stp->s_tag = NULL;
+		stp->s_next = NULL;
+		stp->s_pairs = NULL;
+		stp->s_minlen = UNDEF;
+		stp->s_maxlen = UNDEF;
+		stp->s_seq = NULL;
+		stp->s_mismatch = 0;
+		stp->s_mispair = 0;
+		stp->s_pairdata = NULL;
+		stp->s_sites = NULL;
+	}
+d107 1
+a107 2
+void	SE_addval( expr )
+NODE_T	*expr;
+a109 1
+	dumpexpr( stderr, expr, 0 );
+d196 167
+@
+
+
+1.3
+log
+@context around SE_new, SE_addtag, SE_addlen, SE_addseq. SE_addlen
+running. (sort of).  rebuilt SE_dump.
+@
+text
+@d13 4
+a16 5
+#define	CTX_PAIR	1
+#define	CTX_PARM	2
+#define	CTX_DESCR	3
+#define	CTX_SITE	4
+#define	CTX_ERROR	5
+d24 10
+d42 1
+a42 1
+void	RMC_context( sym )
+a46 13
+	case SYM_PAIR :
+		if( rmc_context < CTX_PAIR )
+			rmc_context = CTX_PAIR;
+		else if( rmc_context == CTX_PAIR ){
+			fprintf( stderr,
+		"RMC_context: FATAL: At most 1 `pair' section permitted.\n" );
+			exit( 1 );
+		}else if( rmc_context > CTX_PAIR ){
+			fprintf( stderr,
+	"RMC_context: FATAL: section order is `pair', parm, descr, site.\n" );
+			exit( 1 );
+		}
+		break;
+d52 1
+a52 1
+		"RMC_context: FATAL: At most 1 `parm' section permitted.\n" );
+d56 1
+a56 1
+	"RMC_context: FATAL: section order is pair, `parm', descr, site.\n" );
+d66 1
+a66 1
+		"RMC_context: FATAL: At most 1 `descr' section permitted.\n" );
+d70 1
+a70 1
+	"RMC_context: FATAL: section order is pair, parm, `descr', site.\n" );
+d79 1
+a79 1
+		"RMC_context: FATAL: At most 1 `site' section permitted.\n" );
+d83 1
+a83 1
+	"RMC_context: FATAL: section order is pair, parm, descr, `site'.\n" );
+d89 1
+a89 1
+			"RMC_context: FATAL: unexpected symbol: %d.\n", sym );
+d124 2
+a125 90
+void	SE_saveval( vp )
+VALUE_T	*vp;
+{
+
+	if( n_valstk == VALSTKSIZE ){
+		fprintf( stderr, "SE_saveval: FATAL: valstk overflow.\n" );
+		exit( 1 );
+	}
+	valstk[ n_valstk ].v_sym = vp->v_sym;
+	switch( vp->v_sym ){
+	case SYM_INT :
+		valstk[ n_valstk ].v_sym = SYM_INT;
+		valstk[ n_valstk ].v_value.v_ival = vp->v_value.v_ival;
+		break;
+	case SYM_DOLLAR :
+		valstk[ n_valstk ].v_sym = SYM_DOLLAR;
+		valstk[ n_valstk ].v_value.v_ival = 0; 
+		break;
+	case SYM_STRING :
+		valstk[ n_valstk ].v_sym = SYM_STRING;
+		valstk[ n_valstk ].v_value.v_cval = vp->v_value.v_cval;
+		break;
+	case SYM_IDENT :
+		valstk[ n_valstk ].v_sym = SYM_IDENT;
+		valstk[ n_valstk ].v_value.v_pval = vp->v_value.v_cval;
+		break;
+	default :
+		fprintf( stderr,
+			"SE_saveval: FATAL: unkwnown value sym %d.\n",
+			vp->v_sym );
+		exit( 1 );
+		break;
+	}
+	n_valstk++;
+}
+
+void	SE_addtag( vp )
+VALUE_T	*vp;
+{
+	char	*sp;
+
+	if( rmc_context == CTX_DESCR ){
+		if( vp->v_sym == SYM_IDENT )
+			stp->s_tag = vp->v_value.v_cval;
+		else{
+			fprintf( stderr,
+				"SE_addtag: Unknown value symbol %d.\n",
+				vp->v_sym );
+			exit( 1 );
+		}
+	}
+}
+
+void	SE_addlen()
+{
+	VALUE_T	*vp1, *vp2;
+
+	if( rmc_context == CTX_DESCR ){
+		if( n_valstk == 1 ){
+			vp1 = &valstk[ n_valstk - 1 ];
+			if( vp1->v_sym == SYM_INT ){
+				stp->s_minlen = vp1->v_value.v_ival;
+				stp->s_maxlen = vp1->v_value.v_ival;
+			}else{
+				stp->s_minlen = LONGEST;
+				stp->s_maxlen = LONGEST;
+			}
+		}else{
+			vp2 = &valstk[ n_valstk - 2 ];
+			vp1 = &valstk[ n_valstk - 1 ];
+			if( vp2->v_sym == SYM_INT ){	/* N-$ */
+				stp->s_minlen = vp2->v_value.v_ival;
+				if( vp1->v_sym == SYM_INT )
+					stp->s_maxlen = vp1->v_value.v_ival;
+				else
+					stp->s_maxlen = LONGEST;
+			}else if( vp1->v_sym == SYM_DOLLAR ){	/* $-$ */
+				stp->s_minlen = LONGEST;
+				stp->s_maxlen = LONGEST;
+			}else{
+				fprintf( stderr, 
+			"SE_addlen: $-N: first length > second length.\n" );
+					exit( 1 );
+			}
+		}
+		n_valstk = 0;
+	}
+}
+
+void	SE_addseq()
+d128 1
+a128 8
+	if( rmc_context == CTX_DESCR ){
+		stp->s_seq = valstk[ n_valstk - 1 ].v_value.v_cval;
+		n_valstk = 0;
+	}else{
+		fprintf( stderr,
+			"SE_addseq: seq parm not allowed in site defs.\n" );
+		exit( 1 );
+	}
+d198 2
+a199 2
+	if( stp->s_minlen == LONGEST )
+		fprintf( fp, "LONGEST" );
+d203 2
+a204 2
+	if( stp->s_maxlen == LONGEST )
+		fprintf( fp, "LONGEST" );
+@
+
+
+1.2
+log
+@collect ints, idents, strings, dollars.  Add seq to stp.  Dump stp's
+@
+text
+@d7 14
+d25 4
+a28 1
+static	STREL_T	*stp = NULL;
+d31 5
+d37 62
+d104 21
+a124 4
+	stp = ( STREL_T * )malloc( sizeof( STREL_T ) );
+	if( stp == NULL ){
+		fprintf( stderr, "SE_new: FATAL: can't alloc stp.\n" );
+		exit( 1 );
+a125 11
+	stp->s_type = stype;
+	stp->s_tag = NULL;
+	stp->s_next = NULL;
+	stp->s_pairs = NULL;
+	stp->s_minlen = 0;
+	stp->s_maxlen = 0;
+	stp->s_seq = NULL;
+	stp->s_mismatch = 0;
+	stp->s_mispair = 0;
+	stp->s_pairdata = NULL;
+	stp->s_sites = NULL;
+d169 9
+a177 6
+	if( vp->v_sym == SYM_IDENT )
+		stp->s_tag = vp->v_value.v_cval;
+	else{
+		fprintf( stderr, "SE_addtag: Unknown value symbol %d.\n",
+			vp->v_sym );
+		exit( 1 );
+d183 1
+d185 30
+a214 1
+	n_valstk = 0;
+d220 8
+a227 2
+	stp->s_seq = valstk[ n_valstk - 1 ].v_value.v_cval;
+	n_valstk = 0;
+d230 6
+a235 1
+void	SE_close()
+d237 2
+d240 5
+a244 1
+	SE_dump( stderr, stp );
+d246 1
+a246 2
+
+void	SE_dump( fp, stp )
+d251 2
+a252 1
+	fprintf( fp, "stp->s_type = " );
+d296 13
+a308 1
+	fprintf( fp, "stp->s_tag  = %s\n",
+d311 1
+a311 1
+	fprintf( fp, "stp->s_seq  = %s\n",
+d313 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d5 1
+d7 4
+d13 2
+d19 1
+a19 1
+fprintf( stderr, "SE_new: %d.\n", stype );
+d36 36
+a71 1
+fprintf( stderr, "SE_new: exit.\n" );
+a77 1
+	char	digs[ 20 ];
+d79 5
+a83 23
+fprintf( stderr, "SE_addtag: enter.\n" );
+	if( vp->v_type == T_INT ){
+		sprintf( digs, "%d", vp->v_value.v_ival );
+		sp = ( char * )malloc( strlen( digs ) + 1 );
+		if( sp == NULL ){
+			fprintf( stderr,
+				"SE_addtag: T_INT: can't allocate sp.\n" );
+			exit( 1 );
+		}
+		strcpy( sp, digs );
+		stp->s_tag = sp;
+	}else if( vp->v_type == T_STRING ){
+		sp = ( char * )malloc( strlen( vp->v_value.v_cval ) + 1 );
+		if( sp == NULL ){
+			fprintf( stderr,
+				"SE_addtag: T_STRING: can't allocate sp.\n" );
+			exit( 1 );
+		}
+		strcpy( sp, vp->v_value.v_cval );
+		stp->s_tag = sp;
+	}else{
+		fprintf( stderr, "SE_addtag: Unknown value type %d.\n",
+			vp->v_type );
+d86 13
+a98 1
+fprintf( stderr, "SE_addtag: '%s'\n", stp->s_tag );
+d104 57
+a160 1
+fprintf( stderr, "SE_close.\n" );
+@

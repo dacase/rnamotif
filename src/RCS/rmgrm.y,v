@@ -1,0 +1,1432 @@
+head	1.28;
+access;
+symbols;
+locks
+	macke:1.28; strict;
+comment	@ * @;
+
+
+1.28
+date	99.10.19.16.45.46;	author macke;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	99.10.03.19.17.20;	author macke;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	99.10.03.19.07.54;	author macke;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	99.09.12.18.32.49;	author macke;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	99.09.12.01.39.41;	author macke;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	99.09.11.19.13.00;	author macke;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	99.09.11.03.10.55;	author macke;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	99.09.07.16.39.27;	author macke;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	99.09.05.18.58.40;	author macke;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	99.09.04.20.37.28;	author macke;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	99.09.04.04.09.04;	author macke;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	99.06.23.00.32.41;	author macke;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	99.02.21.01.45.01;	author macke;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	98.12.30.22.58.03;	author macke;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	98.12.29.22.57.27;	author macke;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	98.12.25.02.37.36;	author macke;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	98.12.23.19.40.54;	author macke;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	98.12.23.03.27.45;	author macke;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	98.12.19.21.34.50;	author macke;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	98.12.19.19.48.57;	author macke;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	98.12.15.04.31.02;	author macke;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	98.12.14.04.30.33;	author macke;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	98.12.14.03.23.33;	author macke;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	98.12.13.02.40.55;	author macke;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	98.12.12.05.18.26;	author macke;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	98.12.11.05.22.23;	author macke;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	98.12.08.17.37.53;	author macke;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	98.11.28.05.23.09;	author macke;	state Exp;
+branches;
+next	;
+
+
+desc
+@grammar for rnamot2.  1st draft.  Has basic structure.
+@
+
+
+1.28
+log
+@added new terminal SYM_SE, standing for any structure element, to be used
+in the score section.
+@
+text
+@%{
+
+#include <stdio.h>
+#include "rnamot.h"
+
+extern	VALUE_T	rm_tokval;
+extern	int	rm_context;
+
+static	NODE_T	*np;
+
+%}
+
+%token	SYM_PARMS
+%token	SYM_DESCR
+%token	SYM_SITES
+%token	SYM_SCORE
+
+%token	SYM_SE
+%token	SYM_SS
+%token	SYM_H5
+%token	SYM_H3
+%token	SYM_P5
+%token	SYM_P3
+%token	SYM_T1
+%token	SYM_T2
+%token	SYM_T3
+%token	SYM_Q1
+%token	SYM_Q2
+%token	SYM_Q3
+%token	SYM_Q4
+
+%token	SYM_ACCEPT
+%token	SYM_BREAK
+%token	SYM_CONTINUE
+%token	SYM_ELSE
+%token	SYM_FOR
+%token	SYM_IF
+%token	SYM_IN
+%token	SYM_REJECT
+%token	SYM_WHILE
+
+%token	SYM_IDENT
+%token	SYM_INT
+%token	SYM_FLOAT
+%token	SYM_STRING
+
+%token	SYM_AND
+%token	SYM_ASSIGN
+%token	SYM_DOLLAR
+%token	SYM_DONT_MATCH
+%token	SYM_EQUAL
+%token	SYM_GREATER
+%token	SYM_GREATER_EQUAL
+%token	SYM_LESS
+%token	SYM_LESS_EQUAL
+%token	SYM_MATCH
+%token	SYM_MINUS
+%token	SYM_MINUS_ASSIGN
+%token	SYM_MINUS_MINUS
+%token	SYM_NEGATE
+%token	SYM_NOT
+%token	SYM_NOT_EQUAL
+%token	SYM_OR
+%token	SYM_PERCENT
+%token	SYM_PERCENT_ASSIGN
+%token	SYM_PLUS
+%token	SYM_PLUS_ASSIGN
+%token	SYM_PLUS_PLUS
+%token	SYM_STAR
+%token	SYM_STAR_ASSIGN
+%token	SYM_SLASH
+%token	SYM_SLASH_ASSIGN
+
+%token	SYM_LPAREN
+%token	SYM_RPAREN
+%token	SYM_LBRACK
+%token	SYM_RBRACK
+%token	SYM_LCURLY
+%token	SYM_RCURLY
+%token	SYM_COLON
+%token	SYM_COMMA
+%token	SYM_SEMICOLON
+
+%token	SYM_CALL
+%token	SYM_LIST
+%token	SYM_STREF
+
+%token	SYM_ERROR
+
+%%
+program		: parm_part descr_part site_part score_part ;
+
+parm_part	: SYM_PARMS { rm_context = CTX_PARMS; } pd_list
+		| ;
+descr_part	: SYM_DESCR { rm_context = CTX_DESCR; } se_list ;
+site_part	: SYM_SITES { rm_context = CTX_SITES; } site_list
+		| ;
+score_part	: SYM_SCORE { rm_context = CTX_SCORE; } rule_list
+				{ RM_accept(); }
+		| ;
+
+pd_list		: pdef
+		| pdef pd_list ;
+pdef		: asgn SYM_SEMICOLON ;
+
+se_list		: strel
+		| strel se_list ;
+strel		: strhdr	{ if( rm_context == CTX_DESCR )
+					SE_close();
+				  else if( rm_context == CTX_SITES )
+					POS_close();
+				}
+		| stref ;
+strhdr		: strtype	{ if( rm_context == CTX_DESCR )
+					SE_open( $1 );
+				  else if( rm_context == CTX_SITES )
+					POS_open( $1 );
+				  else
+					$$ = RM_node( $1, 0, 0, 0 );
+				} ;
+strtype		: SYM_SE	{ $$ = SYM_SE; }
+		| SYM_SS	{ $$ = SYM_SS; }
+		| SYM_H5	{ $$ = SYM_H5; }
+		| SYM_H3	{ $$ = SYM_H3; }
+		| SYM_P5	{ $$ = SYM_P5; }
+		| SYM_P3	{ $$ = SYM_P3; }
+		| SYM_T1	{ $$ = SYM_T1; }
+		| SYM_T2	{ $$ = SYM_T2; }
+		| SYM_T3	{ $$ = SYM_T3; }
+		| SYM_Q1	{ $$ = SYM_Q1; }
+		| SYM_Q2	{ $$ = SYM_Q2; }
+		| SYM_Q3	{ $$ = SYM_Q3; }
+		| SYM_Q4	{ $$ = SYM_Q4; } ;
+
+site_list	: site
+		| site_list site ;
+site		: pairing SYM_IN expr 
+				{ SI_close( $3 ); } ;
+
+rule_list	: rule
+		| rule rule_list ;
+rule		: expr 		{ RM_action( $1 ); }
+			action	{ RM_endaction(); } ;
+		| action ;
+action		: SYM_LCURLY stmt_list SYM_RCURLY ;
+stmt_list	: stmt
+		| stmt stmt_list ;
+stmt		: accept_stmt
+		| asgn_stmt
+		| auto_stmt
+		| break_stmt
+		| call_stmt
+		| cmpd_stmt
+		| continue_stmt
+		| empty_stmt
+		| for_stmt
+		| if_stmt
+		| reject_stmt
+		| while_stmt ;
+accept_stmt	: SYM_ACCEPT SYM_SEMICOLON
+				{ RM_accept(); } ;
+asgn_stmt	: asgn SYM_SEMICOLON
+				{ RM_mark();
+				  RM_expr( 0, $1 );
+				  RM_clear();
+				} ;
+auto_stmt	: auto_lval SYM_SEMICOLON
+				{ RM_mark();
+				  RM_expr( 0, $1 );
+				  RM_clear();
+				} ;
+break_stmt	: SYM_BREAK SYM_SEMICOLON
+				{ RM_break(); } ;
+call_stmt	: fcall SYM_SEMICOLON
+				{ RM_expr( 0, $1 );
+				  RM_clear();
+				} ;
+cmpd_stmt	: SYM_LCURLY stmt_list SYM_RCURLY ;
+continue_stmt	: SYM_CONTINUE SYM_SEMICOLON
+				{ RM_continue(); } ;
+empty_stmt	: empty SYM_SEMICOLON ;
+for_stmt	: for_hdr stmt	{ RM_endfor(); } ;
+if_stmt		: if_hdr stmt	{ RM_endif(); }
+		| if_hdr stmt SYM_ELSE
+				{ RM_else(); } stmt
+				{ RM_endelse(); } ;
+reject_stmt	: SYM_REJECT SYM_SEMICOLON
+				{ RM_reject(); } ;
+while_stmt	: SYM_WHILE SYM_LPAREN expr { RM_while( $3 ); }
+			SYM_RPAREN stmt
+				{ RM_endwhile(); } ;
+if_hdr		: SYM_IF SYM_LPAREN expr { RM_if( $3 ); } SYM_RPAREN ;
+for_hdr		: SYM_FOR SYM_LPAREN for_ctrl SYM_RPAREN ;
+for_ctrl	: for_init	{ RM_forinit( $1 ); }
+			 SYM_SEMICOLON for_test
+				{ RM_fortest( $4 ); }
+			SYM_SEMICOLON for_incr
+				{ RM_forincr( $7 ); } ;
+for_init	: asgn		{ $$ = $1; }
+		| auto_lval	{ $$ = $1; }
+		| empty 	{ $$ = $1; } ;
+for_test	: asgn		{ $$ = $1; }
+		| expr		{ $$ = $1; }
+		| empty		{ $$ = $1; } ;
+for_incr	: asgn		{ $$ = $1; }
+		| auto_lval	{ $$ = $1; }
+		| empty		{ $$ = $1; } ;
+
+asgn		: lval asgn_op asgn
+				{ $$ = RM_node( $2, 0, $1, $3 );
+				  if( rm_context == CTX_PARMS )
+					PARM_add( $$ );
+				  else if( rm_context == CTX_DESCR ||
+					rm_context == CTX_SITES )
+					SE_addval( $$ );
+				}
+		| lval asgn_op expr
+				{ $$ = RM_node( $2, 0, $1, $3 );
+				  if( rm_context == CTX_PARMS )
+					PARM_add( $$ );
+				  else if( rm_context == CTX_DESCR ||
+					rm_context == CTX_SITES )
+					SE_addval( $$ );
+				} ;
+asgn_op		: SYM_ASSIGN	{ $$ = SYM_ASSIGN; }
+		| SYM_MINUS_ASSIGN
+				{ $$ = SYM_MINUS_ASSIGN; }
+		| SYM_PLUS_ASSIGN
+				{ $$ = SYM_PLUS_ASSIGN; }
+		| SYM_PERCENT_ASSIGN
+				{ $$ = SYM_PERCENT_ASSIGN; }
+		| SYM_SLASH_ASSIGN
+				{ $$ = SYM_SLASH_ASSIGN; }
+		| SYM_STAR_ASSIGN
+				{ $$ = SYM_STAR_ASSIGN; } ;
+expr		: conj		{ $$ = $1; }
+		| expr SYM_OR conj
+				{ $$ = RM_node( SYM_OR, 0, $1, $3 ); } ;
+conj		: compare	{ $$ = $1; }
+		| compare SYM_AND conj
+				{ $$ = RM_node( SYM_AND, 0, $1, $3 ); } ;
+compare		: a_expr	{ $$ = $1; }
+		| a_expr comp_op a_expr
+				{ $$ = RM_node( $2, 0, $1, $3 ); } ;
+comp_op		: SYM_DONT_MATCH
+				{ $$ = SYM_DONT_MATCH; }
+		| SYM_EQUAL	{ $$ = SYM_EQUAL; }
+		| SYM_GREATER	{ $$ = SYM_GREATER; }
+		| SYM_GREATER_EQUAL
+				{ $$ = SYM_GREATER_EQUAL; }
+		| SYM_IN	{ $$ = SYM_IN; }
+		| SYM_LESS	{ $$ = SYM_LESS; }
+		| SYM_LESS_EQUAL
+				{ $$ = SYM_LESS_EQUAL; }
+		| SYM_MATCH	{ $$ = SYM_MATCH; }
+		| SYM_NOT_EQUAL	{ $$ = SYM_NOT_EQUAL; } ;
+a_expr		: term		{ $$ = $1; }
+		| a_expr add_op term
+				{ $$ = RM_node( $2, 0, $1, $3 ); } ;
+add_op		: SYM_PLUS	{ $$ = SYM_PLUS; }
+		| SYM_MINUS 	{ $$ = SYM_MINUS; } ;
+term		: factor	{ $$ = $1; }
+		| term mul_op factor
+				{ $$ = RM_node( $2, 0, $1, $3 ); } ;
+mul_op		: SYM_PERCENT	{ $$ = SYM_PERCENT; }
+		| SYM_SLASH	{ $$ = SYM_SLASH; }
+		| SYM_STAR	{ $$ = SYM_STAR; } ;
+factor		: primary	{ $$ = $1; }
+		| SYM_MINUS primary
+				{ $$ = RM_node( SYM_NEGATE, 0, 0, $2 ); }
+		| SYM_NOT primary
+				{ $$ = RM_node( SYM_NOT, 0, 0, $2 ); }
+		| pairing	{ $$ = $1; } ;
+pairing 	: stref		{ if( rm_context == CTX_SCORE )
+					$$ = $1;
+				}
+		| stref SYM_COLON pairing
+				{ if( rm_context == CTX_SCORE )
+					$$ = RM_node( SYM_COLON, 0, $1, $3 );
+				} ;
+primary		: lval		{ $$ = $1; }
+		| literal	{ $$ = $1; }
+		| fcall		{ $$ = $1; }
+		| SYM_LPAREN expr SYM_RPAREN
+				{ $$ = $2; } ;
+fcall		: ident SYM_LPAREN e_list SYM_RPAREN
+				{ $$ = RM_node( SYM_CALL, 0, $1, $3 ); } ;
+stref		: strhdr SYM_LPAREN a_list SYM_RPAREN
+				{ if( rm_context == CTX_DESCR )
+					SE_close();
+				  else if( rm_context == CTX_SITES )
+					POS_close();
+				  else if( rm_context == CTX_SCORE )
+					$$ = RM_node( SYM_STREF, 0, $1, $3 );
+				} ;
+lval		: ident		{ $$ = $1; }
+		| auto_lval	{ $$ = $1; } ;
+auto_lval	: incr_op ident	{ $$ = RM_node( $1, 0, 0, $2 ); }
+		| ident incr_op	{ $$ = RM_node( $2, 0, $1, 0 ); } ;
+literal		: SYM_INT	{ $$ = RM_node( SYM_INT, &rm_tokval, 0, 0 ); }
+		| SYM_FLOAT	{ $$ = RM_node( SYM_FLOAT, &rm_tokval, 0, 0 ); }
+		| SYM_STRING	{ $$ = RM_node( SYM_STRING,
+					&rm_tokval, 0, 0 ); } 
+		| SYM_DOLLAR	{ $$ = RM_node( SYM_DOLLAR,
+					&rm_tokval, 0, 0 ); }
+		| pairset	{ $$ = $1; } ;
+ident		: SYM_IDENT 	{ $$ = RM_node( SYM_IDENT,
+					&rm_tokval, 0, 0 ); } ;
+incr_op		: SYM_MINUS_MINUS
+				{ $$ = SYM_MINUS_MINUS; }
+		| SYM_PLUS_PLUS	{ $$ = SYM_PLUS_PLUS; } ;
+e_list		: expr		{ if( rm_context != CTX_SCORE )
+					PR_add( $1 );
+				  else
+					$$ = RM_node( SYM_LIST, 0, $1, 0 );
+				}
+		| expr SYM_COMMA e_list
+				{ if( rm_context != CTX_SCORE )
+					PR_add( $1 );
+				  else
+					$$ = RM_node( SYM_LIST, 0, $1, $3 );
+				} ;
+a_list		: asgn		{ if( rm_context == CTX_SCORE )
+					$$ = RM_node( SYM_LIST, 0, $1, 0 );
+				}
+		| asgn SYM_COMMA a_list
+				{ if( rm_context == CTX_SCORE )
+					$$ = RM_node( SYM_LIST, 0, $1, $3 );
+				} ;
+pairset		: SYM_LCURLY 	{ if( rm_context != CTX_SCORE )
+					PR_open();
+				} e_list SYM_RCURLY
+				{ if( rm_context != CTX_SCORE )
+					$$ = PR_close();
+				  else
+					$$ = RM_node( SYM_LCURLY, 0, 0, $2 );
+				} ;
+empty		: 		{ $$ = (  int )NULL; } ;
+%%
+
+#include "lex.yy.c"
+
+int	yyerror( msg )
+char	msg[];
+{
+
+	fprintf( stderr, "yyerror: %s\n", msg );
+	return( 0 );
+}
+@
+
+
+1.27
+log
+@changed refs to node() to RM_node().
+@
+text
+@d18 1
+d121 2
+a122 1
+strtype		: SYM_SS	{ $$ = SYM_SS; }
+@
+
+
+1.26
+log
+@changed all SC_*() to RM_*()
+@
+text
+@d118 1
+a118 1
+					$$ = node( $1, 0, 0, 0 );
+d208 1
+a208 1
+				{ $$ = node( $2, 0, $1, $3 );
+d216 1
+a216 1
+				{ $$ = node( $2, 0, $1, $3 );
+d236 1
+a236 1
+				{ $$ = node( SYM_OR, 0, $1, $3 ); } ;
+d239 1
+a239 1
+				{ $$ = node( SYM_AND, 0, $1, $3 ); } ;
+d242 1
+a242 1
+				{ $$ = node( $2, 0, $1, $3 ); } ;
+d257 1
+a257 1
+				{ $$ = node( $2, 0, $1, $3 ); } ;
+d262 1
+a262 1
+				{ $$ = node( $2, 0, $1, $3 ); } ;
+d268 1
+a268 1
+				{ $$ = node( SYM_NEGATE, 0, 0, $2 ); }
+d270 1
+a270 1
+				{ $$ = node( SYM_NOT, 0, 0, $2 ); }
+d277 1
+a277 1
+					$$ = node( SYM_COLON, 0, $1, $3 );
+d285 1
+a285 1
+				{ $$ = node( SYM_CALL, 0, $1, $3 ); } ;
+d292 1
+a292 1
+					$$ = node( SYM_STREF, 0, $1, $3 );
+d296 8
+a303 6
+auto_lval	: incr_op ident	{ $$ = node( $1, 0, 0, $2 ); }
+		| ident incr_op	{ $$ = node( $2, 0, $1, 0 ); } ;
+literal		: SYM_INT	{ $$ = node( SYM_INT, &rm_tokval, 0, 0 ); }
+		| SYM_FLOAT	{ $$ = node( SYM_FLOAT, &rm_tokval, 0, 0 ); }
+		| SYM_STRING	{ $$ = node( SYM_STRING, &rm_tokval, 0, 0 ); } 
+		| SYM_DOLLAR	{ $$ = node( SYM_DOLLAR, &rm_tokval, 0, 0 ); }
+d305 2
+a306 1
+ident		: SYM_IDENT 	{ $$ = node( SYM_IDENT, &rm_tokval, 0, 0 ); } ;
+d313 1
+a313 1
+					$$ = node( SYM_LIST, 0, $1, 0 );
+d319 1
+a319 1
+					$$ = node( SYM_LIST, 0, $1, $3 );
+d322 1
+a322 1
+					$$ = node( SYM_LIST, 0, $1, 0 );
+d326 1
+a326 1
+					$$ = node( SYM_LIST, 0, $1, $3 );
+d334 1
+a334 1
+					$$ = node( SYM_LCURLY, 0, 0, $2 );
+@
+
+
+1.25
+log
+@added actions for break/continue.  Generated an ACCEPT action after the
+rule_list has been processed.
+@
+text
+@d98 1
+a98 1
+				{ SC_accept(); }
+d140 2
+a141 2
+rule		: expr 		{ SC_action( $1 ); }
+			action	{ SC_endaction(); } ;
+d159 1
+a159 1
+				{ SC_accept(); } ;
+d161 3
+a163 3
+				{ SC_mark();
+				  SC_expr( 0, $1 );
+				  SC_clear();
+d166 3
+a168 3
+				{ SC_mark();
+				  SC_expr( 0, $1 );
+				  SC_clear();
+d171 1
+a171 1
+				{ SC_break(); } ;
+d173 2
+a174 2
+				{ SC_expr( 0, $1 );
+				  SC_clear();
+d178 1
+a178 1
+				{ SC_continue(); } ;
+d180 2
+a181 2
+for_stmt	: for_hdr stmt	{ SC_endfor(); } ;
+if_stmt		: if_hdr stmt	{ SC_endif(); }
+d183 2
+a184 2
+				{ SC_else(); } stmt
+				{ SC_endelse(); } ;
+d186 2
+a187 2
+				{ SC_reject(); } ;
+while_stmt	: SYM_WHILE SYM_LPAREN expr { SC_while( $3 ); }
+d189 2
+a190 2
+				{ SC_endwhile(); } ;
+if_hdr		: SYM_IF SYM_LPAREN expr { SC_if( $3 ); } SYM_RPAREN ;
+d192 1
+a192 1
+for_ctrl	: for_init	{ SC_forinit( $1 ); }
+d194 1
+a194 1
+				{ SC_fortest( $4 ); }
+d196 1
+a196 1
+				{ SC_forincr( $7 ); } ;
+@
+
+
+1.24
+log
+@cast NULL to int so that $$ = NULL wasn't flagged as a type error.
+@
+text
+@d98 1
+d170 2
+a171 1
+break_stmt	: SYM_BREAK SYM_SEMICOLON ;
+d177 2
+a178 1
+continue_stmt	: SYM_CONTINUE SYM_SEMICOLON ;
+@
+
+
+1.23
+log
+@added actions to compile the scoring program.
+@
+text
+@d330 1
+a330 1
+empty		: 		{ $$ = NULL; } ;
+@
+
+
+1.22
+log
+@added awk like score section.  5 s/r conficts: one for if/if-else and
+4 arising from the optional expression in a rule.
+@
+text
+@d139 2
+a140 1
+rule		: expr action
+d147 1
+d158 11
+a168 1
+asgn_stmt	: asgn SYM_SEMICOLON ;
+d170 4
+a173 1
+call_stmt	: fcall SYM_SEMICOLON ;
+d177 11
+a187 6
+for_stmt	: for_hdr stmt
+if_stmt		: if_hdr stmt
+		| if_hdr stmt SYM_ELSE stmt ;
+reject_stmt	: SYM_REJECT SYM_SEMICOLON ;
+while_stmt	: SYM_WHILE SYM_LPAREN expr SYM_RPAREN stmt ;
+if_hdr		: SYM_IF SYM_LPAREN expr SYM_RPAREN ;
+d189 14
+a202 3
+for_ctrl	: for_expr SYM_SEMICOLON for_expr SYM_SEMICOLON for_expr ;
+for_expr	: expr
+		| empty ;
+d292 2
+a293 1
+		| incr_op ident	{ $$ = node( $1, 0, 0, $2 ); }
+d330 1
+a330 1
+empty		: ;
+@
+
+
+1.21
+log
+@added SYM_NEGATE; changed parm part from assign_list to pdef_list
+removed unused updnode() call
+splite strel into strtype (h5) and stref ( h5(tag="2") ).
+changed siteaddr_list to used stref().
+@
+text
+@d7 1
+a7 8
+
+#define	CTX_START	0
+#define	CTX_PARMS	1
+#define	CTX_DESCR	2
+#define	CTX_SITES	3
+#define	CTX_SCORE	4
+
+static	int	context = CTX_START;
+d32 2
+a33 1
+%token	SYM_REJECT
+d38 1
+d75 2
+d90 1
+a90 1
+program		: parm_part descr_part site_part ;
+d92 6
+a97 1
+parm_part	: SYM_PARMS { context = CTX_PARMS; } pdef_list
+a98 26
+pdef_list	: assign
+		| pdef_list assign;
+assign		: ident assign_op expr
+				{ $$ = node( $2, 0, $1, $3 );
+				  if( context == CTX_PARMS )
+					PARM_add( $$ );
+				  else if( context == CTX_DESCR ||
+					context == CTX_SITES )
+					SE_addval( $$ ); } ;
+assign_op	: SYM_ASSIGN	{ $$ = SYM_ASSIGN; }
+		| SYM_PLUS_ASSIGN
+				{ $$ = SYM_PLUS_ASSIGN; }
+		| SYM_MINUS_ASSIGN
+				{ $$ = SYM_MINUS_ASSIGN; } ;
+expr		: val 		{ $$ = $1; }
+		| expr add_op val
+				{ $$ = node( $2, 0, $1, $3 ); } ;
+add_op		: SYM_PLUS	{ $$ = SYM_PLUS; }
+		| SYM_MINUS 	{ $$ = SYM_MINUS; } ;
+
+val		: ident		{ $$ = $1; }
+		| pairval 	{ $$ = $1; }
+		| SYM_INT	{ $$ = node( SYM_INT, &rm_tokval, 0, 0 ); }
+		| SYM_FLOAT	{ $$ = node( SYM_FLOAT, &rm_tokval, 0, 0 ); }
+		| SYM_DOLLAR	{ $$ = node( SYM_DOLLAR, &rm_tokval, 0, 0 ); }
+		| SYM_STRING	{ $$ = node( SYM_STRING, &rm_tokval, 0, 0 ); } ;
+d100 7
+a106 13
+ident		: SYM_IDENT 	{ $$ = node( SYM_IDENT, &rm_tokval, 0, 0 ); } ;
+
+pairval		: SYM_LCURLY 	{ PR_open(); } pair_list SYM_RCURLY
+				{ $$ = PR_close(); } ;
+pair_list	: pair		{ PR_add( $1 ); }
+		| pair_list SYM_COMMA pair
+				{ PR_add( $3 ); } ;
+pair		: SYM_STRING 	{ $$ = node( SYM_STRING, &rm_tokval, 0, 0 ); };
+
+descr_part	: SYM_DESCR { context = CTX_DESCR; } strel_list ;
+strel_list	: strel
+		| strel strel_list ;
+strel		: strhdr	{ if( context == CTX_DESCR )
+d108 3
+a110 2
+				  else if( context == CTX_SITES )
+					POS_close( 0 ); }
+d112 1
+a112 6
+stref		: strhdr SYM_LPAREN strparm_list SYM_RPAREN ;
+				{ if( context == CTX_DESCR )
+					SE_close();
+				  else if( context == CTX_SITES )
+					POS_close( 1 ); } ;
+strhdr		: strtype	{ if( context == CTX_DESCR )
+d114 5
+a118 2
+				  else if( context == CTX_SITES )
+					POS_open( $1 ); } ;
+a130 2
+strparm_list	: assign
+		| assign SYM_COMMA strparm_list ;
+a131 2
+site_part	: SYM_SITES { context = CTX_SITES; } site_list
+		| ;
+d134 1
+a134 1
+site		: siteaddr_list SYM_IN pairval
+d136 163
+a298 2
+siteaddr_list	: stref
+		| siteaddr_list SYM_COLON stref ;
+@
+
+
+1.20
+log
+@added new context CTX_SCORE for score section; changed def of a site
+to be x in y from x = y.
+@
+text
+@d64 1
+d95 1
+a95 1
+parm_part	: SYM_PARMS { context = CTX_PARMS; } assign_list
+d97 2
+a98 2
+assign_list	: assign
+		| assign_list assign;
+d100 1
+a100 1
+				{ $$ = updnode( $2, 0, $1, $3 );
+d106 1
+a106 1
+assign_op	: SYM_ASSIGN	{ $$ = node( SYM_ASSIGN, 0, 0, 0 ); }
+d108 1
+a108 1
+				{ $$ = node( SYM_PLUS_ASSIGN, 0, 0, 0 ); }
+d110 1
+a110 1
+				{ $$ = node( SYM_MINUS_ASSIGN, 0, 0, 0 ); } ;
+d140 2
+a141 1
+		| strhdr SYM_LPAREN strparm_list SYM_RPAREN
+d171 2
+a172 2
+siteaddr_list	: strel
+		| siteaddr_list SYM_COLON strel ;
+@
+
+
+1.19
+log
+@added symbols for scoring
+@
+text
+@d12 1
+d16 2
+d167 1
+a167 1
+site		: siteaddr_list SYM_ASSIGN pairval
+@
+
+
+1.18
+log
+@added new symbol SYM_FLOAT.
+added float as a production to val.
+@
+text
+@d20 1
+d35 8
+d48 1
+d50 9
+a58 1
+%token	SYM_PLUS_ASSIGN
+d60 6
+d67 7
+a73 2
+%token	SYM_MINUS
+%token	SYM_DOLLAR
+d78 1
+a78 1
+%token	SYM_PERIOD
+d80 6
+a85 1
+%token	SYM_COLON
+@
+
+
+1.17
+log
+@fixed type that used SYM_H5 to start a p-hlx instead of SYM_P5
+@
+text
+@d36 1
+d82 1
+@
+
+
+1.16
+log
+@modify grammar to allow abbreviated structure elements consisting of
+only the strtype (eg h5). Added context sensitive rule to insure that this
+is not permitted for strels used as position indicators.
+@
+text
+@d112 1
+a112 1
+		| SYM_P5	{ $$ = SYM_H5; }
+@
+
+
+1.15
+log
+@pass pairset to SI_close()
+@
+text
+@d96 5
+a100 1
+strel		: strhdr SYM_LPAREN strparm_list SYM_RPAREN
+d104 1
+a104 1
+					POS_close(); } ;
+@
+
+
+1.14
+log
+@added code to compile & partially store information on sites.  Site info
+is save but pair info is not.  Sites are not connected to the descriptor
+yet.
+@
+text
+@d125 1
+a125 1
+				{ SI_close(); } ;
+@
+
+
+1.13
+log
+@changed add_op to associate left to right instead of right to left.
+@
+text
+@d64 2
+a65 1
+				  else if( context == CTX_DESCR )
+d98 3
+a100 1
+					SE_close() ; } ;
+d102 3
+a104 1
+					SE_open( $1 ) ; } ;
+d123 3
+a125 2
+		| site site_list ;
+site		: siteaddr_list SYM_ASSIGN pairval ;
+d127 1
+a127 1
+		| strel SYM_COLON siteaddr_list ;
+@
+
+
+1.12
+log
+@changed name of rmval to rm_tokval.
+@
+text
+@d72 1
+a72 1
+		| val add_op expr
+@
+
+
+1.11
+log
+@build node with =, +=, -= in it to get the number right; then use
+updnode() when the production id assign expr is reduced.
+@
+text
+@d6 1
+a6 1
+extern	VALUE_T	rmval;
+d79 3
+a81 3
+		| SYM_INT	{ $$ = node( SYM_INT, &rmval, 0, 0 ); }
+		| SYM_DOLLAR	{ $$ = node( SYM_DOLLAR, &rmval, 0, 0 ); }
+		| SYM_STRING	{ $$ = node( SYM_STRING, &rmval, 0, 0 ); } ;
+d83 1
+a83 1
+ident		: SYM_IDENT 	{ $$ = node( SYM_IDENT, &rmval, 0, 0 ); } ;
+d90 1
+a90 1
+pair		: SYM_STRING 	{ $$ = node( SYM_STRING, &rmval, 0, 0 ); };
+@
+
+
+1.10
+log
+@strprm is now assign as the context must be used at the assign level.
+Removed unnecesary semi in pair / pair pair_list production.
+Make all lists associate left to right
+@
+text
+@d61 4
+a64 2
+				{ $$ = node( $2, 0, $1, $3 );
+				  if( context == CTX_DESCR )
+d66 1
+a66 1
+assign_op	: SYM_ASSIGN	{ $$ = SYM_ASSIGN; }
+d68 1
+a68 1
+				{ $$ = SYM_PLUS_ASSIGN; }
+d70 1
+a70 1
+				{ $$ = SYM_MINUS_ASSIGN; } ;
+@
+
+
+1.9
+log
+@added new unitary production `pair' used to save that string to the
+currently being built pair structure.
+@
+text
+@d59 1
+a59 1
+		| assign assign_list ;
+d61 3
+a63 1
+				{ $$ = node( $2, 0, $1, $3 ); } ;
+d85 1
+a85 1
+pair_list	: pair		{ PR_add( $1 ); } ;
+d110 2
+a111 4
+strparm_list	: strparm
+		| strparm SYM_COMMA strparm_list ;
+strparm		: assign 	{ if( context == CTX_DESCR )
+					SE_addval( $1); } ;
+@
+
+
+1.8
+log
+@EQUAL -> ASSIGN; simplified handling of context for structure els, site
+rules.
+@
+text
+@d81 6
+a86 3
+pairval		: SYM_LCURLY pair_list SYM_RCURLY ;
+pair_list	: SYM_STRING
+		| SYM_STRING SYM_COMMA pair_list ;
+@
+
+
+1.7
+log
+@changed RMC_context() to set_context().  Build parse tree using node().
+added unitary production `strparm : assign;' to attach the semantic routine
+SE_addval().
+@
+text
+@d8 7
+d17 1
+a17 1
+%token	SYM_PARM
+d19 1
+a19 1
+%token	SYM_SITE
+d38 3
+a40 3
+%token	SYM_EQUAL
+%token	SYM_PLUS_EQUAL
+%token	SYM_MINUS_EQUAL
+d56 1
+a56 1
+parm_part	: SYM_PARM { set_context( SYM_PARM ); } assign_list
+d62 5
+a66 5
+assign_op	: SYM_EQUAL	{ $$ = SYM_EQUAL; }
+		| SYM_PLUS_EQUAL
+				{ $$ = SYM_PLUS_EQUAL; }
+		| SYM_MINUS_EQUAL
+				{ $$ = SYM_MINUS_EQUAL; } ;
+d72 1
+d74 4
+a77 4
+		| intval	{ $$ = $1; }
+		| lastval	{ $$ = $1; }
+		| strval	{ $$ = $1; }
+		| pairval 	{ $$ = $1; } ;
+d80 1
+a80 3
+intval		: SYM_INT	{ $$ = node( SYM_INT, &rmval, 0, 0 ); } ;
+lastval		: SYM_DOLLAR 	{ $$ = node( SYM_DOLLAR, &rmval, 0, 0 ); } ;
+strval		: SYM_STRING 	{ $$ = node( SYM_STRING, &rmval, 0, 0 ); } ;
+d82 2
+a83 3
+pair_list	: pair
+		| pair SYM_COMMA pair_list ;
+pair		: SYM_STRING ;
+d85 1
+a85 1
+descr_part	: SYM_DESCR { set_context( SYM_DESCR ); } strel_list ;
+d88 17
+a104 13
+strel		: strtype SYM_LPAREN strparm_list SYM_RPAREN ;
+strtype		: SYM_SS	{ SE_new( SYM_SS ); }
+		| SYM_H5	{ SE_new( SYM_H5 ); }
+		| SYM_H3	{ SE_new( SYM_H3 ); }
+		| SYM_P5	{ SE_new( SYM_H5 ); }
+		| SYM_P3	{ SE_new( SYM_P3 ); }
+		| SYM_T1	{ SE_new( SYM_T1 ); }
+		| SYM_T2	{ SE_new( SYM_T2 ); }
+		| SYM_T3	{ SE_new( SYM_T3 ); }
+		| SYM_Q1	{ SE_new( SYM_Q1 ); }
+		| SYM_Q2	{ SE_new( SYM_Q2 ); }
+		| SYM_Q3	{ SE_new( SYM_Q3 ); }
+		| SYM_Q4	{ SE_new( SYM_Q4 ); } ;
+d107 2
+a108 1
+strparm		: assign 	{ SE_addval( $1); } ;
+d110 1
+a110 1
+site_part	: SYM_SITE { set_context( SYM_SITE ); } site_list
+d114 1
+a114 1
+site		: siteaddr_list SYM_EQUAL pairval ;
+@
+
+
+1.6
+log
+@combined pair & parm into parm.
+Added assign: id = expr to cover all the assignments, including
+keyword parms in the str els.  Converted all S.E. parms to keyword
+parms
+@
+text
+@d49 1
+a49 1
+parm_part	: SYM_PARM { RMC_context( SYM_PARM ); } assign_list
+d53 3
+a55 2
+assign		: ident assign_op expr ;
+assign_op	: SYM_EQUAL
+d57 13
+a69 10
+		| SYM_MINUS_EQUAL ;
+expr		: val 
+		| val add_op expr ;
+add_op		: SYM_PLUS
+		| SYM_MINUS ;
+val		: ident
+		| intval
+		| lastval
+		| strval
+		| pairval ;
+d71 4
+a74 5
+ident		: SYM_IDENT 	{ SE_saveval( &rmval ); } ;
+intval		: SYM_INT	{ SE_saveval( &rmval ); } ;
+lastval		: SYM_DOLLAR 	{ rmval.v_sym = SYM_DOLLAR;
+				  SE_saveval( &rmval ); } ;
+strval		: SYM_STRING 	{ SE_saveval( &rmval ); } ;
+d80 1
+a80 1
+descr_part	: SYM_DESCR { RMC_context( SYM_DESCR ); } strel_list ;
+d96 3
+a98 2
+strparm_list	: assign
+		| assign SYM_COMMA strparm_list ;
+d100 1
+a100 1
+site_part	: SYM_SITE { RMC_context( SYM_SITE ); } site_list
+@
+
+
+1.5
+log
+@added context calls. removed SE_close().
+@
+text
+@a9 1
+%token	SYM_PAIR
+a11 2
+%token	SYM_MISMATCH
+%token	SYM_MISPAIR
+d47 1
+a47 1
+program		: pair_part parm_part descr_part site_part ;
+d49 1
+a49 1
+pair_part	: SYM_PAIR { RMC_context( SYM_PAIR ); } pairdef_list
+d51 10
+a60 13
+pairdef_list	: pairdef
+		| pairdef pairdef_list ;
+pairdef		: SYM_IDENT SYM_EQUAL pairval ;
+pairval		: SYM_LCURLY pair_list SYM_RCURLY ;
+pair_list	: pair
+		| pair SYM_COMMA pair_list ;
+pair		: SYM_STRING ;
+
+parm_part	: SYM_PARM { RMC_context( SYM_PARM ); } keyval_list 
+		| ;
+keyval_list	: keyval 
+		| keyval keyval_list ;
+keyval		: SYM_IDENT SYM_EQUAL val ;
+a64 1
+		| rngval
+d67 1
+d72 4
+a75 4
+ident		: SYM_IDENT 	{ SE_saveval( &rmval ); } ;
+rngval		: intval SYM_MINUS intval
+		| lastval SYM_MINUS intval 
+		| intval SYM_MINUS lastval ;
+d80 1
+a80 1
+strel		: strtype strtag SYM_LPAREN strparm_list SYM_RPAREN ;
+d93 2
+a94 16
+strtag		: SYM_PERIOD SYM_IDENT
+				{ SE_addtag( &rmval ); }
+		| ;
+strparm_list	: strparm
+		| strparm SYM_COMMA strparm_list ;
+strparm		: strivparm	{ SE_addlen(); }
+		| strsvparm	{ SE_addseq(); }
+		| strkvparm ;
+strsvparm	: strval ;
+strivparm	: intval
+		| lastval
+		| rngval ;
+strkvparm	: SYM_MISPAIR SYM_EQUAL intval
+		| SYM_MISMATCH SYM_EQUAL intval
+		| SYM_PAIR SYM_EQUAL ident
+		| SYM_PAIR SYM_EQUAL pairval ;
+@
+
+
+1.4
+log
+@added u-prods to collect ints, strings, idents, dollar signs.  Add
+sequence to stp's.  Need to add part context next to avoid adding
+rules to the descriptor.
+@
+text
+@d35 5
+d44 1
+a45 3
+%token	SYM_MINUS
+%token	SYM_DOLLAR
+%token	SYM_PERIOD
+d52 1
+a52 1
+pair_part	: SYM_PAIR pairdef_list
+d62 1
+a62 1
+parm_part	: SYM_PARM keyval_list 
+d80 2
+a81 1
+		| lastval SYM_MINUS intval ;
+d83 1
+a83 1
+descr_part	: SYM_DESCR strel_list ;
+d86 1
+a86 2
+strel		: strtype strtag SYM_LPAREN strparm_list SYM_RPAREN 
+				{ SE_close(); } ;
+d116 1
+a116 1
+site_part	: SYM_SITE site_list
+@
+
+
+1.3
+log
+@start adding semantic actions: open, add the tag and close each structure
+element.
+@
+text
+@d53 2
+a54 2
+pairdef		: SYM_IDENT SYM_EQUAL pairspec ;
+pairspec	: SYM_LCURLY pair_list SYM_RCURLY ;
+d64 6
+a69 3
+val		: SYM_IDENT
+		| SYM_INT
+		| SYM_STRING ;
+d71 8
+a97 2
+		| SYM_PERIOD SYM_INT
+				{ SE_addtag( &rmval ); }
+d101 2
+a102 2
+strparm		: strsvparm
+		| strivparm
+d104 8
+a111 9
+strsvparm	: SYM_STRING ;
+strivparm	: SYM_INT
+		| SYM_DOLLAR
+		| SYM_INT SYM_MINUS SYM_INT
+		| SYM_DOLLAR SYM_MINUS SYM_INT ;
+strkvparm	: SYM_MISPAIR SYM_EQUAL SYM_INT
+		| SYM_MISMATCH SYM_EQUAL SYM_INT
+		| SYM_PAIR SYM_EQUAL SYM_IDENT
+		| SYM_PAIR SYM_EQUAL pairspec ;
+d117 1
+a117 1
+site		: siteaddr_list SYM_EQUAL pairspec ;
+@
+
+
+1.2
+log
+@shortened kws; combined pairs & pair into pair
+@
+text
+@d1 9
+d71 14
+a84 13
+strel		: strtype strtag SYM_LPAREN strparm_list SYM_RPAREN ;
+strtype		: SYM_SS
+		| SYM_H5
+		| SYM_H3
+		| SYM_P5
+		| SYM_P3
+		| SYM_T1
+		| SYM_T2
+		| SYM_T3
+		| SYM_Q1
+		| SYM_Q2
+		| SYM_Q3
+		| SYM_Q4 ;
+d86 1
+d88 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 3
+a3 3
+%token	SYM_PAIRINGS
+%token	SYM_PARAMETERS
+%token	SYM_DESCRIPTOR
+d6 1
+a6 2
+%token	SYM_PAIR
+%token	SYM_POSITIONS
+d8 12
+a19 12
+%token	SYM_SINGLE
+%token	SYM_HELIX5
+%token	SYM_HELIX3
+%token	SYM_PARALLEL5
+%token	SYM_PARALLEL3
+%token	SYM_TRIPLEX1
+%token	SYM_TRIPLEX2
+%token	SYM_TRIPLEX3
+%token	SYM_QUAD1
+%token	SYM_QUAD2
+%token	SYM_QUAD3
+%token	SYM_QUAD4
+d38 1
+a38 1
+program		: pair_part parm_part desc_part pos_part ;
+d40 1
+a40 1
+pair_part	: SYM_PAIRINGS pairdef_list
+d50 1
+a50 1
+parm_part	: SYM_PARAMETERS keyval_list 
+d59 1
+a59 1
+desc_part	: SYM_DESCRIPTOR strel_list ;
+d63 12
+a74 12
+strtype		: SYM_SINGLE
+		| SYM_HELIX5
+		| SYM_HELIX3
+		| SYM_PARALLEL5
+		| SYM_PARALLEL3
+		| SYM_TRIPLEX1
+		| SYM_TRIPLEX2
+		| SYM_TRIPLEX3
+		| SYM_QUAD1
+		| SYM_QUAD2
+		| SYM_QUAD3
+		| SYM_QUAD4 ;
+d80 2
+a81 2
+strparm		: SYM_INT
+		| SYM_STRING
+d83 5
+d90 1
+d93 1
+a93 1
+pos_part	: SYM_POSITIONS posspec_list
+d95 16
+a110 6
+posspec_list	: posspec
+		| posspec posspec_list ;
+posspec		: posaddr_list SYM_EQUAL posval_list ;
+posaddr_list	: strel
+		| strel SYM_COLON posaddr_list ;
+posval_list	: pairspec ;
+@
