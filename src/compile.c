@@ -135,13 +135,13 @@ char	*argv[];
 			fnp = argv[ ac ];
 	}
 	if( err )
-		exit( 1 );
+		return( 1 );
 	if( fnp != NULL ){
 		if( ( yyin = fopen( fnp, "r" ) ) == NULL ){
 			fprintf( stderr,
 				"%s: can't read descr-file '%s'\n",
 				argv[ 0 ], fnp );
-			exit( 1 );
+			return( 1 );
 		}else
 			strcpy( rm_fname, fnp );
 	}
@@ -197,9 +197,11 @@ char	*argv[];
 	enter_id( "windowsize", T_INT, C_VAR, S_GLOBAL, &val );
 
 	rm_lineno = 1;
+
+	return( 0 );
 }
 
-PARM_add( expr )
+void	PARM_add( expr )
 NODE_T	*expr;
 {
 
@@ -1972,7 +1974,8 @@ int	ptype;
 	n_valstk = 0;
 	if( rm_n_pos == rm_s_pos ){
 		rm_emsg_lineno = rm_lineno;
-		sprintf( emsg, "POS_open: pos array size(%d) exceeded." );
+		sprintf( emsg,
+			"POS_open: pos array size(%d) exceeded.", rm_s_pos );
 		errormsg( 1, emsg );
 	}
 	posp = &rm_pos[ rm_n_pos ];
