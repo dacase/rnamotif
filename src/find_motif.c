@@ -5,6 +5,7 @@
 
 #define	MIN(a,b)	((a)<(b)?(a):(b))
 #define	MAX(a,b)	((a)>(b)?(a):(b))
+#define	ODD(i)		((i)&0x1)
 
 extern	int	rm_emsg_lineno;
 extern	STREL_T	rm_descr[];
@@ -32,13 +33,16 @@ static	int	find_1_motif();
 static	int	find_ss();
 static	int	find_wchlx();
 static	int	find_pknot();
-static	int	match_helix();
+static	int	find_phlx();
+static	int	match_wchlx();
+static	int	match_phlx();
 static	int	paired();
-static	void	mark_helix();
-static	void	unmark_helix();
+static	void	mark_duplex();
+static	void	unmark_duplex();
 static	int	chk_wchlx0();
 static	int	chk_motif();
 static	int	chk_wchlx();
+static	int	chk_phlx();
 
 static	void	print_match();
 static	void	set_mbuf();
@@ -175,8 +179,7 @@ SEARCH_T	*srp;
 		}
 		break;
 	case SYM_P5 :
-		rm_emsg_lineno = stp->s_lineno;
-		errormsg( 1, "parallel helix finder not implemented." );
+		rv = find_phlx( srp );
 		break;
 	case SYM_T1 :
 		rm_emsg_lineno = stp->s_lineno;
@@ -274,7 +277,7 @@ SEARCH_T	*srp;
 	s3lim = MIN( s3lim, h_maxl );
 	s3lim = sdollar - s3lim + 1;
 
-	if( match_helix( stp, szero, sdollar, s3lim, &h3, &hlen ) ){
+	if( match_wchlx( stp, szero, sdollar, s3lim, &h3, &hlen ) ){
 
 		if( !chk_wchlx0( srp, szero, h3 ) )
 			return( 0 );
@@ -284,7 +287,7 @@ SEARCH_T	*srp;
 			return( 0 );
 
 		stp3 = stp->s_mates[ 0 ];
-		mark_helix( stp, szero, stp3, h3, hlen );
+		mark_duplex( stp, szero, stp3, h3, hlen );
 
 		i_stp = stp->s_inner;
 		i_srp = rm_searches[ i_stp->s_searchno ];
@@ -294,7 +297,7 @@ SEARCH_T	*srp;
 		if( find_motif( i_srp ) ){
 			return( 1 );
 		}else{
-			unmark_helix( stp, szero, stp3, h3, hlen );
+			unmark_duplex( stp, szero, stp3, h3, hlen );
 			return( 0 );
 		}
 	}else
@@ -354,34 +357,34 @@ SEARCH_T	*srp;
 	s13_lim = MIN( s13_lim, h1_maxl );
 	s13_lim = s1_dollar - s13_lim + 1;
 
-	if( match_helix( stp, szero, s1_dollar, s13_lim, &h13, &h1len ) ){
+	if( match_wchlx( stp, szero, s1_dollar, s13_lim, &h13, &h1len ) ){
 
-		mark_helix( stp, szero, stp2, h13, h1len );
+		mark_duplex( stp, szero, stp2, h13, h1len );
 
 		s2_zero = szero + h1len + stp->s_minilen;
 		s20_lim = h13 - h1len - stp1->s_minilen - stp1->s_minlen + 1;
 		s23_lim = s1_dollar + stp2->s_minilen + 1;
 
 		for( s2 = s2_zero; s2 <= s20_lim; s2++ ){
-			if(match_helix(stp1,s2,sdollar,s23_lim,&h23,&h2len)){
+			if(match_wchlx(stp1,s2,sdollar,s23_lim,&h23,&h2len)){
 
 				i1_len = s2 - szero - h1len;
 				if( i1_len > i1_maxl ){
-					unmark_helix(stp,szero,stp2,h13,h1len);
+					unmark_duplex(stp,szero,stp2,h13,h1len);
 					return( 0 );
 				}
 				i2_len = h13 - h1len - ( s2 + h2len ) + 1;
 				if( i2_len > i2_maxl ){
-					unmark_helix(stp,szero,stp2,h13,h1len);
+					unmark_duplex(stp,szero,stp2,h13,h1len);
 					return( 0 );
 				}
 				i3_len = h23 - h13 - h2len;
 				if( i3_len > i3_maxl ){
-					unmark_helix(stp,szero,stp2,h13,h1len);
+					unmark_duplex(stp,szero,stp2,h13,h1len);
 					return( 0 );
 				}
 
-				mark_helix( stp1, s2, stp3, h23, h2len );
+				mark_duplex( stp1, s2, stp3, h23, h2len );
 
 				i1_srp->s_zero = szero + h1len;
 				i1_srp->s_dollar = s2 - 1;
@@ -393,8 +396,8 @@ SEARCH_T	*srp;
 				if( find_motif( i1_srp ) ){
 					return( 1 );
 				}else{
-					unmark_helix(stp,szero,stp2,h13,h1len);
-					unmark_helix(stp1,s2,stp3,h23,h2len );
+					unmark_duplex(stp,szero,stp2,h13,h1len);
+					unmark_duplex(stp1,s2,stp3,h23,h2len );
 					return( 0 );
 				}
 			}
@@ -402,7 +405,64 @@ SEARCH_T	*srp;
 	}
 	return( 0 );
 }
-static	int	match_helix( stp, s5, s3, s3lim, h3, hlen )
+
+static	int	find_phlx( srp )
+SEARCH_T	*srp;
+{
+	STREL_T	*stp, *stp3, *i_stp;
+	int	ilen, slen, szero, sdollar;
+	int	s, s3lim, s5hi, s5lo;
+	int	h_minl, h_maxl;
+	int	i_minl, i_maxl, i_len;
+	int	h, hlen;
+	SEARCH_T	*i_srp;
+
+	szero = srp->s_zero;
+	sdollar = srp->s_dollar;
+	slen = sdollar - szero + 1;
+	stp = srp->s_descr;
+
+	h_minl = stp->s_minlen;
+	h_maxl = stp->s_maxlen;
+	i_minl = stp->s_minilen;
+	i_maxl = stp->s_maxilen;
+
+	s5hi = MIN( ( slen - i_minl ) / 2, h_maxl );
+	s5hi = szero + s5hi - 1;
+
+	ilen = slen - 2 * h_minl;
+	ilen = MIN( ilen, i_maxl );
+	s5lo = slen - ilen;
+	if( ODD( s5lo ) )
+		s5lo++;
+	s5lo = MIN( s5lo / 2, h_maxl );
+	s5lo = szero + s5lo - 1;
+
+	if( match_phlx( stp, szero, sdollar, s5hi, s5lo, &hlen ) ){
+
+		i_len = sdollar - szero - 2 * hlen + 1;
+		if( i_len > i_maxl  )
+			return( 0 );
+
+		stp3 = stp->s_mates[ 0 ];
+		mark_duplex( stp, szero, stp3, sdollar, hlen );
+
+		i_stp = stp->s_inner;
+		i_srp = rm_searches[ i_stp->s_searchno ];
+		i_srp->s_zero = szero + hlen;
+		i_srp->s_dollar = sdollar - hlen;
+
+		if( find_motif( i_srp ) ){
+			return( 1 );
+		}else{
+			unmark_duplex( stp, szero, stp3, sdollar, hlen );
+			return( 0 );
+		}
+	}else
+		return( 0 );
+}
+
+static	int	match_wchlx( stp, s5, s3, s3lim, h3, hlen )
 STREL_T	*stp;
 int	s5;
 int	s3;
@@ -460,6 +520,46 @@ int	*hlen;
 	return( 1 );
 }
 
+static	int	match_phlx( stp, s5, s3, s5hi, s5lo, hlen )
+STREL_T	*stp;
+int	s5;
+int	s3;
+int	s5hi;
+int	s5lo;
+int	*hlen;
+{
+	STREL_T	*stp3;
+	int	prd, s, s1;
+	int	b50, b5, b3;
+	int	bpcnt, mpr;
+
+	b50 = fm_sbuf[ s5 ];
+	stp3 = stp->s_scopes[ 1 ];
+	b3 = fm_sbuf[ s3 ];
+
+	for( prd = 0, s = s5hi; s >= s5lo; s-- ){
+		b5 = fm_sbuf[ s ];
+		if( !paired( stp, b5, b3 ) )
+			continue;
+		bpcnt = 1;
+		*hlen = 1;
+		mpr = 0;
+		for( s1 = s - 1; s1 >= s5; s1--, (*hlen)++ ){
+			b5 = fm_sbuf[ s1 ];
+			b3 = fm_sbuf[ s3 - bpcnt ];
+			if( paired( stp, b5, b3 ) ){
+				bpcnt++;
+			}else{
+				mpr++;
+				if( mpr > stp->s_mispair )
+					return( 0 );
+			}
+		}
+		return( 1 );
+	}
+	return( 0 );
+}
+
 static	int	paired( stp, b5, b3 )
 STREL_T	*stp;
 int	b5;
@@ -469,14 +569,14 @@ int	b3;
 	int	b5i, b3i;
 	int	rv;
 	
-	bpmatp = stp->s_pairset->ps_mat;
+	bpmatp = stp->s_pairset->ps_mat[ 0 ];
 	b5i = rm_b2bc[ b5 ];
 	b3i = rm_b2bc[ b3 ];
 	rv = (*bpmatp)[b5i][b3i];
 	return( rv );
 }
 
-static	void	mark_helix( stp5, h5, stp3, h3, hlen )
+static	void	mark_duplex( stp5, h5, stp3, h3, hlen )
 STREL_T	*stp5;
 int	h5;
 STREL_T	*stp3;
@@ -496,7 +596,7 @@ int	hlen;
 	}
 }
 
-static	void	unmark_helix( stp5, h5, stp3, h3, hlen )
+static	void	unmark_duplex( stp5, h5, stp3, h3, hlen )
 STREL_T	*stp5;
 int	h5;
 STREL_T	*stp3;
@@ -552,6 +652,8 @@ STREL_T	descr[];
 			break;
 
 		case SYM_P5 :
+			if( !chk_phlx( stp, n_descr, descr ) )
+				return( 0 );
 			break;
 		case SYM_T1 :
 			break;
@@ -612,6 +714,76 @@ STREL_T	descr[];
 		if( paired( stp, b5, b3 ) )
 			return( 0 );
 	}
+
+	return( 1 );
+}
+
+static	int	chk_phlx( stp, n_descr,descr )
+STREL_T	*stp;
+int	n_descr;
+STREL_T	descr[];
+{
+	STREL_T	*stp3, *stpd5, *stpd3;
+	int	h5_5, h5_3;
+	int	h3_5, h3_3;
+	int	h5, h3, b5, b3;
+	int	d5, d3;
+
+	h5_5 = stp->s_matchoff;
+	h5_3 = h5_5 + stp->s_matchlen - 1;
+
+	stp3 = stp->s_mates[ 0 ];
+	h3_5 = stp3->s_matchoff;
+	h3_3 = h3_5 + stp3->s_matchlen - 1;
+
+/*
+	if( h5_5 > 0 ){
+		if( h3_3 < fm_slen - 1 ){
+			h5 = h5_5 - 1;
+			h3 = h3_3 + 1;
+			d5 = fm_window[ h5 - fm_szero ];
+			d3 = fm_window[ h3 - fm_szero ];
+			stpd5 = &descr[ d5 ];
+			stpd3 = &descr[ d3 ];
+			if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
+				b5 = fm_sbuf[ h5 ];
+				b3 = fm_sbuf[ h3 ];
+				if( paired( stp, b5, b3 ) )
+					return( 0 );
+			}
+		}
+	}
+*/
+	if( h5_5 > 0 ){
+		h5 = h5_5 - 1;
+		h3 = h3_5 - 1;
+		d5 = fm_window[ h5 - fm_szero ];
+		d3 = fm_window[ h3 - fm_szero ];
+		stpd5 = &descr[ d5 ];
+		stpd3 = &descr[ d3 ];
+		if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
+			b5 = fm_sbuf[ h5 ];
+			b3 = fm_sbuf[ h3 ];
+			if( paired( stp, b5, b3 ) )
+				return( 0 );
+		}
+	}
+
+	if( h3_3 < fm_slen - 1 ){
+		h5 = h5_3 + 1;
+		h3 = h3_3 + 1;
+		d5 = fm_window[ h5 - fm_szero ];
+		d3 = fm_window[ h3 - fm_szero ];
+		stpd5 = &descr[ d5 ];
+		stpd3 = &descr[ d3 ];
+		if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
+			b5 = fm_sbuf[ h5 ];
+			b3 = fm_sbuf[ h3 ];
+			if( paired( stp, b5, b3 ) )
+				return( 0 );
+		}
+	}
+
 	return( 1 );
 }
 
@@ -634,16 +806,10 @@ STREL_T	descr[];
 	set_mbuf( stp->s_matchoff, stp->s_matchlen, mbuf );
 
 	if( fm_comp ){
-/*
-		offset = fm_slen - stp->s_matchoff - len + 1;
-*/
 		offset = fm_slen - stp->s_matchoff;
 	}else
 		offset = stp->s_matchoff + 1;
 
-/*
-	fprintf( fp, " %7d %4d %s", stp->s_matchoff + 1, len, mbuf );
-*/
 	fprintf( fp, " %7d %4d %s", offset, len, mbuf );
 
 	for( ++stp, d = 1; d < n_descr; d++, stp++ ){
