@@ -5,27 +5,20 @@
 #include "rnamot.h"
 #include "y.tab.h"
 
-VALUE_T	rmval;
-int	rmlineno;
-int	rmerror = 0;
-int	rmemsglineno;
-char	rmfname[ 256 ] = "--stdin--";
+extern	char	rm_fname[ 256 ];
+extern	int	rm_lineno;
+extern	int	rm_emsg_lineno;
+extern	VALUE_T	rm_tokval;
+
 static	char	emsg[ 256 ];
 
 #define	VALSTKSIZE	20
 static	VALUE_T	valstk[ VALSTKSIZE ];
 static	int	n_valstk;
 
-#define	GLOBAL_IDS_SIZE	50
-static	IDENT_T	global_ids[ GLOBAL_IDS_SIZE ] = {
-	{ "wc", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
-	{ "gu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
-	{ "tr", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
-	{ "qu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
-	{ "overlap", T_INT, C_VAR, S_GLOBAL, { T_INT, 0 } },
-	{ "database", T_STRING, C_VAR, S_GLOBAL, { T_STRING, NULL } }
-};
-static	int	n_global_ids = 6;
+extern	IDENT_T	rm_global_ids[];
+extern	int	rm_s_global_ids;
+extern	int	rm_n_global_ids;
 
 #define	LOCAL_IDS_SIZE	20
 static	IDENT_T	*local_ids[ LOCAL_IDS_SIZE ];
@@ -39,14 +32,10 @@ int	n_curpair;
 
 PAIRLIST_T	*pairlists[ 5 ];	/* #str = (0,1,) 2,3,4	*/
 
-#define	DESCRSIZE 100
-static	STREL_T	descr[ DESCRSIZE ];
-static	int	n_descr;
+extern	STREL_T	rm_descr[];
+extern	int	rm_s_descr;
+extern	int	rm_n_descr;
 static	STREL_T	*stp;
-
-void	RM_dump();
-void	RM_dump_id();
-void	RM_dump_descr();
 
 NODE_T	*PR_close();
 
@@ -63,7 +52,7 @@ int	RM_init()
 	IDENT_T	*ip;
 	NODE_T	*np;
 
-	rmlineno = 0;
+	rm_lineno = 0;
 	curpair[0] = "a:u";
 	curpair[1] = "c:g";
 	curpair[2] = "g:c";
@@ -92,7 +81,7 @@ int	RM_init()
 	np = PR_close();
 	ip->i_val.v_value.v_pval = np->n_val.v_value.v_pval;
 
-	rmlineno = 1;
+	rm_lineno = 1;
 }
 
 PARM_add( expr )
@@ -177,7 +166,7 @@ NODE_T	*PR_close()
 	np->n_sym = SYM_LCURLY;
 	np->n_type = T_PAIR;
 	np->n_class = C_LIT;
-	np->n_lineno = rmlineno;
+	np->n_lineno = rm_lineno;
 	np->n_val.v_type = T_PAIR;
 	np->n_val.v_value.v_pval = ps;
 	np->n_left = NULL;
@@ -192,17 +181,17 @@ int	stype;
 	IDENT_T	*ip;
 
 	n_valstk = 0;
-	if( n_descr == DESCRSIZE ){
-		rmemsglineno = rmlineno;
+	if( rm_n_descr == rm_s_descr ){
+		rm_emsg_lineno = rm_lineno;
 		sprintf( emsg, "SE_new: : descr array size(%d) exceeded.\n",
-			DESCRSIZE );
+			rm_s_descr );
 		errormsg( 1, emsg );
 	}
-	stp = &descr[ n_descr ];
-	n_descr++;
+	stp = &rm_descr[ rm_n_descr ];
+	rm_n_descr++;
 	stp->s_type = stype;
-	stp->s_index = n_descr - 1;
-	stp->s_lineno = rmlineno;
+	stp->s_index = rm_n_descr - 1;
+	stp->s_lineno = rm_lineno;
 	stp->s_tag = NULL;
 	stp->s_next = NULL;
 	stp->s_pairs = NULL;
@@ -287,229 +276,14 @@ void	SE_close()
 	else if( stp->s_seq != NULL )
 		seqlen( stp->s_seq, &stp->s_minlen, &stp->s_maxlen );
 	else{
-		rmemsglineno = stp->s_lineno;
+		rm_emsg_lineno = stp->s_lineno;
 		errormsg( 0, "strel must have seq or len spec.\n" );
-		rmerror = 1;
 	}
 
 	if( stp->s_minlen > stp->s_maxlen ){
-		rmemsglineno = stp->s_lineno;
+		rm_emsg_lineno = stp->s_lineno;
 		errormsg( 0, "strel minlen > maxlen.\n" );
-		rmerror = 1;
 	}
-}
-
-void	RM_dump( fp, d_parms, d_descr, d_sites )
-FILE	*fp;
-int	d_parms;
-int	d_descr;
-int	d_sites;
-{
-	int	i;
-	IDENT_T	*ip;
-	STREL_T	*stp;
-
-	if( d_parms ){
-		fprintf( fp, "PARMS: %3d global symbols.\n", n_global_ids );
-		for( ip = global_ids, i = 0; i < n_global_ids; i++, ip++ )
-			RM_dump_id( fp, ip );
-	}
-
-	if( d_descr ){
-		fprintf( fp, "DESCR: %3d structure elements.\n", n_descr );
-		for( stp = descr, i = 0; i < n_descr; i++, stp++ )
-			RM_dump_descr( fp, stp );
-	}
-}
-
-void	RM_dump_id( fp, ip )
-FILE	*fp;
-IDENT_T	*ip;
-{
-	PAIR_T	*pp;
-	PAIRSET_T	*ps;
-	int	i, b;
-
-	fprintf( fp, "%s = {\n", ip->i_name );
-
-	fprintf( fp, "\ttype  = " );
-	switch( ip->i_type ){
-	case T_UNDEF :
-		fprintf( fp, "UNDEF\n" );
-		break;
-	case T_INT :
-		fprintf( fp, "INT\n" );
-		break;
-	case T_FLOAT :
-		fprintf( fp, "FLOAT\n" );
-		break;
-	case T_STRING :
-		fprintf( fp, "STRING\n" );
-		break;
-	case T_PAIR :
-		fprintf( fp, "PAIR\n" );
-		break;
-	case T_IDENT :
-		fprintf( fp, "IDENT\n" );
-		break;
-	default :
-		fprintf( fp, "-- BAD type %d\n", ip->i_type );
-		break;
-	}
-
-	fprintf( fp, "\tclass = " );
-	switch( ip->i_class ){
-	case C_UNDEF :
-		fprintf( fp, "UNDEF\n" );
-		break;
-	case C_LIT :
-		fprintf( fp, "LIT\n" );
-		break;
-	case C_VAR :
-		fprintf( fp, "VAR\n" );
-		break;
-	case C_EXPR :
-		fprintf( fp, "EXPR\n" );
-		break;
-	default :
-		fprintf( fp, "-- BAD class %d\n", ip->i_class );
-		break;
-	}
-		
-	fprintf( fp, "\tscope = " );
-	switch( ip->i_scope ){
-	case S_UNDEF :
-		fprintf( fp, "UNDEF\n" );
-		break;
-	case S_GLOBAL :
-		fprintf( fp, "GLOBAL\n" );
-		break;
-	case S_STREL :
-		fprintf( fp, "STREL\n" );
-		break;
-	case S_SITE :
-		fprintf( fp, "SITE\n" );
-		break;
-	default :
-		fprintf( fp, "-- BAD scope %d\n", ip->i_scope );
-		break;
-	}
-
-	fprintf( fp, "\tvalue = " );
-	switch( ip->i_val.v_type ){
-	case T_UNDEF :
-		fprintf( fp, "UNDEF\n" );
-		break;
-	case T_INT :
-		fprintf( fp, "%d\n", ip->i_val.v_value.v_ival );
-		break;
-	case T_FLOAT :
-		fprintf( fp, "%f\n", ip->i_val.v_value.v_fval );
-		break;
-	case T_STRING :
-		fprintf( fp, "%s\n", ip->i_val.v_value.v_pval ?
-					ip->i_val.v_value.v_pval : "NULL" );
-		break;
-	case T_PAIR :
-		fprintf( fp, "{ " );
-		ps = ip->i_val.v_value.v_pval;
-		for( pp = ps->ps_pairs, i = 0; i < ps->ps_n_pairs; i++, pp++ ){
-			for( b = 0; b < pp->p_n_bases; b++ ){
-				fprintf( stderr, "%c", pp->p_bases[ b ] );
-				if( b < pp->p_n_bases - 1 )
-					fprintf( stderr, ":" );
-			}
-			if( i < ps->ps_n_pairs - 1 )
-				fprintf( fp, ", " );
-		}
-		fprintf( fp, " }\n" );
-		break;
-	case T_IDENT :
-		fprintf( fp, "IDENT?\n" );
-		break;
-	default :
-		fprintf( fp, "-- BAD type %d\n", ip->i_val.v_type );
-		break;
-	}
-		
-	fprintf( fp, "}\n" );
-}
-
-void	RM_dump_descr( fp, stp )
-FILE	*fp;
-STREL_T	*stp;
-{
-
-	fprintf( fp, "descr[%3d] = {\n", stp->s_index + 1 );
-	fprintf( fp, "\ttype     = " );
-	switch( stp->s_type ){
-	case SYM_SS :
-		fprintf( fp, "ss" );
-		break;
-	case SYM_H5 :
-		fprintf( fp, "h5" );
-		break;
-	case SYM_H3 :
-		fprintf( fp, "h3" );
-		break;
-	case SYM_P5 :
-		fprintf( fp, "p5" );
-		break;
-	case SYM_P3 :
-		fprintf( fp, "p3" );
-		break;
-	case SYM_T1 :
-		fprintf( fp, "t1" );
-		break;
-	case SYM_T2 :
-		fprintf( fp, "t2" );
-		break;
-	case SYM_T3 :
-		fprintf( fp, "t3" );
-		break;
-	case SYM_Q1 :
-		fprintf( fp, "q1" );
-		break;
-	case SYM_Q2 :
-		fprintf( fp, "q2" );
-		break;
-	case SYM_Q3 :
-		fprintf( fp, "q3" );
-		break;
-	case SYM_Q4 :
-		fprintf( fp, "q4" );
-		break;
-	default :
-		fprintf( fp, "unknown (%d)", stp->s_type );
-		break;
-	}
-	fprintf( fp, "\n" );
-
-	fprintf( fp, "\tlineno   = %d\n", stp->s_lineno );
-
-	fprintf( fp, "\ttag      = '%s'\n",
-		stp->s_tag ? stp->s_tag : "(No tag)" );
-
-	fprintf( fp, "\tlen      = " );
-	if( stp->s_minlen == LASTVAL )
-		fprintf( fp, "LASTVAL" );
-	else
-		fprintf( fp, "%d", stp->s_minlen );
-	fprintf( fp, ":" );
-	if( stp->s_maxlen == LASTVAL )
-		fprintf( fp, "LASTVAL" );
-	else
-		fprintf( fp, "%d", stp->s_maxlen );
-	fprintf( fp, "\n" );
-
-	fprintf( fp, "\tseq      = '%s'\n",
-		stp->s_seq ? stp->s_seq : "(No seq)" );
-
-	fprintf( fp, "\tmismatch = %d\n", stp->s_mismatch );
-
-	fprintf( fp, "\tmispair  = %d\n", stp->s_mispair );
-
-	fprintf( fp, "}\n" );
 }
 
 static	IDENT_T	*enter_id( name, type, class, scope, vp )
@@ -522,12 +296,12 @@ VALUE_T	*vp;
 	char	*np;
 
 	if( scope == S_GLOBAL ){
-		if( n_global_ids >= GLOBAL_IDS_SIZE ){
+		if( rm_n_global_ids >= rm_s_global_ids ){
 			errormsg( 1, 
 				"enter_id: global symbol tab overflow.\n" );
 		}
-		ip = &global_ids[ n_global_ids ];
-		n_global_ids++;
+		ip = &rm_global_ids[ rm_n_global_ids ];
+		rm_n_global_ids++;
 	}else{
 		if( n_local_ids >= LOCAL_IDS_SIZE ){
 			errormsg( 1, "enter_id: local symbol tab overflow.\n" );
@@ -583,7 +357,7 @@ VALUE_T	*vp;
 		if( !strcmp( name, ip->i_name ) )
 			return( ip );
 	}
-	for( ip = global_ids, i = 0; i < n_global_ids; i++, ip++ ){
+	for( ip = rm_global_ids, i = 0; i < rm_n_global_ids; i++, ip++ ){
 		if( !strcmp( name, ip->i_name ) )
 			return( ip );
 	}
@@ -602,7 +376,7 @@ int	d_ok;
 	if( expr ){
 		eval( expr->n_left, d_ok );
 		eval( expr->n_right, d_ok );
-		rmemsglineno = expr->n_lineno;
+		rm_emsg_lineno = expr->n_lineno;
 		switch( expr->n_sym ){
 		case SYM_INT :
 			valstk[ n_valstk ].v_type = T_INT;
