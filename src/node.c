@@ -47,7 +47,7 @@ NODE_T	*right;
 		np->n_val.v_type = T_POS;
 		np->n_val.v_value.v_pval = vp->v_value.v_pval;
 	}else if( sym == SYM_CALL ){
-		np->n_val.v_type = T_STRING;
+		np->n_val.v_type = T_IDENT;
 		np->n_val.v_value.v_pval = left->n_val.v_value.v_pval;
 		np->n_left = NULL;
 	}
