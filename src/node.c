@@ -57,6 +57,7 @@ NODE_T	*right;
 		np->n_left = left;
 	if( right != NULL )
 		np->n_right = right;
+	return( np );
 }
 
 void	dumpexpr( fp, np, indent )
