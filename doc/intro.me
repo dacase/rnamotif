@@ -7,7 +7,7 @@
 \fBRNAMOTIF Users' Manual\fR
 
 .ps 12
-\fB(Version ?.?.?)\fR
+\fB(Version 1.4.3)\fR
 
 Thomas C. Macke and David A. Case
 
@@ -17,6 +17,38 @@ La Jolla, CA 92037\fR
 .ce 0
 .fi
 .sp 2
+.hl
+.pp
+The \fIrnamotif\fR program [1] searches a database for RNA sequences that match
+a "motif" describing secondary structure interactions.  A match means that
+the given sequence is capable of adopting the given secondary structure, but
+is not intended to be predictive.  Matches can be ranked by applying scoring
+rules that may provide finer distinctions than just matching to a profile.
+The \fIrnamotif\fR program is a (significant) extension of earlier programs
+\fIrnamot\fR and \fIrnabob\fR [2,3].  The code and most of this Users'
+Manual was written by Tom Macke; Dave Case also contributed to this manual.
+.lp
+The basic literature references are:
+.ip [1]
+T. Macke, D. Ecker, R. Gutell, D. Gautheret, D.A. Case and R. Sampath.
+RNAMotif -- A new RNA secondary structure definition and discovery
+algorithm. \fI(manuscript in preparation)\fR.
+.ip [2]
+D. Gautheret, F. Major and R. Cedrgren.  Pattern searching/alignment with
+RNA primary and secondary structures: an effective descriptor for tRNA.
+\fICABIOS\fB 6,\fR 325-311 (1990).
+.ip [3]
+S.R. Eddy.  RNABOB: a program to search for RNA secondary structure motifs
+in sequence databases.  Unpublished.
+.hl
+.pp
+We thank Dave Ecker and Ranga Sampath for encouragement and support; Robin
+Gutell and Daniel Gautheret for suggestions;
+Vickie Tsui for serving as a beta tester, and more many helpful
+comments and suggestions.
+.bp
+\ 
+.sp 1.0i
 .hl
 .pp
 This source code is copyright (C) 2001, by Thomas C. Macke,
@@ -37,29 +69,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 .hl
-.pp
-The \fIrnamotif\fR program [1] searches a database for RNA sequences that match
-a "motif" describing secondary structure interactions.  A match means that
-the given sequence is capable of adopting the given secondary structure, but
-is not intended to be predictive.  Matches can be ranked by applying scoring
-rules that may provide finer distinctions than just matching to a profile.
-The \fIrnamotif\fR program is a (significant) extension of earlier programs
-\fIrnamot\fR and \fIrnabob\fR [2,3].
-.lp
-The basic literature references are:
-.ip [1]
-T.C. Macke, ..... \fI(manuscript in preparation)\fR.
-.ip [2]
-D. Gautheret, F. Major and R. Cedrgren.  Pattern searching/alignment with
-RNA primary and secondary structures: an effective descriptor for tRNA.
-\fICABIOS\fB 6,\fR 325-311 (1990).
-.ip [3]
-S.R. Eddy.  RNABOB: a program to search for RNA secondary structure motifs
-in sequence databases.  Unpublished.
-.hl
-.pp
-We thank Vickie Tsui for serving as a beta tester, and more many helpful
-comments and suggestions.  (add thanks for inspiration, etc.)
 
 .he '\fR\n(mo/\n(dy/\n(y2'Overview'%'
 .bp
@@ -277,15 +286,17 @@ The full rmfmt command is show below:
 .(l
 rmfmt [ -a ] [ -l ] [ -smax N ] [ -td dir ] [ rm-output-file ]
 .)l
-The -smax option sets an upper bound on the size of the file of the output
+The \fI-smax\fR option sets an upper bound on the size of the file of the output
 to sort, as this can be impractical for very large output.  The default
-sort limit is 30MB.  The -td option allows the user to specify the temp
+sort limit is 30MB.  The \fI-td\fR option allows the user to specify the temp
 directory that rmfmt places its work files in.  These files are needed
 because the alignment can not be computed until all solutions have been
 seen.  The default temp directory is system dependent and is either /tmp
 or /var/tmp.
 .pp
-As indicated by the command line, -a and -l can be used together in which
+The \fI-a\fR flag creates a "fasta" format alignment, and the output is not
+sorted.
+The flags \fI-a\fR and \fI-l\fR can be used together in which
 case the file is formatted with dashes, unsorted and the names of the
 sequences are reduced to the last name in the bar separated name section
 of the fastn definition line.
