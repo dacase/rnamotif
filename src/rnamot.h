@@ -9,7 +9,7 @@ options:\n\
 \t-c\t\t\tCompile only, no search\n\
 \t-d\t\t\tDump internal data structures\n\
 \t-h\t\t\tDump the structure hierarchy\n\
-\t-ON\t\t\tMin #chars, best seq= for opt. (default=2.5)\n\
+\t-On\t\t\tMin #chars, best seq= for opt. (default=2.5)\n\
 \t-p\t\t\tDump the score code\n\
 \t-s\t\t\tShow builtin variables\n\
 \t-v\t\t\tPrint Version Infomation\n\
