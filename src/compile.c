@@ -41,6 +41,9 @@ extern	STREL_T	rm_descr[];
 extern	int	rm_s_descr;
 extern	int	rm_n_descr;
 static	STREL_T	*stp;
+#define	SCOPE_STK_SIZE	100
+static	STREL_T	*scope_stk[ SCOPE_STK_SIZE ];
+static	int	t_scope_stk;
 static	PAIRSET_T	*def_pairset = NULL;
 
 extern	POS_T	rm_pos[];
@@ -239,6 +242,7 @@ int	stype;
 	stp->s_next = NULL;
 	stp->s_prev = NULL;
 	stp->s_inner = NULL;
+	stp->s_outer = NULL;
 	stp->s_mates = NULL;
 	stp->s_n_mates = 0;
 	stp->s_scopes = NULL;
@@ -556,6 +560,8 @@ STREL_T	descr[];
 	if( rm_error )
 		return( rm_error );
 
+	t_scope_stk = 0;
+	scope_stk[ t_scope_stk ] = NULL;
 	set_scopes( 0, n_descr - 1, descr );
 
 	return( rm_error );
@@ -1942,6 +1948,7 @@ STREL_T	descr[];
 
 	for( d = fd; d <= ld; d = nd ){
 		stp = &descr[ d ];
+		stp->s_outer = scope_stk[ t_scope_stk ];
 		if( stp->s_n_scopes == 0 ){
 			nd = d + 1;
 			if( nd <= ld ){
@@ -1950,15 +1957,22 @@ STREL_T	descr[];
 			}
 			continue;
 		}
+		t_scope_stk++;
+		scope_stk[ t_scope_stk ] = stp;
 		for( s = 0; s < stp->s_n_scopes - 1; s++ ){
 			stp1 = stp->s_scopes[ s ];
 			stp2 = stp->s_scopes[ s + 1 ];
 			fd1 = stp1->s_index + 1;
 			ld1 = stp2->s_index - 1;
+			t_scope_stk++;
+			scope_stk[ t_scope_stk ] = stp1;
 			stp1->s_inner = set_scopes( fd1, ld1, descr );
+			t_scope_stk--;
+			stp2->s_outer = scope_stk[ t_scope_stk ];
 		}
-		stp1 = stp->s_scopes[ stp->s_n_scopes - 1 ];
-		nd = stp1->s_index + 1;
+		stp2 = stp->s_scopes[ stp->s_n_scopes - 1 ];
+		t_scope_stk--;
+		nd = stp2->s_index + 1;
 		if( nd <= ld ){
 			stp->s_next = &descr[ nd ];
 			stp->s_next->s_prev = stp;
