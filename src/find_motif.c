@@ -12,6 +12,7 @@ extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
 extern	int	rm_dminlen;
 extern	int	rm_dmaxlen;
+extern	SITE_T	*rm_sites;
 extern	int	rm_b2bc[];
 
 extern	SEARCH_T	**rm_searches;
@@ -54,6 +55,8 @@ static	int	chk_wchlx();
 static	int	chk_phlx();
 static	int	chk_triplex();
 static	int	chk_4plex();
+static	int	chk_sites();
+static	int	chk_1_site();
 
 static	void	print_match();
 static	void	set_mbuf();
@@ -75,6 +78,7 @@ char	sbuf[];
 	int	sdollar, f_sdollar, l_sdollar;
 	IDENT_T	*ip;
 	SEARCH_T	*srp;
+	int	rv;
 	
 	if( fm_winbuf == NULL ){
 		ip = find_id( "windowsize" );
@@ -107,22 +111,21 @@ char	sbuf[];
 
 	srp = searches[ 0 ];
 	l_szero = slen - w_winsize;
-	for( fm_szero = 0; fm_szero < l_szero; fm_szero++ ){
+	for( rv = 0, fm_szero = 0; fm_szero < l_szero; fm_szero++ ){
 		srp->s_zero = fm_szero;
 		srp->s_dollar = fm_szero + w_winsize - 1;
 		fm_window[ srp->s_zero - 1 - fm_szero ] = UNDEF;
 		fm_window[ srp->s_dollar + 1 - fm_szero ] = UNDEF;
-		find_motif( srp );
+		rv |= find_motif( srp );
 	}
 
 	l_szero = slen - rm_dminlen;
 	srp->s_dollar = slen - 1;
 	for( ; fm_szero <= l_szero; fm_szero++ ){
 		srp->s_zero = fm_szero;
-		find_motif( srp );
+		rv |= find_motif( srp );
 	}
-
-	return( 0 );
+	return( rv );
 }
 
 static	int	find_motif( srp )
@@ -243,7 +246,7 @@ SEARCH_T	*srp;
 		n_srp = rm_searches[ n_stp->s_searchno ];
 		rv = find_motif( n_srp );
 	}else{
-		if( chk_motif( rm_n_descr, rm_descr ) ){
+		if( chk_motif( rm_n_descr, rm_descr, rm_sites ) ){
 			print_match( stdout, fm_locus, fm_comp,
 				rm_n_descr, rm_descr );
 			rv = 1;
@@ -1004,9 +1007,10 @@ int	s3;
 	return( !paired( stp, b5, b3 ) );
 }
 
-static	int	chk_motif( n_descr, descr )
+static	int	chk_motif( n_descr, descr, sites )
 int	n_descr;
 STREL_T	descr[];
+SITE_T	*sites;
 {
 	int	d;
 	STREL_T	*stp;
@@ -1036,7 +1040,10 @@ STREL_T	descr[];
 			break;
 		}
 	}
-	return( 1 );
+	if( chk_sites( n_descr, descr, sites ) )
+		return( 1 );
+	else
+		return( 0 );
 }
 
 static	int	chk_wchlx( stp, n_descr,descr )
@@ -1287,6 +1294,75 @@ STREL_T	descr[];
 	return( 1 );
 }
 
+static	int	chk_sites( n_descr, descr, sites )
+int	n_descr;
+STREL_T	descr[];
+SITE_T	*sites;
+{
+	SITE_T	*sip;
+
+	for( sip = sites; sip; sip = sip->s_next ){
+		if( !chk_1_site( n_descr, descr, sip ) )
+			return( 0 );
+	} 
+	return( 1 );
+}
+
+static	int	chk_1_site( n_descr, descr, sip )
+int	n_descr;
+STREL_T	descr[];
+SITE_T	*sip;
+{
+	int	p;
+	POS_T	*pp;
+	ADDR_T	*ap;
+	STREL_T	*stp;
+	int	s[ 4 ];
+	int	b[ 4 ];
+	int	rv;
+
+fprintf( stderr, "c1s: site has %d pos\n", sip->s_n_pos );
+
+	for( pp = sip->s_pos, p = 0; p < sip->s_n_pos; p++, pp++ ){
+		stp = &descr[ pp->p_dindex ];
+		ap = &pp->p_addr;
+		if( ap->a_l2r ){
+			if( ap->a_offset > stp->s_matchlen )
+				return( 0 );
+			else{
+				s[ p ] = stp->s_matchoff + ap->a_offset - 1;
+				b[ p ] = fm_sbuf[ s[ p ] ];
+			}
+		}else if( ap->a_offset >= stp->s_matchlen )
+			return( 0 );
+		else{
+			s[ p ] = stp->s_matchoff+stp->s_matchlen-ap->a_offset-1;
+			b[ p ] = fm_sbuf[ s[ p ] ];
+		}
+
+fprintf( stderr, "c1s: pos[ %2d] = %4d:%d:%4d, o,l, s = %4d, %4d, %4d, '%c'\n",
+	p, pp->p_dindex, ap->a_l2r, ap->a_offset,
+	stp->s_matchoff, stp->s_matchlen, s[ p ], b[ p ] );
+
+	}
+
+fprintf( stderr, "c1s: pairset  = " );
+RM_dump_pairmat( stderr, stp->s_pairset );
+fprintf( stderr, "\n" );
+
+	if( sip->s_n_pos == 2 ){
+		rv = paired( stp, b[ 0 ], b[ 1 ] );
+fprintf( stderr, "c1s.2: rv = %d\n", rv );
+	}else if( sip->s_n_pos == 3 ){
+		rv = triple( stp, b[ 0 ], b[ 1 ], b[ 2 ] );
+fprintf( stderr, "c1s.3: rv = %d\n", rv );
+	}else if( sip->s_n_pos == 4 ){
+		rv = quad( stp, b[ 0 ], b[ 1 ], b[ 2 ], b[ 4 ] );
+fprintf( stderr, "c1s.4: rv = %d\n", rv );
+	}
+	return( rv );
+}
+
 static	void	print_match( fp, locus, comp, n_descr, descr )
 FILE	*fp;
 char	locus[];
@@ -1336,5 +1412,4 @@ char	mbuf[];
 			3, &fm_sbuf[ off ], len,
 			3, &fm_sbuf[ off + len - 3 ] );
 	}
-
 }
