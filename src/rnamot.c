@@ -7,6 +7,7 @@ VALUE_T	rm_tokval;
 int	rm_lineno;
 int	rm_emsg_lineno;
 char	rm_fname[ 256 ] = "--stdin--";
+int	rm_copt = 0;
 
 #define	RM_GLOBAL_IDS_SIZE	50
 IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ] = {
@@ -53,7 +54,7 @@ char	*argv[];
 	IDENT_T	*ip;
 	char	*dbnp;
 
-	RM_init();
+	RM_init( argc, argv );
 
 	if( yyparse() ){
 		errormsg( 1, "syntax error." );
@@ -64,6 +65,9 @@ char	*argv[];
 	}
 
 	RM_dump( stderr, 1, 1, 1 );
+
+	if( rm_copt )
+		exit( 0 );
 
 	ip = find_id( "database" );
 	if( ip == NULL ){
