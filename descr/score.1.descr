@@ -1,0 +1,17 @@
+descr
+	h5(minlen=7,maxlen=10)
+		ss(len=4)
+	h3
+
+score
+	{ gcnt = 0;
+	  len = length( h5( index = 1 ) );
+	  for( i = 1; i <= len; i++ ){
+		b = h5( index = 1, pos = i, len = 1 );
+		if( b == "g" || b == "c" )
+			gcnt++;
+	  }
+	# require 80% GC in the stem!
+	  if( 1.0 * gcnt / len < .8 )
+		REJECT;
+	}

@@ -1,0 +1,1 @@
+../rnamot -descr $1 -dtype genbank $GBHOME/gbrna.iref -p

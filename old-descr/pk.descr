@@ -1,0 +1,108 @@
+####
+#
+#	parm clause, optional, sets up the search
+#
+# 	These are the default pairing rules for helix (wc, gu), triples (tr)
+#	and quads (qu).  As such, they need not be in the input to apply.
+#
+#		wc = { "a:u", "c:g", "g:c", "u:a" }
+#		gu = { "g:u", "u:g" }
+#		tr = { "a:u:u" }
+#		qu = { "g:g:g:g" }
+#
+#	The number of bases in the rule (2,3,4) determines which structure
+#	it applies to.
+#
+#	These rules can be redefined, but the the number of strands involved
+#	can not be changed.  Thus, wc could be redefined as:
+#
+#		wc = { "a:a", "g:g" }
+#
+#	but not as
+#
+#		wc = { "a:u:a", "g:c:u" }
+#
+#	because even though the 1st redef. is *odd*, unlike the 2d it involves
+#	only 2 strands.
+#
+#	Also the number of bases in a rule must be consistant.  the following
+#	rule contains a pair & a triple and is illegal:
+#
+#		bad = { "a:u", "a:u:u" }
+#
+####
+parms
+
+#
+#	Users can also define specific pairings such a g:a using this syntax:
+#
+
+	ga = { "g:a" }
+
+#
+#	search parameters, at least ones that I can think of right now.
+#
+
+	overlap = 0	
+	database = "/usr/data/genbank/gbpri1.seq"	# you get the idea
+
+####
+#
+#	descriptor clause, required.
+#
+#	define the desired 2d structure. A list of one or more 2d structure
+#	elements separated by white space (including comments & blank lines)
+#	Under this formalism, the descriptor ss( "ggaa" ), is legal and
+#	searched for all instances of the string "ggaa".
+#
+#	The descriptor below describes a pseudoknot.  Note that the elements
+#	marked h5, h3 are followed by a 'tag', an ident that is used to bind
+#	each #	h5 to its corresponding h3.  Tags are optional when the pairing
+#	is strictly nested and can be inferred from the order of 2d structure
+#	elements.
+#
+#	The first descriptor (h5.n1) shows all possible paramters.
+#	They are the length or length range; the sequence, the maximnum number
+#	of *sequence* mismatches, the maximum number of mispairs and any
+#	special pairing rules allowed in this 2d struct element.
+#
+#	Here the length can be 5 or 6, the desired sequence begins gca, up to
+#	one *sequence* mismatch is allowed and up to one mispair is allowed.
+#	Allowed pairings include g:u and u:g.  Note that the length, mispair
+#	and pair=gu also apply to h3.n1, the companion to this helix.  It is
+#	in fact possible to completely omit parms for all but one member of a
+#	2d structure, but the #	current grammar doesn't allow this. Suggestions
+#	 welcome.
+#
+#	The input is free format with spaces, tabs, newlines all equivelent.
+#	Spaces are only required between letters that if run together would
+#	combine two or reserved words into an ident: h5ss must be h5 ss 
+#
+####
+descr
+
+	h5( tag="1", minlen=5, maxlen=6, seq="^cga",
+		mismatch=1, mispair=1, pair+=gu )
+	ss( minlen=1, maxlen=3 )
+	h5( tag="2", minlen=3, maxlen=5, mispair=1 )
+	ss( seq="gaaa" )
+	h3( tag="1", minlen=5, maxlen=6 )
+	ss( minlen=3, maxlen=10 )
+	h3( tag="2", minlen=3, maxlen=5 )
+
+####
+#
+#	site clause, optional.
+#
+#	specify one or more specific interaction between postions of 
+#	the 2d structure elements. Here the 2d position of the 5' end of helix
+#	1 (h5.n1) must be either an a or g; this must be pair with a u or c.
+#	This jibes with the string specified above.  I figure that its an error
+#	for a site rule to disagree with a literal base specifier given in the
+#	2d struct. element.
+#
+####
+sites
+
+	h5( tag="1", pos=2 ):h3( tag="1", pos=$-1 ) = { "a:u", "g:c" }
+	h5( tag="2", pos=1 ):h3( tag="2", pos=$ ) = { "g:c" }

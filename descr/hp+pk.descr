@@ -1,0 +1,12 @@
+descr
+	h5( minlen=3, maxlen=5 )
+		ss( minlen=3,maxlen=10 )
+		h5( tag="1", minlen=3, maxlen=7 )
+				ss( minlen=3, maxlen=6 )
+			h5( tag="2", minlen=4, maxlen=6 )
+				ss( minlen=4, maxlen=6 )
+			h3( tag="1" )
+				ss( minlen=5, maxlen=6 )
+			h3( tag="2" )
+		ss( minlen=3,maxlen=10 )
+	h3

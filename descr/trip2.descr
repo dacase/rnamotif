@@ -1,0 +1,6 @@
+descr
+	t1( tag="1", len=1, pair+={ "c:c:g" } )
+		ss( len=19 )
+	t2( tag="1" )
+		ss( len=6 )
+	t3( tag="1" )

@@ -1,0 +1,29 @@
+parms
+	wc += gu;
+
+descr
+	h5(minlen=6,maxlen=7,mispair=1)
+		ss(len=2)
+		h5(minlen=3,maxlen=4,mispair=1)
+			ss(minlen=4,maxlen=11)
+		h3
+		ss(len=1)
+		h5(minlen=4,maxlen=5,mispair=1)
+			ss(len=7)
+		h3
+		ss(minlen=4,maxlen=21)
+		h5(minlen=4,maxlen=5,mispair=1)
+			ss(len=7)
+		h3
+	h3
+	ss(len=4)
+
+score
+	{
+	  tmpr = 0;
+	  for( i = 1; i <= NSE; i++ ){
+		tmpr += mispairs( se( index = i ) );
+		if( tmpr > 2 )
+			REJECT;
+	  }
+	}

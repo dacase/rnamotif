@@ -1,0 +1,6 @@
+
+descr
+	h5 ss(minlen=0, maxlen=1) h5 ss( seq="^gaaa")  h3 h3
+
+#sites
+#	h5(pos=3):h3(pos=3) = { "g:c" }

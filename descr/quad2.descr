@@ -1,0 +1,12 @@
+descr
+	q1( tag="1", minlen=3, maxlen=5 )
+		ss( minlen=4, maxlen=10 )
+		h5( minlen=3, maxlen=7 )
+			ss( minlen=4, maxlen=7 )
+		h3
+		ss( minlen=4, maxlen=10 )
+	q2( tag="1" )
+		ss( minlen=4, maxlen=10 )
+	q3( tag="1" )
+		ss( minlen=4, maxlen=10 )
+	q4( tag="1" )

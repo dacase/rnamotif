@@ -1,0 +1,24 @@
+descr
+	h5(len=5,pair+=gu)
+		ss(len=1)
+		h5(len=3,pair+=gu)
+			ss(minlen=0,maxlen=2)
+				h5(len=3)
+					ss(len=9)
+				h3
+			ss(minlen=0,maxlen=2)
+		h3
+		ss(len=0)
+		h5(len=1)
+			ss(len=3)
+		h3
+		ss(len=0)
+		h5(len=1)
+			ss(len=3)
+			h5(len=2)
+				ss(len=6,seq="^guaa", mismatch=1)
+			h3
+			ss(len=1)
+		h3
+		ss(len=1,seq="a")
+	h3

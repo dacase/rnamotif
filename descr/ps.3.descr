@@ -1,0 +1,5 @@
+parms
+	r1 = { "a:u", "u:a", "g:c", "c:g", "g:u", "u:g" };
+	r2 = { "u:u", "c:u", "c:c", "a:u", "a:a", "g:u", "g:g" };
+
+descr

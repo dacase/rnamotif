@@ -1,0 +1,273 @@
+.nr pp 18
+.ll 6.5i
+.(b
+.sp 1i
+.)b
+.pp
+.nf
+.ce
+\s+6\fBBackground\fR\s-6
+.sp
+	ss-RNA - folds back upon itself to create intra-strand
+		helices.
+.sp
+	2d structure often has a function:
+		Permanent structures:
+			tRNA, ss-RNA, introns, ribozymes.
+		Transient structures:
+			IRE, attenuators.
+.sp
+	W/C pairing - substantial sequence variability for a
+	given 2d structure.
+.sp
+	Less understood but rather apparant structural variability
+	as well.
+.bp
+.(b
+.sp 1i
+.)b
+.ce
+\s+6\fBGoals\fR\s-6
+.sp
+	1.	Describe RNA 2d structures including 3-ary
+		interactions.
+
+	2.	Find RNA seqeunces consistant with a specified
+		2d structure.
+
+.(b
+.sp 1i
+.)b
+.ce
+\s+6\fRDisclaimer\fR\s-6
+.sp
+	No attempt is made at prediction:
+		Thermodynamics is too imprecise.
+		Many structures are transient.
+.bp
+.(b
+.sp 1i
+.)b
+.ce
+\s+6\f(CBrnamot\fR\s-6
+.sp
+	Finds NA sequences that are consistant with a specified
+	2d structure.
+
+	Accomodates both sequence & structural variability.
+
+	Accomodates 3-ary interactions.
+
+	Input language provides a way to describe RNA 2d structure
+
+	\fCrnamot\fR input easily maps into MC-SYM, nab; reverse
+	may not be so.
+.bp
+.(b
+.sp 1i
+.)b
+.ce
+\s+6\f(CBrnamot\fB Input\fR\s-6
+.sp
+	sequence of 2d structural elements:
+
+.TS
+center ;
+cf(R)w(1.25i) cf(R) . 
+Name	Meaning	
+_
+.T&
+cf(C) lf(R) .
+ss	single stranded (actually unspecified)
+h5	5' side of a W/C helix
+h3	3' side of a W/C helix
+p5	5' side of a parallel helix
+p3	3' side of a parallel helix
+t1	5' side of a triplex (\fCA:u:u\fR)
+t2	3' side of a triplex (\fCa:U:u\fR)
+t3	H? side of a triplex (\fCa:u:U\fR)
+g1	1st part of a quad (\fCG:g:g:g\fR)
+g2	2nd part of a quad (\fCg:G:g:g\fR)
+g3	2nd part of a quad (\fCg:g:G:g\fR)
+g4	2nd part of a quad (\fCg:g:g:G\fR)
+.TE
+.bp
+.ce
+\s+6\f(CBrnamot\fB Input, cont'd\fR\s-6
+.sp
+.ps -2
+.TS
+center allbox ;
+cf(B) s s s .
+Property names & defaults:
+.T&
+c c c c . 
+Name	Type	Values	Default
+_
+.T&
+lf(C) l l .
+minlen	int	0-$	1 (too small)
+maxlen	int	0-$	UNBOUNDED
+len	int	0-$
+sequence	string	Any sequence	None
+tag	string	Any string	T{
+.nf
+Depends on strel
+T}
+mismatch	int	1-$	0
+mispair	int	1-$	0
+pair	pairset		Depends on strel:
+.TE
+.ps
+.sp 2
+.ps -2
+.TS
+center allbox ;
+cf(B) s .
+Pairset Values
+.T&
+c c .
+strel	default
+_
+.T&
+lf(C) lf(C) .
+ss	NA
+h5/h3	a:u, c:g, g:c, u:a
+p5/p3	a:u, c:g, g:c, u:a
+t1/t2/t3	a:u:u
+g1/g2/g3/g4	g:g:g:g
+.TE
+.ps
+.bp
+.ce
+\s+6\fBUnrestricted hairpin\fR\s-6
+.sp
+.ft C
+#	This finds ALL "potential" helices in
+#	the input sequence.  Note that while
+#	\*(lqss\*(rq stands for single-stranded, its
+#	actual meaning is \*(lqnot otherwise involved
+#	in this descriptor\*(rq
+
+descr
+	h5 ss h3
+.ft R
+.bp
+.ce
+\s+6\fBModerately Restricted hairpin\fR\s-6
+.sp
+.ft C
+#	This finds instances of a 3-7 base
+#	pair helical stem enclosing a 4-10
+#	base loop that begins with \f(CBg\fC and
+#	ends with an \f(CBa\fC.  The stem ends (3')
+#	with \f(CBgg\fC; one internal mispair is
+#	allowed and \f(CBgu\fC pairs in addition
+#	to the usual W/C pairs are permitted
+#	in the stem.
+
+descr
+	h5( minlen=3, maxlen=7, mispair=1,
+			pair += gu )
+		ss( minlen=4, maxlen=10,
+			seq="^g.*a$" )
+		h3( seq="gg$" )
+.ft R
+.bp
+.ce
+\s+6\fBVery restricted hairpin\fR\s-6
+.sp
+.ft C
+#	Find instances of \f(CBgnra\fC loops on a
+#	stem of \f(CBggcc\fC.
+
+descr
+	h5( seq="^ggcc$" ) ss( seq="^gnra$" ) h3
+.ft R
+.bp
+.ce
+\s+6\fBNested hairpins\fR\s-6
+.sp
+.ft C
+#	An internal loop containing a hairpin:
+#	This could also be considered as a longer
+#	hairpin (6-20 in length) containing
+#	optional bulge bases on the 5' and/or
+#	the 3' side.
+
+descr
+	h5( minlen=3, maxlen=5 )
+		ss( minlen=0, maxlen=1 )	# bulge!
+		h5( minlen=3, maxlen=5 )
+			ss( minlen=4, maxlen=10 )
+		h3
+		ss( minlen=0, maxlen=1 )	# bulge!
+	h3
+.ft R
+.bp
+.ce
+\s+6\fBConsecutive hairpins\fR\s-6
+.sp
+.ft C
+#	Two consecutive hairpins separated by
+#	an optional single stranded region.
+#	Sometimes called a dumbbell.
+
+descr
+	h5( minlen=3, maxlen=5 )
+		ss( minlen=4, maxlen=10 )
+	h3
+	ss( minlen=0, maxlen=3 )	
+	h5( minlen=3, maxlen=5 )
+		ss( minlen=4, maxlen=10 )
+	h3
+.ft R
+.bp
+.ce
+\s+6\fBpseudo-knot\fR\s-6
+.sp
+.ft C
+#	A pseudo knot is two improperly nested
+#	hairpins.  \f(CBrnamot\fC uses the rule for
+#	\f(CBh5\fC/\f(CBh3\fC elements that an \f(CBh3\fC goes with
+#	the nearest unpaired \f(CBh5\fC. This is not the
+#	case in the pseudo knot where the fisrt
+#	\f(CBh3\fC pairs with 2d closest \f(CBh5\fC.  To solve
+#	this problem \f(CBrnamot\fC allows strel elements
+#	to have tags to explicitly describe
+#	non-standard element pairing.
+
+descr
+	h5( tag="1", len=5 )
+	 		ss( len=3 )
+		h5( tag="2", len=4 )
+	 		ss( len=6 )
+		h3( tag="1" )
+	 		ss( len=4 )
+		h3( tag="2" )
+.ft R
+.bp
+.ce
+\s+6\fBtRNA\fR\s-6
+.sp
+.ft C
+#	Three consecutive hairpins nested in a
+#	single enclosing hairpin
+
+descr
+	h5( minlen=4, maxlen=7 )
+		ss( minlen=0, maxlen=3 )
+		h5( minlen=4, maxlen=7 )
+			ss( minlen=0, maxlen=3 )
+		h3
+		ss( minlen=0, maxlen=3 )
+		h5( minlen=4, maxlen=7 )
+			ss( minlen=0, maxlen=3 )
+		h3
+		ss( minlen=0, maxlen=3 )
+		h5( minlen=4, maxlen=7 )
+			ss( minlen=0, maxlen=3 )
+		h3
+		ss( minlen=0, maxlen=3 )
+	h3
+.ft R

@@ -1,0 +1,11 @@
+parms
+	wc += gu;
+
+descr
+	h5(tag="1",len=14)
+			ss(len=1)
+		h5(tag="2",len=7)
+			ss(minlen=0,maxlen=1)
+		h3(tag="1")
+			ss(minlen=7,maxlen=9)
+		h3(tag="2")

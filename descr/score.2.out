@@ -1,0 +1,109 @@
+0x8e59ea0: lf =   (nil) rt = 0x8e59e78 ln,tp,cl =   8, 0, 0 SYM_CALL
+   0x8e59e78: lf = 0x8e59e50 rt =   (nil) ln,tp,cl =   8, 0, 0 SYM_LIST
+      0x8e59e50: lf = 0x8e59d78 rt = 0x8e59fe0 ln,tp,cl =   8, 0, 0 SYM_STREF
+         0x8e59d78: lf =   (nil) rt =   (nil) ln,tp,cl =   8, 0, 0 SYM_H5
+         0x8e59fe0: lf = 0x8e59f18 rt = 0x8e59fb8 ln,tp,cl =   8, 0, 0 SYM_LIST
+            0x8e59f18: lf =   (nil) rt =   (nil) ln,tp,cl =   8, 0, 1 SYM_INT = 0
+            0x8e59fb8: lf = 0x8e59f90 rt = 0x8e59f68 ln,tp,cl =   8, 0, 0 SYM_LIST
+               0x8e59f90: lf =   (nil) rt =   (nil) ln,tp,cl =   8, 0, 1 SYM_INT = 1
+               0x8e59f68: lf = 0x8e59f40 rt =   (nil) ln,tp,cl =   8, 0, 0 SYM_LIST
+                  0x8e59f40: lf =   (nil) rt =   (nil) ln,tp,cl =   8, 0, 1 SYM_INT = -1
+0x8e59ea0: lf =   (nil) rt = 0x8e59fe0 ln,tp,cl =   8, 0, 0 SYM_CALL
+   0x8e59fe0: lf = 0x8e59f18 rt = 0x8e59fb8 ln,tp,cl =   8, 0, 0 SYM_LIST
+      0x8e59f18: lf =   (nil) rt =   (nil) ln,tp,cl =   8, 0, 1 SYM_INT = 0
+      0x8e59fb8: lf = 0x8e59f90 rt = 0x8e59f68 ln,tp,cl =   8, 0, 0 SYM_LIST
+         0x8e59f90: lf =   (nil) rt =   (nil) ln,tp,cl =   8, 0, 1 SYM_INT = 1
+         0x8e59f68: lf = 0x8e59f40 rt =   (nil) ln,tp,cl =   8, 0, 0 SYM_LIST
+            0x8e59f40: lf =   (nil) rt =   (nil) ln,tp,cl =   8, 0, 1 SYM_INT = -1
+0x8e5a7b8: lf =   (nil) rt = 0x8e5a790 ln,tp,cl =  12, 0, 0 SYM_CALL
+   0x8e5a790: lf = 0x8e5a768 rt =   (nil) ln,tp,cl =  12, 0, 0 SYM_LIST
+      0x8e5a768: lf = 0x8e5a520 rt = 0x8e5a880 ln,tp,cl =  12, 0, 0 SYM_STREF
+         0x8e5a520: lf =   (nil) rt =   (nil) ln,tp,cl =  12, 0, 0 SYM_H5
+         0x8e5a880: lf = 0x8e5a808 rt = 0x8e5a858 ln,tp,cl =  12, 0, 0 SYM_LIST
+            0x8e5a808: lf =   (nil) rt =   (nil) ln,tp,cl =  12, 0, 1 SYM_INT = 0
+            0x8e5a858: lf = 0x8e5a618 rt = 0x8e5a830 ln,tp,cl =  12, 0, 0 SYM_LIST
+               0x8e5a618: lf =   (nil) rt =   (nil) ln,tp,cl =  12, 0, 0 SYM_IDENT = "i"
+               0x8e5a830: lf = 0x8e5a6a0 rt =   (nil) ln,tp,cl =  12, 0, 0 SYM_LIST
+                  0x8e5a6a0: lf =   (nil) rt =   (nil) ln,tp,cl =  12, 0, 1 SYM_INT = 1
+0x8e5a7b8: lf =   (nil) rt = 0x8e5a880 ln,tp,cl =  12, 0, 0 SYM_CALL
+   0x8e5a880: lf = 0x8e5a808 rt = 0x8e5a858 ln,tp,cl =  12, 0, 0 SYM_LIST
+      0x8e5a808: lf =   (nil) rt =   (nil) ln,tp,cl =  12, 0, 1 SYM_INT = 0
+      0x8e5a858: lf = 0x8e5a618 rt = 0x8e5a830 ln,tp,cl =  12, 0, 0 SYM_LIST
+         0x8e5a618: lf =   (nil) rt =   (nil) ln,tp,cl =  12, 0, 0 SYM_IDENT = "i"
+         0x8e5a830: lf = 0x8e5a6a0 rt =   (nil) ln,tp,cl =  12, 0, 0 SYM_LIST
+            0x8e5a6a0: lf =   (nil) rt =   (nil) ln,tp,cl =  12, 0, 1 SYM_INT = 1
+score.2.descr: complete descr length: min/max = 25/40
+SCORE:   73 inst.
+    0   mrk
+    1   mrk
+    2   ldc 0
+    3   ldc 1
+    4   ldc -1
+    5   scl mispairs
+    6   ldc 2
+    7   geq
+    8   fjp 72
+    9   mrk
+   10   lda len
+   11   mrk
+   12   ldc 0
+   13   ldc 1
+   14   ldc -1
+   15   strf
+   16   scl length
+   17   sto
+   18   cls
+   19   mrk
+   20   lda mpos
+   21   ldc 0
+   22   sto
+   23   cls
+   24   mrk
+   25   lda i
+   26   ldc 1
+   27   sto
+   28   cls
+   29   mrk
+   30   lod i
+   31   lod len
+   32   leq
+   33   fjp 72
+   34   mrk
+   35   mrk
+   36   ldc 0
+   37   lod i
+   38   ldc 1
+   39   scl paired
+   40   not
+   41   fjp 67
+   42   mrk
+   43   lod mpos
+   44   ldc 0
+   45   neq
+   46   fjp 53
+   47   mrk
+   48   lda mpos
+   49   lod i
+   50   sto
+   51   cls
+   52   jmp 29
+   53   mrk
+   54   lod mpos
+   55   lod i
+   56   ldc 1
+   57   sub
+   58   equ
+   59   fjp 62
+   60   rjct
+   61   jmp 29
+   62   mrk
+   63   lda mpos
+   64   lod i
+   65   sto
+   66   cls
+   67   mrk
+   68   lda i
+   69   incp
+   70   cls
+   71   jmp 29
+   72   acpt

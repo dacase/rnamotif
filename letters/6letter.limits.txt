@@ -1,0 +1,43 @@
+I looked over the 6 letter descriptors for the Pknot and the hairpin and 
+agree that they do describe the two structures:
+
+	SHIHLJIJS	is a hairpin on a stem with an internal loop
+
+	SHIHIJIJS	is a pseudoknot
+
+If my understanding of the descriptors is correct:
+
+	HLJ		indicates that H & J are paired
+	HIJ		indicates that H & J are NOT paired
+
+In the two examples above, the application of these rules produces a single
+structure.
+
+---
+
+If the only Pk's are terminal Pk's, then the language appears to be
+adequate; however, if Pks are allowed in the non-terminal parts of larger
+structures, then the two simple 3-helix structures below would appear to have
+the same descriptor.
+
+Consider the structures:
+
+    5'->S-H1-I-H2-I-H3-+
+	  :    :    :  L	==>	SHIHIHLJIJIJS		(1)
+    3'<-S-J1-I-J2-I-J3-+
+
+    5'->S-H1-I-H2-I-H3-+
+      	  :    :    :  |
+      +-> : -->J1-S :  L	==>	SHIHIHLJIJIJS		(2)
+      |	  :	    :  |
+      +-I-J2------I-J3-+
+
+(1) is a hairpin on a stem containing two internal loops
+(2) is a hairpin extension of a Pknot.
+
+I agree that such a construct as (2) is contrived, and is extremely unlikely
+to exist, but there is a very long Pk in SSU rRNA which encloses ~900 bp
+which in turn contains lots of properly nested helices.  If the goal is to
+be able to describe *any* rRNA structure ... I don't see any way around
+allowing the user to label to the parts in order to override the default
+pairing rules.

@@ -1,0 +1,16 @@
+descr
+	h5(minlen=4,maxlen=7)
+		ss(minlen=0,maxlen=2)
+		h5(minlen=4,maxlen=7)
+			ss(minlen=4,maxlen=7)
+		h3
+		ss(minlen=0,maxlen=2)
+		h5(minlen=4,maxlen=7)
+			ss(len=7)
+		h3
+		ss(minlen=0,maxlen=2)
+		h5(minlen=4,maxlen=7)
+			ss(minlen=4,maxlen=7)
+		h3
+		ss(minlen=0,maxlen=2)
+	h3

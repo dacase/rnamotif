@@ -1,0 +1,8 @@
+parms
+	wchlx_ends = "mm";
+	phlx_ends = "mp";
+	triplex_ends = "pm";
+	quad_ends = "pp";
+
+descr
+	h5(len=5) ss(len=4) h3

@@ -1,0 +1,75 @@
+score.2.descr: complete descr length: min/max = 25/40
+SCORE:   73 inst.
+    0   mrk
+    1   mrk
+    2   ldc 0
+    3   ldc 1
+    4   ldc -1
+    5   scl mispairs
+    6   ldc 2
+    7   geq
+    8   fjp 72
+    9   mrk
+   10   lda len
+   11   mrk
+   12   ldc 0
+   13   ldc 1
+   14   ldc -1
+   15   strf
+   16   scl length
+   17   sto
+   18   cls
+   19   mrk
+   20   lda mpos
+   21   ldc 0
+   22   sto
+   23   cls
+   24   mrk
+   25   lda i
+   26   ldc 1
+   27   sto
+   28   cls
+   29   mrk
+   30   lod i
+   31   lod len
+   32   leq
+   33   fjp 72
+   34   mrk
+   35   mrk
+   36   ldc 0
+   37   lod i
+   38   ldc 1
+   39   scl paired
+   40   not
+   41   fjp 67
+   42   mrk
+   43   lod mpos
+   44   ldc 0
+   45   neq
+   46   fjp 53
+   47   mrk
+   48   lda mpos
+   49   lod i
+   50   sto
+   51   cls
+   52   jmp 29
+   53   mrk
+   54   lod mpos
+   55   lod i
+   56   ldc 1
+   57   sub
+   58   equ
+   59   fjp 62
+   60   rjct
+   61   jmp 29
+   62   mrk
+   63   lda mpos
+   64   lod i
+   65   sto
+   66   cls
+   67   mrk
+   68   lda i
+   69   incp
+   70   cls
+   71   jmp 29
+   72   acpt

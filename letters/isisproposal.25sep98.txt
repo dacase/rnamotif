@@ -1,0 +1,140 @@
+Dave, Robin:
+
+Here's what I'm prepared to do,
+
+let me know.  email is best, but Mon, Thu, Fri, Sat I'm at 702.796.0661,
+Tue, Wed in SD, sometimes, at 619.784.8889 (scripps) or you can page me or
+leave a msg a Nanogen 619.546.7700.
+
+Tom
+
+----
+
+PROBLEM:
+
+From our meeting on 9.15.1998, I concluded that RG,DG & Isis would like
+RNAMOT v2 to do these things:
+
+1. Given an alignment & 2d struct + tert. interaction info, produce
+   a descriptor of any sequence, or set of sequences from that alignment
+   that represent their (its) 2d + ta structure.  In the case of a set
+   of sequences, this descriptor becomes a template or set of constraints
+   that not only matches each of the set's sequences, but will also match
+   other sequences not in the alignment some of which may be unacceptable
+   based on other rules not included in the template.
+
+2. Given a template, search genbank (or other seq. db's) for sequences
+   that are consistant with that template.
+
+2.1 Allow access to the detailed scoring of each matched sequence,
+   allowing post selection flexibility in their ranking.
+
+3. Given an alignment with descriptor information and a set of 
+   sequences also with descriptor information, use the descriptor
+   information to add the new sequences to the alignment.
+
+
+PROPOSAL:
+
+After looking into various aspects of this work, I'm prepared to do P.1, and an
+initial version of P.2 and P.2.1 that I believe will satisify Isis's initial
+search needs.  However, my preliminary investigation into part P.3, has lead me
+to the conclusion that it can only be done once some experience has been gained
+with the new descriptor system.  I further believe that a useful version of P.3
+is possible, but it introduces the complexity of interaction between the old
+alignment, the search descriptors (which may contain probablistic, or optional
+terms) and the new alignment which may require modifying the descriptor.  In
+addition, I believe that RG (at least) will insist on being able to modify or
+"polish" any alignment produced by the system and capturing this hand
+modification will also increase the complexity and will likely require some
+limits on the types of hand modification available.
+
+
+DETAILS:
+
+P.1:
+
+I see two cases here.  Creating a descriptor from a sequence is a straight-
+forward translation of the 2d & ta interaction information that is stored
+in some format along with the alignment.  The second case involves creating
+descriptors that represent the structure of any set of related sequences.  If
+the problem is unrestricted: say provide a descriptor that describes *any*
+large subunit (LSU) rRNA molecule, such a descriptor will require arbitrary
+hierarchy because over the range of known LSU molecules huge domains are
+optional.  In the descriptor language I envision, creating such a descriptor
+is a big but not complex instance of a simple algorithm.  However, I don't
+know if such a descriptor would make a useful search target.  Desriptors for
+structures up to and including tRNAs (~100nt) seem both simple & useful.
+
+P.2:
+
+Here, I wish to restrict the initial search program to find only descriptors
+that contain no optional *complex* elements.
+
+From our 9.15.1998 meeting, I feel that RNA elements can be limited to the
+following primitives: single stranded (unstructured), duplex (WC & parallel),
+triplex & 4-plex.  In addition descriptors may have any number of 3-ary 
+constraints, which at this level become sequence constraints.  A complex 
+element would be grouping of primitive elements, the simplest of which would
+be an optional helix, although in practice, the simplest maybe an optional 
+hairpin expressed as the group (h5 ss h3)?, the `?' indicating optional.
+
+Thus for the initial search, the only optional elements would be single
+stranded regions and variation in length in the various helical elements.
+Although this may seem limiting, such a search program could find IRE's
+terminators, attentuators, tRNAs and a large number of other interesting
+structures.  Subsequent versions of the search could look for much more
+complex structures, although, I feel that no closures will always be a
+problem.  By closure, I mean a descriptor that contains any sub part that
+is arbitrarily long:
+
+	h5 ss(*) h3
+
+which means any paired helix, no matter how long the intervening region, would
+greatly increase the complexity of the search, slow it down and I don't believe
+produce any real increase in utility.
+
+My goal is to get something concrete and useful up & running rather than 
+spending a lot of time on the ulitmate search only to realize that I can't
+do it, or make it fast enough to be useful, and then  have to back off.
+Once something is up, then we can look at seeing how far we can push it.
+
+P.2.1:
+
+I would like to do this at the implementation level:  
+
+	hits = Search( DB );
+	for( h in hits )
+		print( score( h ), h );
+
+My main reason is that recovering the score from the selected sequences is
+easy and fast compared to searching and that it offers a uniform interface
+into any subscorer that you might with to invent, but again this is an
+implementation detail.
+
+P.3:
+
+I'm going to pass until P.1, P.2 and P.2.1 are up and running.  At that point
+we will all have a better idea of what's involved and can decide on a follow-on
+or whatever.
+
+
+RESTRICTIONS:
+
+O/S: Unix (Solaris, IRIX, OSF1)/Linux.
+
+DB's: Genbank (all, any part).
+
+Language: ANSI C.
+
+
+TIME, MONEY:
+
+Six months, $2K/mo = $12K total. Including user manual and code documentation
+at the paramter to subroutine level.
+
+
+IP STUFF:
+
+Would like to retain use of the RNAMOT v2 search code for both personal use 
+and possible icorporation into the Nanogen AVS-based sequence analysis system.

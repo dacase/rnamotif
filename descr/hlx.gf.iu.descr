@@ -1,0 +1,9 @@
+#
+#	A simple hairpin.  The stem length
+#	is to 3-7 bp, but the enclosing loop
+#	is unbounded.
+#
+descr
+	h5( minlen=3, maxlen=7 )
+		ss
+	h3

@@ -1,0 +1,20 @@
+#RM scored
+#RM descr h5(tag="1") ss h5(tag="2") ss h3(tag="1") ss h3(tag="2")
+ACGRRDADA  0.000 0  659 23 tgc   agga       gag gaaa   gcg gaa ttc
+AVBRR16S   0.000 0  599 23 tgc   tgga       gag gaaa   gcg gaa ttc
+AVBRR16SA  0.000 0  599 23 tgc   tgga       gag gaaa   gcg gaa ttc
+BIFRR16SF  0.000 0  994 31 tgtg  ccggacgccn gtg gaaa  cgcg nnn tcc
+CLOPRRNA   0.000 0  626 23 tgc   agga       gag gaaa   gcg gaa ttc
+CLORR16SAC 0.000 0  632 23 tgc   agga       gag gaaa   gcg gaa ttc
+CLORR16SD  0.000 0  634 23 tgc   agga       gag gaaa   gcg gaa ttc
+CLORR16SJ  0.000 0  633 23 tgc   agga       gag gaaa   gcg gaa ttc
+CLORR16SP  0.000 0  634 23 tgc   agga       gag gaaa   gcg gaa ttc
+CLORR16SW  0.000 0  629 23 tgc   agga       gag gaaa   gcg gaa ttc
+CLORR16SX  0.000 0  631 23 tgc   agga       gag gaaa   gcg gaa ttc
+DECRR18SA  0.000 0  600 24 tggg  aga        ggt gaaa  ttca tgg atc
+EUBRRDAA   0.000 1 1039 33 tgtct cnantgtccc gaa gaaa ggaca cat tac
+SELRR16SA  0.000 0  674 23 tgc   agga       gag gaaa   gcg gaa ttc
+SELRR16SB  0.000 0  578 23 tgc   agga       gag gaaa   gcg gaa ttc
+TFERRDD02  0.000 0   80 26 tgg   natggcg    gtg gaaa   ccg gtg tac
+TFERRDJ01  0.000 0  419 27 tgg   gnatggcg   gtg gaaa   ccg gtg tac
+TFERRDO2   0.000 0   44 27 tgg   gnatggcg   gtg gaaa   ccg gcg cac

@@ -1,0 +1,116 @@
+As promised, the full msg.
+
+I see no problem in creating a simple yet powerful descriptor language that
+can describe any realized structure or consensus subset of that structure.
+
+The descriptor language consists of two parts:
+	
+1.	Elements that describe the 2d + tert. structure *including*
+	sequence constraints.
+
+.2	A set of rules for accepting and ranking of sequences that can
+	assume that structure.
+
+The language imposes two restrictions, neither of which I believe will have
+a significant effect on its power:
+
+1.	No descriptor or sub-descriptor can match an arbitrarily long
+	sequence.
+
+2.	There is a one to one mapping between 2d + tert structures and 
+	descriptors.
+
+Restriction 1 means that the language can not express the concept of the
+`outer-most' helix of a sequence.  Using the H, J notation from NS.com the
+following descriptor:
+	
+	h * j
+
+where * matches anything is illegal.  
+
+Restriction 2 is more in conflict with the proposed RNAMOT2 descriptor
+language that was discussed at the Isis meeting.  Consider this example.
+Say you have a structure that contains a helix with an optional bulge base.
+This structure might be represented by the descriptor:
+
+	h <stuff> j
+
+with the scoring rule (among others): minnbulge = 0, maxnbulge = 1.
+
+However, someone else could decompose the same structure into 2 helices 
+separated by an optional bulge:
+
+	h b? h <stuff> j j 
+
+where the ? means optional.
+
+My first & continuing thoughts on the matter are that bulges should result
+in the splitting of a helix into subhelices on either side with the bulge
+represented as a separate piece.  This makes comparing the descriptors MUCH
+MUCH easier ...
+
+---
+
+More stuff.
+
+1.	Any descriptor language that describes arbitrary pairing of 5' & 3'
+	regions requires labelled subdescriptors.
+
+2.	A 2d structural element can have a length that varies between specified
+	lower & upper bounds.  Every base in such an element has a known name,
+	either counting from the 5' end beginning with 1, 2, 3, ...  or
+	counting from the 3' end beginning with $, $-1, $-2, ...
+	As a consequence of this, no structural element can have more than ONE
+	insertion point, as this scheme can not address them. Consider the
+	weird descritpor (WD) below:
+	
+	WD( ACG[0-1]GG[0-1]AAC )
+
+	The two numbers inside the []'s indicate that a base may be inserted
+	here.  The leading ACG are always numbered 1,2,3; the trailing AAC
+	$-2, $-1, $, but the two G's in the middle are either 4,5 or 5,6
+	depending on the left insertion, or $-4,$-3 or $-5,$-4 depending on
+	the right insertion.  So no matter which end you count from you can't
+	unambiguously specify the two G's.
+
+	Yes, you could imagine some sort of sub-labelling scheme to identify
+	them, but at this point you might as well just break up WD() into
+	smaller pieces which are labelled directly.
+
+3.	The language will have all kinds of useful defaults.  In particular
+	if your structure contains no hairpins and all sequence constraints
+	can be specified literally you dont need any labels.
+
+	For example
+
+	h(GCNN) GNRA j(NNGC)
+
+	is a GNRA tetra loop, with a 4 bp stem with the into 2 bp both GC's.
+
+4.	Finally it seems that DG answered his own objection to creating a
+	descriptor from an alignment when he posed the example of the helix
+	being either 4 or 5 bp.  Continuing on in the same vein:
+
+	h(4-5,GCNN) GNRA j(4-5,NNGC)
+
+	would admit to either 2 or 3 N:N (but Watson/Crick) bp's before the
+	GNRA loop.
+
+	The BIG problem in creating descriptors from a consenssus 2d structure
+	is NAMING the elements, because you want to account for optional 
+	elements that are not present in the current consensus.  There are
+	computationally easy ways to name the elements, but they may not be
+	aesthetically pleasing.
+
+---
+
+In any event, I can implement this, I can search for such descriptors in N*D
+time where N is the length of the input sequence and P is the length of the
+descriptor and I can return the raw score, ie the match quality for each
+subdescriptor for every sequence found which could then be passed on to a more
+more nuanced scoring program for refinement.
+
+---
+
+Let me know,
+tom

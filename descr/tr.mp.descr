@@ -1,0 +1,6 @@
+descr
+	t1( tag="1", minlen=4, maxlen=7, mispair=1 )
+		ss( minlen=3, maxlen=10 )
+ 	t2( tag="1" )
+		ss( minlen=3, maxlen=10 )
+	t3( tag="1" )

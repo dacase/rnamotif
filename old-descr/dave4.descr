@@ -1,0 +1,5 @@
+descr
+	h5(len=7)
+	ss( seq= "gaukagc" )
+	h3
+	ss( minlen=1 )

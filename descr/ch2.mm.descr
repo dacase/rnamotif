@@ -1,0 +1,22 @@
+#
+#	This is a further relaxation of ch.descr
+#	and ch2.descr
+#
+#	Two consecutive w/c hairpins separated by
+#	a ss region that can be from 3-10 bases
+#	long.
+#
+#	Both hp's allow loops of 4-7 bases and have
+#	sequences restrictions.  hp1 is must include
+#	a gnra (at any position) and hp2 is a must
+#	begin with uucg. Each hp permits a single
+#	mismatch to the specified sequence.
+#
+descr
+	h5( minlen = 3, maxlen = 7 )
+		ss( minlen = 4, maxlen = 7, seq="gnra", mismatch=1 )
+	h3
+	ss( minlen = 3, maxlen = 10 )
+	h5
+		ss( minlen = 4, maxlen = 7, seq="^uucg", mismatch=1 )
+	h3( minlen = 5, maxlen = 6 )

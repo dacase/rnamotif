@@ -1,0 +1,12 @@
+descr
+	h5(tag="1",minlen=3,maxlen=7)
+#		ss(seq="^gnra$")
+		ss(len=4)
+	h3(tag="1")
+
+score
+	{ 
+  	  str = "a";
+	  if( str == "a" )
+		ACCEPT;
+	}

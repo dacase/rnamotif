@@ -1,0 +1,8 @@
+descr
+	h5( tag="1", seq = "^gcg$" )
+	ss( seq = "^auuu$" )
+	h5( tag="2", seq = "^cugac$", pair+=gu )
+	ss( minlen=0, maxlen=1 )
+	h3( tag ="1", seq ="^cgc$" )
+	ss( seq = "^uuuuuu$" )
+	h3( tag="2", seq="^gacag$", mismatch=1 )

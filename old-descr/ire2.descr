@@ -1,0 +1,7 @@
+descr
+	h5( minlen=3, maxlen=5 )
+	ss( minlen=0, maxlen=1 )
+	h5( minlen=3, maxlen=5 )
+	ss( minlen=3, maxlen=10 )
+	h3( minlen=3, maxlen=5 )
+	h3( minlen=3, maxlen=5 )

@@ -1,0 +1,16 @@
+descr
+	h5( minlen=8, maxlen=10, seq="tt", pairfrac=.75, ends="mm" )
+		ss( seq="^gaaa$" )
+	h3
+
+score
+	{
+	  SCORE = 0;
+	  len = length( h5( index=1 ) );
+	  if( !paired( h5( index=1, pos=1, len=1 ) ) )
+		SCORE = 100;
+	  if( !paired( h5( index=1, pos=len, len=1 ) ) )
+		SCORE += 1;
+	  if( SCORE < 100.0 )
+		REJECT;
+	}

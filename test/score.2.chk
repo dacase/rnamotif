@@ -1,0 +1,11 @@
+#RM scored
+#RM descr h5 ss h3
+CYARRDG    0.000 1 560 34 gtatgcggttaa gccgcacgct ttaacagcagac
+HYM28SRRNA 0.000 0  98 30 gggggccccg   gccgggggaa   cggggccccc
+HYM28SRRNA 0.000 0 150 28 cggggcggact  gccctc      agtgcgccccg
+HYM28SRRNA 0.000 0 151 26 ggggcggact   gccctc       agtgcgcccc
+RABRRE2    0.000 0 184 29 ccgccggggtcg gccca      cggccctggcgg
+SCLRREA2   0.000 0 196 25 gaaagcattc   gccna        gaatgttttc
+SCLRREG    0.000 0 941 25 gaaagcattc   gccaa        gaatgttttc
+SIL28SRRNA 0.000 0 155 29 ccggggcggact gcctc      agtgcgccccag
+SIL28SRRNA 0.000 0 157 25 ggggcggact   gcctc        agtgcgcccc

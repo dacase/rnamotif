@@ -1,0 +1,27 @@
+parms
+
+	ga = { "g:a" }
+
+	overlap = 0	
+
+descr
+
+	h5( len = 3 )
+		ss( seq="g", len=1)
+		h5( tag="1", minlen=5, maxlen=6, seq="^cga",
+			mismatch=1, mispair=1, pair+=gu )
+		ss( minlen=1, maxlen=3 )
+		h5( tag="2", minlen=3, maxlen=5, mispair=1 )
+		ss( seq="^gaaa$" )
+		h3( tag="1", minlen=5, maxlen=6 )
+			h5( len=3)
+			ss( seq="^gaaa$" )
+			h3
+			ss( minlen=3, maxlen=10 )
+		h3( tag="2", minlen=3, maxlen=5 )
+	h3
+
+sites
+
+	h5( tag="1", pos=2 ):h3( tag="1", pos=$-1 ) = { "a:u", "g:c" }
+	h5( tag="2", pos=1 ):h3( tag="2", pos=$ ) = { "g:c" }

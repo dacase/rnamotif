@@ -1,0 +1,84 @@
+Schedule	
+
+Nov 1998	Begin work on the RNAMOT 2 basic search algorithm.
+		Design the descriptor language.
+
+Jan 1999	First version of RNAMOT 2.
+
+Mar 1999	Final version of RNAMOT 2.
+
+Apr 1999	User manual & documentation.
+
+---
+
+I now have the outline of the basic algorithm for RNAMOT 2.  The
+algorithm is somewhat independent of the actual descriptor language
+and is capable of finding sequences that can contain these 2d structural
+elements:
+
+	single stranded
+	duplex, both antiparallel and parallel 
+	triplex
+	4-plex
+
+Each 2d element will have a set of search parameters for which include
+length variation, seqeunce variation and some form of approximation.
+For example, a user might specify a helix of 5-7 bp's, and accept pairs
+of sequences of length 5-7 that have no more than one mispair in their
+interior. The actual level of approximation supported in the final
+inplementation can not be specified at this point but will be determined
+once the initial version of RNAMOT 2 is running.
+
+The algorithm assumes three levels of search parameter specificity:
+
+	1. local - A particular base, pair, triple, must be made of 
+	   these bases
+
+	2. elemental - All bases not covered by local specifications
+	   must satisfy these rules.
+
+	3. global - The default rules for any bases or elements not
+	   covered by local or elemental specifications.
+
+Examples:
+
+	GLOBAL:		the pairing is w/c.
+
+	ELEMENTAL:	g/u pairing is allowing in a certain helixes.
+
+	LOCAL:		a g/a mispair is required at a certain position.
+
+---
+
+Restrictions:
+
+1. Users must specify bulge bases.  The algorithm can find them even if
+   they are specified as a variation to a particular element, but the
+   level of detail required to specify every interesting thing about a
+   bulge: where, how long, how many, ... makes base addressing complicated.
+
+   A 2nd restriction of optional bulges is that by forcing the user to
+   explicitly break them out in the descriptor, it provides a canonical
+   form for every 2d structure.  Such a form will greatly help in comparing
+   structures.
+
+2. The descriptor language should have a formal (lex level) specification.
+   By formally specifying the language, it is much easier to extend it.
+
+Suggestions:
+
+1. The UI of RNAMOT 2 is:
+
+	for( sp = seq; rnamot( descr, sp, &pos, &len ); )
+		sp = ovrlp ? sp++ : sp += len;
+
+   rnamot seqs are always left->right is 5->3.  Searching the complementary
+   strand is done by preprocessing the input seq.
+
+   each hit consist of 4-tuple:
+
+	(seq-ID, comp, pos, len)
+
+   where comp = 1 if the seq is the comp of that specified by pos, len
+
+2. Scoring is done after finding sequences that satisfy the descriptor

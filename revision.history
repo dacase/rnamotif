@@ -1,0 +1,74 @@
+1.1.1	1999-nov-08
+	Modified helix finding codes to allow a helix to begin and/or end with
+	a mismatch.  This is normally off, but may be turned on at two levels:
+	If the *_ends variable (* = {wc, phlx, tr, qu}) is set its value becomes
+	the default end condition for all helices of the specified type.  The values
+	of these variables are the strings "pp", "pm", "mp" and "mm" (case doesn't
+	matter) which mean 5'&3' paired; 5' paired, 3' mispair OK; 5' mispair ok, 3' paired;
+	and mispairs ok at either or both 5'&3'.  Note that mispairs are not required, just
+	permitted.  To select for a mispair at that position use the score section.
+	The default value is "pp".  In addition, the ends may be specified at the str-el
+	level using the ends= parameter.  This uses the same values as the global symbols,
+	but the scope is limited to that str-el.
+
+1.1.0	1999-oct-23
+	Added builtins mispairs(), mismatches() and paired() to score
+	system.
+
+	Added new variables NSE (number of structure elements) and SCORE.
+	NSE is used to loop over the descr elements.
+	SCORE is used to hold the value of the candidate's score and is
+	printed by print_match() when the candidate is acccepted.
+
+1.0.5	1999-oct-08
+	Added code to implement pairfrac to the p*, h*, t* and q*
+	structure elements.
+
+	First released version that has a working score system.  Scoring
+	system can examine subseqeunces of the sequences that match the
+	descriptor elements for the current match candidate.
+
+1.0.4	1999-sep-28
+	Added float parms pairfrac & matchfrac to strels.  Reorganized 
+	eval() to use the scheme (T_IJ()) used in score().
+
+	Fixed bug that was setting the offset to the matched string in the
+	3' part of wc-hlx to the 3' most base instead of the 5' most base.
+
+1.0.3	1999-sep-10
+	Added awk-like score section to the grammar & lex input.  Currently
+	score takes no action.
+
+	Changed input slightly:
+		1. the = between the sites and the pairset is now required
+		   to be the res. word "in"
+		2. parameter defs must now end with semicolon.
+
+	Fixed bug that was checking if the outermost w/c helix could be
+	extended.
+
+	Fixed bug that assumed no spaces between the > and the id in a fastn
+	file.
+
+1.0.2	1999-sep-03
+	Added code to section that checks for seq= matches that converts
+	any u's in the input data to t's allowing it work on rna as well as
+	dna data.
+
+	fixed (apparantly) unreported bug that stopped checking an sites,
+	as the chk_site() code was called by chk_motif() which was commented
+	out as chk_motif() was too strict
+
+1.0.1	1999-aug-27
+	Reformatted output for fastn input to include 2 lines
+	for each hit. Line 1 is the `def' line from the fastn
+	file (must begin with >) and line 2 is the sequence
+	as before except that the name is now the 1st word
+	minus the > of the fastn line
+
+	Also fixed bug in find_triplex() that computed the 
+	length of the 2d interior as 1 too small.
+
+1.0.0	1999-aug-03
+	First working version that included all the features. 
+	

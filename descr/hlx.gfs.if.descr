@@ -1,0 +1,4 @@
+descr
+	h5( minlen=3, maxlen=7 )
+		ss( minlen=4, maxlen=7 )
+	h3( seq = "cc$" )

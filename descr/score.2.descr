@@ -1,0 +1,22 @@
+descr
+	h5( minlen=10, maxlen=15, pairfrac=.8 )
+		ss( minlen=5, maxlen=10, seq="^gcc" )
+	h3
+
+score
+	{
+	  if( mispairs( h5( index=1 ) ) >= 2 ){
+		len = length( h5( index=1 ) );
+		mpos = 0;
+		for( i = 1; i <= len; i++ ){
+			if( !paired( h5( index=1, pos=i, len=1 ) ) ){
+				if( mpos == 0 )
+					mpos = i;
+				else if( mpos == i - 1 )
+					REJECT;
+				else
+					mpos = i;
+			}
+		}
+	  }
+	}

@@ -1,0 +1,4 @@
+descr
+	h5( minlen=5, maxlen=15, pairfrac=.8, seq="^gc" )
+		ss( seq="^gnra$" )
+	h3

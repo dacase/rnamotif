@@ -1,0 +1,9 @@
+#
+#	The simplest non-trivial rnamot descriptor a hairpin
+#	with a stem that can be 3-7 bp's long and a loop of
+#	of 4-7 bases.  
+#
+descr
+	h5( minlen=3, maxlen=7 )
+		ss( minlen=4, maxlen=7 )
+	h3

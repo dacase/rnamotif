@@ -1,0 +1,9 @@
+parms
+	wc += gu;
+
+descr
+	ss( minlen=4, maxlen=5, seq="mmmm$" )
+	h5( seq="^gyyyu$" )
+		ss( seq="^hhuh$" )
+	h3( seq="^arrrc$" )
+	ss( minlen=2, maxlen=5, seq="^mm" )

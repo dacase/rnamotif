@@ -1,0 +1,113 @@
+From decker@isisph.com Sat Oct  3 14:41:22 1998
+From: decker@isisph.com
+X-Lotus-FromDomain: ISIS
+To: "Gary Fogel" <gfogel@natural-selection.com>
+cc: rgutell@pundit.icmb.utexas.edu, gauthere@igs.cnrs-mrs.fr,
+        rsampath@isisph.com, Tom Macke <macke@peano.scripps.edu>,
+        jmcneil@isisph.com
+Date: Sat, 3 Oct 1998 14:40:02 -0700
+Subject: Re: Fw: RNA Mot descriptor
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Length: 2821
+
+Gary,
+
+Indeed, your message arrived today for the first time.  I will forward to
+Tom Mackie and the collaborative group.
+I don't see any flaws in your descriptor language.  Perhaps Robin might
+respond.
+Dave
+
+
+On 10/03/1998 1:19:51 PM, "Gary Fogel" <gfogel@natural-selection.com>
+wrote:
+> Dave,
+>
+> Not sure if this note made it to you yesterday...I thought it best to
+> send it to you again.
+>
+> Best regards,
+>
+> Gary
+>
+>
+>
+>
+> Dear Group,
+>
+> With regards to the RNA Mot descriptor of the pseudoknot we drew on
+> the board yesterday, I have convinced myself that our seven letter
+> descriptor language will work properly.  The particular pseudoknot we
+> drew yesterday translates to:
+>
+> SHIHIJIJS
+>
+> It seems to me that this is a unique descriptor of the pseudoknot
+> because of the three "I" internal loops.  If we replace the second
+> "I" with a "L", then the descriptor SHIHLJIJS can also describe a
+> stem loop structure.  Please double check me on this.
+>
+> Below is the description of the RNA Mot language in a draft letter
+> for Tom Mackey.  Feel free to re-write it as you see fit.  I am
+> leaving town on Sunday and hope to check email once again before I go.
+>
+> Best regards,
+>
+> Gary
+>
+>
+>
+> ****
+>
+> Dear Tom,
+>
+> I have been asked by Dave Ecker and the group at Isis Pharmaceuticals
+> to describe an RNA Mot descriptor language we have recently
+> developed.  The original development of this descriptor language was
+> made with the help of Robin Gutell and Daniel Gautheret and the rest
+> of the group, the day after Robin's lecture at Isis that you
+> attended.  We wanted to make you aware of it as it seems to be quite
+> robust, simple, and well suited to the applications we are intending
+> as a follow on to your RNA Mot version 2.  These follow-on
+> applications include sequence comparison and alignment of structure
+> descriptors, so it is of paramount importance that we keep the
+> descriptor language as simple as possible.
+>
+> For a given RNA structure, six structure "classes" can be
+> identified.  These are loop (L), internal loop (I), bulge (B), single
+> strand (S), helix (H) and corresponding antiparallel complement (J).
+> Each base in a structure is given one of the six structure form
+> descriptors.  For instance, for the structure:
+>
+>     A  A
+>  A        A
+>    A -  U
+>    G - C
+>    C - G
+>    A - U
+>    U - A
+>   A    A
+>  G     G
+> 5'       3'
+>
+> Can be written as:
+>
+> Nucleotide sequence:        5'-GAUACGAAAAAUCGUAAG-3'
+> Structure descriptor:       5'-SSHHHHHLLLLJJJJJSS-3'
+>
+> This descriptor language appears to be robust enough to handle
+> pseudoknots and yet is simple enough for us to used in sequence
+> comparison.
+>
+> Please let us know if you might be able to incorporate this
+> descriptor language in your new version of RNA Mot.
+>
+> ******
+>
+>
+>  - att1.htm
+
+
+

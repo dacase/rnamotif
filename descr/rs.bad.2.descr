@@ -1,0 +1,4 @@
+parms
+	uu = {"u:u"};
+descr
+	h5( pair=uu, len=5 ) ss(len=4) h3
