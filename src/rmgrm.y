@@ -109,7 +109,7 @@ strhdr		: strtype	{ if( context == CTX_DESCR )
 strtype		: SYM_SS	{ $$ = SYM_SS; }
 		| SYM_H5	{ $$ = SYM_H5; }
 		| SYM_H3	{ $$ = SYM_H3; }
-		| SYM_P5	{ $$ = SYM_H5; }
+		| SYM_P5	{ $$ = SYM_P5; }
 		| SYM_P3	{ $$ = SYM_P3; }
 		| SYM_T1	{ $$ = SYM_T1; }
 		| SYM_T2	{ $$ = SYM_T2; }
