@@ -5,6 +5,8 @@
 #include "rnamot.h"
 #include "y.tab.h"
 
+#define	MIN(a,b)	((a)<(b)?(a):(b))
+
 #define	ISLVAL(s)	\
 	((s)==SYM_ASSIGN||(s)==SYM_PLUS_ASSIGN||(s)==SYM_MINUS_ASSIGN||\
 	 (s)==SYM_PERCENT_ASSIGN||(s)==SYM_SLASH_ASSIGN||(s)==SYM_STAR_ASSIGN||\
@@ -33,6 +35,8 @@ static	int	ifstkp = 0;
 static	int	loopstk[ 100 ];
 static	NODE_T	*loopincrstk[ 100 ];
 static	int	loopstkp = 0;
+
+static	char	*sc_sbuf;
 
 #define	OP_NOOP		0	/* No Op	 	*/
 #define	OP_ACPT		1	/* Accept the candidate	*/
@@ -619,13 +623,15 @@ FILE	*fp;
 	}
 }
 
-int	SC_run()
+int	SC_run( sbuf )
+char	sbuf[];
 {
 	INST_T	*ip;
 	
 	if( l_prog <= 0 )
 		return( 1 );
 
+	sc_sbuf = sbuf;
 	sp = mp = -1;
 	for( pc = 0; ; ){
 		if( pc < 0 || pc >= l_prog ){
@@ -635,8 +641,10 @@ int	SC_run()
 		}
 		ip = &prog[ pc ];
 
+/*
 fprintf( stdout, "SC_run, pc = %4d, op = %s\n", pc, opnames[ ip->i_op ] );
 dumpstk( stdout, "before op" );
+*/
 
 		pc++;
 		switch( ip->i_op ){
@@ -764,7 +772,9 @@ dumpstk( stdout, "before op" );
 			exit( 1 );
 			break;
 		}
+/*
 dumpstk( stdout, "after op" );
+*/
 	}
 }
 
@@ -976,13 +986,61 @@ int	strel;
 static	void	do_fcl( ip )
 INST_T	*ip;
 {
+	char	*cp;
+	int	len;
 
+	if( !strcmp( ip->i_val.v_value.v_pval, "length" ) ){
+		cp = mem[ sp ].v_value.v_pval;
+		len = strlen( cp );
+		free( cp );
+		mem[ sp ].v_type = T_INT;
+		mem[ sp ].v_value.v_ival = len;
+	}
 }
 
 static	void	do_strf( ip )
 INST_T	*ip;
 {
+	int	index;
+	int	pos;
+	int	len;
+	STREL_T	*stp;
+	char	*cp;
 
+	len   = mem[ sp     ].v_value.v_ival;
+	pos   = mem[ sp - 1 ].v_value.v_ival;
+	index = mem[ sp - 2 ].v_value.v_ival;
+	if( index < 0 || index >= rm_n_descr ){
+		fprintf( stderr, "do_strf: no such descriptor %d.\n", index );
+		exit( 1 );
+	}
+	stp = &rm_descr[ index ];
+	if( pos < 1 ){
+		fprintf( stderr, "do_strf: pos must be > 0.\n" );
+		exit( 1 );
+	}else if( pos > stp->s_matchlen ){
+		fprintf( stderr, "do_strf: pos must be <= %d.\n",
+			stp->s_matchlen );
+		exit( 1 );
+	}
+	pos--;
+	if( len == 0 ){ 
+		fprintf( stderr, "do_strf: len must be > 0.\n" );
+		exit( 1 );
+	}else if( len == UNDEF )	/* rest of string */
+		len = stp->s_matchlen - pos;
+	else
+		len = MIN( stp->s_matchlen - pos, len );
+	cp = ( char * )malloc( ( len + 1 ) * sizeof( char ) );
+	if( cp == NULL ){
+		fprintf( stderr, "do_strf: can't allocate cp.\n" );
+		exit( 1 );
+	}
+	strncpy( cp, &sc_sbuf[ stp->s_matchoff + pos ], len );
+	cp[ len ] = '\0';
+	sp -= 2; 
+	mem[ sp ].v_type = T_STRING;
+	mem[ sp ].v_value.v_pval = cp; 
 }
 
 static	void	do_lda( ip )
@@ -1004,7 +1062,10 @@ INST_T	*ip;
 			idp->i_name );
 		exit( 1 );
 	}else{
+/*
 		v_top->v_type = idp->i_type;
+*/
+		v_top->v_type = T_IDENT;
 		v_top->v_value.v_pval = idp;
 	}
 }
@@ -1104,13 +1165,14 @@ static	void	do_sto()
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
 	IDENT_T	*idp;
+	char	*cp;
 
 	v_top = &mem[ sp ];
 	t_top = v_top->v_type;
 	sp--;
 	v_tm1 = &mem[ sp ];
-	t_tm1 = v_tm1->v_type;
 	idp = v_tm1->v_value.v_pval;
+	t_tm1 = idp->i_type;
 	
 	switch( T_IJ( t_tm1, t_top ) ){
 	case T_IJ( T_UNDEF, T_INT ):
@@ -1126,6 +1188,16 @@ static	void	do_sto()
 		idp->i_val.v_value.v_ival = v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_UNDEF, T_STRING ):
+		cp = ( char * )malloc( strlen( v_top->v_value.v_pval ) + 1 );
+		if( cp == NULL ){
+			fprintf( stderr,
+				"do_sto: can't allocate new string.\n" );
+			exit( 1 );
+		}
+		strcpy( cp, v_top->v_value.v_pval );
+		idp->i_type = T_STRING;
+		idp->i_val.v_type = T_STRING;
+		idp->i_val.v_value.v_pval = cp;
 		break;
 	case T_IJ( T_UNDEF, T_PAIR ):
 		break;
@@ -1144,6 +1216,15 @@ static	void	do_sto()
 		idp->i_val.v_value.v_fval = v_top->v_value.v_fval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
+		cp = ( char * )malloc( strlen( v_top->v_value.v_pval ) + 1 );
+		if( cp == NULL ){
+			fprintf( stderr,
+				"do_sto: can't allocate new string.\n" );
+			exit( 1 );
+		}
+		strcpy( cp, v_top->v_value.v_pval );
+		free( idp->i_val.v_value.v_pval );
+		idp->i_val.v_value.v_pval = cp;
 		break;
 	case T_IJ( T_PAIR, T_PAIR ) :
 		break;
@@ -1252,12 +1333,14 @@ static	void	do_gtr()
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
+	char	*s_tm1, *s_top;
 
 	v_top = &mem[ sp ];
 	t_top = v_top->v_type;
 	sp--;
 	v_tm1 = &mem[ sp ];
 	t_tm1 = v_tm1->v_type;
+	v_tm1->v_type = T_INT;
 	
 	switch( T_IJ( t_tm1, t_top ) ){
 	case T_IJ( T_INT, T_INT ) :
@@ -1277,8 +1360,11 @@ static	void	do_gtr()
 			v_tm1->v_value.v_fval > v_top->v_value.v_fval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
-		v_tm1->v_value.v_ival =
-			strcmp(v_tm1->v_value.v_pval,v_top->v_value.v_pval) > 0;
+		s_tm1 = v_tm1->v_value.v_pval;
+		s_top = v_top->v_value.v_pval;
+		v_tm1->v_value.v_ival = strcmp( s_tm1, s_top ) > 0;
+		free( s_top );
+		free( s_tm1 );
 		break;
 	default :
 		fprintf( stderr, "do_gtr: type mismatch.\n" );
@@ -1291,12 +1377,14 @@ static	void	do_geq()
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
+	char	*s_tm1, *s_top;
 
 	v_top = &mem[ sp ];
 	t_top = v_top->v_type;
 	sp--;
 	v_tm1 = &mem[ sp ];
 	t_tm1 = v_tm1->v_type;
+	v_tm1->v_type = T_INT;
 	
 	switch( T_IJ( t_tm1, t_top ) ){
 	case T_IJ( T_INT, T_INT ) :
@@ -1316,8 +1404,11 @@ static	void	do_geq()
 			v_tm1->v_value.v_fval >= v_top->v_value.v_fval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
-		v_tm1->v_value.v_ival =
-			strcmp(v_tm1->v_value.v_pval,v_top->v_value.v_pval)>=0;
+		s_tm1 = v_tm1->v_value.v_pval;
+		s_top = v_top->v_value.v_pval;
+		v_tm1->v_value.v_ival = strcmp( s_tm1, s_top ) >= 0;
+		free( s_top );
+		free( s_tm1 );
 		break;
 	default :
 		fprintf( stderr, "do_geq: type mismatch.\n" );
@@ -1330,12 +1421,14 @@ static	void	do_equ()
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
+	char	*s_tm1, *s_top;
 
 	v_top = &mem[ sp ];
 	t_top = v_top->v_type;
 	sp--;
 	v_tm1 = &mem[ sp ];
 	t_tm1 = v_tm1->v_type;
+	v_tm1->v_type = T_INT;
 	
 	switch( T_IJ( t_tm1, t_top ) ){
 	case T_IJ( T_INT, T_INT ) :
@@ -1355,8 +1448,11 @@ static	void	do_equ()
 			v_tm1->v_value.v_fval == v_top->v_value.v_fval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
-		v_tm1->v_value.v_ival =
-			strcmp(v_tm1->v_value.v_pval,v_top->v_value.v_pval)==0;
+		s_tm1 = v_tm1->v_value.v_pval;
+		s_top = v_top->v_value.v_pval;
+		v_tm1->v_value.v_ival = strcmp( s_tm1, s_top ) == 0;
+		free( s_top );
+		free( s_tm1 );
 		break;
 	default :
 		fprintf( stderr, "do_equ: type mismatch.\n" );
@@ -1369,12 +1465,14 @@ static	void	do_neq()
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
+	char	*s_tm1, *s_top;
 
 	v_top = &mem[ sp ];
 	t_top = v_top->v_type;
 	sp--;
 	v_tm1 = &mem[ sp ];
 	t_tm1 = v_tm1->v_type;
+	v_tm1->v_type = T_INT;
 	
 	switch( T_IJ( t_tm1, t_top ) ){
 	case T_IJ( T_INT, T_INT ) :
@@ -1394,8 +1492,11 @@ static	void	do_neq()
 			v_tm1->v_value.v_fval != v_top->v_value.v_fval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
-		v_tm1->v_value.v_ival =
-			strcmp(v_tm1->v_value.v_pval,v_top->v_value.v_pval)!=0;
+		s_tm1 = v_tm1->v_value.v_pval;
+		s_top = v_top->v_value.v_pval;
+		v_tm1->v_value.v_ival = strcmp( s_tm1, s_top ) != 0;
+		free( s_top );
+		free( s_tm1 );
 		break;
 	default :
 		fprintf( stderr, "do_neq: type mismatch.\n" );
@@ -1408,12 +1509,14 @@ static	void	do_leq()
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
+	char	*s_tm1, *s_top;
 
 	v_top = &mem[ sp ];
 	t_top = v_top->v_type;
 	sp--;
 	v_tm1 = &mem[ sp ];
 	t_tm1 = v_tm1->v_type;
+	v_tm1->v_type = T_INT;
 	
 	switch( T_IJ( t_tm1, t_top ) ){
 	case T_IJ( T_INT, T_INT ) :
@@ -1433,8 +1536,11 @@ static	void	do_leq()
 			v_tm1->v_value.v_fval <= v_top->v_value.v_fval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
-		v_tm1->v_value.v_ival =
-			strcmp(v_tm1->v_value.v_pval,v_top->v_value.v_pval)<=0;
+		s_tm1 = v_tm1->v_value.v_pval;
+		s_top = v_top->v_value.v_pval;
+		v_tm1->v_value.v_ival = strcmp( s_tm1, s_top ) <= 0;
+		free( s_top );
+		free( s_tm1 );
 		break;
 	default :
 		fprintf( stderr, "do_leq: type mismatch.\n" );
@@ -1447,12 +1553,14 @@ static	void	do_les()
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
+	char	*s_tm1, *s_top;
 
 	v_top = &mem[ sp ];
 	t_top = v_top->v_type;
 	sp--;
 	v_tm1 = &mem[ sp ];
 	t_tm1 = v_tm1->v_type;
+	v_tm1->v_type = T_INT;
 	
 	switch( T_IJ( t_tm1, t_top ) ){
 	case T_IJ( T_INT, T_INT ) :
@@ -1472,8 +1580,11 @@ static	void	do_les()
 			v_tm1->v_value.v_fval < v_top->v_value.v_fval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
-		v_tm1->v_value.v_ival =
-			strcmp(v_tm1->v_value.v_pval,v_top->v_value.v_pval) < 0;
+		s_tm1 = v_tm1->v_value.v_pval;
+		s_top = v_top->v_value.v_pval;
+		v_tm1->v_value.v_ival = strcmp( s_tm1, s_top ) < 0;
+		free( s_top );
+		free( s_tm1 );
 		break;
 	default :
 		fprintf( stderr, "do_les: type mismatch.\n" );
@@ -1681,8 +1792,8 @@ static	void	do_i_pp()
 	IDENT_T	*ip;
 
 	v_top = &mem[ sp ];
-	t_top = v_top->v_type;
 	ip = v_top->v_value.v_pval;
+	t_top = ip->i_type;
 	
 	switch( t_top ){
 	case T_UNDEF :
