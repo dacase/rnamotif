@@ -47,9 +47,11 @@ int	d_hierarchy;
 		for( stp = rm_descr, i = 0; i < rm_n_descr; i++, stp++ )
 			RM_dump_descr( fp, stp );
 	}
+
 	if( d_sites ){
 		RM_dump_sites( fp );
 	}
+
 	if( d_hierarchy ){
 		fprintf( fp,
 	"descr minl  maxl  mngl  mxgl  mnil  mxil start  stop  descr\n" );
@@ -350,7 +352,7 @@ STREL_T	*stp;
 	fprintf( fp, "\n" );
 
 	fprintf( fp, "\tstart    = " );
-	if( stp->s_start.a_offset = UNDEF )
+	if( stp->s_start.a_offset == UNDEF )
 		fprintf( fp, "UNDEF" );
 	else if( stp->s_start.a_l2r )
 		fprintf( fp, "$%d", stp->s_start.a_offset );
@@ -359,7 +361,7 @@ STREL_T	*stp;
 	fprintf( fp, "\n" );
 
 	fprintf( fp, "\tstop     = " );
-	if( stp->s_stop.a_offset = UNDEF )
+	if( stp->s_stop.a_offset == UNDEF )
 		fprintf( fp, "UNDEF" );
 	else if( stp->s_stop.a_l2r )
 		fprintf( fp, "%d", stp->s_stop.a_offset );
