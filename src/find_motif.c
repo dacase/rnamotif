@@ -60,6 +60,7 @@ static	int	chk_triplex();
 static	int	chk_4plex();
 static	int	chk_sites();
 static	int	chk_1_site();
+static	int	chk_seq();
 
 static	void	print_match();
 static	void	mk_cstr();
@@ -242,6 +243,9 @@ SEARCH_T	*srp;
 		return( 0 );
 
 	if( stp->s_seq != NULL ){
+		if( !chk_seq( stp, &fm_sbuf[ szero ], slen ) )
+			return( 0 );
+/*
 		strncpy( fm_chk_seq, &fm_sbuf[ szero ], slen );
 		fm_chk_seq[ slen ] = '\0';
 		circf = *stp->s_seq == '^';
@@ -251,6 +255,7 @@ SEARCH_T	*srp;
 				return( 0 );
 		}else if( !step( fm_chk_seq, stp->s_expbuf ) )
 			return( 0 );
+*/
 	}
 
 	mark_ss( stp, szero, slen);
@@ -260,6 +265,8 @@ SEARCH_T	*srp;
 		rv = find_motif( n_srp );
 	}else{
 		rv = 1;
+		if( !chk_sites( rm_n_descr, rm_descr, rm_sites ) )
+			return( 0 );
 		print_match( stdout, fm_sid, fm_comp, rm_n_descr, rm_descr );
 /*
 		if( chk_motif( rm_n_descr, rm_descr, rm_sites ) ){
@@ -749,6 +756,9 @@ int	*hlen;
 		return( 0 );
 
 	if( stp->s_seq != NULL ){
+		if( !chk_seq( stp, &fm_sbuf[ s5 ], *hlen ) )
+			return( 0 );
+/*
 		strncpy( fm_chk_seq,  &fm_sbuf[ s5 ], *hlen );
 		fm_chk_seq[ *hlen ] = '\0';
 		circf = *stp->s_seq == '^';
@@ -758,8 +768,12 @@ int	*hlen;
 				return( 0 );
 		}else if( !step( fm_chk_seq, stp->s_expbuf ) )
 			return( 0 );
+*/
 	}
 	if( stp3->s_seq != NULL ){
+		if( !chk_seq( stp3, &fm_sbuf[ s3 ], *hlen ) )
+			return( 0 );
+/*
 		strncpy( fm_chk_seq,  &fm_sbuf[ s3 - *hlen + 1 ], *hlen );
 		fm_chk_seq[ *hlen ] = '\0';
 		circf = *stp3->s_seq == '^';
@@ -769,6 +783,7 @@ int	*hlen;
 				return( 0 );
 		}else if( !step( fm_chk_seq, stp3->s_expbuf ) )
 			return( 0 );
+*/
 	}
 
 	return( 1 );
@@ -833,6 +848,9 @@ int	*hlen;
 			return( 0 );
 
 		if( stp->s_seq != NULL ){
+			if( !chk_seq( stp, &fm_sbuf[ s5 ], *hlen ) )
+				return( 0 );
+/*
 			strncpy( fm_chk_seq, &fm_sbuf[ s5 ], *hlen );
 			fm_chk_seq[ *hlen ] = '\0'; 
 			circf = *stp->s_seq == '^';
@@ -842,8 +860,12 @@ int	*hlen;
 					return( 0 );
 			} else if( !step( fm_chk_seq, stp->s_expbuf ) )
 				return( 0 );
+*/
 		}
 		if( stp3->s_seq != NULL ){
+			if( !chk_seq( stp3, &fm_sbuf[ s3-*hlen+1 ], *hlen ) )
+				return( 0 );
+/*
 			strncpy( fm_chk_seq, &fm_sbuf[ s3-*hlen+1 ], *hlen );
 			fm_chk_seq[ *hlen ] = '\0'; 
 			circf = *stp3->s_seq == '^';
@@ -853,6 +875,7 @@ int	*hlen;
 					return( 0 );
 			}else if( !step( fm_chk_seq, stp3->s_expbuf ) )
 				return( 0 );
+*/
 		}
 		return( 1 );
 	}
@@ -897,6 +920,9 @@ int	tlen;
 		return( 0 );
 
 	if( stp1->s_seq != NULL ){
+		if( !chk_seq( stp1, &fm_sbuf[ s2 - tlen + 1 ], tlen ) )
+			return( 0 );
+/*
 		strncpy( fm_chk_seq, &fm_sbuf[ s2 - tlen + 1 ], tlen );
 		fm_chk_seq[ tlen ] = '\0';
 		circf = *stp1->s_seq == '^';
@@ -906,6 +932,7 @@ int	tlen;
 				return( 0 );
 		}else if( !step( fm_chk_seq, stp1->s_expbuf ) )
 			return( 0 );
+*/
 	}
 
 	return( 1 );
@@ -952,6 +979,9 @@ int	qlen;
 		return( 0 );
 
 	if( stp1->s_seq != NULL ){
+		if( !chk_seq( stp1, &fm_sbuf[ s2 ], qlen ) )
+			return( 0 );
+/*
 		strncpy( fm_chk_seq, &fm_sbuf[ s2 ], qlen );
 		fm_chk_seq[ qlen ] = '\0';
 		circf = *stp1->s_seq == '^';
@@ -961,9 +991,13 @@ int	qlen;
 				return( 0 );
 		}else if( !step( fm_chk_seq, stp1->s_expbuf ) )
 			return( 0 );
+*/
 	}
 
 	if( stp2->s_seq != NULL ){
+		if( !chk_seq( stp2, &fm_sbuf[ s3 - qlen + 1 ], qlen ) )
+			return( 0 );
+/*
 		strncpy( fm_chk_seq, &fm_sbuf[ s3 - qlen + 1 ], qlen );
 		fm_chk_seq[ qlen ] = '\0';
 		circf = *stp2->s_seq == '^';
@@ -973,6 +1007,7 @@ int	qlen;
 				return( 0 );
 		}else if( !step( fm_chk_seq, stp2->s_expbuf ) )
 			return( 0 );
+*/
 	}
 
 	return( 1 );
@@ -1553,4 +1588,26 @@ char	mbuf[];
 			3, &fm_sbuf[ off ], len,
 			3, &fm_sbuf[ off + len - 3 ] );
 	}
+}
+
+static	int	chk_seq( stp, seq, slen )
+STREL_T	*stp;
+char	seq[];
+int	slen;
+{
+	int	i;
+	char	*csp, *sp;
+
+/*
+	strncpy( fm_chk_seq, seq, slen );
+	fm_chk_seq[ slen ] = '\0';
+*/
+	for( csp = fm_chk_seq, sp = seq, i = 0; i < slen; i++, sp++ )
+		*csp++ = ( *sp == 'u' || *sp == 'U' ) ? 't' : *sp;
+	*csp = '\0';
+	circf = *stp->s_seq == '^';
+	if( stp->s_mismatch > 0 ){
+		return( mm_step( fm_chk_seq, stp->s_expbuf, stp->s_mismatch ) );
+	}else
+		return( step( fm_chk_seq, stp->s_expbuf ) );
 }
