@@ -18,7 +18,8 @@
 
 #define	S_UNDEF		0
 #define	S_GLOBAL	1
-#define	S_LOCAL		2
+#define	S_STREL		2
+#define	S_SITE		3
 
 typedef	struct	value_t	{
 	int	v_type;
@@ -50,6 +51,7 @@ typedef	struct	node_t	{
 typedef	struct	strel_t	{
 	int	s_type;
 	char	s_index;	/* index into descr array */
+	int	s_lineno;
 	char	*s_tag;
 	struct	strel_t	*s_next;
 	struct	strel_t	*s_pairs;
