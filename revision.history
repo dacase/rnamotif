@@ -1,4 +1,4 @@
-2.3.3	2002-nov-28
+2.3.3	2002-nov-29
 	added new score builtin substr() which operates on strings.
 	replaced all calls to tempnan() with mkstemp().
 	moved the long case elements in do_scl() into their own funcs.
