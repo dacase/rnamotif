@@ -12,6 +12,7 @@ extern	int	rm_emsg_lineno;
 extern	char	rm_fname[];
 extern	int	rm_copt;
 extern	int	rm_dopt;
+extern	int	rm_hopt;
 
 static	char	emsg[ 256 ];
 
@@ -104,6 +105,8 @@ char	*argv[];
 			rm_copt = 1;
 		else if( !strcmp( argv[ ac ], "-d" ) )
 			rm_dopt = 1;
+		else if( !strcmp( argv[ ac ], "-h" ) )
+			rm_hopt = 1;
 	}
 
 	rm_lineno = 0;
