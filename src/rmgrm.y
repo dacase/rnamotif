@@ -58,14 +58,16 @@ parm_part	: SYM_PARMS { context = CTX_PARMS; } assign_list
 assign_list	: assign
 		| assign_list assign;
 assign		: ident assign_op expr
-				{ $$ = node( $2, 0, $1, $3 );
-				  if( context == CTX_DESCR )
+				{ $$ = updnode( $2, 0, $1, $3 );
+				  if( context == CTX_PARMS )
+					PARM_add( $$ );
+				  else if( context == CTX_DESCR )
 					SE_addval( $$ ); } ;
-assign_op	: SYM_ASSIGN	{ $$ = SYM_ASSIGN; }
+assign_op	: SYM_ASSIGN	{ $$ = node( SYM_ASSIGN, 0, 0, 0 ); }
 		| SYM_PLUS_ASSIGN
-				{ $$ = SYM_PLUS_ASSIGN; }
+				{ $$ = node( SYM_PLUS_ASSIGN, 0, 0, 0 ); }
 		| SYM_MINUS_ASSIGN
-				{ $$ = SYM_MINUS_ASSIGN; } ;
+				{ $$ = node( SYM_MINUS_ASSIGN, 0, 0, 0 ); } ;
 expr		: val 		{ $$ = $1; }
 		| val add_op expr
 				{ $$ = node( $2, 0, $1, $3 ); } ;
