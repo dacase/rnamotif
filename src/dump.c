@@ -48,7 +48,7 @@ int	d_hierarchy;
 	if( d_parms ){
 		fprintf( fp, "PARMS: %3d global symbols.\n", rm_n_global_ids );
 		for( ip = rm_global_ids, i = 0; i < rm_n_global_ids; i++, ip++ )
-			RM_dump_id( fp, ip );
+			RM_dump_id( fp, ip, d_parms );
 	}
 
 	if( d_descr ){
@@ -70,80 +70,86 @@ int	d_hierarchy;
 	}
 }
 
-void	RM_dump_id( fp, ip )
+void	RM_dump_id( fp, ip, fmt )
 FILE	*fp;
 IDENT_T	*ip;
+int	fmt;
 {
 	PAIRSET_T	*ps;
 
-	fprintf( fp, "%s = {\n", ip->i_name );
+	if( fmt == 1 )
+		fprintf( fp, "%s = {\n", ip->i_name );
+	else
+		fprintf( fp, "%-16s = ", ip->i_name );
 
-	fprintf( fp, "\ttype  = " );
-	switch( ip->i_type ){
-	case T_UNDEF :
-		fprintf( fp, "UNDEF\n" );
-		break;
-	case T_INT :
-		fprintf( fp, "INT\n" );
-		break;
-	case T_FLOAT :
-		fprintf( fp, "FLOAT\n" );
-		break;
-	case T_STRING :
-		fprintf( fp, "STRING\n" );
-		break;
-	case T_PAIRSET :
-		fprintf( fp, "PAIR\n" );
-		break;
-	case T_IDENT :
-		fprintf( fp, "IDENT\n" );
-		break;
-	default :
-		fprintf( fp, "-- BAD type %d\n", ip->i_type );
-		break;
+	if( fmt == 1 ){
+		fprintf( fp, "\ttype  = " );
+		switch( ip->i_type ){
+		case T_UNDEF :
+			fprintf( fp, "UNDEF\n" );
+			break;
+		case T_INT :
+			fprintf( fp, "INT\n" );
+			break;
+		case T_FLOAT :
+			fprintf( fp, "FLOAT\n" );
+			break;
+		case T_STRING :
+			fprintf( fp, "STRING\n" );
+			break;
+		case T_PAIRSET :
+			fprintf( fp, "PAIR\n" );
+			break;
+		case T_IDENT :
+			fprintf( fp, "IDENT\n" );
+			break;
+		default :
+			fprintf( fp, "-- BAD type %d\n", ip->i_type );
+			break;
+		}
+
+		fprintf( fp, "\tclass = " );
+		switch( ip->i_class ){
+		case C_UNDEF :
+			fprintf( fp, "UNDEF\n" );
+			break;
+		case C_LIT :
+			fprintf( fp, "LIT\n" );
+			break;
+		case C_VAR :
+			fprintf( fp, "VAR\n" );
+			break;
+		case C_EXPR :
+			fprintf( fp, "EXPR\n" );
+			break;
+		default :
+			fprintf( fp, "-- BAD class %d\n", ip->i_class );
+			break;
+		}
+			
+		fprintf( fp, "\tscope = " );
+		switch( ip->i_scope ){
+		case S_UNDEF :
+			fprintf( fp, "UNDEF\n" );
+			break;
+		case S_GLOBAL :
+			fprintf( fp, "GLOBAL\n" );
+			break;
+		case S_STREL :
+			fprintf( fp, "STREL\n" );
+			break;
+		case S_SITE :
+			fprintf( fp, "SITE\n" );
+			break;
+		default :
+			fprintf( fp, "-- BAD scope %d\n", ip->i_scope );
+			break;
+		}
+
+		fprintf( fp, "\treinit= %d\n", ip->i_reinit);
+		fprintf( fp, "\tvalue = " );
 	}
 
-	fprintf( fp, "\tclass = " );
-	switch( ip->i_class ){
-	case C_UNDEF :
-		fprintf( fp, "UNDEF\n" );
-		break;
-	case C_LIT :
-		fprintf( fp, "LIT\n" );
-		break;
-	case C_VAR :
-		fprintf( fp, "VAR\n" );
-		break;
-	case C_EXPR :
-		fprintf( fp, "EXPR\n" );
-		break;
-	default :
-		fprintf( fp, "-- BAD class %d\n", ip->i_class );
-		break;
-	}
-		
-	fprintf( fp, "\tscope = " );
-	switch( ip->i_scope ){
-	case S_UNDEF :
-		fprintf( fp, "UNDEF\n" );
-		break;
-	case S_GLOBAL :
-		fprintf( fp, "GLOBAL\n" );
-		break;
-	case S_STREL :
-		fprintf( fp, "STREL\n" );
-		break;
-	case S_SITE :
-		fprintf( fp, "SITE\n" );
-		break;
-	default :
-		fprintf( fp, "-- BAD scope %d\n", ip->i_scope );
-		break;
-	}
-
-	fprintf( fp, "\treinit= %d\n", ip->i_reinit);
-
-	fprintf( fp, "\tvalue = " );
 	switch( ip->i_val.v_type ){
 	case T_UNDEF :
 		fprintf( fp, "UNDEF\n" );
@@ -155,7 +161,7 @@ IDENT_T	*ip;
 		fprintf( fp, "%lg\n", ip->i_val.v_value.v_dval );
 		break;
 	case T_STRING :
-		fprintf( fp, "%s\n", ip->i_val.v_value.v_pval ?
+		fprintf( fp, "'%s'\n", ip->i_val.v_value.v_pval ?
 					ip->i_val.v_value.v_pval : "NULL" );
 		break;
 	case T_PAIRSET :
@@ -171,7 +177,8 @@ IDENT_T	*ip;
 		break;
 	}
 		
-	fprintf( fp, "}\n" );
+	if( fmt ==1 )
+		fprintf( fp, "}\n" );
 }
 
 void	RM_dump_pairset( fp, ps )

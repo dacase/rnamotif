@@ -13,6 +13,7 @@ tar cvf $tarfile \
 	./iupac.codes \
 	./letters \
 	./doc \
+	./efndata \
 	./src \
 	./test \
 	./descr \

@@ -19,6 +19,7 @@ tar cvf $tarfile \
 	./config.h* \
 	./doc \
 	./src \
+	./efndata \
 	./test \
 	./descr
 gzip -v $tarfile

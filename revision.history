@@ -1,3 +1,43 @@
+1.2.99	2000-sep-10
+	Added code that applies the turner energy rules to the selected
+	substructure.  The turner data is distribute with rnamotif in
+	the subdirectory ../efndata.  rnamotif first looks to the value
+	of the parm `efn_datadir' and if not '' uses this value as the
+	location of the Turner data.  However, if this value is '', then
+	rnamotif uses the value of the env. var EFNDATA.  If this is not
+	set, rnamotif prints a message that it can't find the efndata,
+	and any call to efn() returns a 0.
+
+	Turner rules are really only for wc+gu, although it is possible
+	to say that any two base are paired.  However, this is dangerous,
+	and probably incorrect as well, and in some case will return an
+	`infinite' value of 160.0 (?)  Nonetheless, rnamotif, provides
+	two additional symbols `efn_usestdbp' and `efn_stdbp'. The first
+	is an int with default value 1, and if !0 says tha the the proposed
+	base pair must be in the pairset efn_stdbp in order to consider it
+	paired for efn().  If efn_usestdbp is 0, then base pairs are set
+	according to the the pairset associated with the current helix.
+	Again, if this pairset is not wc or wc+gu, you are playing with fire
+	and the results are likely to be wrong!
+
+	Finally, a small, but useful change.  I added a new option to the
+	cmd line: -s which prints in the names of the global parms and their
+	default values:
+
+		rnamot -s
+		PARMS:  16 global symbols.
+		wc               = { "a:u", "c:g", "g:c", "u:a" }
+		gu               = { "g:u", "u:g" }
+		 .
+		 .
+		 .
+		efn_usestdbp     = 1
+		efn_stdbp        = { "a:u", "c:g", "g:c", "g:u", "u:a", "u:g" }
+
+	and then exits with value 0. (Normal)  I did this because I could
+	remember all those parameters and got tired of haveing to look at
+	the source just to change something!
+ 
 1.2.7	2000-jul-17
 	Fixed faulty logic that incorrectly evaluated the range of an RE,
 	ie, the \{n,m\} construct as its maxlen.  Ridid the code that 

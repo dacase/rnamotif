@@ -20,6 +20,17 @@ extern	int	rm_lineno;
 extern	int	rm_emsg_lineno;	
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
+extern	int	rm_b2bc[];
+extern	int	rm_efninit;
+extern	char	rm_efndatadir[];
+extern	int	rm_efndataok;
+extern	int	*rm_bcseq;
+extern	int	*rm_basepr;
+extern	int	*rm_hstnum;
+extern	int	rm_l_base;
+extern	int	rm_efnusestdbp;
+extern	PAIRSET_T	*rm_efnstdbp;
+
 IDENT_T	*RM_find_id();
 IDENT_T	*RM_enter_id();
 NODE_T	*RM_node();
@@ -37,6 +48,8 @@ static	int	loopstk[ 100 ];
 static	NODE_T	*loopincrstk[ 100 ];
 static	int	loopstkp = 0;
 
+static	int	sc_comp;
+static	int	sc_slen;
 static	char	*sc_sbuf;
 static	double	*sc_score;
 
@@ -115,14 +128,16 @@ static	char	*opnames[ N_OP ] = {
 	"jmp" 
 };
 
-#define	SC_LENGTH	0
-#define	SC_MISMATCHES	1
-#define	SC_MISPAIRS	2
-#define	SC_PAIRED	3
-#define	SC_STRID	4	
-#define	N_SC		5	
+#define	SC_EFN		0
+#define	SC_LENGTH	1
+#define	SC_MISMATCHES	2
+#define	SC_MISPAIRS	3
+#define	SC_PAIRED	4
+#define	SC_STRID	5
+#define	N_SC		6	
 
 static	char	*scnames[ N_SC ] = {
+	"efn",
 	"length",
 	"mismatches",
 	"mispairs",
@@ -210,11 +225,15 @@ static	void	do_pp_i();
 static	void	do_i_mm();
 static	void	do_mm_i();
 
+static	int	setupefn();
+static	int	setbp();
 static	void	mk_stref_name();
 static	void	addnode();
 static	void	addinst();
 static	void	dumpinst();
 static	void	dumpstk();
+
+char	*getenv();
 
 void	RM_action( np )
 NODE_T	*np;
@@ -428,7 +447,9 @@ FILE	*fp;
 	}
 }
 
-int	RM_score( sbuf, score )
+int	RM_score( comp, slen, sbuf, score )
+int	comp;
+int	slen;
 char	sbuf[];
 double	*score;
 {
@@ -438,6 +459,8 @@ double	*score;
 	if( l_prog <= 0 )
 		return( 1 );
 
+	sc_comp = comp;
+	sc_slen = slen;
 	sc_sbuf = sbuf;
 	sp = mp = -1;
 	for( pc = 0; ; ){
@@ -452,7 +475,6 @@ double	*score;
 fprintf( stdout, "RM_run, pc = %4d, op = %s\n", pc, opnames[ ip->i_op ] );
 dumpstk( stdout, "before op" );
 */
-
 
 		pc++;
 		switch( ip->i_op ){
@@ -720,22 +742,22 @@ NODE_T	*np;
 	}else
 		n_id = n_index != NULL ? n_index : n_tag;
 
-/*
-	np1 = mk_call_strid( n_tag, n_index, np->n_left->n_sym );
-*/
 	np1 = mk_call_strid1( sel, n_id );
 
 	/* build the 3 parms to stref	*/
 	if( n_len == NULL ){
 		v_expr.v_type = T_INT;
-		v_expr.v_value.v_ival = -1;
+		v_expr.v_value.v_ival = UNDEF;
 		np3 = RM_node( SYM_INT, &v_expr, 0, 0 );
 	}else
 		np3 = n_len;
 	np2 = RM_node( SYM_LIST, 0, np3, NULL );
 	if( n_pos == NULL ){
 		v_expr.v_type = T_INT;
+/*
 		v_expr.v_value.v_ival = 1;
+*/
+		v_expr.v_value.v_ival = UNDEF;
 		np3 = RM_node( SYM_INT, &v_expr, 0, 0 );
 	}else
 		np3 = n_pos;
@@ -775,14 +797,17 @@ NODE_T	*np;
 	/* build the 3 parms to stref	*/
 	if( n_len == NULL ){
 		v_expr.v_type = T_INT;
-		v_expr.v_value.v_ival = -1;
+		v_expr.v_value.v_ival = UNDEF;
 		np3 = RM_node( SYM_INT, &v_expr, 0, 0 );
 	}else
 		np3 = n_len;
 	np2 = RM_node( SYM_LIST, 0, np3, NULL );
 	if( n_pos == NULL ){
 		v_expr.v_type = T_INT;
+/*
 		v_expr.v_value.v_ival = 1;
+*/
+		v_expr.v_value.v_ival = UNDEF;
 		np3 = RM_node( SYM_INT, &v_expr, 0, 0 );
 	}else
 		np3 = n_pos;
@@ -945,10 +970,49 @@ static	void	fix_call( np )
 NODE_T	*np;
 {
 	int	sc, pcnt;
-	NODE_T	*np1;
+	NODE_T	*np1, *np2, *np3;
 
 	sc = is_syscall( np );
 	switch( sc ){
+	case SC_EFN :
+		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
+			pcnt++;
+		if( pcnt != 2 ){
+			rm_emsg_lineno = np->n_lineno;
+			sprintf( emsg,
+				"fix_call: function '%s' has 2 parameters.",
+				 scnames[ sc ] );
+			RM_errormsg( 1, emsg );
+		}
+		np1 = np->n_right;
+		np2 = np1->n_right;
+
+		np1 = np1->n_left;
+		np2 = np2->n_left;
+
+		if( np1->n_sym != SYM_KW_STREF && np1->n_sym != SYM_IX_STREF ){
+			rm_emsg_lineno = np1->n_lineno;
+			sprintf( emsg,
+			"fix_call: function '%s' takes only strel arguments.",
+				scnames[ sc ] );
+			RM_errormsg( 1, emsg );
+		}else{
+			np1 = np1->n_right;
+			for( np3 = np1; np3->n_right ; np3 = np3->n_right )
+				;
+		}
+		if( np2->n_sym != SYM_KW_STREF && np2->n_sym != SYM_IX_STREF ){
+			rm_emsg_lineno = np2->n_lineno;
+			sprintf( emsg,
+			"fix_call: function '%s' takes only strel arguments.",
+				scnames[ sc ] );
+			RM_errormsg( 1, emsg );
+		}else
+			np2 = np2->n_right;
+
+		np3->n_right = np2;
+		np->n_right = np1;
+		break;
 	case SC_LENGTH :
 		break;
 	case SC_MISMATCHES :
@@ -959,7 +1023,7 @@ NODE_T	*np;
 		if( pcnt != 1 ){
 			rm_emsg_lineno = np->n_lineno;
 			sprintf( emsg,
-				"fix_call: function '%s' has only 1 parameter.",
+				"fix_call: function '%s' has 1 parameter.",
 				 scnames[ sc ] );
 			RM_errormsg( 1, emsg );
 		}
@@ -1002,9 +1066,102 @@ INST_T	*ip;
 	char	*cp;
 	VALUE_T	*v_id;
 	int	stype, idx, pos, len;
-	STREL_T	*stp;
+	int	idx2, pos2, len2;
+	STREL_T	*stp, *stp2;
+	IDENT_T	*idp;
+	float	rval;
 
 	switch( ip->i_val.v_value.v_ival ){
+	case SC_EFN :
+		if( !rm_efninit ){
+			rm_efninit = 1;
+			idp = RM_find_id( "windowsize" );
+			if( RM_allocefnds( idp->i_val.v_value.v_ival ) )
+				rm_efndataok = 0;
+			else{
+				idp = RM_find_id( "efn_datadir" );
+				cp = ( char * )idp->i_val.v_value.v_pval;
+				if( cp == NULL || *cp == '\0' ){
+					if( ( cp = getenv( "EFNDATA" ) ) )
+						strcpy( rm_efndatadir, cp );
+				}else
+					strcpy( rm_efndatadir, cp );
+				idp = RM_find_id( "efn_usestdbp" );
+				rm_efnusestdbp = idp->i_val.v_value.v_ival;
+				rm_efndataok = RM_getefndata();
+			}
+		}
+
+		idx  = mem[ sp - 5 ].v_value.v_ival;
+		if( idx < 0 || idx >= rm_n_descr ){
+			rm_emsg_lineno = UNDEF;
+			sprintf( emsg, 
+		"do_scl: efn: 1st descr index must be between 1 and %d.",
+				rm_n_descr );
+			RM_errormsg( 1, emsg );
+		}
+		stp = &rm_descr[ idx ];
+		pos = mem[ sp - 4 ].v_value.v_ival;
+		if( pos == UNDEF )
+			pos = 1;
+		else if( pos < 0 ){
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, "efn: pos1 must be > 0." );
+		}else if( stp->s_matchlen == 0 ){
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1,
+	"do_scl: efn: descr1 must have match len > 0." );
+		}else if( pos > stp->s_matchlen ){
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, "do_scl: efn: pos1 must be <= %d.",
+				stp->s_matchlen );
+			RM_errormsg( 1, emsg );
+		}
+		pos--;
+		len  = mem[ sp - 3 ].v_value.v_ival;
+
+		idx2 = mem[ sp - 2 ].v_value.v_ival;
+		if( idx2 < 0 || idx2 >= rm_n_descr ){
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, 
+		"do_scl: efn: 2nd descr index must be between 1 and %d.",
+				rm_n_descr );
+			RM_errormsg( 1, emsg );
+		}else if( idx >= idx2 ){
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, 
+		"do_scl: efn: 2nd descr index must follow 1st descr.",
+				rm_n_descr );
+			RM_errormsg( 1, emsg );
+		}
+		stp2 = &rm_descr[ idx2 ];
+		pos2 = mem[ sp - 1 ].v_value.v_ival;
+		if( pos2 == UNDEF )
+			pos2 = stp2->s_matchlen;
+		else if( pos2 < 0 ){
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, "efn: pos2 must be > 0." );
+		}else if( stp2->s_matchlen == 0 ){
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1,
+	"do_scl: efn: descr2 must have match len > 0." );
+		}else if( pos > stp2->s_matchlen ){
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, "do_scl: efn: pos2 must be <= %d.",
+				stp2->s_matchlen );
+			RM_errormsg( 1, emsg );
+		}
+		pos2--;
+		len2 = mem[ sp     ].v_value.v_ival;
+		if( setupefn( ip, idx, pos, idx2, pos2 ) ){
+			rval = 0.01 * RM_efn( 0, rm_l_base, 1 );
+		}else
+			rval = EFN_INFINITY;
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+		mem[ sp ].v_type = T_FLOAT;
+		mem[ sp ].v_value.v_dval = rval;
+		break;
 	case SC_LENGTH :
 		cp = mem[ sp ].v_value.v_pval;
 		len = strlen( cp );
@@ -1023,7 +1180,6 @@ INST_T	*ip;
 				rm_n_descr );
 			RM_errormsg( 1, emsg );
 		}
-		sp -= 2;
 		stp = &rm_descr[ idx ];
 		sp = mp;
 		mp = mem[ mp ].v_value.v_ival;
@@ -1039,7 +1195,6 @@ INST_T	*ip;
 				rm_n_descr );
 			RM_errormsg( 1, emsg );
 		}
-		sp -= 2;
 		stp = &rm_descr[ idx ];
 		sp = mp;
 		mp = mem[ mp ].v_value.v_ival;
@@ -1076,7 +1231,6 @@ INST_T	*ip;
 			len = stp->s_matchlen - pos;
 		else
 			len = MIN( stp->s_matchlen - pos, len );
-		sp -= 2;
 		sp = mp;
 		mp = mem[ mp ].v_value.v_ival;
 		mem[ sp ].v_type = T_INT;
@@ -1084,16 +1238,6 @@ INST_T	*ip;
 		break;
 
 	case SC_STRID :
-/*
-		tag = mem[ sp ].v_value.v_pval;
-		idx = mem[ sp - 1 ].v_value.v_ival;
-		stype = mem[ sp - 2 ].v_value.v_ival;
-		sp -= 2;
-		sp = mp;
-		mp = mem[ mp ].v_value.v_ival;
-		mem[ sp ].v_type = T_INT;
-		mem[ sp ].v_value.v_ival = strid( stype, idx, tag );
-*/
 		v_id = &mem[ sp  ];
 		stype = mem[ sp - 1 ].v_value.v_ival;
 		sp = mp;
@@ -1101,7 +1245,6 @@ INST_T	*ip;
 		mem[ sp ].v_type = T_INT;
 		mem[ sp ].v_value.v_ival = strid1( stype, v_id );
 		break;
-
 
 	default :
 		rm_emsg_lineno = UNDEF;
@@ -1282,7 +1425,7 @@ VALUE_T	*v_id;
 				mk_stref_name( stp->s_type, name2 );
 				rm_emsg_lineno = UNDEF;
 				sprintf( emsg,
-			"strid: descr type mismatch: is %s should be %s.",
+			"strid1: descr type mismatch: is %s should be %s.",
 					name1, name2 );
 				RM_errormsg( 1, emsg );
 			}
@@ -1300,20 +1443,22 @@ VALUE_T	*v_id;
 				}else if(stp->s_type==SYM_SS && stype==SYM_SE){ 
 					idx = s;
 					break;
+/*
 				}else{
 					mk_stref_name( stype, name1 );
 					mk_stref_name( stp->s_type, name2 );
 					rm_emsg_lineno = UNDEF;
 					sprintf( emsg,
-				"strid: ambiguous descr reference: %s vs %s.",
+				"strid1: ambiguous descr reference: %s vs %s.",
 						name1, name2 );
 					RM_errormsg( 1, emsg );
+*/
 				}
 			}
 		}
 		if( idx == UNDEF ){
 			rm_emsg_lineno = UNDEF;
-			sprintf( emsg, "strid: no such descr '%s'.", tag );
+			sprintf( emsg, "strid1: no such descr '%s'.", tag );
 			RM_errormsg( 1, emsg );
 		}
 	}
@@ -1338,7 +1483,12 @@ INST_T	*ip;
 		RM_errormsg( 1, emsg );
 	}
 	stp = &rm_descr[ index ];
+/*
 	if( pos < 1 ){
+*/
+	if( pos == UNDEF )
+		pos = 1;
+	else if( pos < 0 ){
 		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_strf: pos must be > 0." );
 	}else if( stp->s_matchlen == 0 ){
@@ -2311,6 +2461,130 @@ INST_T	*ip;
 		RM_errormsg( 1, "do_mm_i: type mismatch." );
 		break;
 	}
+}
+
+static	int	setupefn( ip, idx, pos, idx2, pos2 )
+INST_T	*ip;
+int	idx;
+int	pos;
+int	idx2;
+int	pos2;
+{
+	int	i, p, inc;
+	int	off, off5, len;
+	STREL_T	*stp, *stp5, *stp3;
+	char	*bp;
+
+	stp5 = &rm_descr[ idx ];
+	off5 = stp5->s_matchoff;
+	stp3 = &rm_descr[ idx2 ];
+	for( len = 0, stp = stp5, i = idx; i <= idx2; i++, stp++ ){
+		len += stp->s_matchlen;
+	}
+	len -= pos;
+	len -= stp3->s_matchlen - ( pos2 + 1 );
+	if( sc_comp ){
+		off = sc_slen - stp5->s_matchoff + pos;
+		inc = -1;
+	}else{
+		off = stp5->s_matchoff + 1 + pos;
+		inc = 1;
+	}
+
+	i = 0;
+	bp = &sc_sbuf[ stp5->s_matchoff + pos ];
+	for( p = pos; p < stp5->s_matchlen; p++, i++ ){
+		rm_bcseq[ i ] = rm_b2bc[ *bp++ ];
+		if( stp5->s_type == SYM_H5 ){
+			if( !setbp( stp5, p, i, off5, len, rm_basepr ) ){
+			}
+		}else if( stp5->s_type == SYM_H3 ){	/* treat as ss() */
+			rm_basepr[ i ] = UNDEF;
+		}else if( stp5->s_type == SYM_SS ){
+			rm_basepr[ i ] = UNDEF;
+		}else{
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, 
+			"setupefn: efn() only works on h5/ss/h3 elements." );
+			return( 0 );
+		} 
+		rm_hstnum[ i ] = off + i * inc;
+	}
+	for( stp = &rm_descr[ stp5->s_index + 1 ]; stp < stp3; stp++ ){
+		bp = &sc_sbuf[ stp->s_matchoff ];
+		for( p = 0; p < stp->s_matchlen; p++, i++ ){
+			rm_bcseq[ i ] = rm_b2bc[ *bp++ ];
+			if( stp->s_type == SYM_H5 ){
+				if( !setbp( stp, p, i, off5, len, rm_basepr ) ){
+				}
+			}else if( stp->s_type == SYM_H3 ){
+				if( !setbp( stp, p, i, off5, len, rm_basepr ) ){
+				}
+			}else if( stp->s_type == SYM_SS ){
+				rm_basepr[ i ] = UNDEF;
+			}else{
+				rm_emsg_lineno = ip->i_lineno;
+				RM_errormsg( 1, 
+			"setupefn: efn() only works on h5/ss/h3 elements." );
+				return( 0 );
+			}
+			rm_hstnum[ i ] = off + i * inc;
+		}
+	}
+	bp = &sc_sbuf[ stp3->s_matchoff ];
+	for( p = 0; p <= pos2; p++, i++ ){
+		rm_bcseq[ i ] = rm_b2bc[ *bp++ ];
+		if( stp3->s_type == SYM_H5 ){	/* treat as ss() */
+			rm_basepr[ i ] = UNDEF;
+		}else if( stp3->s_type == SYM_H3 ){
+			if( !setbp( stp3, p, i, off5, len, rm_basepr ) ){
+			}
+		}else if( stp3->s_type == SYM_SS ){
+			rm_basepr[ i ] = UNDEF;
+		}else{
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, 
+			"setupefn: efn() only works on h5/ss/h3 elements." );
+			return( 0 );
+		} 
+		rm_hstnum[ i ] = off + i * inc;
+	}
+	rm_l_base = len - 1;
+
+	return( 1 );
+}
+
+static	int	setbp( stp, p, i, off, len, basepr )
+STREL_T	*stp;
+int	p;
+int	i;
+int	off;
+int	len;
+int	basepr[];
+{
+	STREL_T	*stp1;
+	int	p1;
+	int	bp, bp1;
+	int	b, b1;
+	PAIRSET_T	*ps;
+
+	bp = p + stp->s_matchoff - off;
+	b = sc_sbuf[ p + stp->s_matchoff ];
+
+	stp1 = stp->s_mates[ 0 ];
+	p1 = stp1->s_matchlen - p - 1;
+	bp1 = p1 + stp1->s_matchoff - off;
+	b1 = sc_sbuf[ p1 + stp1->s_matchoff ];
+
+	if( bp1 < 0 || bp1 >= len ){
+fprintf( stderr, "out of bounds bp: %4d.%4d\n", bp, bp1 ); 
+		return( 0 );
+	}else{
+		ps = rm_efnusestdbp ? rm_efnstdbp : stp->s_pairset;
+		basepr[ i ] = RM_paired( ps, b, b1 ) ? bp1 : UNDEF;
+	}
+
+	return( 1 );
 }
 
 static	void	mk_stref_name( sym, name )

@@ -8,6 +8,7 @@ extern	int	rm_copt;
 extern	int	rm_dopt;
 extern	int	rm_hopt;
 extern	int	rm_popt;
+extern	int	rm_sopt;
 extern	int	rm_vopt;
 extern	FILE	*rm_dbfp;
 extern	int	rm_dtype;
@@ -45,6 +46,7 @@ int	argc;
 char	*argv[];
 {
 	IDENT_T	*ip;
+	int	done = 0;
 	int	chk_both_strs;
 	int	show_progress;
 
@@ -53,8 +55,14 @@ char	*argv[];
 
 	if( rm_vopt ){
 		fprintf( stderr, "%s: %s.\n", argv[ 0 ], VERSION );
-		exit( 0 );
+		done = 1;
 	}
+	if( rm_sopt ){
+		RM_dump( stderr, 2, 0, 0, 0 );
+		done = 1;
+	}
+	if( done )
+		exit( 0 );
 
 	if( yyparse() ){
 		RM_errormsg( 1, "syntax error." );

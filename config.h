@@ -10,5 +10,5 @@ LEX = lex
 #CFLAGS=		-O2 -DUSE_GENBANK $(LOCAL_CFLAGS)
 
 # Uncomment & use this line for FASTN only
-CFLAGS= -O2
+CFLAGS= -O
 #CFLAGS= -g

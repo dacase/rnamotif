@@ -17,6 +17,7 @@ int	rm_copt = 0;
 int	rm_dopt = 0;
 int	rm_hopt = 0;
 int	rm_popt = 0;
+int	rm_sopt = 0;
 int	rm_vopt = 0;
 FILE	*rm_dbfp;
 int	rm_dtype = DT_FASTN;
@@ -72,6 +73,17 @@ static	int	rm_s_iupac = RM_B2BC_SIZE;
 
 SEARCH_T	**rm_searches;
 int	rm_n_searches;
+
+	/* stuff for efn rules:	*/
+int	rm_efninit;
+char	rm_efndatadir[ 256 ] = "";
+int	rm_efndataok;
+int	rm_l_base;
+int	*rm_hstnum;
+int	*rm_bcseq;
+int	*rm_basepr;
+int	rm_efnusestdbp;
+PAIRSET_T	*rm_efnstdbp;
 
 extern	int	circf;		/* RE ^ kludge	*/
 
@@ -144,6 +156,8 @@ char	*argv[];
 			rm_hopt = 1;
 		else if( !strcmp( argv[ ac ], "-p" ) )
 			rm_popt = 1;
+		else if( !strcmp( argv[ ac ], "-s" ) )
+			rm_sopt = 1;
 		else if( !strcmp( argv[ ac ], "-v" ) )
 			rm_vopt = 1;
 		else if( !strcmp( argv[ ac ], "-descr" ) ){
@@ -300,6 +314,25 @@ char	*argv[];
 	val.v_type = T_INT;
 	val.v_value.v_ival = 6000;
 	RM_enter_id( "windowsize", T_INT, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_STRING;
+	val.v_value.v_pval = "";
+	RM_enter_id( "efn_datadir", T_STRING, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 1;
+	RM_enter_id( "efn_usestdbp", T_INT, C_VAR, S_GLOBAL, 0, &val );
+
+	curpair[0] = "a:u";
+	curpair[1] = "c:g";
+	curpair[2] = "g:c";
+	curpair[3] = "g:u";
+	curpair[4] = "u:a";
+	curpair[5] = "u:g";
+	n_curpair = 6;
+	np = PR_close();
+	rm_efnstdbp = np->n_val.v_value.v_pval;
+	RM_enter_id( "efn_stdbp", T_PAIRSET, C_VAR, S_GLOBAL, 0, &np->n_val );
 
 	rm_lineno = 1;
 
@@ -2792,17 +2825,12 @@ NODE_T	*expr;
 
 }
 
-void	POS_close( parms )
-int	parms;
+void	POS_close()
 {
 	int	i;
 	IDENT_T	*ip;
 	POS_T	*i_pos;
 
-	if( !parms ){
-		RM_errormsg( 1,
-			"POS_close: site descr. requires pos parameter." );
-	}
 	for( i = 0; i < n_local_ids; i++ ){
 		ip = local_ids[ i ];
 		if( !strcmp( ip->i_name, "tag" ) ){

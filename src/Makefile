@@ -4,6 +4,7 @@ RNAMOTOBJS=	\
 	rnamot.o	\
 	compile.o	\
 	dump.o		\
+	efn.o		\
 	errormsg.o	\
 	fastn.o		\
 	find_motif.o	\
@@ -11,13 +12,14 @@ RNAMOTOBJS=	\
 	node.o		\
 	regexp.o	\
 	score.o		\
+	split.o		\
 	y.tab.o	
 
 all:	rnamot	\
 	rmfmt
 
 rnamot:	$(RNAMOTOBJS)
-	$(CC)	$(CFLAGS) -o rnamot $(RNAMOTOBJS) $(GBLIB)
+	$(CC)	$(CFLAGS) -o rnamot $(RNAMOTOBJS) $(GBLIB) -lm
 
 rnamot.o:	rnamot.h dbase.h y.tab.h
 
@@ -27,6 +29,8 @@ dump.o:		rnamot.h y.tab.h
 
 dumpnode.h:	y.tab.h mk_dumpnode.h
 		./mk_dumpnode.h y.tab.h > dumpnode.h
+
+efn.o:		rnamot.h
 
 find_motif.o:	rnamot.h y.tab.h
 
@@ -45,6 +49,9 @@ lex.yy.c:	rmlex.l
 rmfmt:		rmfmt.o split.o
 	$(CC)	$(CFLAGS) -o rmfmt rmfmt.o split.o
 
+efn_drv:	efn_drv.o efn.o errormsg.o split.o
+	$(CC)	$(CFLAGS) -o efn_drv efn_drv.o efn.o errormsg.o split.o -lm
+
 clean:
 	-rm -f 	 *.o		\
 		dumpnode.h	\
@@ -54,5 +61,6 @@ clean:
 		lex.yy.c	\
 		rnamot		\
 		rmfmt		\
+		efn_drv		\
 		core		\
 		junk*
