@@ -56,12 +56,13 @@ static	void	storeexprval();
 static	PAIRSET_T	*pairop();
 static	POS_T	*posop();
 
-static	void	seqlen();
+static	int	seqlen();
 static	int	link_tags();
 static	void	chk_tagorder();
 static	void	mk_links();
 static	void	duptags_error();
-static	int	chk_parms();
+static	int	chk_strel_parms();
+static	int	chk_1_strel_parms();
 static	void	chk_site();
 
 int	RM_init()
@@ -245,12 +246,12 @@ int	stype;
 	ip = enter_id( "seq", T_STRING, C_VAR, S_STREL, &val );
 
 	val.v_type = T_INT;
-	val.v_value.v_ival = 0;
+	val.v_value.v_ival = UNDEF;
 	ip = enter_id( "mismatch", T_INT, C_VAR, S_STREL, &val );
 
 	if( stype != SYM_SS ){ 
 		val.v_type = T_INT;
-		val.v_value.v_ival = 0;
+		val.v_value.v_ival = UNDEF;
 		ip = enter_id( "mispair", T_INT, C_VAR, S_STREL, &val );
 
 		switch( stype ){
@@ -336,7 +337,7 @@ STREL_T	descr[];
 	if( link_tags( n_descr, descr ) )
 		return( 1 );
 
-	if( chk_parms( n_descr, descr ) )
+	if( chk_strel_parms( n_descr, descr ) )
 		return( 1 );
 
 	for( sip = rm_sites; sip; sip = sip->s_next )
@@ -565,28 +566,125 @@ STREL_T	*tags[];
 	}
 }
 
-static	int	chk_parms( n_descr, descr )
+static	int	chk_strel_parms( n_descr, descr )
 int	n_descr;
 STREL_T	descr[];
 {
 	int	i;
 	STREL_T	*stp;
+	int	err;
 
-	for( stp = descr, i = 0; i < n_descr; i++, stp++ ){
-		switch( stp->s_type ){
-		case SYM_SS :
-			break;
-		case SYM_H5 :
-			break;
-		case SYM_P5 :
-			break;
-		case SYM_T1 :
-			break;
-		case SYM_Q1 :
-			break;
+	for( err = 0, stp = descr, i = 0; i < n_descr; i++, stp++ )
+		err |= chk_1_strel_parms( stp );
+	return( err );
+}
+
+static	int	chk_1_strel_parms( stp )
+STREL_T	*stp;
+{
+	int	err;
+	int	stype;
+	STREL_T	*egroup[ 4 ];
+	int	i, n_egroup;
+	STREL_T	*stp1, *stpv;
+	int	ival;
+	PAIRSET_T	*pval;
+	IDENT_T	*ip;
+
+	err = 0;
+
+	/* all elements:	*/
+	if( stp->s_mismatch == UNDEF )
+		stp->s_mismatch = 0;
+
+	stype = stp->s_type;
+
+	/* all other parms of these elements are checked during the	*/
+	/* the checking of the associated "starting" element		*/
+	if(	stype == SYM_P3 ||
+		stype == SYM_H3 ||
+		stype == SYM_T2 || stype == SYM_T3 ||
+		stype == SYM_Q2 || stype == SYM_Q3 || stype == SYM_Q4 )
+	{
+		return( err );
+	}
+
+	/* assemble a group of related elements. ss is a trivial group	*/
+	/* with 1 member						*/
+	egroup[ 0 ] = stp;
+	for( i = 0; i < stp->s_n_mates; i++ )
+		egroup[ i + 1 ] = stp->s_mates[ i ];
+	n_egroup = stp->s_n_mates + 1;
+
+	/* check & set the lengths from minlen, maxlen & seq		*/ 
+	if(	stype == SYM_SS || stype == SYM_P5 || stype == SYM_H5 ||
+		stype == SYM_T1 || stype == SYM_Q1 )
+	{
+	}
+
+	/* check & set the mispair & pair values	*/
+	if(	stype == SYM_P5 || stype == SYM_H5 ||
+		stype == SYM_T1 || stype == SYM_Q1 )
+	{
+		for( stpv = NULL, i = 0; i < n_egroup; i++ ){
+			stp1 = egroup[ i ];
+			if( stp1->s_mispair != UNDEF ){
+				if( stpv == NULL )
+					stpv = stp1;
+				else if( stpv->s_mispair != stp1->s_mispair ){
+					err = 1;
+					rm_emsg_lineno = stp1->s_lineno;
+					errormsg( 0,
+					"inconsistant mispair values." );
+				}
+			}
+		}
+		if( !err ){
+			ival = stpv ? stpv->s_mispair : 0;
+			for( i = 0; i < n_egroup; i++ ){
+				stp1 = egroup[ i ];
+				stp1->s_mispair = ival;
+			}
+		}
+
+		for( stpv = NULL, i = 0; i < n_egroup; i++ ){
+			stp1 = egroup[ i ];
+			if( stp1->s_pairset != NULL ){
+				if( stpv == NULL )
+					stpv = stp1;
+				else if( !pairop( "equal", stpv->s_pairset,
+					stp1->s_pairset ) ){
+					err = 1;
+					rm_emsg_lineno = stp1->s_lineno;
+					errormsg( 0,
+					"inconsistant pairset values." );
+				}
+			}
+		}
+		if( stpv == NULL ){
+			if( stype == SYM_P5 || stype == SYM_H5 ){
+				ip = find_id( "wc" );
+				pval = ip->i_val.v_value.v_pval;
+			}else if( stype == SYM_T1 ){
+				ip = find_id( "tr" );
+				pval = ip->i_val.v_value.v_pval;
+			}else if( stype == SYM_Q1 ){
+				ip = find_id( "qu" );
+				pval = ip->i_val.v_value.v_pval;
+			}
+		}else
+			pval = stpv->s_pairset;
+		if( !err ){
+			for( i = 0; i < n_egroup; i++ ){
+				stp1 = egroup[ i ];
+				if( stp1->s_pairset == NULL )
+					stp1->s_pairset = pairop( "copy",
+						pval, NULL );
+			}
 		}
 	}
-	return( 0 );
+
+	return( err );
 }
 
 static	IDENT_T	*enter_id( name, type, class, scope, vp )
@@ -649,14 +747,14 @@ VALUE_T	*vp;
 	return( ip );
 }
 
-	static	IDENT_T	*find_id( name )
-	char	name[];
-	{
-		int	i;
-		IDENT_T	*ip;
-		
-		for( i = 0; i < n_local_ids; i++ ){
-		ip = local_ids[ i ];
+static	IDENT_T	*find_id( name )
+char	name[];
+{
+	int	i;
+	IDENT_T	*ip;
+	
+	for( i = 0; i < n_local_ids; i++ ){
+	 	ip = local_ids[ i ];
 		if( !strcmp( name, ip->i_name ) )
 			return( ip );
 	}
@@ -966,7 +1064,7 @@ char	op[];
 PAIRSET_T	*ps1;
 PAIRSET_T	*ps2;
 {
-	int	i, j, c, b, nb, sz, diff;
+	int	i, j, c, b, nb, sz, diff, fnd;
 	PAIRSET_T	*n_ps;
 	PAIR_T	*n_pp, *pp, *ppi, *ppj;
 
@@ -1122,6 +1220,29 @@ PAIRSET_T	*ps2;
 		}
 		n_ps->ps_n_pairs = j;
 		return( n_ps );
+	}else if( !strcmp( op, "equal" ) ){
+		if( ps1->ps_n_pairs != ps2->ps_n_pairs )
+			return( NULL );
+		ppi = ps1->ps_pairs;
+		ppj = ps2->ps_pairs;
+		if( ppi->p_n_bases != ppj->p_n_bases )
+			return( NULL );
+		for( i = 0; i < ps1->ps_n_pairs; i++, ppi++ ){
+			ppj = ps2->ps_pairs;
+			for( j = 0; j < ps2->ps_n_pairs; j++, ppj++ ){
+				for( fnd = 1, b = 0; b < ppi->p_n_bases; b++ ){
+					if( ppi->p_bases[b]!=ppj->p_bases[b] ){
+						fnd = 0;
+						break;
+					}
+				}
+				if( fnd )
+					break;
+			}
+			if( !fnd )
+				return( NULL );
+		}
+		return( ps1 );
 	}else{
 		sprintf( emsg, "pairop: unknown op '%s'.", op );
 		errormsg( 1, emsg );
@@ -1178,14 +1299,90 @@ POS_T	*r_pos;
 	}
 }
 
-static	void	seqlen( seq, minlen, maxlen )
+static	int	seqlen( seq, minlen, maxlen )
 char	seq[];
 int	*minlen;
 int	*maxlen;
 {
+	char	*sp, *sp1;
+	int	rbr;
+	int	minl, maxl;
 
-	*minlen = strlen( seq );
-	*maxlen = strlen( seq );
+	/* useful exception to strict rules of RE*	*/
+	if( *seq == '*' ){
+		*minlen = 0;
+		*maxlen = UNBOUNDED;
+		return;
+	}
+
+	minl = 0;
+	maxl = 0;
+	sp = seq;
+	if( *sp == '^' )	/* leading ^ anchors to position 1 */
+		sp++;
+	while( *sp ){
+		if( *sp == '.' ){
+			if( sp[ 1 ] == '*' ){
+				maxl = UNBOUNDED;
+				sp++;
+			}else{
+				minl++;
+				if( maxl != UNBOUNDED )
+					maxl++;
+			}
+		}else if( *sp == '[' ){
+			sp++;
+			if( *sp == '^' )
+				sp++;
+			if( *sp == ']' )
+				sp++;
+			for( rbr = 0; *sp; sp++ ){
+				if( *sp == ']' ){
+					rbr = 1;
+					break;
+				}
+			}
+			if( !rbr ){
+/* ERROR: unclosed char class	*/
+				return( 0 );
+			}
+			if( sp[ 1 ] == '*' ){
+				maxl = UNBOUNDED;
+				sp++;
+			}else{
+				minl++;
+				if( maxl != UNBOUNDED )
+					maxl++;
+			}
+		}else if( *sp == '$' ){
+			if( sp[ 1 ] == '*' ){
+				maxl = UNBOUNDED;
+				sp++;
+			}else if( sp[ 1 ] != '\0' ){
+				minl++;
+				if( maxl != UNBOUNDED )
+					maxl++;
+			}
+		}else if( *sp == '\\' ){
+			if( sp[ 1 ] != '(' && sp[ 1 ] != ')' ){
+				minl++;
+				if( maxl != UNBOUNDED )
+					maxl++;
+			}
+			sp++;
+		}else if( sp[ 1 ] == '*' ){
+			maxl = UNBOUNDED;
+			sp++;
+		}else{
+			minl++;
+			if( maxl != UNBOUNDED )
+				maxl++;
+		}
+		sp++;
+	}
+	*minlen = minl;
+	*maxlen = maxl;
+	return( 1 );
 }
 
 void	POS_open( ptype )
