@@ -16,8 +16,8 @@ options:\n\
 #define	UNDEF	(-1)
 #define	UNBOUNDED	0x7fffffff
 
-#define	DT_GENBANK	0
-#define	DT_FASTN	1
+#define	DT_FASTN	0
+#define	DT_GENBANK	1
 
 #define	T_UNDEF		0
 #define	T_INT		1
