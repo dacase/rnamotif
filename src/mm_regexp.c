@@ -215,18 +215,19 @@ char	*e_expbuf;
 	printf( " %s\n", "<eof>" );
 }
 
-int	mm_step( p1, p2, mm )
+int	mm_step( p1, p2, l_mm, n_mm )
 char	*p1;
 char	*p2;
-int	mm;
+int	l_mm;
+int	*n_mm;
 {
 
 	loc1 = p1;
 	if( circf )
-		return( mm_advance( p1, p2, mm ) );
+		return( mm_advance( p1, p2, l_mm, n_mm ) );
 
 	do{
-		if( mm_advance( p1, p2, mm ) ){
+		if( mm_advance( p1, p2, l_mm, n_mm ) ){
 			loc1 = p1;
 			return( 1 );
 		}
@@ -234,15 +235,16 @@ int	mm;
 	return( 0 );
 }
 
-static	int	mm_advance( lp, ep, mm )
+static	int	mm_advance( lp, ep, l_mm, n_mm )
 char	*lp;
 char	*ep;
-int	mm;
+int	l_mm;
+int	*n_mm;
 {
 	int	neg, low;
-	int	c, m;
+	int	c;
 
-	for( m  = 0; ; ){
+	for( *n_mm  = 0; ; ){
 		neg = 0;
 		switch( *ep++ ){
 
@@ -250,8 +252,8 @@ int	mm;
 			if( *ep++ == *lp++ )
 				continue;
 			else{
-				m++;
-				if( m > mm )
+				( *n_mm )++;
+				if( *n_mm > l_mm )
 					return( 0 );
 			}
 			break;
@@ -261,8 +263,8 @@ int	mm;
 			low = *ep;
 			while( low-- ){
 				if(*lp++ != c){
-					m++;
-					if( m > mm )
+					( *n_mm )++;
+					if( *n_mm > l_mm )
 						return( 0 ); 
 				}
 			}
@@ -303,8 +305,8 @@ int	mm;
 				ep += 16;
 				continue;
 			}else{
-				m++;
-				if( m > mm )
+				( *n_mm )++;
+				if( *n_mm > l_mm )
 					return( 0 );
 			}
 			break;
@@ -316,8 +318,8 @@ int	mm;
 			while( low-- ){
 				c = *lp++;
 				if((( c & 0200 ) || !ISTHERE(c)) ^ neg ){
-					m++;
-					if( m > mm )
+					( *n_mm )++;
+					if( *n_mm > l_mm )
 						return( 0 );
 				}
 			}
