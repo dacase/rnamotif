@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "rnamot.h"
 
-extern	VALUE_T	rmval;
+extern	VALUE_T	rm_tokval;
 
 #define	CTX_START	0
 #define	CTX_PARMS	1
@@ -76,18 +76,18 @@ add_op		: SYM_PLUS	{ $$ = SYM_PLUS; }
 
 val		: ident		{ $$ = $1; }
 		| pairval 	{ $$ = $1; }
-		| SYM_INT	{ $$ = node( SYM_INT, &rmval, 0, 0 ); }
-		| SYM_DOLLAR	{ $$ = node( SYM_DOLLAR, &rmval, 0, 0 ); }
-		| SYM_STRING	{ $$ = node( SYM_STRING, &rmval, 0, 0 ); } ;
+		| SYM_INT	{ $$ = node( SYM_INT, &rm_tokval, 0, 0 ); }
+		| SYM_DOLLAR	{ $$ = node( SYM_DOLLAR, &rm_tokval, 0, 0 ); }
+		| SYM_STRING	{ $$ = node( SYM_STRING, &rm_tokval, 0, 0 ); } ;
 
-ident		: SYM_IDENT 	{ $$ = node( SYM_IDENT, &rmval, 0, 0 ); } ;
+ident		: SYM_IDENT 	{ $$ = node( SYM_IDENT, &rm_tokval, 0, 0 ); } ;
 
 pairval		: SYM_LCURLY 	{ PR_open(); } pair_list SYM_RCURLY
 				{ $$ = PR_close(); } ;
 pair_list	: pair		{ PR_add( $1 ); }
 		| pair_list SYM_COMMA pair
 				{ PR_add( $3 ); } ;
-pair		: SYM_STRING 	{ $$ = node( SYM_STRING, &rmval, 0, 0 ); };
+pair		: SYM_STRING 	{ $$ = node( SYM_STRING, &rm_tokval, 0, 0 ); };
 
 descr_part	: SYM_DESCR { context = CTX_DESCR; } strel_list ;
 strel_list	: strel
