@@ -240,7 +240,11 @@ SEARCH_T	*srp;
 		strncpy( fm_chk_seq, &fm_sbuf[ szero ], slen );
 		fm_chk_seq[ slen ] = '\0';
 		circf = *stp->s_seq == '^';
-		if( !step( fm_chk_seq, stp->s_expbuf ) )
+		if( stp->s_mismatch > 0 ){
+			if( !mm_step( fm_chk_seq,
+				stp->s_expbuf, stp->s_mismatch ) )
+				return( 0 );
+		}else if( !step( fm_chk_seq, stp->s_expbuf ) )
 			return( 0 );
 	}
 
@@ -743,14 +747,22 @@ int	*hlen;
 		strncpy( fm_chk_seq,  &fm_sbuf[ s5 ], *hlen );
 		fm_chk_seq[ *hlen ] = '\0';
 		circf = *stp->s_seq == '^';
-		if( !step( fm_chk_seq, stp->s_expbuf ) )
+		if( stp->s_mismatch > 0 ){
+			if( !mm_step( fm_chk_seq,
+				stp->s_expbuf, stp->s_mismatch ) )
+				return( 0 );
+		}else if( !step( fm_chk_seq, stp->s_expbuf ) )
 			return( 0 );
 	}
 	if( stp3->s_seq != NULL ){
 		strncpy( fm_chk_seq,  &fm_sbuf[ s3 - *hlen + 1 ], *hlen );
 		fm_chk_seq[ *hlen ] = '\0';
 		circf = *stp3->s_seq == '^';
-		if( !step( fm_chk_seq, stp3->s_expbuf ) )
+		if( stp3->s_mismatch > 0 ){
+			if( !mm_step( fm_chk_seq,
+				stp3->s_expbuf, stp3->s_mismatch ) )
+				return( 0 );
+		}else if( !step( fm_chk_seq, stp3->s_expbuf ) )
 			return( 0 );
 	}
 
@@ -819,14 +831,22 @@ int	*hlen;
 			strncpy( fm_chk_seq, &fm_sbuf[ s5 ], *hlen );
 			fm_chk_seq[ *hlen ] = '\0'; 
 			circf = *stp->s_seq == '^';
-			if( !step( fm_chk_seq, stp->s_expbuf ) )
+			if( stp->s_mismatch > 0 ){
+				if( !mm_step( fm_chk_seq,
+					stp->s_expbuf, stp->s_mismatch ) )
+					return( 0 );
+			} else if( !step( fm_chk_seq, stp->s_expbuf ) )
 				return( 0 );
 		}
 		if( stp3->s_seq != NULL ){
 			strncpy( fm_chk_seq, &fm_sbuf[ s3-*hlen+1 ], *hlen );
 			fm_chk_seq[ *hlen ] = '\0'; 
 			circf = *stp3->s_seq == '^';
-			if( !step( fm_chk_seq, stp3->s_expbuf ) )
+			if( stp3->s_mismatch > 0 ){
+				if( !mm_step( fm_chk_seq,
+					stp3->s_expbuf, stp3->s_mismatch ) )
+					return( 0 );
+			}else if( !step( fm_chk_seq, stp3->s_expbuf ) )
 				return( 0 );
 		}
 		return( 1 );
@@ -875,7 +895,11 @@ int	tlen;
 		strncpy( fm_chk_seq, &fm_sbuf[ s2 - tlen + 1 ], tlen );
 		fm_chk_seq[ tlen ] = '\0';
 		circf = *stp1->s_seq == '^';
-		if( !step( fm_chk_seq, stp1->s_expbuf ) )
+		if( stp1->s_mismatch > 0 ){
+			if( !mm_step( fm_chk_seq,
+				stp1->s_expbuf, stp1->s_mismatch ) )
+				return( 0 );
+		}else if( !step( fm_chk_seq, stp1->s_expbuf ) )
 			return( 0 );
 	}
 
@@ -926,7 +950,11 @@ int	qlen;
 		strncpy( fm_chk_seq, &fm_sbuf[ s2 ], qlen );
 		fm_chk_seq[ qlen ] = '\0';
 		circf = *stp1->s_seq == '^';
-		if( !step( fm_chk_seq, stp1->s_expbuf ) )
+		if( stp1->s_mismatch > 0 ){
+			if( !mm_step( fm_chk_seq,
+				stp1->s_expbuf, stp1->s_mismatch ) )
+				return( 0 );
+		}else if( !step( fm_chk_seq, stp1->s_expbuf ) )
 			return( 0 );
 	}
 
@@ -934,7 +962,11 @@ int	qlen;
 		strncpy( fm_chk_seq, &fm_sbuf[ s3 - qlen + 1 ], qlen );
 		fm_chk_seq[ qlen ] = '\0';
 		circf = *stp2->s_seq == '^';
-		if( !step( fm_chk_seq, stp2->s_expbuf ) )
+		if( stp2->s_mismatch > 0 ){
+			if( !mm_step( fm_chk_seq,
+				stp2->s_expbuf, stp2->s_mismatch ) )
+				return( 0 );
+		}else if( !step( fm_chk_seq, stp2->s_expbuf ) )
 			return( 0 );
 	}
 
