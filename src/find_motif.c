@@ -355,8 +355,8 @@ SEARCH_T	*srp;
 		mark_helix( stp, szero, stp2, h13, h1len );
 
 		s2_zero = szero + h1len + stp->s_minilen;
-		s20_lim = h13 - h1len - stp1->s_minilen - stp1->s_minlen;
-		s23_lim = s1_dollar + stp2->s_minilen;
+		s20_lim = h13 - h1len - stp1->s_minilen - stp1->s_minlen + 1;
+		s23_lim = s1_dollar + stp2->s_minilen + 1;
 
 		for( s2 = s2_zero; s2 <= s20_lim; s2++ ){
 			if(match_helix(stp1,s2,sdollar,s23_lim,&h23,&h2len)){
@@ -395,8 +395,8 @@ SEARCH_T	*srp;
 				}
 			}
 		}
-	}else
-		return( 0 );
+	}
+	return( 0 );
 }
 static	int	match_helix( stp, s5, s3, s3lim, h3, hlen )
 STREL_T	*stp;
