@@ -303,7 +303,7 @@ NODE_T	*np;
 {
 
 	if( n_curpair >= CURPAIR_SIZE )
-		errormsg( 1, "PR_add: current pair too large." );
+		RM_errormsg( 1, "PR_add: current pair too large." );
 	curpair[ n_curpair ] = np->n_val.v_value.v_pval;
 	n_curpair++;
 }
@@ -318,10 +318,10 @@ NODE_T	*PR_close()
 
 	ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
 	if( ps == NULL )
-		errormsg( 1, "PR_close: can't allocate pairlist." );
+		RM_errormsg( 1, "PR_close: can't allocate pairlist." );
 	pp = ( PAIR_T * )malloc( n_curpair * sizeof( PAIR_T ) );
 	if( pp == NULL )
-		errormsg( 1, "PR_close: can't allocate pair." );
+		RM_errormsg( 1, "PR_close: can't allocate pair." );
 	ps->ps_n_pairs = n_curpair;
 	ps->ps_pairs = pp;
 	for( pp = ps->ps_pairs, i = 0; i < ps->ps_n_pairs; i++, pp++ ){
@@ -329,7 +329,7 @@ NODE_T	*PR_close()
 			if( ISBASE( *bp ) ){
 				if( needbase ){
 					if( b >= 4 ){
-						errormsg( 0,
+						RM_errormsg( 0,
 			"PR_close: At most 4 bases in a pair-string." );
 						break;
 					}else{
@@ -339,25 +339,26 @@ NODE_T	*PR_close()
 						needbase = 0;
 					}
 				}else{
-					errormsg( 0,
+					RM_errormsg( 0,
 		"PR_close: pair-string is base-letter : base-letter : ..." );
 					break;
 				}
 			}else if( *bp == ':' ){
 				if( needbase ){
-					errormsg( 0,
+					RM_errormsg( 0,
 		"PR_close: pair-string is base-letter : base-letter : ..." );
 					break;
 				}
 				needbase = 1;
 			}else{
-				errormsg( 0,
+				RM_errormsg( 0,
 		"PR_close: pair-string is base-letter : base-letter : ..." );
 				break;
 			}
 		}
 		if( pp->p_n_bases < 2 || pp->p_n_bases > 4 ){
-			errormsg( 0, "PR_close: pair-string has 2-4 bases." );
+			RM_errormsg( 0,
+				"PR_close: pair-string has 2-4 bases." );
 		}
 	}
 	ps->ps_mat[ 0 ] = NULL;
@@ -366,7 +367,7 @@ NODE_T	*PR_close()
 
 	np = ( NODE_T * )malloc( sizeof( NODE_T ) );
 	if( np == NULL ){
-		errormsg( 1, "PR_close: can't allocate np." );
+		RM_errormsg( 1, "PR_close: can't allocate np." );
 	}
 	np->n_sym = SYM_LCURLY;
 	np->n_type = T_PAIR;
@@ -391,7 +392,7 @@ int	stype;
 		rm_emsg_lineno = rm_lineno;
 		sprintf( emsg, "SE_new: descr array size(%d) exceeded.",
 			rm_s_descr );
-		errormsg( 1, emsg );
+		RM_errormsg( 1, emsg );
 	}
 	stp = &rm_descr[ rm_n_descr ];
 	rm_n_descr++;
@@ -535,7 +536,7 @@ void	SE_close()
 			if( s_len ){
 				if( s_minlen || s_maxlen ){
 					rm_emsg_lineno = stp->s_lineno;
-					errormsg( 0,
+					RM_errormsg( 0,
 				"len= can't be used with minlen=/maxlen=" );
 				}else{
 					stp->s_minlen=ip->i_val.v_value.v_ival;
@@ -550,7 +551,7 @@ void	SE_close()
 			if( ip->i_val.v_value.v_fval < 0. ||
 				ip->i_val.v_value.v_fval > 1. ){
 				rm_emsg_lineno = stp->s_lineno;
-				errormsg( 0,
+				RM_errormsg( 0,
 				"matchfrac must be >= 0 and <= 1." );
 			}else
 				stp->s_matchfrac = ip->i_val.v_value.v_fval;
@@ -560,7 +561,7 @@ void	SE_close()
 			if( ip->i_val.v_value.v_fval < 0. ||
 				ip->i_val.v_value.v_fval > 1. ){
 				rm_emsg_lineno = stp->s_lineno;
-				errormsg( 0,
+				RM_errormsg( 0,
 				"pairfrac must be >= 0 and <= 1." );
 			}else
 				stp->s_pairfrac = ip->i_val.v_value.v_fval;
@@ -580,7 +581,7 @@ STREL_T	descr[];
 	int	err;
 
 	if( n_descr == 0 ){
-		errormsg( 0, "SE_link: Descriptor has 0 elements." );
+		RM_errormsg( 0, "SE_link: Descriptor has 0 elements." );
 		return( 1 );
 	}
 
@@ -603,7 +604,7 @@ STREL_T	descr[];
 	rm_searches = ( SEARCH_T ** )malloc( rm_n_descr*sizeof( SEARCH_T * ) );
 	if( rm_searches == NULL ){
 		sprintf( emsg, "SE_link: can't allocate rm_searches." );
-		errormsg( 1, emsg );
+		RM_errormsg( 1, emsg );
 	}
 	rm_n_searches = 0;
 	find_search_order( 0, descr );
@@ -636,7 +637,7 @@ STREL_T	descr[];
 		}
 		if( stp->s_tag == NULL ){
 			rm_emsg_lineno = stp->s_lineno;
-			errormsg( 0,
+			RM_errormsg( 0,
 			"all triple/quad. helix els. must be tagged." );
 		}
 	}
@@ -683,7 +684,7 @@ STREL_T	descr[];
 				"%s element has no matching %s element.",
 					stp->s_type == SYM_H3 ? "h3" : "h5",
 					stp->s_type == SYM_H3 ? "p3" : "p5" );
-				errormsg( 0, emsg );
+				RM_errormsg( 0, emsg );
 			}else{
 				tags[ 0 ] = tstk[ n_tstk - 1 ];
 				n_tstk--;
@@ -720,7 +721,7 @@ STREL_T	descr[];
 			stp1 = stp->s_mates[ 0 ];
 			if( !chk_proper_nesting( stp, stp1, descr ) ){
 				rm_emsg_lineno = stp->s_lineno;
-				errormsg( 0,
+				RM_errormsg( 0,
 				"Triplex elements must be properly nested." );
 				continue;
 			}
@@ -734,14 +735,14 @@ STREL_T	descr[];
 			stp1 = stp->s_mates[ 0 ];
 			if( !chk_proper_nesting( stp, stp1, descr ) ){
 				rm_emsg_lineno = stp->s_lineno;
-				errormsg( 0,
+				RM_errormsg( 0,
 				"Quad elements must be properly nested." );
 				continue;
 			}
 			stp2 = stp->s_mates[ 1 ];
 			if( !chk_proper_nesting( stp1, stp2, descr ) ){
 				rm_emsg_lineno = stp->s_lineno;
-				errormsg( 0,
+				RM_errormsg( 0,
 				"Quad elements must be properly nested." );
 				continue;
 			}
@@ -790,7 +791,7 @@ STREL_T	*tags[];
 			sprintf( emsg, "wc-helix '%s' has no h3() element.", 
 				tags[ 0 ]->s_tag );
 			rm_emsg_lineno = tags[ 0 ]->s_lineno;
-			errormsg( 0, emsg );
+			RM_errormsg( 0, emsg );
 		}else{
 			t2 = tags[ 1 ]->s_type;
 			if( t2 == SYM_H3 ){
@@ -808,7 +809,7 @@ STREL_T	*tags[];
 				"parallel-helix '%s' has no h3() element.", 
 				tags[ 0 ]->s_tag );
 			rm_emsg_lineno = tags[ 0 ]->s_lineno;
-			errormsg( 0, emsg );
+			RM_errormsg( 0, emsg );
 		}else{
 			t2 = tags[ 1 ]->s_type;
 			if( t2 == SYM_P3 ){
@@ -826,7 +827,7 @@ STREL_T	*tags[];
 				"triplex '%s' is has < 3 elements.",
 				tags[ 0 ]->s_tag );
 			rm_emsg_lineno = tags[ 0 ]->s_lineno;
-			errormsg( 0, emsg );
+			RM_errormsg( 0, emsg );
 		}else{
 			t2 = tags[ 1 ]->s_type;
 			t3 = tags[ 2 ]->s_type;
@@ -845,7 +846,7 @@ STREL_T	*tags[];
 				"4-plex '%s' is has < 4 elements.",
 				tags[ 0 ]->s_tag );
 			rm_emsg_lineno = tags[ 0 ]->s_lineno;
-			errormsg( 0, emsg );
+			RM_errormsg( 0, emsg );
 		}else{
 			t2 = tags[ 1 ]->s_type;
 			t3 = tags[ 2 ]->s_type;
@@ -863,7 +864,7 @@ STREL_T	*tags[];
 		sprintf( emsg, "1st use of tag '%s' is out of order.",
 			tags[ 0 ]->s_tag );
 		rm_emsg_lineno = tags[ 0 ]->s_lineno;
-		errormsg( 0, emsg );
+		RM_errormsg( 0, emsg );
 	}
 }
 
@@ -906,7 +907,7 @@ STREL_T	*tags[];
 	for( i = need; i < n_tags; i++ ){
 		sprintf( emsg, "duplicate tag '%s'.", tags[ i ]->s_tag );
 		rm_emsg_lineno = tags[ i ]->s_lineno;
-		errormsg( 0, emsg );
+		RM_errormsg( 0, emsg );
 	}
 }
 
@@ -975,7 +976,7 @@ STREL_T	descr[];
 		rm_emsg_lineno = stp->s_lineno;
 		sprintf( emsg, "fpk: INTERNAL ERROR: improper helix %d.",
 			stp->s_index );
-		errormsg( 1, emsg );
+		RM_errormsg( 1, emsg );
 	}
 
 	pknot[ 0 ] = stp;
@@ -991,7 +992,8 @@ STREL_T	descr[];
 				stp2 = stp1->s_mates[ k ];
 				if( stp2->s_index < h5 || stp2->s_index > h3 ){
 					rm_emsg_lineno = pknot[i]->s_lineno;
-					errormsg( 0, "improper pseudoknot." );
+					RM_errormsg( 0,
+						"improper pseudoknot." );
 					return;
 				}
 			}
@@ -1004,7 +1006,7 @@ STREL_T	descr[];
 	for( i = 0; i < 4; i++ ){
 		stps = ( STREL_T ** )malloc( 4 * sizeof( STREL_T * ) );
 		if( stps == NULL )
-			errormsg( 1, "find_pknot: can't alloc stps." );
+			RM_errormsg( 1, "find_pknot: can't alloc stps." );
 		for( j = 0; j < 4; j++ )
 			stps[ j ] = pknot[ j ];
 		free( pknot[i]->s_scopes );
@@ -1083,7 +1085,7 @@ STREL_T	*stp;
 				else if( stpv->s_mispair != stp1->s_mispair ){
 					err = 1;
 					rm_emsg_lineno = stp1->s_lineno;
-					errormsg( 0,
+					RM_errormsg( 0,
 					"inconsistant mispair values." );
 				}
 			}
@@ -1105,7 +1107,7 @@ STREL_T	*stp;
 					stp1->s_pairset ) ){
 					err = 1;
 					rm_emsg_lineno = stp1->s_lineno;
-					errormsg( 0,
+					RM_errormsg( 0,
 					"inconsistant pairset values." );
 				}
 			}
@@ -1159,7 +1161,7 @@ STREL_T	*egroup[];
 			else if( stp->s_minlen != minl ){
 				err = 1;
 				rm_emsg_lineno = stp->s_lineno;
-				errormsg( 0, "inconsistant minlen values." );
+				RM_errormsg( 0, "inconsistant minlen values." );
 			}
 		}
 	}
@@ -1172,7 +1174,7 @@ STREL_T	*egroup[];
 			else if( stp->s_maxlen != maxl ){
 				err = 1;
 				rm_emsg_lineno = stp->s_lineno;
-				errormsg( 0, "inconsistant maxlen values." );
+				RM_errormsg( 0, "inconsistant maxlen values." );
 			}
 		}
 	}
@@ -1186,7 +1188,7 @@ STREL_T	*egroup[];
 				( char * )malloc( l_seq*sizeof(char) );
 			if( stp->s_expbuf == NULL ){
 				rm_emsg_lineno = stp->s_lineno;
-				errormsg( 1,
+				RM_errormsg( 1,
 					"can't allocate s_expbuf." );
 			}
 			stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
@@ -1209,7 +1211,7 @@ STREL_T	*egroup[];
 			if( !mmok && stp->s_mismatch != 0 ){
 				err = 1;
 				rm_emsg_lineno = stp->s_lineno;
-				errormsg( 0,
+				RM_errormsg( 0,
 		"specified seq= and mismatch= >0 are not consistant." );
 			}
 			seq = 1;
@@ -1222,13 +1224,13 @@ STREL_T	*egroup[];
 					if( s_minl != se_minl ){
 						err = 1;
 						rm_emsg_lineno = stp->s_lineno;
-						errormsg( 0,
+						RM_errormsg( 0,
 						"inconsistant seq lengths." );
 					}
 					if( s_maxl != se_maxl ){
 						err = 1;
 						rm_emsg_lineno = stp->s_lineno;
-						errormsg( 0,
+						RM_errormsg( 0,
 						"inconsistant seq lengths." );
 					}
 				}
@@ -1252,7 +1254,7 @@ STREL_T	*egroup[];
 			if( si_minl > se_maxl ){
 				err = 1;
 				rm_emsg_lineno = egroup[ 0 ]->s_lineno;
-				errormsg( 0, "inconsistant seq lengths." );
+				RM_errormsg( 0, "inconsistant seq lengths." );
 			}
 		}
 		if( minl == UNDEF )
@@ -1260,14 +1262,14 @@ STREL_T	*egroup[];
 		else if( minl != se_minl ){
 			err = 1;
 			rm_emsg_lineno = egroup[ 0 ]->s_lineno;
-			errormsg( 0, "inconsistant seq & minlen parms." );
+			RM_errormsg( 0, "inconsistant seq & minlen parms." );
 		}
 		if( maxl == UNDEF )
 			maxl = se_maxl;
 		else if( maxl != se_maxl ){
 			err = 1;
 			rm_emsg_lineno = egroup[ 0 ]->s_lineno;
-			errormsg( 0, "inconsistant seq & maxlen parms." );
+			RM_errormsg( 0, "inconsistant seq & maxlen parms." );
 		}
 	}else if( inexact ){
 		if( minl == UNDEF )
@@ -1277,7 +1279,7 @@ STREL_T	*egroup[];
 		else if( maxl < si_minl ){
 			err = 1;
 			rm_emsg_lineno = egroup[ 0 ]->s_lineno;
-			errormsg( 0, "inconsistant seq & maxlen parms." );
+			RM_errormsg( 0, "inconsistant seq & maxlen parms." );
 		}
 	}
 
@@ -1311,7 +1313,7 @@ STREL_T	*egroup[];
 					( char * )malloc( l_seq*sizeof(char) );
 				if( stp->s_expbuf == NULL ){
 					rm_emsg_lineno = stp->s_lineno;
-					errormsg( 1,
+					RM_errormsg( 1,
 						"can't allocate s_expbuf." );
 				}
 				stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
@@ -1337,26 +1339,26 @@ VALUE_T	*vp;
 
 	if( scope == S_GLOBAL ){
 		if( rm_n_global_ids >= RM_GLOBAL_IDS_SIZE ){
-			errormsg( 1, 
+			RM_errormsg( 1, 
 				"RM_enter_id: global symbol tab overflow." );
 		}
 		ip = &rm_global_ids[ rm_n_global_ids ];
 		rm_n_global_ids++;
 	}else{
 		if( n_local_ids >= LOCAL_IDS_SIZE ){
-			errormsg( 1,
+			RM_errormsg( 1,
 				"RM_enter_id: local symbol tab overflow." );
 		}
 		ip = ( IDENT_T * )malloc( sizeof( IDENT_T ) );
 		if( ip == NULL ){
-			errormsg( 1, "RM_enter_id: can't alloc local ip." );
+			RM_errormsg( 1, "RM_enter_id: can't alloc local ip." );
 		}
 		local_ids[ n_local_ids ] = ip;
 		n_local_ids++;
 	}
 	np = ( char * )malloc( strlen( name ) + 1 );
 	if( np == NULL ){
-		errormsg( 1, "RM_enter_id: can't alloc np for name." );
+		RM_errormsg( 1, "RM_enter_id: can't alloc np for name." );
 	}
 	strcpy( np, name );
 	ip->i_name = np;
@@ -1376,7 +1378,7 @@ VALUE_T	*vp;
 				np = ( char * )
 					malloc(strlen(vp->v_value.v_pval)+1);
 				if( np == NULL ){
-					errormsg( 1,
+					RM_errormsg( 1,
 				"RM_enter_id: can't alloc np for string val." );
 				}
 				strcpy( np, vp->v_value.v_pval );
@@ -1443,7 +1445,7 @@ int	d_ok;
 			sp = ( char * )
 				malloc(strlen( expr->n_val.v_value.v_pval )+1);
 			if( sp == NULL ){
-				errormsg( 1,
+				RM_errormsg( 1,
 				"eval: can't allocate sp for string." );
 			}
 			strcpy( sp, expr->n_val.v_value.v_pval );
@@ -1477,7 +1479,7 @@ int	d_ok;
 				}else{
 					sprintf( emsg, "eval: unknown id '%s'.",
 						expr->n_val.v_value.v_pval );
-					errormsg( 1, emsg );
+					RM_errormsg( 1, emsg );
 				}
 			}
 			valstk[ n_valstk ].v_type = T_IDENT;
@@ -1516,7 +1518,7 @@ int	d_ok;
 				sp = ( char * )malloc( strlen( l_sp ) +
 					strlen( r_sp ) + 1 );
 				if( sp == NULL ){
-					errormsg( 1,
+					RM_errormsg( 1,
 					"eval: can't alloc sp for str +." );
 				}
 				strcpy( sp, l_sp );
@@ -1530,7 +1532,7 @@ int	d_ok;
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
 				break;
 			default :
-				errormsg( 1, "eval: type mismatch '+'." );
+				RM_errormsg( 1, "eval: type mismatch '+'." );
 				break;
 			}
 			n_valstk--;
@@ -1575,7 +1577,7 @@ int	d_ok;
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_pos;
 				break;
 			default :
-				errormsg( 1, "eval: type mismatch '-'." );
+				RM_errormsg( 1, "eval: type mismatch '-'." );
 				break;
 			}
 			n_valstk--;
@@ -1613,7 +1615,7 @@ int	d_ok;
 			case T_IJ( T_POS, T_POS ) :
 				break;
 			default :
-				errormsg( 1, "eval: type mismatch '='." );
+				RM_errormsg( 1, "eval: type mismatch '='." );
 				break;
 			}
 			storeexprval( ip, &valstk[ n_valstk-1 ] );
@@ -1650,7 +1652,7 @@ int	d_ok;
 				sp = ( char * )malloc( strlen( l_sp ) +
 					strlen( r_sp ) + 1 );
 				if( sp == NULL ){
-					errormsg( 1,
+					RM_errormsg( 1,
 					"eval: can't alloc sp for str +." );
 				}
 				strcpy( sp, l_sp );
@@ -1664,7 +1666,7 @@ int	d_ok;
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
 				break;
 			default :
-				errormsg( 1, "eval: type mismatch '+='." );
+				RM_errormsg( 1, "eval: type mismatch '+='." );
 				break;
 			}
 			storeexprval( ip, &valstk[ n_valstk - 2 ] );
@@ -1702,7 +1704,7 @@ int	d_ok;
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
 				break;
 			default :
-				errormsg( 1, "eval: type mismatch '+='." );
+				RM_errormsg( 1, "eval: type mismatch '+='." );
 				break;
 			}
 			storeexprval( ip, &valstk[ n_valstk - 2 ] );
@@ -1712,7 +1714,7 @@ int	d_ok;
 		default :
 			sprintf( emsg, "eval: operator %d not implemented.",
 				expr->n_sym );
-			errormsg( 1, emsg );
+			RM_errormsg( 1, emsg );
 			break;
 		}
 	}
@@ -1734,7 +1736,7 @@ VALUE_T	*vp;
 			sprintf( emsg,
 				"loadidval: id '%s' has int value UNDEF.",
 				ip->i_name );
-			errormsg( 1, emsg );
+			RM_errormsg( 1, emsg );
 		}
 		vp->v_type = T_INT;
 		vp->v_value.v_ival = ip->i_val.v_value.v_ival;
@@ -1743,11 +1745,11 @@ VALUE_T	*vp;
 			sprintf( emsg,
 				"loadidval: id '%s' has string value NULL.",
 				ip->i_name );
-			errormsg( 1, emsg );
+			RM_errormsg( 1, emsg );
 		}
 		sp = ( char * )malloc( strlen( ip->i_val.v_value.v_pval ) + 1 );
 		if( sp == NULL ){
-			errormsg( 1, "loadidval: can't allocate sp.",
+			RM_errormsg( 1, "loadidval: can't allocate sp.",
 				ip->i_name );
 		}
 		vp->v_type = T_STRING;
@@ -1761,7 +1763,7 @@ VALUE_T	*vp;
 				sprintf( emsg,
 				"loadidval: id '%s' has pair value NULL.",
 					 ip->i_name );
-				errormsg( 1, emsg );
+				RM_errormsg( 1, emsg );
 			}
 		}else
 			ps = ip->i_val.v_value.v_pval;
@@ -1791,7 +1793,7 @@ VALUE_T	*vp;
 		ip->i_type = T_STRING;
 		sp = ( char * )malloc( strlen( vp->v_value.v_pval ) + 1 );
 		if( sp == NULL ){
-			errormsg( 1, "storeexprval: can't allocate sp." );
+			RM_errormsg( 1, "storeexprval: can't allocate sp." );
 		}
 		strcpy( sp, vp->v_value.v_pval ); 
 		ip->i_val.v_type = T_STRING;
@@ -1819,7 +1821,7 @@ PAIRSET_T	*ps2;
 
 	if( !strcmp( op, "check" ) ){
 		if( ps1 == NULL ){
-			errormsg( 1, "pairop: check: ps1 == NULL." );
+			RM_errormsg( 1, "pairop: check: ps1 == NULL." );
 		}
 		pp = ps1->ps_pairs;
 		for( nb = UNDEF, i = 0; i < ps1->ps_n_pairs; i++, pp++ ){
@@ -1830,7 +1832,7 @@ PAIRSET_T	*ps2;
 				sprintf( emsg,
 	"pairop: check: pairset contains elements with %d and %d bases.",
 					nb, b );
-				errormsg( 0, emsg );
+				RM_errormsg( 0, emsg );
 				return( ps1 );
 			}
 			for( j = 0; j < b; j++ ){
@@ -1855,7 +1857,7 @@ PAIRSET_T	*ps2;
 				}
 				if( !diff ){
 					ppj->p_n_bases = 0;
-					errormsg( 0,
+					RM_errormsg( 0,
 		"pairop: check: pairset contains duplicate pair-strings." );
 				}
 			}
@@ -1882,11 +1884,11 @@ PAIRSET_T	*ps2;
 			return( NULL );
 		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
 		if( n_ps == NULL ){
-			errormsg( 1, "pairop: copy: can't allocate n_ps." );
+			RM_errormsg( 1, "pairop: copy: can't allocate n_ps." );
 		}
 		n_pp = ( PAIR_T * )malloc( ps1->ps_n_pairs*sizeof( PAIR_T ) );
 		if( n_pp == NULL ){
-			errormsg( 1, "pairop: copy: can't allocate n_pp." );
+			RM_errormsg( 1, "pairop: copy: can't allocate n_pp." );
 		}
 		n_ps->ps_n_pairs = ps1->ps_n_pairs;
 		n_ps->ps_pairs = n_pp;
@@ -1907,16 +1909,16 @@ PAIRSET_T	*ps2;
 			sprintf( emsg,
 			"pairop: add: pairsets have %d and %d elements.",
 				ppi->p_n_bases, ppj->p_n_bases );
-			errormsg( 1, emsg );
+			RM_errormsg( 1, emsg );
 		}
 		sz = ps1->ps_n_pairs + ps2->ps_n_pairs;
 		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
 		if( n_ps == NULL ){
-			errormsg( 1, "pairop: add: can't allocate n_ps." );
+			RM_errormsg( 1, "pairop: add: can't allocate n_ps." );
 		}
 		n_pp = ( PAIR_T * )malloc( sz * sizeof( PAIR_T ) );
 		if( n_pp == NULL ){
-			errormsg( 1, "pairop: add: can't allocate n_pp." );
+			RM_errormsg( 1, "pairop: add: can't allocate n_pp." );
 		}
 		n_ps->ps_n_pairs = ps1->ps_n_pairs;
 		n_ps->ps_pairs = n_pp;
@@ -1953,16 +1955,16 @@ PAIRSET_T	*ps2;
 			sprintf( emsg,
 			"pairop: sub: pairsets have %d and %d elements.",
 				ppi->p_n_bases, ppj->p_n_bases );
-			errormsg( 1, emsg );
+			RM_errormsg( 1, emsg );
 		}
 		sz = ps1->ps_n_pairs;
 		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
 		if( n_ps == NULL ){
-			errormsg( 1, "pairop: add: can't allocate n_ps." );
+			RM_errormsg( 1, "pairop: add: can't allocate n_ps." );
 		}
 		n_pp = ( PAIR_T * )malloc( sz * sizeof( PAIR_T ) );
 		if( n_pp == NULL ){
-			errormsg( 1, "pairop: add: can't allocate n_pp." );
+			RM_errormsg( 1, "pairop: add: can't allocate n_pp." );
 		}
 		n_ps->ps_n_pairs = ps1->ps_n_pairs;
 		n_ps->ps_pairs = n_pp;
@@ -2022,7 +2024,7 @@ PAIRSET_T	*ps2;
 		return( ps1 );
 	}else{
 		sprintf( emsg, "pairop: unknown op '%s'.", op );
-		errormsg( 1, emsg );
+		RM_errormsg( 1, emsg );
 		return( NULL );
 	}
 }
@@ -2043,7 +2045,7 @@ PAIRSET_T	*ps;
 	if( nb == 2 ){
 		bmatp = bpmatp = ( BP_MAT_T * )malloc( sizeof( BP_MAT_T ) );
 		if( bpmatp == NULL )
-			errormsg( 1, "mk_bmatp: can't alloc bpmatp." );
+			RM_errormsg( 1, "mk_bmatp: can't alloc bpmatp." );
 		memset( bmatp, 0, sizeof( BP_MAT_T ) );
 		for( i = 0; i < ps->ps_n_pairs; i++ ){
 			pp = &ps->ps_pairs[ i ];
@@ -2054,7 +2056,7 @@ PAIRSET_T	*ps;
 	}else if( nb == 3 ){
 		bmatp = btmatp = ( BT_MAT_T * )malloc( sizeof( BT_MAT_T ) );
 		if( btmatp == NULL )
-			errormsg( 1, "mk_bmatp: can't alloc btmatp." );
+			RM_errormsg( 1, "mk_bmatp: can't alloc btmatp." );
 		memset( bmatp, 0, sizeof( BT_MAT_T ) );
 		for( i = 0; i < ps->ps_n_pairs; i++ ){
 			pp = &ps->ps_pairs[ i ];
@@ -2066,7 +2068,7 @@ PAIRSET_T	*ps;
 	}else if( nb == 4 ){
 		bmatp = bqmatp = ( BQ_MAT_T * )malloc( sizeof( BQ_MAT_T ) );
 		if( bqmatp == NULL )
-			errormsg( 1, "mk_bmatp: can't alloc bqmatp." );
+			RM_errormsg( 1, "mk_bmatp: can't alloc bqmatp." );
 		memset( bmatp, 0, sizeof( BQ_MAT_T ) );
 		for( i = 0; i < ps->ps_n_pairs; i++ ){
 			pp = &ps->ps_pairs[ i ];
@@ -2095,7 +2097,7 @@ PAIRSET_T	*ps;
 	nb = pp->p_n_bases;
 	bmatp = bpmatp = ( BP_MAT_T * )malloc( sizeof( BP_MAT_T ) );
 	if( bpmatp == NULL )
-		errormsg( 1, "pairop: mk_rbmatp: can't alloc bpmatp." );
+		RM_errormsg( 1, "pairop: mk_rbmatp: can't alloc bpmatp." );
 	memset( bmatp, 0, sizeof( BP_MAT_T ) );
 
 	if( nb == 3 ){
@@ -2135,12 +2137,12 @@ POS_T	*r_pos;
 	if( !strcmp( op, "cvt" ) ){
 		vp = ( VALUE_T * )ptr;
 		if( vp->v_value.v_ival < 0 ){
-			errormsg( 1,
+			RM_errormsg( 1,
 		"posop: cvt: only ints > 0 can be convert to positions." );
 		}
 		n_pos = ( POS_T * )malloc( sizeof( POS_T ) );
 		if( n_pos == NULL ){
-			errormsg( 1, "posop: cvt: can't alloc n_pos." );
+			RM_errormsg( 1, "posop: cvt: can't alloc n_pos." );
 		}
 		n_pos->p_type = SYM_DOLLAR;
 		n_pos->p_lineno = rm_emsg_lineno;
@@ -2153,12 +2155,12 @@ POS_T	*r_pos;
 	}else if( !strcmp( op, "sub" ) ){
 		l_pos = ( POS_T * )ptr;
 		if( l_pos->p_addr.a_l2r || !r_pos->p_addr.a_l2r ){
-			errormsg( 1,
+			RM_errormsg( 1,
 "posop: sub: expr must have the form '% - expr'; expr is int. valued > 0." );
 		}
 		n_pos = ( POS_T * )malloc( sizeof( POS_T ) );
 		if( n_pos == NULL ){
-			errormsg( 1, "posop: sub: can't alloc n_pos." );
+			RM_errormsg( 1, "posop: sub: can't alloc n_pos." );
 		}
 		n_pos->p_type = SYM_DOLLAR;
 		n_pos->p_lineno = rm_emsg_lineno;
@@ -2169,7 +2171,7 @@ POS_T	*r_pos;
 		return( n_pos );
 	}else{
 		sprintf( emsg, "posop: unknown op '%s'.", op );
-		errormsg( 1, emsg );
+		RM_errormsg( 1, emsg );
 		return( NULL );
 	}
 }
@@ -2203,7 +2205,7 @@ char	str[];
 	*s2 = '\0';
 	sp = ( char * )malloc( strlen( seq ) + 1 );
 	if( sp == NULL ){
-		errormsg( 1, "str2seq: can't alloc sp." );
+		RM_errormsg( 1, "str2seq: can't alloc sp." );
 	}
 	strcpy( sp, seq );
 	return( sp );
@@ -2270,7 +2272,7 @@ int	*kclos;
 				sprintf( emsg,
 					"unclosed char class in pat '%s'",
 					seq );
-				errormsg( 0, emsg );
+				RM_errormsg( 0, emsg );
 				return( 0 );
 			}
 			if( sp[ 1 ] == '*' ){
@@ -2331,7 +2333,7 @@ int	ptype;
 		rm_emsg_lineno = rm_lineno;
 		sprintf( emsg,
 			"POS_open: pos array size(%d) exceeded.", rm_s_pos );
-		errormsg( 1, emsg );
+		RM_errormsg( 1, emsg );
 	}
 	posp = &rm_pos[ rm_n_pos ];
 	rm_n_pos++;
@@ -2366,7 +2368,7 @@ int	parms;
 	POS_T	*i_pos;
 
 	if( !parms ){
-		errormsg( 1,
+		RM_errormsg( 1,
 			"POS_close: site descr. requires pos parameter." );
 	}
 	for( i = 0; i < n_local_ids; i++ ){
@@ -2393,14 +2395,14 @@ NODE_T	*expr;
 	posp = ( POS_T * )malloc( rm_n_pos * sizeof( POS_T ) );
 	if( posp == NULL ){
 		rm_emsg_lineno = rm_pos[ 0 ].p_lineno;
-		errormsg( 1, "SI_close: can't allocate posp." );
+		RM_errormsg( 1, "SI_close: can't allocate posp." );
 	}
 	for( i = 0; i < rm_n_pos; i++ )
 		posp[ i ] = rm_pos[ i ];
 	sip = ( SITE_T * )malloc( sizeof( SITE_T ) );
 	if( sip == NULL ){
 		rm_emsg_lineno = rm_pos[ 0 ].p_lineno;
-		errormsg( 1, "SI_close: can't allocate sip." );
+		RM_errormsg( 1, "SI_close: can't allocate sip." );
 	}
 	sip->s_next = NULL;
 	sip->s_pos = posp;
@@ -2432,14 +2434,14 @@ SITE_T	*sip;
 	if( sip->s_n_pos != sip->s_pairset->ps_pairs[ 0 ].p_n_bases ){
 		err = 1;
 		rm_emsg_lineno = sip->s_pos[ 0 ].p_lineno;
-		errormsg( 0,
+		RM_errormsg( 0,
 	"chk_site: Number of positions in site must agree with pairset." );
 	}
 	for( posp = sip->s_pos, i = 0; i < sip->s_n_pos; i++, posp++ ){
 		if( ( sp = posp->p_tag ) == NULL ){
 			err = 1;
 			rm_emsg_lineno = posp->p_lineno;
-			errormsg( 0, "all positions must be tagged." );
+			RM_errormsg( 0, "all positions must be tagged." );
 		}else{
 			stp = rm_descr;
 			for( j = 0; j < rm_n_descr; j++, stp++ ){
@@ -2458,7 +2460,7 @@ SITE_T	*sip;
 					"position with undefined tag '%s'.",
 					sp );
 				rm_emsg_lineno = posp->p_lineno;
-				errormsg( 0, emsg );
+				RM_errormsg( 0, emsg );
 			}
 		}
 	}
@@ -2470,13 +2472,13 @@ SITE_T	*sip;
 			if( posp->p_addr.a_offset > stp->s_minlen ){
 				err = 1;
 				rm_emsg_lineno = posp->p_lineno;
-				errormsg( 0,
+				RM_errormsg( 0,
 					"position offset > strel minlen." );
 			}
 		}else if( posp->p_addr.a_offset + 1 > stp->s_minlen ){
 			err = 1;
 			rm_emsg_lineno = posp->p_lineno;
-			errormsg( 0, "position offset > strel minlen." );
+			RM_errormsg( 0, "position offset > strel minlen." );
 		}
 	}
 
@@ -2775,7 +2777,7 @@ STREL_T	descr[];
 			if( srp == NULL ){
 				sprintf( emsg,
 			"find_search_order: can't allocate srp for ss." );
-				errormsg( 1, emsg );
+				RM_errormsg( 1, emsg );
 			}
 			srp->s_descr = stp;
 			stp->s_searchno = rm_n_searches;
@@ -2793,7 +2795,7 @@ STREL_T	descr[];
 				if( srp == NULL ){
 					sprintf( emsg,
 			"find_search_order: can't allocate srp for hlx h5." );
-					errormsg( 1, emsg );
+					RM_errormsg( 1, emsg );
 				}
 				srp->s_descr = stp;
 				stp->s_searchno = rm_n_searches;
@@ -2810,7 +2812,7 @@ STREL_T	descr[];
 				if( srp == NULL ){
 					sprintf( emsg,
 			"find_search_order: can't allocate srp for pk.1 h5." );
-					errormsg( 1, emsg );
+					RM_errormsg( 1, emsg );
 				}
 				srp->s_descr = stp;
 				stp->s_searchno = rm_n_searches;
@@ -2842,7 +2844,7 @@ STREL_T	descr[];
 				rm_emsg_lineno = stp->s_lineno;
 				sprintf( emsg,
 		"find_search_order: can't allocate srp for p-hlx p5." );
-				errormsg( 1, emsg );
+				RM_errormsg( 1, emsg );
 			}
 			srp->s_descr = stp;
 			stp->s_searchno = rm_n_searches;
@@ -2862,7 +2864,7 @@ STREL_T	descr[];
 				rm_emsg_lineno = stp->s_lineno;
 				sprintf( emsg,
 		"find_search_order: can't allocate srp for triple t1." );
-				errormsg( 1, emsg );
+				RM_errormsg( 1, emsg );
 			}
 			srp->s_descr = stp;
 			stp->s_searchno = rm_n_searches;
@@ -2885,7 +2887,7 @@ STREL_T	descr[];
 				rm_emsg_lineno = stp->s_lineno;
 				sprintf( emsg,
 		"find_search_order: can't allocate srp for quad q1." );
-				errormsg( 1, emsg );
+				RM_errormsg( 1, emsg );
 			}
 			srp->s_descr = stp;
 			stp->s_searchno = rm_n_searches;
@@ -2919,7 +2921,7 @@ STREL_T	descr[];
 			rm_emsg_lineno = stp->s_lineno;
 			sprintf( emsg, "find_search_order: illegal sybmol %d.",
 				stp->s_type );
-			errormsg( 1, emsg );
+			RM_errormsg( 1, emsg );
 			break;
 		}
 		stp1 = stp->s_next;
