@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <malloc.h>
 #include <math.h>
 
 #include "rmdefs.h"
@@ -1861,6 +1862,7 @@ static	void	print_match( FILE *fp, char sid[], int comp,
 			}
 		}
 		fprintf( fp, "\n" );
+		fprintf( fp, "#RM dfile %s\n", rm_args->a_dfname );
 	}
 
 	if( h_idp != NULL ){

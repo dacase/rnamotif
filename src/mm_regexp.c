@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <malloc.h>
 
 #include "rmdefs.h"
 #include "rnamot.h"
@@ -34,7 +35,7 @@ static	int	mm_advance( char *, char *, int, int * );
 static	float	mm_classccnt( int, char [], int );
 static	int	mm_classmcnt( char [], int );
 
-char	*mm_regdup( char expbuf[], int len )
+char	*mm_regdup( char *expbuf, int len )
 {
 	char	*bp;
 

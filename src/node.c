@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <malloc.h>
 
 #include "rnamot.h"
 #include "y.tab.h"

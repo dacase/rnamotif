@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <malloc.h>
 #include <math.h>
 
 #include "rmdefs.h"

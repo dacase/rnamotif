@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <malloc.h>
 
 #define	UNDEF	(-1)
 
 #include "fmap.h"
-
-static	char	emsg[ 256 ];
 
 static	FM_ENTRY_T	*readfme( FILE *, int );
 static	int	setrange( char *, int *, int *, int );
@@ -17,14 +16,9 @@ FMAP_T	*FMread_fmap( char *fmname )
 	int	n_fme;
 	char	line[ 256 ], name[ 256 ], value[ 256 ];
 	char	*lp, *np, *vp;
-	char	*root = NULL;
-	char	*format = NULL;
 	int	g_count = 0;
 	int	count = UNDEF;
-	int	g_files = 0;
 	FMAP_T	*fmap = NULL;
-	FM_ENTRY_T	*fme = NULL;
-	char	*sp;
 	int	err = 0;
 
 	if( fmname == NULL ){

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <malloc.h>
 
 #include "rmdefs.h"
 #include "rnamot.h"

@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <malloc.h>
 
 double	atof();
 
 #include "rmdefs.h"
 #include "rnamot.h"
+#include "mm_regexp.h"
 #include "y.tab.h"
 
 ARGS_T	*rm_args;
