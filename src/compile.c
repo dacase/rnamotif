@@ -80,7 +80,7 @@ static	char	emsg[ 256 ];
 NODE_T	*PR_close();
 
 static	IDENT_T	*enter_id();
-IDENT_T	*find_id();
+IDENT_T	*RM_find_id();
 static	void	eval();
 static	int	loadidval();
 static	void	storeexprval();
@@ -467,20 +467,20 @@ int	stype;
 		case SYM_H3 :
 		case SYM_P5 :
 		case SYM_P3 :
-			ip = find_id( "wc" );
+			ip = RM_find_id( "wc" );
 			def_pairset = ip->i_val.v_value.v_pval;
 			break;
 		case SYM_T1 :
 		case SYM_T2 :
 		case SYM_T3 :
-			ip = find_id( "tr" );
+			ip = RM_find_id( "tr" );
 			def_pairset = ip->i_val.v_value.v_pval;
 			break;
 		case SYM_Q1 :
 		case SYM_Q2 :
 		case SYM_Q3 :
 		case SYM_Q4 :
-			ip = find_id( "qu" );
+			ip = RM_find_id( "qu" );
 			def_pairset = ip->i_val.v_value.v_pval;
 			break;
 		}
@@ -1102,13 +1102,13 @@ STREL_T	*stp;
 		}
 		if( stpv == NULL ){
 			if( stype == SYM_P5 || stype == SYM_H5 ){
-				ip = find_id( "wc" );
+				ip = RM_find_id( "wc" );
 				pval = ip->i_val.v_value.v_pval;
 			}else if( stype == SYM_T1 ){
-				ip = find_id( "tr" );
+				ip = RM_find_id( "tr" );
 				pval = ip->i_val.v_value.v_pval;
 			}else if( stype == SYM_Q1 ){
-				ip = find_id( "qu" );
+				ip = RM_find_id( "qu" );
 				pval = ip->i_val.v_value.v_pval;
 			}
 		}else
@@ -1274,7 +1274,7 @@ STREL_T	*egroup[];
 	if( minl == UNDEF ){
 		stp = egroup[ 0 ];
 		if( stp->s_type == SYM_H5 ){
-			ip = find_id( "wc_minlen" );
+			ip = RM_find_id( "wc_minlen" );
 			minl = ip->i_val.v_value.v_ival;
 		}else
 			minl = 1;
@@ -1282,7 +1282,7 @@ STREL_T	*egroup[];
 	if( maxl == UNDEF ){
 		stp = egroup[ 0 ];
 		if( stp->s_type == SYM_H5 ){
-			ip = find_id( "wc_maxlen" );
+			ip = RM_find_id( "wc_maxlen" );
 			maxl = ip->i_val.v_value.v_ival;
 		}else
 			maxl = UNBOUNDED;
@@ -1378,7 +1378,7 @@ VALUE_T	*vp;
 	return( ip );
 }
 
-IDENT_T	*find_id( name )
+IDENT_T	*RM_find_id( name )
 char	name[];
 {
 	int	i;
@@ -1443,7 +1443,7 @@ int	d_ok;
 			n_valstk++;
 			break;
 		case SYM_IDENT :
-			ip = find_id( expr->n_val.v_value.v_pval );
+			ip = RM_find_id( expr->n_val.v_value.v_pval );
 			if( ip == NULL ){
 				if( d_ok ){
 					ip=enter_id(expr->n_val.v_value.v_pval,
@@ -2073,7 +2073,7 @@ char	str[];
 
 	if( str == NULL || *str == '\0' )
 		return( NULL );
-	ip = find_id( "iupac" );
+	ip = RM_find_id( "iupac" );
 	if( ip )
 		iupac = ip->i_val.v_value.v_ival;
 	for( s1 = str, s2 = seq; *s1; s1++ ){
