@@ -1,3 +1,8 @@
+2.2.1	2002-aug-11
+	Added code sent by Martin Larose <larosem@IRO.UMontreal.CA> to rm2ct
+	allowing it to product either relaxed .ct files (-t rnamotif, default)
+	or strict .ct files as required by rnaviz (-t rnaviz)
+
 2.2.0	2002-jun-12
 	Moved the most basic defs (TRUE, FALSE, UNDEF, input file types) to
 	rmdefs.h to facilitate sharing dbutil.c with other rnamotif processing
