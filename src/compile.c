@@ -423,6 +423,7 @@ void	SE_close()
 		}
 	}
 	def_pairset = NULL;
+	n_local_ids = 0;
 }
 
 int	SE_link( n_descr, descr )
@@ -1910,6 +1911,7 @@ int	parms;
 			posp->p_addr.a_offset = i_pos->p_addr.a_offset;
 		}
 	}
+	n_local_ids = 0;
 }
 
 void	SI_close( expr )
