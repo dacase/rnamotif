@@ -3,6 +3,7 @@
 
 #define	MAXFIELDS	200
 #define	FIELD1		4
+#define	MAXW		20
 static	char	*fields[ MAXFIELDS ];
 static	int	n_fields, t_fields;
 
@@ -12,6 +13,7 @@ static	int	*maxw;
 #define	FMT_RIGHT	1
 static	int	*fmt;
 static	int	*getfmt();
+static	int	fcmprs();
 
 main( argc, argv )
 int	argc;
@@ -20,7 +22,7 @@ char	*argv[];
 	FILE	*ifp, *tfp1, *tfp2;
 	char	*tfnp1, *tfnp2;
 	char	cmd[ 256 ];
-	char	line[ 1024 ];
+	char	line[ 10000 ];
 	int	f, fw, fs;
 
 	if( argc == 1 )
@@ -46,11 +48,12 @@ char	*argv[];
 		if( n_fields == 0 )
 			continue;
 		else if( !strcmp( fields[ 0 ], "#RM" ) ){
-			if( n_fields > 1 && !strcmp( fields[ 1 ], "fmt" ) ){
+			if( n_fields > 1 && !strcmp( fields[ 1 ], "descr" ) ){
 				fmt = getfmt( n_fields, fields );
 				if( fmt == NULL )
 					exit( 1 );
 			}
+			fputs( line, stdout );
 			continue;
 		}else if( *fields[ 0 ] == '#' )
 			continue;
@@ -58,11 +61,18 @@ char	*argv[];
 			t_fields = n_fields;
 			maxw = ( int * )
 				malloc( ( t_fields - FIELD1 ) * sizeof( int ) );
+			if( maxw == NULL ){
+				fprintf( stderr, "%s: can't allocate maxw.\n",
+					argv[ 0 ] );
+				exit( 1 );
+			}
 			for( f = 0; f < t_fields - FIELD1; f++ )
 				maxw[ f ] = 0;
 		}
 		for( f = 0; f < t_fields - FIELD1; f++ ){
 			fw = strlen( fields[ FIELD1 + f ] );
+			if( fw > MAXW )
+				fw = fcmprs( fw, fields[ FIELD1 + f ] );
 			if( fw > maxw[ f ] )
 				maxw[ f ] = fw;
 		}
@@ -132,13 +142,28 @@ char	*fields[];
 		return( NULL );
 	}
 	for( f = 2; f < n_fields; f++ ){
-		if( !strcmp( fields[ f ], "h3" ) ||
-				!strcmp( fields[ f ], "t2" ) ||
-				!strcmp( fields[ f ], "q2" ) ||
-				!strcmp( fields[ f ], "q4" ) )
+		if( !strncmp( fields[ f ], "h3", 2 ) ||
+				!strncmp( fields[ f ], "t2", 2 ) ||
+				!strncmp( fields[ f ], "q2", 2 ) ||
+				!strncmp( fields[ f ], "q4", 2 ) )
 			fmt[ f - 2 ] = FMT_RIGHT;
 		else
 			fmt[ f - 2 ] = FMT_LEFT;
 	}
 	return( fmt );
+}
+
+static	int	fcmprs( flen, field )
+int	flen;
+char	field[];
+{
+	char	tmp[ 10000 ];
+
+	if( flen > MAXW ){
+		sprintf( tmp, "%.*s...(%d)...%.*s",
+			3, field, flen, 3, &field[ flen - 3 ] );
+		strcpy( field, tmp );
+		return( strlen( field ) );
+	}else
+		return( flen );
 }
