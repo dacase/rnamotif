@@ -435,14 +435,15 @@ void	SE_close()
 			stp->s_seq = ip->i_val.v_value.v_pval;
 			if( stp->s_seq && *stp->s_seq != '\0' ){
 				l_seq = strlen( stp->s_seq );
+				l_seq = 2*l_seq > 256 ? 2*l_seq : 256 ;
 				stp->s_expbuf =
-					( char * )malloc(2*l_seq*sizeof(char));
+					( char * )malloc( l_seq*sizeof(char) );
 				if( stp->s_expbuf == NULL ){
 					rm_emsg_lineno = stp->s_lineno;
 					errormsg( 1,
 						"can't allocate s_expbuf." );
 				}
-				stp->s_e_expbuf = &stp->s_expbuf[ 2*l_seq ];
+				stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
 				compile( stp->s_seq,
 					stp->s_expbuf, stp->s_e_expbuf, '0' );
 			}else
