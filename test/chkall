@@ -1,4 +1,4 @@
-#
+#!/bin/csh -f
 #
 foreach d( nanlin pk1 qu+tr score.1 score.2 trna )
 	../rnamot -descr $d.descr gbrna.111.0.fastn |\
