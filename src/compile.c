@@ -16,7 +16,7 @@ int	rm_copt = 0;
 int	rm_dopt = 0;
 int	rm_hopt = 0;
 FILE	*rm_dbfp;
-int	rm_dtype = DT_GENBANK;
+int	rm_dtype = DT_FASTN;
 
 #define	VALSTKSIZE	20
 static	VALUE_T	valstk[ VALSTKSIZE ];
