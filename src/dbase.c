@@ -74,17 +74,18 @@ DBASE_T	*dbp;
 	return( dbp->d_current <= dbp->d_last ? dbp : NULL );
 }
 
-int	DB_getseq( dbp, s_sbuf, sbuf )
+int	DB_getseq( dbp, locus, s_sbuf, sbuf )
 DBASE_T	*dbp;
+char	locus[];
 int	s_sbuf;
 char	sbuf[];
 {
 	int	rval;
 	int	slen;
 	char	*sp, *ep;
-	char	locus[ 25 ];
 
-	*sbuf = 0;
+	*locus = '\0';
+	*sbuf = '\0';
 	if( dbp->d_current > dbp->d_last )
 		return( 0 );
 
@@ -92,6 +93,8 @@ char	sbuf[];
 		ebuf, &gentry, gbrefs, gbftab, gbqtab );
 	if( rval )
 		return( 0 );
+
+	sscanf( &ebuf[ gentry.g_locus ], "%s", locus );
 
 	for( slen = 0, sp = sbuf, ep = &ebuf[ gentry.g_sequence ]; *ep; ep++ ){
 		if( isalpha( *ep ) ){
@@ -102,7 +105,6 @@ char	sbuf[];
 	}
 	*sp = '\0';
 	if( slen > s_sbuf - 1 ){
-		sscanf( locus, "%s", &ebuf[ gentry.g_locus ] );
 		fprintf( stderr,
 			"DB_getseq: sequence '%s' too long, truncated.\n",
 			locus );
