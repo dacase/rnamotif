@@ -5,6 +5,8 @@
 #include "rnamot.h"
 #include "y.tab.h"
 
+extern	FILE	*yyin;
+
 extern	int	rm_error;
 extern	VALUE_T	rm_tokval;
 extern	int	rm_lineno;
@@ -96,17 +98,40 @@ int	RM_init( argc, argv )
 int	argc;
 char	*argv[];
 {
-	int	ac;
+	int	ac, err;
 	IDENT_T	*ip;
 	NODE_T	*np;
+	char	*fnp;
 
-	for( ac = 1; ac < argc; ac++ ){
+	for( err = 0, fnp = NULL, ac = 1; ac < argc; ac++ ){
 		if( !strcmp( argv[ ac ], "-c" ) )
 			rm_copt = 1;
 		else if( !strcmp( argv[ ac ], "-d" ) )
 			rm_dopt = 1;
 		else if( !strcmp( argv[ ac ], "-h" ) )
 			rm_hopt = 1;
+		else if( *argv[ ac ] == '-' ){
+			fprintf( stderr, "%s: unknown option '%s'\n",
+				argv[ 0 ], argv[ ac ] );
+			err = 1;
+		}else if( fnp != NULL ){
+			fprintf( stderr,
+				"usage: %s [ options ] [ descr-file ]\n",
+				argv[ 0 ] );
+			err = 1;
+		}else
+			fnp = argv[ ac ];
+	}
+	if( err )
+		exit( 1 );
+	if( fnp != NULL ){
+		if( ( yyin = fopen( fnp, "r" ) ) == NULL ){
+			fprintf( stderr,
+				"%s: can't read descr-file '%s'\n",
+				argv[ 0 ], fnp );
+			exit( 1 );
+		}else
+			strcpy( rm_fname, fnp );
 	}
 
 	rm_lineno = 0;
