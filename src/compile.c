@@ -29,6 +29,10 @@ static	int	n_local_ids;
 
 #define	ISBASE(b)	((b)=='a'||(b)=='c'||(b)=='g'||(b)=='t'||(b)=='u'|| \
 			 (b)=='A'||(b)=='C'||(b)=='G'||(b)=='T'||(b)=='U')
+
+#define	RM_R2L(st)	\
+	((st)==SYM_P3||(st)==SYM_H3||(st)==SYM_T2||(st)==SYM_Q2||(st)==SYM_Q4)
+
 #define	CURPAIR_SIZE	20
 static	char	*curpair[ CURPAIR_SIZE ];
 int	n_curpair;
@@ -75,7 +79,17 @@ static	int	chk_1_strel_parms();
 static	int	chk_len_seq();
 static	int	chk_site();
 static	STREL_T	*set_scopes();
-static	void	find_tlen();
+static	void	find_gi_len();
+static	void	find_limits();
+
+static	void	find_limits();
+static	void	find_1_limit();
+static	void	find_start();
+static	void	find_stop();
+static	int	closes_unbnd();
+static	int	min_prefixlen();
+static	int	max_prefixlen();
+static	int	min_suffixlen();
 
 int	RM_init( argc, argv )
 int	argc;
@@ -402,7 +416,9 @@ STREL_T	descr[];
 	if( err )
 		return( err );
 
-	find_tlen( 0, descr, &rm_tminlen, &rm_tmaxlen );
+	find_gi_len( 0, descr, &rm_tminlen, &rm_tmaxlen );
+
+	find_limits( 0, descr );
 
 	return( err );
 }
@@ -1986,7 +2002,7 @@ STREL_T	descr[];
 	return( &descr[ fd ] );
 }
 
-static	void	find_tlen( fd, descr, tminlen, tmaxlen )
+static	void	find_gi_len( fd, descr, tminlen, tmaxlen )
 int	fd;
 STREL_T	descr[];
 int	*tminlen;
@@ -2009,7 +2025,7 @@ int	*tmaxlen;
 			stp2 = stp->s_scopes[ d1+1 ];
 			if( stp1->s_inner ){
 				stp3 = stp1->s_inner;
-				find_tlen( stp3->s_index,
+				find_gi_len( stp3->s_index,
 					descr, &minlen3, &maxlen3 );
 				stp1->s_minilen = minlen3;
 				stp1->s_maxilen = maxlen3;
@@ -2043,4 +2059,170 @@ int	*tmaxlen;
 		else
 			break;
 	} 
+}
+
+static	void	find_limits( fd, descr )
+int	fd;
+STREL_T	descr[];
+{
+	int	d, nd, s;
+	STREL_T	*stp, *stp1, *stp2;
+
+	for( d = fd; ; d = nd ){
+		stp = &descr[ d ];
+		find_1_limit( stp, descr );
+		for( s = 1; s < stp->s_n_scopes; s++ ){
+			stp1 = stp->s_scopes[ s - 1 ];
+			stp2 = stp->s_scopes[ s ];
+			find_limits( stp1->s_index+1, descr );
+			find_1_limit( stp2, descr );
+		}
+		stp1 = stp->s_next;
+		if( stp1 == NULL )
+			return;
+		else
+			nd = stp1->s_index;
+	} 
+}
+
+static	void	find_1_limit( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	int	start, stop, l2r;
+	char	name[ 20 ], tstr[ 20 ];
+	char	*bp, buf[ 200 ];
+
+	find_start( stp, descr );
+	find_stop( stp, descr );
+}
+
+static	void	find_start( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	int	start;
+
+	if( stp->s_scope == UNDEF ){	/* ss	*/
+		stp->s_start.a_l2r = 1;
+		stp->s_start.a_offset = 0;
+	}else if( stp->s_scope == 0 ){	/* start a group	*/
+		stp->s_start.a_l2r = 1;
+		stp->s_start.a_offset = 0;
+	}else{
+		if( RM_R2L( stp->s_type ) ){
+			if( closes_unbnd( stp, descr ) ){
+				stp->s_start.a_offset =
+					min_suffixlen( stp, descr );
+				stp->s_start.a_l2r = 0;
+			}else{
+				stp->s_start.a_offset =
+					max_prefixlen( stp, descr );
+				stp->s_start.a_offset += stp->s_maxlen - 1;
+				stp->s_start.a_l2r = 1;
+			}
+		}else{
+			stp->s_start.a_offset = min_prefixlen( stp, descr );
+			stp->s_start.a_l2r = 1;
+		}
+	}
+}
+
+static	void	find_stop( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	int	i, unbnd;
+	int	stop;
+	STREL_T	*stp1;
+
+	if( RM_R2L( stp->s_type ) ){
+		stp->s_stop.a_offset =
+			stp->s_minlen + min_prefixlen( stp, descr ) - 1;
+		stp->s_stop.a_l2r = 1;
+	}else{
+		stp->s_stop.a_offset = 
+			stp->s_minlen + min_suffixlen( stp, descr );
+		if( stp->s_stop.a_offset > 0 )
+			stp->s_stop.a_offset--;
+		stp->s_stop.a_l2r = 0;
+	}
+}
+
+static	int	closes_unbnd( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+
+	if( stp->s_maxlen == UNBOUNDED )
+		return( 1 );
+	if( max_prefixlen( stp, descr ) == UNBOUNDED )
+		return( 1 );
+	return( 0 );
+}
+
+static	int	min_prefixlen( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	STREL_T	*stp0, *stp1;
+	int	s, plen;
+
+	if( stp->s_scope == UNDEF )
+		return( 0 );
+	stp0 = stp->s_scopes[ 0 ];
+	for( plen = 0, s = stp->s_index - 1; s >= stp0->s_index; s-- ){
+		stp1 = &descr[ s ];
+		plen += stp1->s_minlen;
+	}
+	return( plen );
+}
+
+static	int	max_prefixlen( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	STREL_T	*stp0, *stp1;
+	int	s, plen;
+
+	if( stp->s_scope == UNDEF )
+		return( 0 );
+	stp0 = stp->s_scopes[ 0 ];
+	for( plen = 0, s = stp->s_index - 1; s >= stp0->s_index; s-- ){
+		stp1 = &descr[ s ];
+		if( stp1->s_maxlen == UNBOUNDED )
+			return( UNBOUNDED );
+		else
+			plen += stp1->s_maxlen;
+	}
+	return( plen );
+}
+
+static	int	min_suffixlen( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	STREL_T	*stp0, *stp1, *stpn;
+	int	s, slen;
+
+	slen = 0;
+	if( stp->s_scope == UNDEF ){
+		for( stp1 = stp->s_next; stp1; stp1 = stp1->s_next )
+			if( stp1->s_scope == 0 )
+				slen += stp1->s_minglen;
+			else
+				slen += stp1->s_minlen;
+		return( slen );
+	}
+
+	slen = 0;
+	stpn = stp->s_scopes[ stp->s_n_scopes - 1 ];
+	for( s = stp->s_index + 1; s <= stpn->s_index; s++ ){
+		stp1 = &descr[ s ];
+		slen += stp1->s_minlen;
+	}
+	stp0 = stp->s_scopes[ 0 ];
+	for( stp1 = stp0->s_next; stp1; stp1 = stp1->s_next )
+		slen += stp1->s_minlen;
+	return( slen );
 }
