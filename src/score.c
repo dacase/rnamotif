@@ -14,13 +14,11 @@
 	((s)==SYM_PLUS_ASSIGN||(s)==SYM_MINUS_ASSIGN||\
 	 (s)==SYM_PERCENT_ASSIGN||(s)==SYM_SLASH_ASSIGN||(s)==SYM_STAR_ASSIGN)
 
-#define	CFP	stdout
-
 extern	int	rm_lineno;
 
 #define	LABTAB_SIZE	1000
 static	int	labtab[ LABTAB_SIZE ];
-static	int	nextlab = 1;
+static	int	nextlab;
 static	int	actlab;
 static	VALUE_T	v_lab;
 
@@ -124,8 +122,6 @@ static	int	pc;		/* program counter	*/
 static	int	mp;		/* mark pointer		*/ 
 static	int	sp;		/* stack pointer	*/
 
-void	SC_link();
-void	SC_dump();
 void	SC_if();
 void	SC_else();
 void	SC_endelse();
@@ -144,35 +140,44 @@ void	SC_mark();
 void	SC_clear();
 void	SC_expr();
 void	SC_node();
+void	SC_dump();
+void	SC_link();
+int	SC_run();
+
+static	void	do_fcl();
+static	void	do_strf();
+static	void	do_lda();
+static	void	do_lod();
+static	void	do_ldc();
+static	void	do_sto();
+static	void	do_and();
+static	void	do_ior();
+static	void	do_not();
+static	void	do_mat();
+static	void	do_ins();
+static	void	do_gtr();
+static	void	do_geq();
+static	void	do_equ();
+static	void	do_neq();
+static	void	do_leq();
+static	void	do_les();
+static	void	do_add();
+static	void	do_sub();
+static	void	do_mul();
+static	void	do_div();
+static	void	do_mod();
+static	void	do_neg();
+static	void	do_prst();
+static	void	do_bpr();
+static	void	do_incp();
+static	void	do_pinc();
+static	void	do_decp();
+static	void	do_pdec();
+
 static	void	mk_stref_name();
 static	void	addinst();
 static	void	dumpinst();
 
-void	SC_link()
-{
-	int	i;
-	INST_T	*ip;
-
-	for( ip = prog, i = 0; i < l_prog; i++, ip++ ){
-		if( ip->i_op == OP_FJP || ip->i_op == OP_JMP ){
-			ip->i_val.v_value.v_ival =
-				labtab[ ip->i_val.v_value.v_ival ];
-		}
-	}
-}
-
-void	SC_dump( fp )
-FILE	*fp;
-{
-	INST_T	*ip;
-	int	i;
-
-	fprintf( fp, "SCORE: %4d inst.\n", l_prog );
-	for( ip = prog, i = 0; i < l_prog; i++, ip++ ){
-		dumpinst( fp, i, ip );
-	}
-}
-
 void	SC_action( np )
 NODE_T	*np;
 {
@@ -184,16 +189,12 @@ NODE_T	*np;
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = actlab;
 	addinst( OP_FJP, &v_lab );
-
-	fprintf( CFP, "  fjp L%d\n", actlab );
 }
 
 void	SC_endaction()
 {
 
 	labtab[ actlab ] = l_prog;
-
-	fprintf( CFP, "L%d:\n", actlab );
 }
 
 void	SC_if( np )
@@ -208,8 +209,6 @@ NODE_T	*np;
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = ifstk[ ifstkp - 1 ];
 	addinst( OP_FJP, &v_lab );
-
-	fprintf( CFP, "  fjp L%d\n", ifstk[ ifstkp - 1 ] );
 }
 
 void	SC_else()
@@ -217,18 +216,12 @@ void	SC_else()
 
 	addinst( OP_JMP, ifstk[ ifstkp - 1 ] + 1 );
 	labtab[ ifstk[ ifstkp - 1 ] ] = l_prog;
-
-	fprintf( CFP, "  jmp L%d\n", ifstk[ ifstkp - 1 ] + 1 );
-	fprintf( CFP, "L%d:\n", ifstk[ ifstkp - 1 ] );
 }
 
 void	SC_endelse()
 {
 
 	labtab[ ifstk[ ifstkp - 1 ] + 1 ] = l_prog;
-
-	fprintf( CFP, "L%d:\n", ifstk[ ifstkp - 1 ] + 1 );
-
 	ifstkp--;
 }
 
@@ -236,9 +229,6 @@ void	SC_endif()
 {
 
 	labtab[ ifstk[ ifstkp - 1 ] ] = l_prog;
-
-	fprintf( CFP, "L%d:\n", ifstk[ ifstkp - 1 ] );
-
 	ifstkp--;
 }
 
@@ -259,16 +249,11 @@ NODE_T	*np;
 {
 
 	labtab[ loopstk[ loopstkp - 1 ] ] = l_prog;
-
-	fprintf( CFP, "L%d:\n", loopstk[ loopstkp - 1 ] );
-
 	SC_mark();
 	SC_expr( 0, np );
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ] + 2;
 	addinst( OP_FJP, &v_lab );
-
-	fprintf( CFP, "  fjp L%d\n", loopstk[ loopstkp - 1 ] + 2 );
 }
 
 void	SC_forincr( np )
@@ -282,9 +267,6 @@ void	SC_endfor()
 {
 
 	labtab[ loopstk[ loopstkp - 1 ] + 1 ] = l_prog;
-
-	fprintf( CFP, "L%d:\n", loopstk[ loopstkp - 1 ] + 1 );
-
 	SC_mark();
 	SC_expr( 0, loopincrstk[ loopstkp - 1 ] );
 	SC_clear();
@@ -292,10 +274,6 @@ void	SC_endfor()
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
 	addinst( OP_JMP, &v_lab );
 	labtab[ loopstk[ loopstkp - 1 ] + 2 ] = l_prog;
-
-	fprintf( CFP, "  jmp L%d\n", loopstk[ loopstkp - 1 ] );
-	fprintf( CFP, "L%d:\n", loopstk[ loopstkp - 1 ] + 2 );
-
 	loopstkp--;
 }
 
@@ -307,15 +285,11 @@ NODE_T	*np;
 	loopstkp++;
 	nextlab += 3;
 	labtab[ loopstk[ loopstkp -1 ] ] = l_prog;
-
-	fprintf( CFP, "L%d:\n", loopstk[ loopstkp - 1 ] );
-
 	SC_mark();
 	SC_expr( 0, np );
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ] + 2;
 	addinst( OP_FJP, &v_lab );
-	fprintf( CFP, "  fjp L%d\n", loopstk[ loopstkp - 1 ] + 2 );
 }
 
 void	SC_endwhile()
@@ -325,10 +299,6 @@ void	SC_endwhile()
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
 	addinst( OP_JMP, &v_lab );
 	labtab[ loopstk[ loopstkp - 1 ] + 2 ] = l_prog;
-
-	fprintf( CFP, "  jmp L%d\n", loopstk[ loopstkp - 1 ] );
-	fprintf( CFP, "L%d:\n", loopstk[ loopstkp - 1 ] + 2 );
-
 	loopstkp--;
 }
 
@@ -338,7 +308,6 @@ void	SC_break()
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ] + 1;
 	addinst( OP_JMP, &v_lab );
-	fprintf( CFP, "  jmp L%d\n", loopstk[ loopstkp - 1 ] + 1 );
 }
 
 void	SC_continue()
@@ -347,35 +316,30 @@ void	SC_continue()
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
 	addinst( OP_JMP, &v_lab );
-	fprintf( CFP, "  jmp L%d\n", loopstk[ loopstkp - 1 ] );
 }
 
 void	SC_accept()
 {
 
 	addinst( OP_ACPT, NULL );
-	fprintf( CFP, "  acpt\n" );
 }
 
 void	SC_reject()
 {
 
 	addinst( OP_RJCT, NULL );
-	fprintf( CFP, "  rjct\n" );
 }
 
 void	SC_mark()
 {
 
 	addinst( OP_MRK, NULL );
-	fprintf( CFP, "  mrk\n" );
 }
 
 void	SC_clear()
 {
 
 	addinst( OP_CLS, 0 );
-	fprintf( CFP, "  clr\n" );
 }
 
 void	SC_expr( lval, np )
@@ -389,16 +353,13 @@ NODE_T	*np;
 	if( np ){
 		if( np->n_sym == SYM_CALL ){
 			addinst( OP_MRK, NULL );
-			fprintf( CFP, "  mrk\n" );
 		}else if( np->n_sym == SYM_STREF ){
 			v_expr.v_type = T_INT;
 			v_expr.v_value.v_ival = np->n_left->n_sym;
 			addinst( OP_STRF, &v_expr );
 			mk_stref_name( np->n_left->n_sym, name );
-			fprintf( CFP, "  strf %s\n", name );
 		}else if( np->n_sym == SYM_LCURLY ){
 			addinst( OP_MRK, NULL );
-			fprintf( CFP, "  mrk\n" );
 		}
 
 		SC_expr( ISLVAL( np->n_sym ), np->n_left );
@@ -412,9 +373,6 @@ NODE_T	*np;
 			SC_node( lval, np, l_andor );
 			SC_expr( 0, np->n_right );
 			labtab[ l_andor ] = l_prog;
-
-			fprintf( CFP, "L%d:\n", l_andor );
-
 		}else{
 			SC_expr( 0, np->n_right );
 			SC_node( lval, np, 0 );
@@ -422,10 +380,8 @@ NODE_T	*np;
 
 		if( np->n_sym == SYM_STREF ){
 			addinst( OP_STRF, NULL );
-			fprintf( CFP, "  strf cls\n" );
 		}else if( np->n_sym == SYM_LCURLY ){
 			addinst( OP_PRST, NULL );
-			fprintf( CFP, "  prst\n" );
 		}
 	}
 }
@@ -442,7 +398,6 @@ int	l_andor;
 
 	case SYM_CALL :
 		addinst( OP_FCL, NULL );
-		fprintf( CFP, "  fcl %s\n", np->n_val.v_value.v_pval );
 		break;
 	case SYM_LIST :
 		break;
@@ -482,168 +437,129 @@ int	l_andor;
 	case SYM_IDENT :
 		if( lval ){
 			addinst( OP_LDA, &np->n_val );
-			fprintf( CFP, "  lda %s\n", np->n_val.v_value.v_pval );
 		}else{
 			addinst( OP_LOD, &np->n_val );
-			fprintf( CFP, "  lod %s\n", np->n_val.v_value.v_pval );
 		}
 		break;
 	case SYM_INT :
 		addinst( OP_LDC, &np->n_val );
-		fprintf( CFP, "  ldc %d\n", np->n_val.v_value.v_ival );
 		break;
 	case SYM_FLOAT :
 		addinst( OP_LDC, &np->n_val );
-		fprintf( CFP, "  ldcR\n" );
 		break;
 	case SYM_STRING :
 		addinst( OP_LDC, &np->n_val );
-		fprintf( CFP, "  ldc \"%s\"\n", np->n_val.v_value.v_pval );
 		break;
 	case SYM_DOLLAR :
-		addinst( OP_LDC, NULL );
-		fprintf( CFP, "  lod $\n" );
+		v_node.v_type = T_POS;
+		v_node.v_value.v_pval = "$";
+		addinst( OP_LDC, &v_node );
 		break;
 
 	case SYM_ASSIGN :
 		addinst( OP_STO, NULL );
-		fprintf( CFP, "  sto\n" );
 		break;
 
 	case SYM_PLUS_ASSIGN :
 		addinst( OP_ADD, NULL );
 		addinst( OP_STO, NULL );
-		fprintf( CFP, "  add\n" );
-		fprintf( CFP, "  sto\n" );
 		break;
 	case SYM_MINUS_ASSIGN :
 		addinst( OP_SUB, NULL );
 		addinst( OP_STO, NULL );
-		fprintf( CFP, "  sub\n" );
-		fprintf( CFP, "  sto\n" );
 		break;
 	case SYM_PERCENT_ASSIGN :
 		addinst( OP_MOD, NULL );
 		addinst( OP_STO, NULL );
-		fprintf( CFP, "  mod\n" );
-		fprintf( CFP, "  sto\n" );
 		break;
 	case SYM_STAR_ASSIGN :
 		addinst( OP_MUL, NULL );
 		addinst( OP_STO, NULL );
-		fprintf( CFP, "  mul\n" );
-		fprintf( CFP, "  sto\n" );
 		break;
 	case SYM_SLASH_ASSIGN :
 		addinst( OP_DIV, NULL );
 		addinst( OP_STO, NULL );
-		fprintf( CFP, "  div\n" );
-		fprintf( CFP, "  sto\n" );
 		break;
 
 	case SYM_AND :
 		v_lab.v_type = T_INT;
 		v_lab.v_value.v_ival = l_andor;
 		addinst( OP_AND, &v_lab );
-		fprintf( CFP, "  and L%d\n", l_andor );
 		break;
 	case SYM_OR :
 		v_lab.v_type = T_INT;
 		v_lab.v_value.v_ival = l_andor;
 		addinst( OP_IOR, &v_lab );
-		fprintf( CFP, "  ior L%d\n", l_andor );
 		break;
 	case SYM_NOT :
 		addinst( OP_NOT, NULL );
-		fprintf( CFP, "  not\n" );
 		break;
 
 	case SYM_EQUAL :
 		addinst( OP_EQU, NULL );
-		fprintf( CFP, "  equ\n" );
 		break;
 	case SYM_NOT_EQUAL :
 		addinst( OP_NEQ, NULL );
-		fprintf( CFP, "  neq\n" );
 		break;
 	case SYM_GREATER :
 		addinst( OP_GTR, NULL );
-		fprintf( CFP, "  gtr\n" );
 		break;
 	case SYM_GREATER_EQUAL :
 		addinst( OP_GEQ, NULL );
-		fprintf( CFP, "  geq\n" );
 		break;
 	case SYM_LESS :
 		addinst( OP_LES, NULL );
-		fprintf( CFP, "  les\n" );
 		break;
 	case SYM_LESS_EQUAL :
 		addinst( OP_LEQ, NULL );
-		fprintf( CFP, "  leq\n" );
 		break;
 
 	case SYM_MATCH :
 		addinst( OP_MAT, NULL );
-		fprintf( CFP, "  mat\n" );
 		break;
 	case SYM_DONT_MATCH :
 		addinst( OP_MAT, NULL );
 		addinst( OP_NOT, NULL );
-		fprintf( CFP, "  mat\n" );
-		fprintf( CFP, "  not\n" );
 		break;
 	case SYM_IN :
 		addinst( OP_INS, NULL );
-		fprintf( CFP, "  ins\n" );
 		break;
 
 	case SYM_PLUS :
 		addinst( OP_ADD, NULL );
-		fprintf( CFP, "  add\n" );
 		break;
 	case SYM_MINUS :
 		addinst( OP_SUB, NULL );
-		fprintf( CFP, "  sub\n" );
 		break;
 	case SYM_PERCENT :
 		addinst( OP_MOD, NULL );
-		fprintf( CFP, "  mod\n" );
 		break;
 	case SYM_STAR :
 		addinst( OP_MUL, NULL );
-		fprintf( CFP, "  mul\n" );
 		break;
 	case SYM_SLASH :
 		addinst( OP_DIV, NULL );
-		fprintf( CFP, "  div\n" );
 		break;
 	case SYM_NEGATE :
 		addinst( OP_NEG, NULL );
-		fprintf( CFP, "  neg\n" );
 		break;
 
 	case SYM_COLON :
 		addinst( OP_BPR, NULL );
-		fprintf( CFP, "  bpr\n" );
 		break;
 
 	case SYM_MINUS_MINUS :
 		if( np->n_left ){
 			addinst( OP_DECP, NULL );
-			fprintf( CFP, "  decp\n" );
 		}else{
 			addinst( OP_PDEC, NULL );
-			fprintf( CFP, "  pdec\n" );
 		}
 		break;
 	case SYM_PLUS_PLUS :
 		if( np->n_left ){
 			addinst( OP_INCP, NULL );
-			fprintf( CFP, "  incp\n" );
 		}else{
 			addinst( OP_PINC, NULL );
-			fprintf( CFP, "  pinc\n" );
 		}
 		break;
 
@@ -660,13 +576,479 @@ int	l_andor;
 	case SYM_SEMICOLON :
 		break;
 	case SYM_ERROR :
-		fprintf( CFP, "SYM_ERROR\n" );
+		fprintf( stderr, "SYM_ERROR\n" );
 		break;
 	default :
 		fprintf( stderr, "SC_node: Unknown symbol %d\n", np->n_sym );
 		break;
-
 	}
+}
+
+void	SC_link()
+{
+	int	i;
+	INST_T	*ip;
+
+	for( ip = prog, i = 0; i < l_prog; i++, ip++ ){
+		if( ip->i_op == OP_FJP || ip->i_op == OP_JMP ){
+			ip->i_val.v_value.v_ival =
+				labtab[ ip->i_val.v_value.v_ival ];
+		}
+	}
+}
+
+void	SC_dump( fp )
+FILE	*fp;
+{
+	INST_T	*ip;
+	int	i;
+
+	fprintf( fp, "SCORE: %4d inst.\n", l_prog );
+	for( ip = prog, i = 0; i < l_prog; i++, ip++ ){
+		dumpinst( fp, i, ip );
+	}
+}
+
+int	SC_run()
+{
+	INST_T	*ip;
+	
+	sp = mp = -1;
+	for( pc = 0; ; ){
+		if( pc < 0 || pc >= l_prog ){
+			fprintf( stderr, "run: pc (%d) out of range 0..%d\n",
+			pc, l_prog - 1 );
+			exit( 1 );
+		}
+		ip = &prog[ pc ];
+		pc++;
+		switch( ip->i_op ){
+		case OP_NOOP :
+			break;
+
+		case OP_ACPT :
+			return( 1 );
+			break;
+		case OP_RJCT :
+			return( 0 );
+			break;
+
+		case OP_MRK :
+			mp = sp;
+			break;
+		case OP_CLS :
+			sp = mp;
+			break;
+
+		case OP_FCL :
+			do_fcl( ip );
+			break;
+		case OP_STRF :
+			do_strf( ip );
+			break;
+
+		case OP_LDA :
+			do_lda();
+			break;
+		case OP_LOD :
+			do_lod();
+			break;
+		case OP_LDC :
+			do_ldc();
+			break;
+		case OP_STO :
+			do_sto();
+			break;
+
+		case OP_AND :
+			do_and( ip );
+			break;
+		case OP_IOR :
+			do_ior( ip );
+			break;
+		case OP_NOT :
+			do_not();
+			break;
+
+		case OP_MAT :
+			do_mat();
+			break;
+		case OP_INS :
+			do_ins();
+			break;
+		case OP_GTR :
+			do_gtr();
+			break;
+		case OP_GEQ :
+			do_geq();
+			break;
+		case OP_EQU :
+			do_equ();
+			break;
+		case OP_NEQ :
+			do_neq();
+			break;
+		case OP_LEQ :
+			do_leq();
+			break;
+		case OP_LES :
+			do_les();
+			break;
+
+		case OP_ADD :
+			do_add();
+			break;
+		case OP_SUB :
+			do_sub();
+			break;
+		case OP_MUL :
+			do_mul();
+			break;
+		case OP_DIV :
+			do_div();
+			break;
+		case OP_MOD :
+			do_mod();
+			break;
+		case OP_NEG :
+			do_neg();
+			break;
+
+		case OP_PRST :
+			do_prst();
+			break;
+		case OP_BPR :
+			do_bpr();
+			break;
+
+		case OP_INCP :
+			do_incp();
+			break;
+		case OP_PINC :
+			do_pinc();
+			break;
+		case OP_DECP :
+			do_decp();
+			break;
+		case OP_PDEC :
+			do_pdec();
+			break;
+
+		case OP_FJP :
+			if( mem[ sp ].v_value.v_ival )
+				pc = ip->i_val.v_value.v_ival; 
+			sp = mp;
+			break;
+		case OP_JMP :
+			pc = ip->i_val.v_value.v_ival;
+			break;
+		default :
+			fprintf( stderr, "run: unknown op %d\n", ip->i_op );
+			exit( 1 );
+			break;
+		}
+	}
+}
+
+static	void	do_fcl( ip )
+INST_T	*ip;
+{
+
+}
+
+static	void	do_strf( ip )
+INST_T	*ip;
+{
+
+}
+
+static	void	do_lda()
+{
+
+}
+
+static	void	do_lod()
+{
+
+}
+
+static	void	do_ldc()
+{
+
+}
+
+static	void	do_sto()
+{
+
+}
+
+static	void	do_and( ip )
+INST_T	*ip;
+{
+
+}
+
+static	void	do_ior( ip )
+INST_T	*ip;
+{
+
+}
+
+static	void	do_not()
+{
+
+}
+
+static	void	do_mat()
+{
+
+}
+
+static	void	do_ins()
+{
+
+}
+
+static	void	do_gtr()
+{
+
+}
+
+static	void	do_geq()
+{
+
+}
+
+static	void	do_equ()
+{
+
+}
+
+static	void	do_neq()
+{
+
+}
+
+static	void	do_leq()
+{
+
+}
+
+static	void	do_les()
+{
+
+}
+
+static	void	do_add()
+{
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
+
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	
+	switch( t_tm1 * N_TYPE + t_top ){
+	case T_INT * N_TYPE + T_INT :
+		v_tm1->v_value.v_ival += v_top->v_value.v_ival;
+		break;
+	case T_INT * N_TYPE + T_FLOAT :
+		v_tm1->v_value.v_ival += v_top->v_value.v_fval;
+		break;
+	case T_FLOAT * N_TYPE + T_INT :
+		v_tm1->v_value.v_fval += v_top->v_value.v_ival;
+		break;
+	case T_FLOAT * N_TYPE + T_FLOAT :
+		v_tm1->v_value.v_fval += v_top->v_value.v_fval;
+		break;
+	case T_STRING * N_TYPE + T_STRING :
+		break;
+	case T_PAIR * N_TYPE + T_PAIR :
+		break;
+	case T_INT * N_TYPE + T_POS :
+		break;
+	case T_POS * N_TYPE + T_INT :
+		break;
+	default :
+		fprintf( stderr, "do_add: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
+}
+
+static	void	do_sub()
+{
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
+
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	
+	switch( t_tm1 * N_TYPE + t_top ){
+	case T_INT * N_TYPE + T_INT :
+		v_tm1->v_value.v_ival -= v_top->v_value.v_ival;
+		break;
+	case T_INT * N_TYPE + T_FLOAT :
+		v_tm1->v_value.v_ival -= v_top->v_value.v_fval;
+		break;
+	case T_FLOAT * N_TYPE + T_INT :
+		v_tm1->v_value.v_fval -= v_top->v_value.v_ival;
+		break;
+	case T_FLOAT * N_TYPE + T_FLOAT :
+		v_tm1->v_value.v_fval -= v_top->v_value.v_fval;
+		break;
+	case T_PAIR * N_TYPE + T_PAIR :
+		break;
+	case T_INT * N_TYPE + T_POS :
+		break;
+	case T_POS * N_TYPE + T_INT :
+		break;
+	default :
+		fprintf( stderr, "do_sub: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
+}
+
+static	void	do_mul()
+{
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
+
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	
+	switch( t_tm1 * N_TYPE + t_top ){
+	case T_INT * N_TYPE + T_INT :
+		v_tm1->v_value.v_ival *= v_top->v_value.v_ival;
+		break;
+	case T_INT * N_TYPE + T_FLOAT :
+		v_tm1->v_value.v_ival *= v_top->v_value.v_fval;
+		break;
+	case T_FLOAT * N_TYPE + T_INT :
+		v_tm1->v_value.v_fval *= v_top->v_value.v_ival;
+		break;
+	case T_FLOAT * N_TYPE + T_FLOAT :
+		v_tm1->v_value.v_fval *= v_top->v_value.v_fval;
+		break;
+	default :
+		fprintf( stderr, "do_mul: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
+}
+
+static	void	do_div()
+{
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
+
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	
+	switch( t_tm1 * N_TYPE + t_top ){
+	case T_INT * N_TYPE + T_INT :
+		v_tm1->v_value.v_ival /= v_top->v_value.v_ival;
+		break;
+	case T_INT * N_TYPE + T_FLOAT :
+		v_tm1->v_value.v_ival /= v_top->v_value.v_fval;
+		break;
+	case T_FLOAT * N_TYPE + T_INT :
+		v_tm1->v_value.v_fval /= v_top->v_value.v_ival;
+		break;
+	case T_FLOAT * N_TYPE + T_FLOAT :
+		v_tm1->v_value.v_fval /= v_top->v_value.v_fval;
+		break;
+	default :
+		fprintf( stderr, "do_div: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
+}
+
+static	void	do_mod()
+{
+	VALUE_T	*v_tm1, *v_top;
+	int	t_tm1, t_top;
+
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	sp--;
+	v_tm1 = &mem[ sp ];
+	t_tm1 = v_tm1->v_type;
+	
+	switch( t_tm1 * N_TYPE + t_top ){
+	case T_INT * N_TYPE + T_INT :
+		v_tm1->v_value.v_ival %= v_top->v_value.v_ival;
+		break;
+	default :
+		fprintf( stderr, "do_mod: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
+}
+
+static	void	do_neg()
+{
+	VALUE_T	*v_top;
+	int	t_top;
+
+	v_top = &mem[ sp ];
+	t_top = v_top->v_type;
+	
+	switch( t_top ){
+	case T_INT :
+		v_top->v_value.v_ival = -v_top->v_value.v_ival;
+		break;
+	case T_FLOAT :
+		v_top->v_value.v_fval = -v_top->v_value.v_fval;
+		break;
+	default :
+		fprintf( stderr, "do_neg: type mismatch.\n" );
+		exit( 1 );
+		break;
+	}
+}
+
+static	void	do_prst()
+{
+
+}
+
+static	void	do_bpr()
+{
+
+}
+
+static	void	do_incp()
+{
+
+}
+
+static	void	do_pinc()
+{
+
+}
+
+static	void	do_decp()
+{
+
+}
+
+static	void	do_pdec()
+{
+
 }
 
 static	void	mk_stref_name( sym, name )
@@ -755,7 +1137,7 @@ VALUE_T	*vp;
 	}
 }
 
-void	dumpinst( fp, i, ip )
+static	void	dumpinst( fp, i, ip )
 FILE	*fp;
 INST_T	*ip;
 {
@@ -767,7 +1149,8 @@ INST_T	*ip;
 		exit( 1 );
 	}
 
-	fprintf( fp, "prog[%5d]:  %s", i, opnames[ ip->i_op ] );
+	fprintf( fp, "%5d ", i );
+	fprintf( fp, "  %s", opnames[ ip->i_op ] );
 	switch( ip->i_op ){
 	case OP_NOOP :
 	case OP_ACPT :
@@ -842,7 +1225,9 @@ INST_T	*ip;
 		}
 	}else if( vp->v_type == T_FLOAT ) 
 		fprintf( fp, " %f", vp->v_value.v_fval );
-	else if( vp->v_type == T_STRING || vp->v_type == T_IDENT )
+	else if( vp->v_type == T_STRING )
+		fprintf( fp, " \"%s\"", vp->v_value.v_pval );
+	else if( vp->v_type == T_IDENT )
 		fprintf( fp, " %s", vp->v_value.v_pval );
 	fprintf( fp, "\n" );
 }
