@@ -3,7 +3,7 @@
 #include "rnamot.h"
 #include "y.tab.h"
 
-extern	int	rmlineno;
+extern	int	rm_lineno;
 
 void	dumpnode();
 
@@ -24,7 +24,7 @@ NODE_T	*right;
 	np->n_sym = sym;
 	np->n_type = T_UNDEF;
 	np->n_class = C_UNDEF;
-	np->n_lineno = rmlineno;
+	np->n_lineno = rm_lineno;
 	np->n_left = left;
 	np->n_right = right;
 	if( sym == SYM_IDENT ){
