@@ -44,7 +44,7 @@ static	IDENT_T	*find_id();
 static	void	eval();
 static	int	loadidval();
 static	void	storeexprval();
-static	int	pairop();
+static	PAIRSET_T	*pairop();
 
 static	void	seqlen();
 
@@ -96,7 +96,6 @@ NODE_T	*expr;
 void	PR_open()
 {
 
-	fprintf( stderr, "Open Pair:\n");
 	n_curpair = 0;
 }
 
@@ -158,7 +157,11 @@ NODE_T	*PR_close()
 				break;
 			}
 		}
+		if( pp->p_n_bases < 2 || pp->p_n_bases > 4 ){
+			errormsg( 0, "PR_close: pair-string has 2-4 bases.\n" );
+		}
 	}
+	ps = pairop( "check", ps, NULL );
 
 	np = ( NODE_T * )malloc( sizeof( NODE_T ) );
 	if( np == NULL ){
@@ -180,6 +183,7 @@ int	stype;
 {
 	VALUE_T	val;
 	IDENT_T	*ip;
+	PAIRSET_T *ps;
 
 	n_valstk = 0;
 	if( rm_n_descr == rm_s_descr ){
@@ -225,13 +229,40 @@ int	stype;
 	val.v_value.v_ival = 0;
 	ip = enter_id( "mismatch", T_INT, C_VAR, S_STREL, &val );
 
-	val.v_type = T_INT;
-	val.v_value.v_ival = 0;
-	ip = enter_id( "mispair", T_INT, C_VAR, S_STREL, &val );
+	if( stype != SYM_SS ){ 
+		val.v_type = T_INT;
+		val.v_value.v_ival = 0;
+		ip = enter_id( "mispair", T_INT, C_VAR, S_STREL, &val );
 
-	val.v_type = T_PAIR;
-	val.v_value.v_pval = NULL;
-	ip = enter_id( "pair", T_PAIR, C_VAR, S_STREL, &val );
+		switch( stype ){
+		case SYM_SS :
+			stp->s_pairset = NULL;
+			break;
+		case SYM_H5 :
+		case SYM_H3 :
+		case SYM_P5 :
+		case SYM_P3 :
+			ip = find_id( "wc" );
+			ps = ip->i_val.v_value.v_pval;
+			break;
+		case SYM_T1 :
+		case SYM_T2 :
+		case SYM_T3 :
+			ip = find_id( "tr" );
+			ps = ip->i_val.v_value.v_pval;
+			break;
+		case SYM_Q1 :
+		case SYM_Q2 :
+		case SYM_Q3 :
+		case SYM_Q4 :
+			ip = find_id( "qu" );
+			ps = ip->i_val.v_value.v_pval;
+			break;
+		}
+		val.v_type = T_PAIR;
+		val.v_value.v_pval = ps;
+		ip = enter_id( "pair", T_PAIR, C_VAR, S_STREL, &val );
+	}
 }
 
 void	SE_addval( expr )
@@ -342,7 +373,8 @@ VALUE_T	*vp;
 			ip->i_val.v_value.v_pval = np;
 		}
 	}else if( type == T_PAIR ){
-		ip->i_val.v_value.v_pval = NULL;
+		ip->i_val.v_value.v_pval = pairop( "copy", 
+			vp->v_value.v_pval, NULL );
 	}
 	return( ip );
 }
@@ -446,7 +478,7 @@ int	d_ok;
 				strcat( sp, r_sp );
 				valstk[ n_valstk - 2 ].v_value.v_pval = sp;
 			}else if( l_type == T_PAIR ){
-				pairop( SYM_PLUS, &valstk[ n_valstk - 2 ],
+				pairop( "add", &valstk[ n_valstk - 2 ],
 					&valstk[ n_valstk - 1 ] );
 			}
 			n_valstk--;
@@ -468,7 +500,7 @@ int	d_ok;
 				errormsg( 1,
 				"eval: '-' not defined for strings.\n" );
 			}else if( l_type == T_PAIR ){
-				pairop( SYM_ASSIGN, &valstk[ n_valstk - 2 ],
+				pairop( "sub", &valstk[ n_valstk - 2 ],
 					&valstk[ n_valstk - 1 ] );
 			}
 			n_valstk--;
@@ -548,8 +580,7 @@ VALUE_T	*vp;
 	IDENT_T	*ip;
 	char	*sp;
 	int	i;
-	PAIR_T	*n_pp, *o_pp;
-	PAIRSET_T	*n_ps, *o_ps ;
+	PAIRSET_T	*ps ;
 
 	ip = vp->v_value.v_pval;
 	type = ip->i_type;
@@ -584,21 +615,9 @@ VALUE_T	*vp;
 				 ip->i_name );
 			errormsg( 1, emsg );
 		}else
-			o_ps = ip->i_val.v_value.v_pval;
-		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
-		if( n_ps == NULL ){
-			errormsg( 1, "loadidval: can't allocate n_ps.\n" );
-		}
-		n_pp = ( PAIR_T * )malloc( o_ps->ps_n_pairs*sizeof( PAIR_T ) );
-		if( n_pp == NULL ){
-			errormsg( 1, "loadidval: can't allocate n_pp.\n" );
-		}
-		n_ps->ps_n_pairs = o_ps->ps_n_pairs;
-		n_ps->ps_pairs = n_pp;
-		for( i = 0; i < n_ps->ps_n_pairs; i++ )
-			n_ps->ps_pairs[ i ] = o_ps->ps_pairs[ i ];
+			ps = ip->i_val.v_value.v_pval;
 		vp->v_type = T_PAIR;
-		vp->v_value.v_pval = n_ps;
+		vp->v_value.v_pval = pairop( "copy", ps, NULL );
 	}
 	return( type );
 }
@@ -631,12 +650,80 @@ VALUE_T	*vp;
 	}
 }
 
-static	int	pairop( op, vp1, vp2 )
-int	op;
-VALUE_T	*vp1;
-VALUE_T	*vp2;
+static	PAIRSET_T	*pairop( op, ps1, ps2 )
+char	op[];
+PAIRSET_T	*ps1;
+PAIRSET_T	*ps2;
 {
+	int	i, j, c, b, nb, diff;
+	PAIRSET_T	*n_ps;
+	PAIR_T	*n_pp, *pp, *ppi, *ppj;
 
+	if( !strcmp( op, "check" ) ){
+		pp = ps1->ps_pairs;
+		for( nb = UNDEF, i = 0; i < ps1->ps_n_pairs; i++, pp++ ){
+			b = pp->p_n_bases;
+			if( nb == UNDEF )
+				nb = b;
+			else if( b != nb ){
+				sprintf( emsg,
+	"pairop: check: pairset contains elements with %d and %d bases.\n",
+					nb, b );
+				errormsg( 0, emsg );
+				return( ps1 );
+			}
+			for( j = 0; j < b; j++ ){
+				c = pp->p_bases[ j ];
+				pp->p_bases[ j ] = isupper( c ) ?
+					tolower( c ) : c;
+			}
+		}
+		for( i = 0; i < ps1->ps_n_pairs - 1; i++ ){
+			ppi = &ps1->ps_pairs[ i ];
+			if( ppi->p_n_bases == 0 )
+				continue;
+			for( j = i + 1; j < ps1->ps_n_pairs; j++ ){
+				ppj = &ps1->ps_pairs[ j ];
+				if( ppj->p_n_bases == 0 )
+					continue;
+				for( diff = 0, b = 0; b < ppi->p_n_bases; b++ ){
+					if( ppi->p_bases[b]!=ppj->p_bases[b]){
+						diff = 1;
+						break;
+					}
+				}
+				if( !diff ){
+					ppj->p_n_bases = 0;
+					errormsg( 0,
+		"pairop: check: pairset contains duplicate pair-strings.\n" );
+				}
+			}
+		}
+		for( j = 0, i = 0; i < ps1->ps_n_pairs; i++ ){
+			ppj = &ps1->ps_pairs[ j ];
+			ppi = &ps1->ps_pairs[ i ];
+			if( ppi->p_n_bases != 0 ){
+				*ppj = *ppi;
+				j++;
+			}
+		}
+		ps1->ps_n_pairs = j;
+		return( ps1 );
+	}else if( !strcmp( op, "copy" ) ){
+		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
+		if( n_ps == NULL ){
+			errormsg( 1, "pairop: copy: can't allocate n_ps.\n" );
+		}
+		n_pp = ( PAIR_T * )malloc( ps1->ps_n_pairs*sizeof( PAIR_T ) );
+		if( n_pp == NULL ){
+			errormsg( 1, "pairop: copy: can't allocate n_pp.\n" );
+		}
+		n_ps->ps_n_pairs = ps1->ps_n_pairs;
+		n_ps->ps_pairs = n_pp;
+		for( i = 0; i < n_ps->ps_n_pairs; i++ )
+			n_ps->ps_pairs[ i ] = ps1->ps_pairs[ i ];
+		return( n_ps );
+	}
 }
 
 static	void	seqlen( seq, minlen, maxlen )
