@@ -69,15 +69,13 @@ static	float	*sc_score;
 #define	OP_DIV		26	/* Division		*/
 #define	OP_MOD		27	/* Modulus		*/
 #define	OP_NEG		28	/* Negate		*/
-#define	OP_PRST		29	/* Make a pairset	*/
-#define	OP_BPR		30	/* Make a pair		*/
-#define	OP_I_PP		31	/* use then incr (i++)	*/
-#define	OP_PP_I		32	/* incr then use (++i)	*/
-#define	OP_I_MM		33	/* use then decr (i--)	*/
-#define	OP_MM_I		34	/* decr then use (--i)	*/
-#define	OP_FJP		35	/* False Jump		*/
-#define	OP_JMP		36	/* Jump			*/
-#define	N_OP		37
+#define	OP_I_PP		29	/* use then incr (i++)	*/
+#define	OP_PP_I		30	/* incr then use (++i)	*/
+#define	OP_I_MM		31	/* use then decr (i--)	*/
+#define	OP_MM_I		32	/* decr then use (--i)	*/
+#define	OP_FJP		33	/* False Jump		*/
+#define	OP_JMP		34	/* Jump			*/
+#define	N_OP		35
 
 static	char	*opnames[ N_OP ] = {
 	"noop",
@@ -109,8 +107,6 @@ static	char	*opnames[ N_OP ] = {
 	"div",
 	"mod",
 	"neg",
-	"prst",
-	"bpr",
 	"incp",
 	"pinc",
 	"decp",
@@ -135,6 +131,7 @@ static	char	*scnames[ N_SC ] = {
 };
 
 typedef	struct	inst_t	{
+	int	i_lineno;
 	int	i_op;
 	VALUE_T	i_val;
 } INST_T;
@@ -176,7 +173,8 @@ int	RM_score();
 static	void	fixexpr();
 static	void	genexpr();
 static	int	is_syscall();
-static	void	fix_stref();
+static	void	fix_kw_stref();
+static	void	fix_ix_stref();
 static	NODE_T	*mk_call_strid();
 static	void	fix_call();
 static	void	do_fcl();
@@ -205,8 +203,6 @@ static	void	do_mul();
 static	void	do_div();
 static	void	do_mod();
 static	void	do_neg();
-static	void	do_prst();
-static	void	do_bpr();
 static	void	do_i_pp();
 static	void	do_pp_i();
 static	void	do_i_mm();
@@ -228,7 +224,7 @@ NODE_T	*np;
 	nextlab++;
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = actlab;
-	addinst( OP_FJP, &v_lab );
+	addinst( np->n_lineno, OP_FJP, &v_lab );
 }
 
 void	RM_endaction()
@@ -248,7 +244,7 @@ NODE_T	*np;
 	nextlab += 2;
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = ifstk[ ifstkp - 1 ];
-	addinst( OP_FJP, &v_lab );
+	addinst( np->n_lineno, OP_FJP, &v_lab );
 }
 
 void	RM_else()
@@ -256,7 +252,7 @@ void	RM_else()
 
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = ifstk[ ifstkp - 1 ] + 1;
-	addinst( OP_JMP, &v_lab );
+	addinst( UNDEF, OP_JMP, &v_lab );
 	labtab[ ifstk[ ifstkp - 1 ] ] = l_prog;
 }
 
@@ -295,7 +291,7 @@ NODE_T	*np;
 	RM_expr( 0, np );
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ] + 2;
-	addinst( OP_FJP, &v_lab );
+	addinst( np->n_lineno, OP_FJP, &v_lab );
 }
 
 void	RM_forincr( np )
@@ -314,7 +310,7 @@ void	RM_endfor()
 	RM_clear();
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
-	addinst( OP_JMP, &v_lab );
+	addinst( UNDEF, OP_JMP, &v_lab );
 	labtab[ loopstk[ loopstkp - 1 ] + 2 ] = l_prog;
 	loopstkp--;
 }
@@ -331,7 +327,7 @@ NODE_T	*np;
 	RM_expr( 0, np );
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ] + 2;
-	addinst( OP_FJP, &v_lab );
+	addinst( np->n_lineno, OP_FJP, &v_lab );
 }
 
 void	RM_endwhile()
@@ -339,7 +335,7 @@ void	RM_endwhile()
 
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
-	addinst( OP_JMP, &v_lab );
+	addinst( UNDEF, OP_JMP, &v_lab );
 	labtab[ loopstk[ loopstkp - 1 ] + 2 ] = l_prog;
 	loopstkp--;
 }
@@ -349,7 +345,7 @@ void	RM_break()
 
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ] + 1;
-	addinst( OP_JMP, &v_lab );
+	addinst( UNDEF, OP_JMP, &v_lab );
 }
 
 void	RM_continue()
@@ -357,31 +353,31 @@ void	RM_continue()
 
 	v_lab.v_type = T_INT;
 	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
-	addinst( OP_JMP, &v_lab );
+	addinst( UNDEF, OP_JMP, &v_lab );
 }
 
 void	RM_accept()
 {
 
-	addinst( OP_ACPT, NULL );
+	addinst( UNDEF, OP_ACPT, NULL );
 }
 
 void	RM_reject()
 {
 
-	addinst( OP_RJCT, NULL );
+	addinst( UNDEF, OP_RJCT, NULL );
 }
 
 void	RM_mark()
 {
 
-	addinst( OP_MRK, NULL );
+	addinst( UNDEF, OP_MRK, NULL );
 }
 
 void	RM_clear()
 {
 
-	addinst( OP_CLS, 0 );
+	addinst( UNDEF, OP_CLS, 0 );
 }
 
 void	RM_expr( lval, np )
@@ -498,7 +494,7 @@ dumpstk( stdout, "before op" );
 			do_ldc( ip );
 			break;
 		case OP_STO :
-			do_sto();
+			do_sto( ip );
 			break;
 
 		case OP_AND :
@@ -508,71 +504,64 @@ dumpstk( stdout, "before op" );
 			do_ior( ip );
 			break;
 		case OP_NOT :
-			do_not();
+			do_not( ip );
 			break;
 
 		case OP_MAT :
-			do_mat();
+			do_mat( ip );
 			break;
 		case OP_INS :
-			do_ins();
+			do_ins( ip );
 			break;
 		case OP_GTR :
-			do_gtr();
+			do_gtr( ip );
 			break;
 		case OP_GEQ :
-			do_geq();
+			do_geq( ip );
 			break;
 		case OP_EQU :
-			do_equ();
+			do_equ( ip );
 			break;
 		case OP_NEQ :
-			do_neq();
+			do_neq( ip );
 			break;
 		case OP_LEQ :
-			do_leq();
+			do_leq( ip );
 			break;
 		case OP_LES :
-			do_les();
+			do_les( ip );
 			break;
 
 		case OP_ADD :
-			do_add();
+			do_add( ip );
 			break;
 		case OP_SUB :
-			do_sub();
+			do_sub( ip );
 			break;
 		case OP_MUL :
-			do_mul();
+			do_mul( ip );
 			break;
 		case OP_DIV :
-			do_div();
+			do_div( ip );
 			break;
 		case OP_MOD :
-			do_mod();
+			do_mod( ip );
 			break;
 		case OP_NEG :
-			do_neg();
-			break;
-
-		case OP_PRST :
-			do_prst();
-			break;
-		case OP_BPR :
-			do_bpr();
+			do_neg( ip );
 			break;
 
 		case OP_I_PP :
-			do_i_pp();
+			do_i_pp( ip );
 			break;
 		case OP_PP_I :
-			do_pp_i();
+			do_pp_i( ip );
 			break;
 		case OP_I_MM :
-			do_i_mm();
+			do_i_mm( ip );
 			break;
 		case OP_MM_I :
-			do_mm_i();
+			do_mm_i( ip );
 			break;
 
 		case OP_FJP :
@@ -584,6 +573,7 @@ dumpstk( stdout, "before op" );
 			pc = ip->i_val.v_value.v_ival;
 			break;
 		default :
+			rm_emsg_lineno = ip->i_lineno;
 			sprintf( emsg, "RM_score: unknown op %d.", ip->i_op );
 			RM_errormsg( 1, emsg );
 			break;
@@ -602,8 +592,10 @@ NODE_T	*np;
 	if( np ){
 		fixexpr( np->n_left );
 		fixexpr( np->n_right );
-		if( np->n_sym == SYM_STREF ){
-			fix_stref( np );
+		if( np->n_sym == SYM_KW_STREF ){
+			fix_kw_stref( np );
+		}else if( np->n_sym == SYM_IX_STREF ){
+			fix_ix_stref( np );
 		}else if( np->n_sym == SYM_CALL ){
 			fix_call( np );
 		}
@@ -618,9 +610,9 @@ NODE_T	*np;
 
 	if( np ){
 		if( np->n_sym == SYM_CALL ){
-			addinst( OP_MRK, NULL );
-		}else if( np->n_sym == SYM_LCURLY ){
-			addinst( OP_MRK, NULL );
+			addinst( np->n_lineno, OP_MRK, NULL );
+		}else if( np->n_sym == SYM_IN ){
+			addinst( np->n_lineno, OP_MRK, NULL );
 		}
 
 		genexpr( ISLVAL( np->n_sym ), np->n_left );
@@ -639,10 +631,8 @@ NODE_T	*np;
 			addnode( lval, np, 0 );
 		}
 
-		if( np->n_sym == SYM_STREF ){
-			addinst( OP_STRF, NULL );
-		}else if( np->n_sym == SYM_LCURLY ){
-			addinst( OP_PRST, NULL );
+		if( np->n_sym == SYM_KW_STREF || np->n_sym == SYM_IX_STREF ){
+			addinst( np->n_lineno, OP_STRF, NULL );
 		}
 	}
 }
@@ -661,7 +651,7 @@ NODE_T	*np;
 	return( UNDEF );
 }
 
-static	void	fix_stref( np )
+static	void	fix_kw_stref( np )
 NODE_T	*np;
 {
 	NODE_T	*np1, *np2, *np3;
@@ -679,34 +669,34 @@ NODE_T	*np;
 				if( n_index != NULL ){
 					rm_emsg_lineno = n_index->n_lineno;
 					RM_errormsg( 1,
-		"fix_stref: index parameter may not appear more than once." );
+	"fix_kw_stref: index parameter may not appear more than once." );
 				}else
 					n_index = np2->n_right;
 			}else if( !strcmp( ip, "tag" ) ){
 				if( n_tag != NULL ){
 					rm_emsg_lineno = n_tag->n_lineno;
 					RM_errormsg( 1,
-		"fix_stref: tag parameter may not appear more than once." );
+	"fix_kw_stref: tag parameter may not appear more than once." );
 				}else
 					n_tag = np2->n_right;
 			}else if( !strcmp( ip, "pos" ) ){
 				if( n_pos != NULL ){
 					rm_emsg_lineno = n_pos->n_lineno;
 					RM_errormsg( 1,
-		"fix_stref: pos parameter may not appear more than once." );
+		"fix_kw_stref: pos parameter may not appear more than once." );
 				}else
 					n_pos = np2->n_right;
 			}else if( !strcmp( ip, "len" ) ){
 				if( n_len != NULL ){
 					rm_emsg_lineno = n_len->n_lineno;
 					RM_errormsg( 1,
-		"fix_stref: len parameter may not appear more than once." );
+		"fix_kw_stref: len parameter may not appear more than once." );
 				}else
 					n_len = np2->n_right;
 			}else{
 				rm_emsg_lineno = np3->n_lineno;
 				sprintf( emsg,
-					"fix_stref: unknown parameter: '%s'.",
+				"fix_kw_stref: unknown parameter: '%s'.",
 					ip );
 				RM_errormsg( 1, emsg );
 			}
@@ -715,8 +705,62 @@ NODE_T	*np;
 
 	rm_emsg_lineno = np->n_lineno;
 	if( n_index == NULL && n_tag == NULL ){
+		rm_emsg_lineno = np->n_lineno;
 		RM_errormsg( 1,
-			"fix_stref: index = or tag = require for stref()." );
+			"fix_kw_stref: index = or tag = require for stref()." );
+	}
+
+	np1 = mk_call_strid( n_tag, n_index, np->n_left->n_sym );
+
+	/* build the 3 parms to stref	*/
+	if( n_len == NULL ){
+		v_expr.v_type = T_INT;
+		v_expr.v_value.v_ival = -1;
+		np3 = RM_node( SYM_INT, &v_expr, 0, 0 );
+	}else
+		np3 = n_len;
+	np2 = RM_node( SYM_LIST, 0, np3, NULL );
+	if( n_pos == NULL ){
+		v_expr.v_type = T_INT;
+		v_expr.v_value.v_ival = 1;
+		np3 = RM_node( SYM_INT, &v_expr, 0, 0 );
+	}else
+		np3 = n_pos;
+	np2 = RM_node( SYM_LIST, 0, np3, np2 );
+	np1 = RM_node( SYM_LIST, 0, np1, np2 );
+	np->n_right = np1;
+}
+
+static	void	fix_ix_stref( np )
+NODE_T	*np;
+{
+	NODE_T	*np1, *np2, *np3;
+	NODE_T	*n_index, *n_tag, *n_pos, *n_len;
+	VALUE_T	v_expr;
+
+	n_index = n_tag = n_pos = n_len = NULL;
+	np1 = np->n_right;
+	np2 = np1->n_left; 
+
+	if( np2->n_sym == SYM_INT )
+		n_index = np2;
+	else if( np2->n_sym == SYM_STRING )
+		n_tag = np2;
+
+	if( np1->n_right != NULL ){
+		np1 = np1->n_right;
+		n_pos = np1->n_left; 
+		if( np1->n_right != NULL ){
+			np1 = np1->n_right;
+			n_len = np1->n_left; 
+		}
+	}
+
+	rm_emsg_lineno = np->n_lineno;
+	if( n_index == NULL && n_tag == NULL ){
+		rm_emsg_lineno = np->n_lineno;
+		RM_errormsg( 1,
+			"fix_ix_stref: index = or tag = require for stref()." );
 	}
 
 	np1 = mk_call_strid( n_tag, n_index, np->n_left->n_sym );
@@ -1189,25 +1233,25 @@ INST_T	*ip;
 	pos   = mem[ sp - 1 ].v_value.v_ival;
 	index = mem[ sp - 2 ].v_value.v_ival;
 	if( index < 0 || index >= rm_n_descr ){
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;;
 		sprintf( emsg, "do_strf: no such descriptor %d.", index );
 		RM_errormsg( 1, emsg );
 	}
 	stp = &rm_descr[ index ];
 	if( pos < 1 ){
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_strf: pos must be > 0." );
 	}else if( stp->s_matchlen == 0 ){
 		pos = 1;	
 	}else if( pos > stp->s_matchlen ){
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_strf: pos must be <= %d.\n",
 			stp->s_matchlen );
 		RM_errormsg( 1, emsg );
 	}
 	pos--;
 	if( len == 0 ){ 
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_strf: len must be > 0." );
 	}else if( len == UNDEF )	/* rest of string */
 		len = stp->s_matchlen - pos;
@@ -1215,7 +1259,7 @@ INST_T	*ip;
 		len = MIN( stp->s_matchlen - pos, len );
 	cp = ( char * )malloc( ( len + 1 ) * sizeof( char ) );
 	if( cp == NULL ){
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_strf: can't allocate cp." );
 		exit( 1 );
 	}
@@ -1241,7 +1285,7 @@ INST_T	*ip;
 		v_top->v_type = T_UNDEF;
 		v_top->v_value.v_pval = idp;
 	}else if( !idp->i_reinit ){
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_lda: variable '%s' is readonly.", 
 			idp->i_name );
 		RM_errormsg( 1, emsg );
@@ -1294,11 +1338,9 @@ INST_T	*ip;
 			v_top->v_type = T_STRING;
 			v_top->v_value.v_pval = cp;
 			break;
-		case T_PAIR :
-			break;
-		case T_POS :
-			break;
-		case T_IDENT :
+		default :
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, "do_lod: type mismatch." );
 			break;
 		}
 	}
@@ -1325,7 +1367,7 @@ INST_T	*ip;
 		v_top->v_type = T_STRING;
 		cp = ( char * )malloc( strlen( ip->i_val.v_value.v_pval ) + 1 );
 		if( cp == NULL ){
-			rm_emsg_lineno = UNDEF;
+			rm_emsg_lineno = ip->i_lineno;
 			RM_errormsg( 1, "do_ldc: can't allocate cp." );
 		}
 		strcpy( cp, ip->i_val.v_value.v_pval );
@@ -1335,14 +1377,19 @@ INST_T	*ip;
 		v_top->v_type = T_POS;
 		v_top->v_value.v_pval = NULL;
 		break;
+	case 	T_PAIRSET :
+		v_top->v_type = T_PAIRSET;
+		v_top->v_value.v_pval = ip->i_val.v_value.v_pval;
+		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_ldc: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_sto()
+static	void	do_sto( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1380,15 +1427,11 @@ static	void	do_sto()
 		idp->i_val.v_type = T_STRING;
 		idp->i_val.v_value.v_pval = cp;
 		break;
-	case T_IJ( T_UNDEF, T_PAIR ):
-		break;
 	case T_IJ( T_INT, T_INT ) :
 		idp->i_val.v_value.v_ival = v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_INT, T_FLOAT ) :
 		idp->i_val.v_value.v_ival = v_top->v_value.v_fval;
-		break;
-	case T_IJ( T_INT, T_POS ) :
 		break;
 	case T_IJ( T_FLOAT, T_INT ) :
 		idp->i_val.v_value.v_fval = v_top->v_value.v_ival;
@@ -1406,10 +1449,8 @@ static	void	do_sto()
 		free( idp->i_val.v_value.v_pval );
 		idp->i_val.v_value.v_pval = cp;
 		break;
-	case T_IJ( T_PAIR, T_PAIR ) :
-		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_sto: type mismatch." );
 		break;
 	}
@@ -1436,7 +1477,7 @@ INST_T	*ip;
 			*( char * )v_top->v_value.v_pval != '\0';
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_and: type mismatch." );
 		break;
 	}
@@ -1465,7 +1506,7 @@ INST_T	*ip;
 			*( char * )v_top->v_value.v_pval != '\0';
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_ior: type mismatch." );
 		break;
 	}
@@ -1473,7 +1514,8 @@ INST_T	*ip;
 		pc = ip->i_val.v_value.v_ival;
 }
 
-static	void	do_not()
+static	void	do_not( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_top;
 	int	t_top;
@@ -1493,13 +1535,14 @@ static	void	do_not()
 			!( *( char * )v_top->v_value.v_pval != '\0' );
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_not: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_mat()
+static	void	do_mat( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1524,18 +1567,96 @@ static	void	do_mat()
 		free( s_tm1 );
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_mat: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_ins()
+static	void	do_ins( ip )
+INST_T	*ip;
 {
+	VALUE_T	*v_bases[ 4 ], *v_top;
+	char	*s_bases[ 4 ];
+	int	l0, l_bases[ 4 ];
+	int	i, n_bases;
+	int	rv;
+	PAIRSET_T	*ps_top;
 
+	n_bases = sp - mp - 1;
+	if( n_bases < 2 || n_bases > 4 ){
+		rm_emsg_lineno = ip->i_lineno;
+		sprintf( emsg, "do_ins: pair has %d bases, requires %d-%d.",
+			n_bases, 2, 4 );
+		RM_errormsg( 1, emsg );
+	}
+
+	v_top = &mem[ sp ];
+	if( v_top->v_type != T_PAIRSET ){
+		rm_emsg_lineno = ip->i_lineno;
+		RM_errormsg( 1,
+			"do_ins: rhs of \"in\" must have type pairset." );
+	}
+	ps_top = v_top->v_value.v_pval;
+	for( l0 = UNDEF, i = 0; i < n_bases; i++ ){
+		v_bases[ i ] = &mem[ mp + 1 + i ];
+		if( v_bases[ i ]->v_type != T_STRING ){
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1,
+				"do_ins: pair elements must be type string." );
+		}
+		l_bases[ i ] = strlen( v_bases[ i ]->v_value.v_pval );
+		if( l0 == UNDEF )
+			l0 = l_bases[ i ]; 
+		else if( l_bases[ i ] != l0 ){
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1,
+		"do_ins: all pair elements must have the same length." );
+		}
+		s_bases[ i ] = v_bases[ i ]->v_value.v_pval;
+	}
+
+	switch( n_bases ){
+	case 2 :
+		for( rv = 1, i = 0; i < l0; i++ ){
+			if( !RM_paired( ps_top, s_bases[0][i], s_bases[1][i] ) )
+			{
+				rv = 0;
+				break;
+			}
+		}
+		break;
+	case 3 :
+		for( rv = 1, i = 0; i < l0; i++ ){
+			if( !RM_triple( ps_top,
+				s_bases[0][i], s_bases[1][i], s_bases[2][i] ) )
+			{
+				rv = 0;
+				break;
+			}
+		}
+		break;
+	case 4 :
+		for( rv = 1, i = 0; i < l0; i++ ){
+			if( !RM_quad( ps_top,
+				s_bases[0][i], s_bases[1][i],
+				s_bases[2][i], s_bases[3][i] ) )
+			{
+				rv = 0;
+				break;
+			}
+		}
+		break;
+	}
+
+	sp = mp;
+	mp = mem[ mp ].v_value.v_ival;
+	mem[ sp ].v_type = T_INT;
+	mem[ sp ].v_value.v_ival = rv;
 }
 
-static	void	do_gtr()
+static	void	do_gtr( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1573,13 +1694,14 @@ static	void	do_gtr()
 		free( s_tm1 );
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_gtr: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_geq()
+static	void	do_geq( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1617,14 +1739,15 @@ static	void	do_geq()
 		free( s_tm1 );
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_geq: type mismatch." );
 		exit( 1 );
 		break;
 	}
 }
 
-static	void	do_equ()
+static	void	do_equ( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1662,13 +1785,14 @@ static	void	do_equ()
 		free( s_tm1 );
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_equ: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_neq()
+static	void	do_neq( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1706,13 +1830,14 @@ static	void	do_neq()
 		free( s_tm1 );
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_neq: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_leq()
+static	void	do_leq( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1750,13 +1875,14 @@ static	void	do_leq()
 		free( s_tm1 );
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_leq: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_les()
+static	void	do_les( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1794,13 +1920,14 @@ static	void	do_les()
 		free( s_tm1 );
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_les: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_add()
+static	void	do_add( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1818,28 +1945,21 @@ static	void	do_add()
 	case T_IJ( T_INT, T_FLOAT ) :
 		v_tm1->v_value.v_ival += v_top->v_value.v_fval;
 		break;
-	case T_IJ( T_INT, T_POS ) :
-		break;
 	case T_IJ( T_FLOAT, T_INT ) :
 		v_tm1->v_value.v_fval += v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
 		v_tm1->v_value.v_fval += v_top->v_value.v_fval;
 		break;
-	case T_IJ( T_STRING, T_STRING ) :
-		break;
-	case T_IJ( T_PAIR, T_PAIR ) :
-		break;
-	case T_IJ( T_POS, T_INT ) :
-		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_add: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_sub()
+static	void	do_sub( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1857,26 +1977,21 @@ static	void	do_sub()
 	case T_IJ( T_INT, T_FLOAT ) :
 		v_tm1->v_value.v_ival -= v_top->v_value.v_fval;
 		break;
-	case T_IJ( T_INT, T_POS ) :
-		break;
 	case T_IJ( T_FLOAT, T_INT ) :
 		v_tm1->v_value.v_fval -= v_top->v_value.v_ival;
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
 		v_tm1->v_value.v_fval -= v_top->v_value.v_fval;
 		break;
-	case T_IJ( T_PAIR, T_PAIR ) :
-		break;
-	case T_IJ( T_POS, T_INT ) :
-		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_sub: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_mul()
+static	void	do_mul( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1901,13 +2016,14 @@ static	void	do_mul()
 		v_tm1->v_value.v_fval *= v_top->v_value.v_fval;
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_mul: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_div()
+static	void	do_div( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1932,13 +2048,14 @@ static	void	do_div()
 		v_tm1->v_value.v_fval /= v_top->v_value.v_fval;
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_div: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_mod()
+static	void	do_mod( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
@@ -1954,13 +2071,14 @@ static	void	do_mod()
 		v_tm1->v_value.v_ival %= v_top->v_value.v_ival;
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_mod: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_neg()
+static	void	do_neg( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_top;
 	int	t_top;
@@ -1976,126 +2094,120 @@ static	void	do_neg()
 		v_top->v_value.v_fval = -v_top->v_value.v_fval;
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_neg: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_prst()
-{
-
-}
-
-static	void	do_bpr()
-{
-
-}
-
-static	void	do_i_pp()
+static	void	do_i_pp( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_top;
 	int	t_top;
-	IDENT_T	*ip;
+	IDENT_T	*idp;
 
 	v_top = &mem[ sp ];
-	ip = v_top->v_value.v_pval;
-	t_top = ip->i_type;
+	idp = v_top->v_value.v_pval;
+	t_top = idp->i_type;
 	
 	switch( t_top ){
 	case T_UNDEF :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_i_pp: variable '%s' is undefined.",
-			ip->i_name );
+			idp->i_name );
 		RM_errormsg( 1, emsg );
 		break;
 	case T_INT :
-		v_top->v_value.v_ival = ( ip->i_val.v_value.v_ival )++;
+		v_top->v_value.v_ival = ( idp->i_val.v_value.v_ival )++;
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_i_pp: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_pp_i()
+static	void	do_pp_i( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_top;
 	int	t_top;
-	IDENT_T	*ip;
+	IDENT_T	*idp;
 
 	v_top = &mem[ sp ];
-	t_top = v_top->v_type;
-	ip = v_top->v_value.v_pval;
+	idp = v_top->v_value.v_pval;
+	t_top = idp->i_type;
 	
 	switch( t_top ){
 	case T_UNDEF :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_pp_i: variable '%s' is undefined.",
-			ip->i_name );
+			idp->i_name );
 		RM_errormsg( 1, emsg );
 		break;
 	case T_INT :
-		v_top->v_value.v_ival = ++( ip->i_val.v_value.v_ival );
+		v_top->v_value.v_ival = ++( idp->i_val.v_value.v_ival );
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_pp_i: type mismatch." );
 		break;
 	}
 }
 
-static	void	do_i_mm()
+static	void	do_i_mm( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_top;
 	int	t_top;
-	IDENT_T	*ip;
+	IDENT_T	*idp;
 
 	v_top = &mem[ sp ];
-	t_top = v_top->v_type;
-	ip = v_top->v_value.v_pval;
+	idp = v_top->v_value.v_pval;
+	t_top = idp->i_type;
 	
 	switch( t_top ){
 	case T_UNDEF :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_i_mm: variable '%s' is undefined.",
-			ip->i_name );
+			idp->i_name );
 		RM_errormsg( 1, emsg );
 		break;
 	case T_INT :
-		v_top->v_value.v_ival = ( ip->i_val.v_value.v_ival )--;
+		v_top->v_value.v_ival = ( idp->i_val.v_value.v_ival )--;
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_i_mm: type mismatch." );
 		exit( 1 );
 		break;
 	}
 }
 
-static	void	do_mm_i()
+static	void	do_mm_i( ip )
+INST_T	*ip;
 {
 	VALUE_T	*v_top;
 	int	t_top;
-	IDENT_T	*ip;
+	IDENT_T	*idp;
 
 	v_top = &mem[ sp ];
-	t_top = v_top->v_type;
-	ip = v_top->v_value.v_pval;
+	idp = v_top->v_value.v_pval;
+	t_top = idp->i_type;
 	
 	switch( t_top ){
 	case T_UNDEF :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		sprintf( emsg, "do_mm_i: variable '%s' is undefined.",
-			ip->i_name );
+			idp->i_name );
 		RM_errormsg( 1, emsg );
 		break;
 	case T_INT :
-		v_top->v_value.v_ival = --( ip->i_val.v_value.v_ival );
+		v_top->v_value.v_ival = --( idp->i_val.v_value.v_ival );
 		break;
 	default :
-		rm_emsg_lineno = UNDEF;
+		rm_emsg_lineno = ip->i_lineno;
 		RM_errormsg( 1, "do_mm_i: type mismatch." );
 		break;
 	}
@@ -2173,13 +2285,14 @@ int	l_andor;
 		if( ( sc = is_syscall( np ) ) != UNDEF ){
 			v_node.v_type = T_INT;
 			v_node.v_value.v_ival = sc;
-			addinst( OP_SCL, &v_node );
+			addinst( np->n_lineno, OP_SCL, &v_node );
 		}else
-			addinst( OP_FCL, &np->n_val );
+			addinst( np->n_lineno, OP_FCL, &np->n_val );
 		break;
 	case SYM_LIST :
 		break;
-	case SYM_STREF :
+	case SYM_KW_STREF :
+	case SYM_IX_STREF :
 		break;
 
 	case SYM_PARMS :
@@ -2214,130 +2327,132 @@ int	l_andor;
 
 	case SYM_IDENT :
 		if( lval ){
-			addinst( OP_LDA, &np->n_val );
+			addinst( np->n_lineno, OP_LDA, &np->n_val );
 		}else{
-			addinst( OP_LOD, &np->n_val );
+			addinst( np->n_lineno, OP_LOD, &np->n_val );
 		}
 		break;
 	case SYM_INT :
-		addinst( OP_LDC, &np->n_val );
+		addinst( np->n_lineno, OP_LDC, &np->n_val );
 		break;
 	case SYM_FLOAT :
-		addinst( OP_LDC, &np->n_val );
+		addinst( np->n_lineno, OP_LDC, &np->n_val );
 		break;
 	case SYM_STRING :
-		addinst( OP_LDC, &np->n_val );
+		addinst( np->n_lineno, OP_LDC, &np->n_val );
 		break;
 	case SYM_DOLLAR :
 		v_node.v_type = T_POS;
 		v_node.v_value.v_pval = NULL;
-		addinst( OP_LDC, &v_node );
+		addinst( np->n_lineno, OP_LDC, &v_node );
+		break;
+	case SYM_PAIRSET :
+		addinst( np->n_lineno, OP_LDC, &np->n_val );
 		break;
 
 	case SYM_ASSIGN :
-		addinst( OP_STO, NULL );
+		addinst( np->n_lineno, OP_STO, NULL );
 		break;
 
 	case SYM_PLUS_ASSIGN :
-		addinst( OP_ADD, NULL );
-		addinst( OP_STO, NULL );
+		addinst( np->n_lineno, OP_ADD, NULL );
+		addinst( np->n_lineno, OP_STO, NULL );
 		break;
 	case SYM_MINUS_ASSIGN :
-		addinst( OP_SUB, NULL );
-		addinst( OP_STO, NULL );
+		addinst( np->n_lineno, OP_SUB, NULL );
+		addinst( np->n_lineno, OP_STO, NULL );
 		break;
 	case SYM_PERCENT_ASSIGN :
-		addinst( OP_MOD, NULL );
-		addinst( OP_STO, NULL );
+		addinst( np->n_lineno, OP_MOD, NULL );
+		addinst( np->n_lineno, OP_STO, NULL );
 		break;
 	case SYM_STAR_ASSIGN :
-		addinst( OP_MUL, NULL );
-		addinst( OP_STO, NULL );
+		addinst( np->n_lineno, OP_MUL, NULL );
+		addinst( np->n_lineno, OP_STO, NULL );
 		break;
 	case SYM_SLASH_ASSIGN :
-		addinst( OP_DIV, NULL );
-		addinst( OP_STO, NULL );
+		addinst( np->n_lineno, OP_DIV, NULL );
+		addinst( np->n_lineno, OP_STO, NULL );
 		break;
 
 	case SYM_AND :
 		v_lab.v_type = T_INT;
 		v_lab.v_value.v_ival = l_andor;
-		addinst( OP_AND, &v_lab );
+		addinst( np->n_lineno, OP_AND, &v_lab );
 		break;
 	case SYM_OR :
 		v_lab.v_type = T_INT;
 		v_lab.v_value.v_ival = l_andor;
-		addinst( OP_IOR, &v_lab );
+		addinst( np->n_lineno, OP_IOR, &v_lab );
 		break;
 	case SYM_NOT :
-		addinst( OP_NOT, NULL );
+		addinst( np->n_lineno, OP_NOT, NULL );
 		break;
 
 	case SYM_EQUAL :
-		addinst( OP_EQU, NULL );
+		addinst( np->n_lineno, OP_EQU, NULL );
 		break;
 	case SYM_NOT_EQUAL :
-		addinst( OP_NEQ, NULL );
+		addinst( np->n_lineno, OP_NEQ, NULL );
 		break;
 	case SYM_GREATER :
-		addinst( OP_GTR, NULL );
+		addinst( np->n_lineno, OP_GTR, NULL );
 		break;
 	case SYM_GREATER_EQUAL :
-		addinst( OP_GEQ, NULL );
+		addinst( np->n_lineno, OP_GEQ, NULL );
 		break;
 	case SYM_LESS :
-		addinst( OP_LES, NULL );
+		addinst( np->n_lineno, OP_LES, NULL );
 		break;
 	case SYM_LESS_EQUAL :
-		addinst( OP_LEQ, NULL );
+		addinst( np->n_lineno, OP_LEQ, NULL );
 		break;
 
 	case SYM_MATCH :
-		addinst( OP_MAT, NULL );
+		addinst( np->n_lineno, OP_MAT, NULL );
 		break;
 	case SYM_DONT_MATCH :
-		addinst( OP_MAT, NULL );
-		addinst( OP_NOT, NULL );
+		addinst( np->n_lineno, OP_MAT, NULL );
+		addinst( np->n_lineno, OP_NOT, NULL );
 		break;
 	case SYM_IN :
-		addinst( OP_INS, NULL );
+		addinst( np->n_lineno, OP_INS, NULL );
 		break;
 
 	case SYM_PLUS :
-		addinst( OP_ADD, NULL );
+		addinst( np->n_lineno, OP_ADD, NULL );
 		break;
 	case SYM_MINUS :
-		addinst( OP_SUB, NULL );
+		addinst( np->n_lineno, OP_SUB, NULL );
 		break;
 	case SYM_PERCENT :
-		addinst( OP_MOD, NULL );
+		addinst( np->n_lineno, OP_MOD, NULL );
 		break;
 	case SYM_STAR :
-		addinst( OP_MUL, NULL );
+		addinst( np->n_lineno, OP_MUL, NULL );
 		break;
 	case SYM_SLASH :
-		addinst( OP_DIV, NULL );
+		addinst( np->n_lineno, OP_DIV, NULL );
 		break;
 	case SYM_NEGATE :
-		addinst( OP_NEG, NULL );
+		addinst( np->n_lineno, OP_NEG, NULL );
 		break;
 
 	case SYM_COLON :
-		addinst( OP_BPR, NULL );
 		break;
 
 	case SYM_MINUS_MINUS :
 		if( np->n_left ){
-			addinst( OP_I_MM, NULL );
+			addinst( np->n_lineno, OP_I_MM, NULL );
 		}else{
-			addinst( OP_MM_I, NULL );
+			addinst( np->n_lineno, OP_MM_I, NULL );
 		}
 		break;
 	case SYM_PLUS_PLUS :
 		if( np->n_left ){
-			addinst( OP_I_PP, NULL );
+			addinst( np->n_lineno, OP_I_PP, NULL );
 		}else{
-			addinst( OP_PP_I, NULL );
+			addinst( np->n_lineno, OP_PP_I, NULL );
 		}
 		break;
 
@@ -2363,7 +2478,8 @@ int	l_andor;
 	}
 }
 
-static	void	addinst( op, vp )
+static	void	addinst( ln, op, vp )
+int	ln;
 int	op;
 VALUE_T	*vp;
 {
@@ -2375,6 +2491,7 @@ VALUE_T	*vp;
 	}else{
 		ip = &prog[ l_prog ];
 		l_prog++;
+		ip->i_lineno = ln;
 		ip->i_op = op;
 		if( vp == NULL ){
 			ip->i_val.v_type = T_UNDEF;
@@ -2394,6 +2511,8 @@ VALUE_T	*vp;
 				}
 				strcpy( sp, vp->v_value.v_pval );
 				ip->i_val.v_value.v_pval = sp;
+			}else if( vp->v_type == T_PAIRSET ){
+				ip->i_val.v_value.v_pval = vp->v_value.v_pval;
 			}
 		}
 	}
@@ -2464,10 +2583,6 @@ INST_T	*ip;
 	case OP_NEG :
 		break;
 
-	case OP_PRST :
-	case OP_BPR :
-		break;
-
 	case OP_I_PP :
 	case OP_PP_I :
 	case OP_I_MM :
@@ -2493,6 +2608,10 @@ INST_T	*ip;
 		fprintf( fp, " $" );
 	else if( vp->v_type == T_IDENT )
 		fprintf( fp, " %s", vp->v_value.v_pval );
+	else if( vp->v_type == T_PAIRSET ){
+		fprintf( fp, " " );
+		RM_dump_pairset( fp, vp->v_value.v_pval );
+	}
 	fprintf( fp, "\n" );
 }
 
@@ -2519,7 +2638,7 @@ char	msg[];
 		case T_STRING :
 			fprintf( fp, "S \"%s\"", vp->v_value.v_pval );
 			break;
-		case T_PAIR :
+		case T_PAIRSET :
 			fprintf( fp, "Pr" );
 			break;
 		case T_POS :

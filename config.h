@@ -11,3 +11,4 @@ LEX = lex
 
 # Uncomment & use this line for FASTN only
 CFLAGS= -O2
+#CFLAGS= -g

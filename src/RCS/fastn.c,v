@@ -1,9 +1,14 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2000.03.31.14.46.59;	author macke;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2000.02.10.00.11.05;	author macke;	state Exp;
@@ -46,10 +51,9 @@ desc
 @
 
 
-1.7
+1.8
 log
-@redid to read 1 char at a time instead of line at a time, so
-as to be able to truncate very long lines.
+@convert u's in the input to lower case.
 @
 text
 @#include <stdio.h>
@@ -132,8 +136,10 @@ char	sbuf[];
 			break;
 		}else if( isalpha( c ) ){
 			cnt++;
-			if( cnt < s_sbuf )
-				*sp++ = tolower( c );
+			if( cnt < s_sbuf ){
+				c = tolower( c );
+				*sp++ = c == 'u' ? 't' : c;
+			}
 		}
 	}
 	*sp = '\0';
@@ -156,6 +162,19 @@ FILE	*fp;
 			break;
 	return( c );
 }
+@
+
+
+1.7
+log
+@redid to read 1 char at a time instead of line at a time, so
+as to be able to truncate very long lines.
+@
+text
+@d81 4
+a84 2
+			if( cnt < s_sbuf )
+				*sp++ = tolower( c );
 @
 
 

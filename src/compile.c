@@ -246,23 +246,23 @@ char	*argv[];
 	curpair[3] = "u:a";
 	n_curpair = 4;
 	np = PR_close();
-	RM_enter_id( "wc", T_PAIR, C_VAR, S_GLOBAL, 0, &np->n_val );
+	RM_enter_id( "wc", T_PAIRSET, C_VAR, S_GLOBAL, 0, &np->n_val );
 
 	curpair[0] = "g:u";
 	curpair[1] = "u:g";
 	n_curpair = 2;
 	np = PR_close();
-	RM_enter_id( "gu", T_PAIR, C_VAR, S_GLOBAL, 0, &np->n_val );
+	RM_enter_id( "gu", T_PAIRSET, C_VAR, S_GLOBAL, 0, &np->n_val );
 
 	curpair[0] = "a:u:u";
 	n_curpair = 1;
 	np = PR_close();
-	RM_enter_id( "tr", T_PAIR, C_VAR, S_GLOBAL, 0, &np->n_val );
+	RM_enter_id( "tr", T_PAIRSET, C_VAR, S_GLOBAL, 0, &np->n_val );
 
 	curpair[0] = "g:g:g:g";
 	n_curpair = 1;
 	np = PR_close();
-	RM_enter_id( "qu", T_PAIR, C_VAR, S_GLOBAL, 0, &np->n_val );
+	RM_enter_id( "qu", T_PAIRSET, C_VAR, S_GLOBAL, 0, &np->n_val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 1;
@@ -390,11 +390,11 @@ NODE_T	*PR_close()
 	if( np == NULL ){
 		RM_errormsg( 1, "PR_close: can't allocate np." );
 	}
-	np->n_sym = SYM_LCURLY;
-	np->n_type = T_PAIR;
+	np->n_sym = SYM_PAIRSET;
+	np->n_type = T_PAIRSET;
 	np->n_class = C_LIT;
 	np->n_lineno = rm_lineno;
-	np->n_val.v_type = T_PAIR;
+	np->n_val.v_type = T_PAIRSET;
 	np->n_val.v_value.v_pval = ps;
 	np->n_left = NULL;
 	np->n_right = NULL;
@@ -539,9 +539,9 @@ int	stype;
 			stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
 			break;
 		}
-		val.v_type = T_PAIR;
+		val.v_type = T_PAIRSET;
 		val.v_value.v_pval = NULL;
-		ip = RM_enter_id( "pair", T_PAIR, C_VAR, S_STREL, 0, &val );
+		ip = RM_enter_id( "pair", T_PAIRSET, C_VAR, S_STREL, 0, &val );
 	}
 }
 
@@ -1635,7 +1635,7 @@ VALUE_T	*vp;
 				strcpy( np, vp->v_value.v_pval );
 				ip->i_val.v_value.v_pval = np;
 			}
-		}else if( type == T_PAIR ){
+		}else if( type == T_PAIRSET ){
 			ip->i_val.v_value.v_pval = pairop( "copy", 
 				vp->v_value.v_pval, NULL );
 		}
@@ -1739,8 +1739,8 @@ int	d_ok;
 			n_valstk++;
 			break;
 
-		case SYM_LCURLY :
-			valstk[ n_valstk ].v_type = T_PAIR;
+		case SYM_PAIRSET :
+			valstk[ n_valstk ].v_type = T_PAIRSET;
 			valstk[ n_valstk ].v_value.v_pval = 
 				expr->n_val.v_value.v_pval;
 			n_valstk++;
@@ -1810,7 +1810,7 @@ int	d_ok;
 				strcat( sp, r_sp );
 				valstk[ n_valstk - 2 ].v_value.v_pval = sp;
 				break;
-			case T_IJ( T_PAIR, T_PAIR ) :
+			case T_IJ( T_PAIRSET, T_PAIRSET ) :
 				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
 				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
 				n_ps = pairop( "add", l_ps, r_ps );
@@ -1848,7 +1848,7 @@ int	d_ok;
 				valstk[ n_valstk - 2 ].v_value.v_fval -=
 					valstk[ n_valstk - 1 ].v_value.v_fval;
 				break;
-			case T_IJ( T_PAIR, T_PAIR ) :
+			case T_IJ( T_PAIRSET, T_PAIRSET ) :
 				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
 				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
 				n_ps = pairop( "sub", l_ps, r_ps );
@@ -1894,7 +1894,7 @@ int	d_ok;
 				break;
 			case T_IJ( T_STRING, T_STRING ) :
 				break;
-			case T_IJ( T_PAIR, T_PAIR ) :
+			case T_IJ( T_PAIRSET, T_PAIRSET ) :
 				break;
 			case T_IJ( T_POS, T_INT ) :
 				posop( "cvt", &valstk[ n_valstk - 1 ], NULL );
@@ -1946,7 +1946,7 @@ int	d_ok;
 				strcat( sp, r_sp );
 				valstk[ n_valstk - 2 ].v_value.v_pval = sp;
 				break;
-			case T_IJ( T_PAIR, T_PAIR ) :
+			case T_IJ( T_PAIRSET, T_PAIRSET ) :
 				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
 				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
 				n_ps = pairop( "add", l_ps, r_ps );
@@ -1984,7 +1984,7 @@ int	d_ok;
 				valstk[ n_valstk - 2 ].v_value.v_fval -=
 					valstk[ n_valstk - 1 ].v_value.v_fval;
 				break;
-			case T_IJ( T_PAIR, T_PAIR ) :
+			case T_IJ( T_PAIRSET, T_PAIRSET ) :
 				l_ps = valstk[ n_valstk - 2 ].v_value.v_pval;
 				r_ps = valstk[ n_valstk - 1 ].v_value.v_pval;
 				n_ps = pairop( "sub", l_ps, r_ps );
@@ -2041,7 +2041,7 @@ VALUE_T	*vp;
 		vp->v_type = T_STRING;
 		strcpy( sp, ip->i_val.v_value.v_pval );
 		vp->v_value.v_pval = sp;
-	}else if( type == T_PAIR ){
+	}else if( type == T_PAIRSET ){
 		if( ip->i_val.v_value.v_pval == NULL ){
 			if( def_pairset != NULL )
 				ps = def_pairset;
@@ -2053,7 +2053,7 @@ VALUE_T	*vp;
 			}
 		}else
 			ps = ip->i_val.v_value.v_pval;
-		vp->v_type = T_PAIR;
+		vp->v_type = T_PAIRSET;
 		vp->v_value.v_pval = pairop( "copy", ps, NULL );
 	}
 	return( type );
@@ -2084,9 +2084,9 @@ VALUE_T	*vp;
 		strcpy( sp, vp->v_value.v_pval ); 
 		ip->i_val.v_type = T_STRING;
 		ip->i_val.v_value.v_pval = sp;
-	}else if( type == T_PAIR ){
-		ip->i_type = T_PAIR;
-		ip->i_val.v_type = T_PAIR;
+	}else if( type == T_PAIRSET ){
+		ip->i_type = T_PAIRSET;
+		ip->i_val.v_type = T_PAIRSET;
 		ip->i_val.v_value.v_pval = vp->v_value.v_pval;
 	}else if( type == T_POS ){
 		ip->i_type = T_POS;

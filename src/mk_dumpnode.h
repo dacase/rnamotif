@@ -14,6 +14,10 @@ awk '{	printf( "\tcase %s :\n", $2 )\
 	}else if( $2 == "SYM_STRING" ){\
 		printf( " = \\\"%%s\\\"\\n\"" ) \
 		printf( ", np->n_val.v_value.v_pval" ) \
+	}else if( $2 == "SYM_PAIRSET" ){\
+		printf( " = " ) \
+		printf( "RM_dump_pairset( fp, np->n_val.v_value.v_pval );" ) \
+		printf( "\\n\"" ) \
 	}else \
 		printf( "\\n\"" ) \
 	printf( " );\n" ) \

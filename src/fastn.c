@@ -78,8 +78,10 @@ char	sbuf[];
 			break;
 		}else if( isalpha( c ) ){
 			cnt++;
-			if( cnt < s_sbuf )
-				*sp++ = tolower( c );
+			if( cnt < s_sbuf ){
+				c = tolower( c );
+				*sp++ = c == 'u' ? 't' : c;
+			}
 		}
 	}
 	*sp = '\0';

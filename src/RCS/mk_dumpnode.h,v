@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2000.03.26.01.51.47;	author macke;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	99.10.03.19.10.32;	author macke;	state Exp;
@@ -22,9 +27,9 @@ in node.c
 @
 
 
-1.2
+1.3
 log
-@changed name in errormsg to RM_dumpnode: from dumpnode
+@added branch to deal with SYM_PAIRSET.
 @
 text
 @#! /bin/csh
@@ -43,6 +48,10 @@ awk '{	printf( "\tcase %s :\n", $2 )\
 	}else if( $2 == "SYM_STRING" ){\
 		printf( " = \\\"%%s\\\"\\n\"" ) \
 		printf( ", np->n_val.v_value.v_pval" ) \
+	}else if( $2 == "SYM_PAIRSET" ){\
+		printf( " = " ) \
+		printf( "RM_dump_pairset( fp, np->n_val.v_value.v_pval );" ) \
+		printf( "\\n\"" ) \
 	}else \
 		printf( "\\n\"" ) \
 	printf( " );\n" ) \
@@ -51,6 +60,15 @@ awk '{	printf( "\tcase %s :\n", $2 )\
 	printf( "\t\tfprintf( fp, \"RM_dumpnode: Unknown symbol %%d\\n\"" ) \
 	printf( ", np->n_sym );\n" ) \
 	printf( "\t\tbreak;\n" ) } '
+@
+
+
+1.2
+log
+@changed name in errormsg to RM_dumpnode: from dumpnode
+@
+text
+@d17 4
 @
 
 

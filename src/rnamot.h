@@ -1,7 +1,7 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.2.1 2000-mar-19"
+#define	VERSION	"v1.2.3 2000-mar-31"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] -descr descr-file [ -dtype dtype ] [ seq-file ]\n\n\
@@ -26,7 +26,7 @@ options:\n\
 #define	T_INT		1
 #define	T_FLOAT		2
 #define	T_STRING	3
-#define	T_PAIR		4
+#define	T_PAIRSET	4
 #define	T_POS		5
 #define	T_IDENT		6
 #define	N_TYPE		7

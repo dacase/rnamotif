@@ -1,9 +1,24 @@
-head	1.51;
+head	1.54;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.54
+date	2000.03.31.14.45.03;	author macke;	state Exp;
+branches;
+next	1.53;
+
+1.53
+date	2000.03.28.19.15.58;	author macke;	state Exp;
+branches;
+next	1.52;
+
+1.52
+date	2000.03.27.18.54.17;	author macke;	state Exp;
+branches;
+next	1.51;
 
 1.51
 date	2000.03.20.05.27.53;	author macke;	state Exp;
@@ -266,15 +281,15 @@ desc
 @
 
 
-1.51
+1.54
 log
-@updated version to 1.2.1 (2000-mar-19)
+@update version to 1.2.3 to indicate that u's in the data are converted to t's.
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.2.1 2000-mar-19"
+#define	VERSION	"v1.2.3 2000-mar-31"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] -descr descr-file [ -dtype dtype ] [ seq-file ]\n\n\
@@ -299,7 +314,7 @@ options:\n\
 #define	T_INT		1
 #define	T_FLOAT		2
 #define	T_STRING	3
-#define	T_PAIR		4
+#define	T_PAIRSET	4
 #define	T_POS		5
 #define	T_IDENT		6
 #define	N_TYPE		7
@@ -450,6 +465,39 @@ typedef	struct	search_t	{
 } SEARCH_T;
 
 #endif
+@
+
+
+1.53
+log
+@changed version to 1.2.2.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.2.2 2000-mar-28"
+@
+
+
+1.52
+log
+@changed type T_PAIR to T_PAIRSET.  pairs exist only transiently
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.2.1 2000-mar-19"
+@
+
+
+1.51
+log
+@updated version to 1.2.1 (2000-mar-19)
+@
+text
+@d29 1
+a29 1
+#define	T_PAIR		4
 @
 
 

@@ -74,7 +74,7 @@ int	indent;
 {
 
 	fprintf( fp, "%*s",indent, "" );
-	fprintf( fp, "%7p: lf = %7p rt = %7p ln,tp,cl = %3d,%2d,%2d ",
+	fprintf( fp, "%8p: lf = %8p rt = %8p ln,tp,cl = %3d,%2d,%2d ",
 		np, np->n_left, np->n_right,
 		np->n_lineno, np->n_type, np->n_class );
 	switch( np->n_sym ){

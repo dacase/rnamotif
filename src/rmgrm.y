@@ -43,6 +43,7 @@ static	NODE_T	*np;
 %token	SYM_INT
 %token	SYM_FLOAT
 %token	SYM_STRING
+%token	SYM_PAIRSET
 
 %token	SYM_AND
 %token	SYM_ASSIGN
@@ -83,7 +84,8 @@ static	NODE_T	*np;
 
 %token	SYM_CALL
 %token	SYM_LIST
-%token	SYM_STREF
+%token	SYM_KW_STREF
+%token	SYM_IX_STREF
 
 %token	SYM_ERROR
 
@@ -93,7 +95,7 @@ program		: parm_part descr_part site_part score_part ;
 parm_part	: SYM_PARMS { rm_context = CTX_PARMS; } pd_list
 		| ;
 descr_part	: SYM_DESCR { rm_context = CTX_DESCR; } se_list ;
-site_part	: SYM_SITES { rm_context = CTX_SITES; } site_list
+site_part	: SYM_SITES { rm_context = CTX_SITES; } kw_site_list
 		| ;
 score_part	: SYM_SCORE { rm_context = CTX_SCORE; } rule_list
 				{ RM_accept(); }
@@ -110,7 +112,7 @@ strel		: strhdr	{ if( rm_context == CTX_DESCR )
 				  else if( rm_context == CTX_SITES )
 					POS_close();
 				}
-		| stref ;
+		| kw_stref ;
 strhdr		: strtype	{ if( rm_context == CTX_DESCR )
 					SE_open( $1 );
 				  else if( rm_context == CTX_SITES )
@@ -132,10 +134,20 @@ strtype		: SYM_SE	{ $$ = SYM_SE; }
 		| SYM_Q3	{ $$ = SYM_Q3; }
 		| SYM_Q4	{ $$ = SYM_Q4; } ;
 
-site_list	: site
-		| site_list site ;
+kw_site_list	: kw_site
+		| kw_site_list kw_site ;
+kw_site		: kw_pairing SYM_IN pairset 
+				{ if( rm_context == CTX_SITES )
+					SI_close( $3 );
+				  else if( rm_context == CTX_SCORE )
+					$$ = RM_node( SYM_IN, 0, $1, $3 );
+				} ;
 site		: pairing SYM_IN pairset 
-				{ SI_close( $3 ); } ;
+				{ if( rm_context == CTX_SITES )
+					SI_close( $3 );
+				  else if( rm_context == CTX_SCORE )
+					$$ = RM_node( SYM_IN, 0, $1, $3 );
+				} ;
 
 rule_list	: rule
 		| rule rule_list ;
@@ -270,11 +282,20 @@ factor		: primary	{ $$ = $1; }
 				{ $$ = RM_node( SYM_NEGATE, 0, 0, $2 ); }
 		| SYM_NOT primary
 				{ $$ = RM_node( SYM_NOT, 0, 0, $2 ); }
-		| pairing	{ $$ = $1; } ;
-pairing 	: stref		{ if( rm_context == CTX_SCORE )
+		| stref		{ if( rm_context == CTX_SCORE )
+					$$ = $1;
+				} ;
+pairing		: stref		{ if( rm_context == CTX_SCORE )
 					$$ = $1;
 				}
 		| stref SYM_COLON pairing
+				{ if( rm_context == CTX_SCORE )
+					$$ = RM_node( SYM_COLON, 0, $1, $3 );
+				} ;
+kw_pairing 	: kw_stref	{ if( rm_context == CTX_SCORE )
+					$$ = $1;
+				}
+		| kw_stref SYM_COLON kw_pairing
 				{ if( rm_context == CTX_SCORE )
 					$$ = RM_node( SYM_COLON, 0, $1, $3 );
 				} ;
@@ -285,41 +306,36 @@ primary		: lval		{ $$ = $1; }
 				{ $$ = $2; } ;
 fcall		: ident SYM_LPAREN e_list SYM_RPAREN
 				{ $$ = RM_node( SYM_CALL, 0, $1, $3 ); } ;
-stref		: strhdr SYM_LPAREN a_list SYM_RPAREN
+stref		: kw_stref	{ $$ = $1; }
+		| ix_stref	{ $$ = $1; } ;
+kw_stref	: strhdr SYM_LPAREN a_list SYM_RPAREN
 				{ if( rm_context == CTX_DESCR )
 					SE_close();
 				  else if( rm_context == CTX_SITES )
 					POS_close();
 				  else if( rm_context == CTX_SCORE )
-					$$ = RM_node( SYM_STREF, 0, $1, $3 );
+					$$ = RM_node( SYM_KW_STREF, 0, $1, $3 );
 				} ;
+ix_stref	: strhdr SYM_LBRACK e_list SYM_RBRACK
+				{ $$ = RM_node( SYM_IX_STREF, 0, $1, $3 ); } ;
 lval		: ident		{ $$ = $1; }
 		| auto_lval	{ $$ = $1; } ;
 auto_lval	: incr_op ident	{ $$ = RM_node( $1, 0, 0, $2 ); }
 		| ident incr_op	{ $$ = RM_node( $2, 0, $1, 0 ); } ;
 literal		: SYM_INT	{ $$ = RM_node( SYM_INT, &rm_tokval, 0, 0 ); }
 		| SYM_FLOAT	{ $$ = RM_node( SYM_FLOAT, &rm_tokval, 0, 0 ); }
-		| SYM_STRING	{ $$ = RM_node( SYM_STRING,
-					&rm_tokval, 0, 0 ); } 
 		| SYM_DOLLAR	{ $$ = RM_node( SYM_DOLLAR,
 					&rm_tokval, 0, 0 ); }
+		| string	{ $$ = $1; }
 		| pairset	{ $$ = $1; } ;
 ident		: SYM_IDENT 	{ $$ = RM_node( SYM_IDENT,
 					&rm_tokval, 0, 0 ); } ;
 incr_op		: SYM_MINUS_MINUS
 				{ $$ = SYM_MINUS_MINUS; }
 		| SYM_PLUS_PLUS	{ $$ = SYM_PLUS_PLUS; } ;
-e_list		: expr		{ if( rm_context != CTX_SCORE )
-					PR_add( $1 );
-				  else
-					$$ = RM_node( SYM_LIST, 0, $1, 0 );
-				}
+e_list		: expr		{ $$ = RM_node( SYM_LIST, 0, $1, 0 ); }
 		| expr SYM_COMMA e_list
-				{ if( rm_context != CTX_SCORE )
-					PR_add( $1 );
-				  else
-					$$ = RM_node( SYM_LIST, 0, $1, $3 );
-				} ;
+				{ $$ = RM_node( SYM_LIST, 0, $1, $3 ); } ;
 a_list		: asgn		{ if( rm_context == CTX_SCORE )
 					$$ = RM_node( SYM_LIST, 0, $1, 0 );
 				}
@@ -327,14 +343,14 @@ a_list		: asgn		{ if( rm_context == CTX_SCORE )
 				{ if( rm_context == CTX_SCORE )
 					$$ = RM_node( SYM_LIST, 0, $1, $3 );
 				} ;
-pairset		: SYM_LCURLY 	{ if( rm_context != CTX_SCORE )
-					PR_open();
-				} e_list SYM_RCURLY
-				{ if( rm_context != CTX_SCORE )
-					$$ = PR_close();
-				  else
-					$$ = RM_node( SYM_LCURLY, 0, 0, $2 );
-				} ;
+pairset		: SYM_LCURLY 	{ PR_open(); }
+			s_list SYM_RCURLY
+				{ $$ = PR_close(); } ;
+s_list		: string	{ PR_add( $$ ); }
+		| string SYM_COMMA s_list
+				{ PR_add( $1 ) ; } ;
+string		: SYM_STRING	{ $$ = RM_node( SYM_STRING,
+					&rm_tokval, 0, 0 ); } 
 empty		: 		{ $$ = (  int )NULL; } ;
 %%
 

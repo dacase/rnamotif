@@ -1,7 +1,7 @@
 #! /bin/csh
 #    make a tar file for developers: keep CVS tree, etc.
 #
-set tarfile = rnamot3.`date +%d%h%y | tr "A-Z" "a-z"`.tar
+set tarfile = rnamotif.`date +%d%h%y | tr "A-Z" "a-z"`.tar
 echo making $tarfile
 tar cvf $tarfile \
 	./INSTALL \

@@ -92,7 +92,7 @@ IDENT_T	*ip;
 	case T_STRING :
 		fprintf( fp, "STRING\n" );
 		break;
-	case T_PAIR :
+	case T_PAIRSET :
 		fprintf( fp, "PAIR\n" );
 		break;
 	case T_IDENT :
@@ -158,7 +158,7 @@ IDENT_T	*ip;
 		fprintf( fp, "%s\n", ip->i_val.v_value.v_pval ?
 					ip->i_val.v_value.v_pval : "NULL" );
 		break;
-	case T_PAIR :
+	case T_PAIRSET :
 		ps = ip->i_val.v_value.v_pval;
 		RM_dump_pairset( fp, ps );
 		fprintf( fp, "\n" );

@@ -1,9 +1,14 @@
-head	1.37;
+head	1.38;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.38
+date	2000.03.27.18.56.56;	author macke;	state Exp;
+branches;
+next	1.37;
 
 1.37
 date	2000.03.03.19.00.40;	author macke;	state Exp;
@@ -196,9 +201,9 @@ desc
 @
 
 
-1.37
+1.38
 log
-@removed unused vars as detected by the SGI compiler on fermat.
+@changed all refs of T_PAIR to T_PAIRSET
 @
 text
 @#include <stdio.h>
@@ -295,7 +300,7 @@ IDENT_T	*ip;
 	case T_STRING :
 		fprintf( fp, "STRING\n" );
 		break;
-	case T_PAIR :
+	case T_PAIRSET :
 		fprintf( fp, "PAIR\n" );
 		break;
 	case T_IDENT :
@@ -361,7 +366,7 @@ IDENT_T	*ip;
 		fprintf( fp, "%s\n", ip->i_val.v_value.v_pval ?
 					ip->i_val.v_value.v_pval : "NULL" );
 		break;
-	case T_PAIR :
+	case T_PAIRSET :
 		ps = ip->i_val.v_value.v_pval;
 		RM_dump_pairset( fp, ps );
 		fprintf( fp, "\n" );
@@ -1019,6 +1024,20 @@ SEARCH_T	*searches[];
 		fprintf( fp, "\n" );
 	}
 }
+@
+
+
+1.37
+log
+@removed unused vars as detected by the SGI compiler on fermat.
+@
+text
+@d95 1
+a95 1
+	case T_PAIR :
+d161 1
+a161 1
+	case T_PAIR :
 @
 
 

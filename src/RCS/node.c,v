@@ -1,9 +1,14 @@
-head	1.19;
+head	1.20;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.20
+date	2000.03.27.21.45.06;	author macke;	state Exp;
+branches;
+next	1.19;
 
 1.19
 date	2000.03.03.19.49.34;	author macke;	state Exp;
@@ -106,9 +111,9 @@ desc
 @
 
 
-1.19
+1.20
 log
-@removed all unused vars that were detected by the fermat C-compiler.
+@change dumpnode format to use %8p vs %7p.
 @
 text
 @#include <stdio.h>
@@ -187,7 +192,7 @@ int	indent;
 {
 
 	fprintf( fp, "%*s",indent, "" );
-	fprintf( fp, "%7p: lf = %7p rt = %7p ln,tp,cl = %3d,%2d,%2d ",
+	fprintf( fp, "%8p: lf = %8p rt = %8p ln,tp,cl = %3d,%2d,%2d ",
 		np, np->n_left, np->n_right,
 		np->n_lineno, np->n_type, np->n_class );
 	switch( np->n_sym ){
@@ -196,6 +201,17 @@ int	indent;
 
 	}
 }
+@
+
+
+1.19
+log
+@removed all unused vars that were detected by the fermat C-compiler.
+@
+text
+@d77 1
+a77 1
+	fprintf( fp, "%7p: lf = %7p rt = %7p ln,tp,cl = %3d,%2d,%2d ",
 @
 
 
