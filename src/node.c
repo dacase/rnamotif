@@ -38,6 +38,10 @@ NODE_T	*right;
 		np->n_class = C_LIT;
 		np->n_val.v_type = T_STRING;
 		np->n_val.v_value.v_pval = vp->v_value.v_pval;
+	}else if( sym == SYM_DOLLAR ){
+		np->n_class = C_LIT;
+		np->n_val.v_type = T_POS;
+		np->n_val.v_value.v_pval = vp->v_value.v_pval;
 	}
 	return( np );
 }
@@ -73,6 +77,7 @@ FILE	*fp;
 NODE_T	*np;
 int	indent;
 {
+	POS_T	*posp;
 
 	fprintf( fp, "%*s",indent, "" );
 	fprintf( fp, "%7d: lf = %7d rt = %7d ln,tp,cl = %3d,%2d,%2d ",
