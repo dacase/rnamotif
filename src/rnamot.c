@@ -17,11 +17,13 @@ IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ] = {
 	{ "gu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
 	{ "tr", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
 	{ "qu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
+	{ "database", T_STRING, C_VAR, S_GLOBAL, { T_STRING, "VRT" } },
 	{ "overlap", T_INT, C_VAR, S_GLOBAL, { T_INT, 0 } },
-	{ "database", T_STRING, C_VAR, S_GLOBAL, { T_STRING, "VRT" } }
+	{ "wc_minlen", T_INT, C_VAR, S_GLOBAL, { T_INT, 3 } },
+	{ "wc_maxlen", T_INT, C_VAR, S_GLOBAL, { T_INT, 30 } }
 };
 int	rm_s_global_ids = RM_GLOBAL_IDS_SIZE;
-int	rm_n_global_ids = 6;
+int	rm_n_global_ids = 8;
 
 int	rm_tminlen;
 int	rm_tmaxlen;
