@@ -23,6 +23,7 @@ static	char	*fm_sbuf;
 static	int	*fm_winbuf;	/* windowsize + 2, 1 before, 1 after	*/
 static	int	*fm_window;	/* fm_winbuf[1]				*/
 static	int	fm_windowsize;
+static	int	fm_szero;
 static	char	*fm_chk_seq;
 
 static	int	find_motif();
@@ -87,18 +88,18 @@ char	sbuf[];
 
 	srp = searches[ 0 ];
 	l_szero = slen - w_winsize;
-	for( szero = 0; szero < l_szero; szero++ ){
-		srp->s_zero = szero;
-		srp->s_dollar = szero + w_winsize - 1;
-		fm_window[ srp->s_zero - 1 ] = UNDEF;
-		fm_window[ srp->s_dollar + 1 ] = UNDEF;
+	for( fm_szero = 0; fm_szero < l_szero; fm_szero++ ){
+		srp->s_zero = fm_szero;
+		srp->s_dollar = fm_szero + w_winsize - 1;
+		fm_window[ srp->s_zero - 1 - fm_szero ] = UNDEF;
+		fm_window[ srp->s_dollar + 1 - fm_szero ] = UNDEF;
 		find_motif( srp );
 	}
 
 	l_szero = slen - rm_dminlen;
 	srp->s_dollar = slen - 1;
-	for( ; szero <= l_szero; szero++ ){
-		srp->s_zero = szero;
+	for( ; fm_szero <= l_szero; fm_szero++ ){
+		srp->s_zero = fm_szero;
 		find_motif( srp );
 	}
 
@@ -221,7 +222,7 @@ SEARCH_T	*srp;
 	}
 
 	for( s = 0; s < slen; s++ ) 
-		fm_window[ szero + s ] = stp->s_index;
+		fm_window[ szero + s - fm_szero ] = stp->s_index;
 	stp->s_matchoff = szero;
 	stp->s_matchlen = slen;
 
@@ -232,7 +233,7 @@ SEARCH_T	*srp;
 			return( 1 );
 		}else{
 			for( s = 0; s < slen; s++ ) 
-				fm_window[ szero + s ] = UNDEF;
+				fm_window[ szero + s - fm_szero ] = UNDEF;
 			return( 0 );
 		}
 	}else{
@@ -486,8 +487,8 @@ int	hlen;
 	stp3->s_matchlen = hlen;
 
 	for( h = 0; h < hlen; h++ ){
-		fm_window[ h5+h ] = stp5->s_index;
-		fm_window[ h3-h ] = stp5->s_index;
+		fm_window[ h5+h-fm_szero ] = stp5->s_index;
+		fm_window[ h3-h-fm_szero ] = stp5->s_index;
 	}
 }
 
@@ -506,10 +507,9 @@ int	hlen;
 	stp3->s_matchlen = 0;
 
 	for( h = 0; h < hlen; h++ ){
-		fm_window[ h5+h ] = UNDEF;
-		fm_window[ h3-h ] = UNDEF;
+		fm_window[ h5+h-fm_szero ] = stp5->s_index;
+		fm_window[ h3-h-fm_szero ] = stp5->s_index;
 	}
-
 }
 
 static	int	chk_wchlx0( srp, s5, s3 )
@@ -583,8 +583,8 @@ STREL_T	descr[];
 		if( h3_3 < fm_slen - 1 ){
 			h5 = h5_5 - 1;
 			h3 = h3_3 + 1;
-			d5 = fm_window[ h5 ];
-			d3 = fm_window[ h3 ];
+			d5 = fm_window[ h5 - fm_szero ];
+			d3 = fm_window[ h3 - fm_szero ];
 			stpd5 = &descr[ d5 ];
 			stpd3 = &descr[ d3 ];
 			if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
@@ -598,8 +598,8 @@ STREL_T	descr[];
 
 	h5 = h5_3 + 1;
 	h3 = h3_5 - 1;
-	d5 = fm_window[ h5 ];
-	d3 = fm_window[ h3 ];
+	d5 = fm_window[ h5 - fm_szero ];
+	d3 = fm_window[ h3 - fm_szero ];
 	stpd5 = &descr[ d5 ];
 	stpd3 = &descr[ d3 ];
 	if( stpd5->s_type==SYM_SS && stpd3->s_type==SYM_SS ){
