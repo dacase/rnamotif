@@ -659,10 +659,14 @@ dumpstk( stdout, "before op" );
 			break;
 
 		case OP_MRK :
+			sp++;
+			mem[ sp ].v_type = T_INT;
+			mem[ sp ].v_value.v_ival = mp;
 			mp = sp;
 			break;
 		case OP_CLS :
 			sp = mp;
+			mp = mem[ mp ].v_value.v_ival;
 			break;
 
 		case OP_FCL :
@@ -993,8 +997,10 @@ INST_T	*ip;
 		cp = mem[ sp ].v_value.v_pval;
 		len = strlen( cp );
 		free( cp );
-		mem[ sp ].v_type = T_INT;
-		mem[ sp ].v_value.v_ival = len;
+		mem[ mp ].v_type = T_INT;
+		mem[ mp ].v_value.v_ival = len;
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
 	}
 }
 
