@@ -114,6 +114,12 @@ typedef	struct	strel_t	{
 	PAIRSET_T	*s_pairset;
 } STREL_T;
 
+typedef	struct	search_t	{
+	STREL_T	*s_descr;
+	STREL_T	*s_next;
+	STREL_T	*s_backup;
+} SEARCH_T;
+
 typedef	struct	dbase_t	{
 	int	d_first;
 	int	d_last;
