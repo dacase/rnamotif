@@ -252,12 +252,12 @@ STREL_T	*stp;
 
 	fprintf( fp, "\tlen      = " );
 	if( stp->s_minlen == UNDEF )
-		fprintf( fp, "%d", 1 );
+		fprintf( fp, "UNDEF" );
 	else
 		fprintf( fp, "%d", stp->s_minlen );
 	fprintf( fp, ":" );
 	if( stp->s_maxlen == UNDEF )
-		fprintf( fp, "UNBOUNDED" );
+		fprintf( fp, "UNDEF" );
 	else
 		fprintf( fp, "%d", stp->s_maxlen );
 	fprintf( fp, "\n" );
@@ -265,10 +265,18 @@ STREL_T	*stp;
 	fprintf( fp, "\tseq      = '%s'\n",
 		stp->s_seq ? stp->s_seq : "(No seq)" );
 
-	fprintf( fp, "\tmismatch = %d\n", stp->s_mismatch );
+	fprintf( fp, "\tmismatch = " );
+	if( stp->s_mismatch == UNDEF )
+		fprintf( fp, "UNDEF\n" );
+	else
+		fprintf( fp, "%d\n", stp->s_mismatch );
 
 	if( stp->s_type != SYM_SS ){
-		fprintf( fp, "\tmispair  = %d\n", stp->s_mispair );
+		fprintf( fp, "\tmispair  = " );
+		if( stp->s_mispair == UNDEF )
+			fprintf( fp, "UNDEF\n" );
+		else
+			fprintf( fp, "%d\n", stp->s_mispair );
 
 		fprintf( fp, "\tpair     = " );
 		RM_dump_pairset( fp, stp->s_pairset );
