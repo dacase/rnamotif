@@ -2,6 +2,7 @@
 #define	__RNAMOT__
 
 #define	UNDEF	(-1)
+#define	UNBOUNDED	0x7fffffff
 
 #define	T_UNDEF		0
 #define	T_INT		1
