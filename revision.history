@@ -1,3 +1,16 @@
+2.1.1	2002-feb-15
+	Extended control over strict helix checking to individual ends of
+	individual helices.
+
+	Fixed bug that required that ends= be in the 1st element of a
+	structural group.
+
+2.1.0	2002-feb-06
+	Re-added, ie uncommented and updated the "strict helices" feature.
+	Set by -sh on the cmd line, it was in the original release.  This
+	feature rejets solutions where any helix could be extended into a
+	surrounding ss region.
+
 2.0.2	2002-jan-07
 	Fixed bug in optimizer that allowed right end of the search region
 	to extend past the end of the sequence.
