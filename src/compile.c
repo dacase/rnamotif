@@ -11,10 +11,12 @@ int	rm_error;
 VALUE_T	rm_tokval;
 int	rm_lineno;
 int	rm_emsg_lineno;
-char	rm_fname[ 256 ] = "--stdin--";
+char	rm_dfname[ 256 ] = "--stdin--";
 int	rm_copt = 0;
 int	rm_dopt = 0;
 int	rm_hopt = 0;
+FILE	*rm_dbfp;
+int	rm_dtype = DT_GENBANK;
 
 #define	VALSTKSIZE	20
 static	VALUE_T	valstk[ VALSTKSIZE ];
@@ -112,39 +114,83 @@ char	*argv[];
 	int	ac, i, err;
 	IDENT_T	*ip;
 	NODE_T	*np;
-	char	*fnp;
+	char	*dfnp, *dbfnp;
 	VALUE_T	val;
 
-	for( err = 0, fnp = NULL, ac = 1; ac < argc; ac++ ){
+	dfnp = NULL;	/* descriptor file name	*/
+	dbfnp = NULL;	/* database file name	*/
+	for( err = 0, ac = 1; ac < argc; ac++ ){
 		if( !strcmp( argv[ ac ], "-c" ) )
 			rm_copt = 1;
 		else if( !strcmp( argv[ ac ], "-d" ) )
 			rm_dopt = 1;
 		else if( !strcmp( argv[ ac ], "-h" ) )
 			rm_hopt = 1;
-		else if( *argv[ ac ] == '-' ){
-			fprintf( stderr, "%s: unknown option '%s'\n",
-				argv[ 0 ], argv[ ac ] );
+		else if( !strcmp( argv[ ac ], "-descr" ) ){
+			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
+			}else if( dfnp != NULL ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
+			}else{
+				ac++;
+				dfnp = argv[ ac ];
+			}
+		}else if( !strcmp( argv[ ac ], "-dtype" ) ){
+			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
+			}else{
+				ac++;
+				if( !strcmp( argv[ ac ], "genbank" ) )
+					rm_dtype = DT_GENBANK;
+				else if( !strcmp( argv[ ac ], "fastn" ) )
+					rm_dtype = DT_FASTN;
+				else{
+					fprintf( stderr, U_MSG_S, argv[ 0 ] );
+					err = 1;
+					break;
+				}
+			}
+		}else if( *argv[ ac ] == '-' ){
+			fprintf( stderr, U_MSG_S, argv[ 0 ] );
 			err = 1;
-		}else if( fnp != NULL ){
-			fprintf( stderr,
-				"usage: %s [ options ] [ descr-file ]\n",
-				argv[ 0 ] );
+			break;
+		}else if( dbfnp != NULL ){
+			fprintf( stderr, U_MSG_S, argv[ 0 ] );
 			err = 1;
+			break;
 		}else
-			fnp = argv[ ac ];
+			dbfnp = argv[ ac ];
 	}
 	if( err )
 		return( 1 );
-	if( fnp != NULL ){
-		if( ( yyin = fopen( fnp, "r" ) ) == NULL ){
+
+	if( dfnp != NULL ){
+		if( ( yyin = fopen( dfnp, "r" ) ) == NULL ){
 			fprintf( stderr,
 				"%s: can't read descr-file '%s'\n",
-				argv[ 0 ], fnp );
+				argv[ 0 ], dfnp );
 			return( 1 );
 		}else
-			strcpy( rm_fname, fnp );
+			strcpy( rm_dfname, dfnp );
 	}
+
+	if( dbfnp != NULL ){
+		if( ( rm_dbfp = fopen( dbfnp, "r" ) ) == NULL ){
+			fprintf( stderr,
+				"%s: can't read database-file '%s'\n",
+				argv[ 0 ], argv[ 1 ] ); 
+			if( yyin != stdin )
+				fclose( yyin );
+			return( 1 );
+		}
+	}else
+		rm_dbfp = stdin;
 
 	for( i = 0; i < rm_s_b2bc; i++ )
 		rm_b2bc[ i ] = BCODE_N;
