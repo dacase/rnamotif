@@ -189,7 +189,7 @@ STREL_T	*stp;
 	int	i;
 	STREL_T	*stp1;
 
-	fprintf( fp, "descr[%3d] = {\n", stp->s_index + 1 );
+	fprintf( fp, "descr[%3d] = {\n", stp->s_index );
 	fprintf( fp, "\ttype     = " );
 	switch( stp->s_type ){
 	case SYM_SS :
@@ -242,10 +242,16 @@ STREL_T	*stp;
 	fprintf( fp, "\ttag      = '%s'\n",
 		stp->s_tag ? stp->s_tag : "(No tag)" );
 
+	fprintf( fp, "\tnext     = " );
+	if( stp->s_next != NULL ) 
+		fprintf( fp, "%d\n", stp->s_next->s_index );
+	else
+		fprintf( fp, "(None)\n" );
+
 	fprintf( fp, "\tinner    = " );
 	if( stp->s_inner ){
 		stp1 = stp->s_inner;
-		fprintf( fp, "%d", stp1->s_index + 1 );
+		fprintf( fp, "%d", stp1->s_index );
 	}else
 		fprintf( fp, "(None)" );
 	fprintf( fp, "\n" );
@@ -254,7 +260,7 @@ STREL_T	*stp;
 		fprintf( fp, "\tmates    = [ " );
 		for( i = 0; i < stp->s_n_mates; i++ ){
 			stp1 = stp->s_mates[ i ];
-			fprintf( fp, "%d", stp1->s_index + 1 );
+			fprintf( fp, "%d", stp1->s_index );
 			if( i < stp->s_n_mates - 1 )
 				fprintf( fp, ", " );
 		}
@@ -262,7 +268,7 @@ STREL_T	*stp;
 		fprintf( fp, "\tscopes   = [ " );
 		for( i = 0; i < stp->s_n_scopes; i++ ){
 			stp1 = stp->s_scopes[ i ];
-			fprintf( fp, "%d", stp1->s_index + 1 );
+			fprintf( fp, "%d", stp1->s_index );
 			if( i < stp->s_n_scopes - 1 )
 				fprintf( fp, ", " );
 		}
