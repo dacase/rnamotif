@@ -29,6 +29,7 @@ options:\n\
 #define	T_PAIR		4
 #define	T_POS		5
 #define	T_IDENT		6
+#define	N_TYPE		7
 
 #define	C_UNDEF		0
 #define	C_LIT		1
