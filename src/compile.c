@@ -321,6 +321,8 @@ int	stype;
 	stp->s_stop.a_l2r = 0;
 	stp->s_stop.a_offset = UNDEF;
 	stp->s_seq = NULL;
+	stp->s_expbuf = NULL;
+	stp->s_e_expbuf = NULL;
 	stp->s_mismatch = 0;
 	stp->s_mispair = 0;
 	stp->s_pairset = NULL;
@@ -400,7 +402,7 @@ NODE_T	*expr;
 
 void	SE_close()
 {
-	int	i, s_minlen, s_maxlen, s_len;
+	int	i, s_minlen, s_maxlen, s_len, l_seq;
 	IDENT_T	*ip;
 
 	s_minlen = 0;
@@ -429,6 +431,20 @@ void	SE_close()
 			}
 		}else if( !strcmp( ip->i_name, "seq" ) ){
 			stp->s_seq = ip->i_val.v_value.v_pval;
+			if( stp->s_seq && *stp->s_seq != '\0' ){
+				l_seq = strlen( stp->s_seq );
+				stp->s_expbuf =
+					( char * )malloc(2*l_seq*sizeof(char));
+				if( stp->s_expbuf == NULL ){
+					rm_emsg_lineno = stp->s_lineno;
+					errormsg( 1,
+						"can't allocate s_expbuf." );
+				}
+				stp->s_e_expbuf = &stp->s_expbuf[ 2*l_seq ];
+				compile( stp->s_seq,
+					stp->s_expbuf, stp->s_e_expbuf, '0' );
+			}else
+				stp->s_seq = NULL;
 		}else if( !strcmp( ip->i_name, "mismatch" ) ){
 			stp->s_mismatch = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "mispair" ) ){
