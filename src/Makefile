@@ -15,11 +15,11 @@ RNAMOTOBJS=	\
 	split.o		\
 	y.tab.o	
 
-all:	rnamot	\
+all:	rnamotif	\
 	rmfmt
 
-rnamot:	$(RNAMOTOBJS)
-	$(CC)	$(CFLAGS) -o rnamot $(RNAMOTOBJS) $(GBLIB) -lm
+rnamotif:	$(RNAMOTOBJS)
+	$(CC)	$(CFLAGS) -o rnamotif $(RNAMOTOBJS) $(GBLIB) -lm
 
 rnamot.o:	rnamot.h dbase.h y.tab.h
 
