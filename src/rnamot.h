@@ -86,6 +86,7 @@ typedef	struct	strel_t	{
 	char	s_index;	/* index into descr array */
 	int	s_lineno;
 	char	*s_tag;
+	struct	strel_t	*s_in;
 	struct	strel_t	*s_next;
 	struct	strel_t	**s_mates;
 	int	s_n_mates;
