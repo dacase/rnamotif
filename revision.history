@@ -1,3 +1,15 @@
+1.6.2	2001-sep-10
+	Collected all e-params used in efn() into a structure, EFNDATA_T
+	which will make it relatively easy to do DNA and T != 37 calcs.
+
+	Fixed bug (oversight) in efn() that allows for uninitialized
+	array indexes in 1x2 loops.  
+
+	Added 2d meaning of builtin fncn mismatches().  Takes 2 
+	args, a string and a pattern and evaluates the number of
+	mismatches between the string and the pattern.  Original
+	function with one argument is unchanged.
+
 1.6.1	2001-aug-24
 	Added new function bits() to the score.  Function computes the 
 	compositional complexity of a subsequence of the current match.
