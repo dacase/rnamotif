@@ -387,6 +387,7 @@ void	RM_expr( lval, np )
 int	lval;
 NODE_T	*np;
 {
+
 	fixexpr( np );
 	genexpr( lval, np );
 }
@@ -2343,7 +2344,7 @@ VALUE_T	*vp;
 			ip->i_val.v_type = vp->v_type;
 			if( vp->v_type == T_INT )
 				ip->i_val.v_value.v_ival = vp->v_value.v_ival;
-			else if( vp->v_type = T_FLOAT )
+			else if( vp->v_type == T_FLOAT )
 				ip->i_val.v_value.v_fval = vp->v_value.v_fval;
 			else if( vp->v_type==T_STRING || vp->v_type==T_IDENT ){
 				sp = ( char * )malloc( 
@@ -2440,7 +2441,7 @@ INST_T	*ip;
 		break;
 	}
 	vp = &ip->i_val;
-	if( ip->i_op == OP_LDA ){
+	if( ip->i_op == OP_LDA || ip->i_op == OP_LOD ){
 		fprintf( fp, " %s", vp->v_value.v_pval );
 	}else if( ip->i_op == OP_SCL ){
 		fprintf( fp, " %s", scnames[ vp->v_value.v_ival ] );
