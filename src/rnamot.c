@@ -2,10 +2,12 @@
 
 #include "rnamot.h"
 
+extern	int	 yydebug;
+
 main()
 {
 
-	while( yyparse() ){
+	if( yyparse() ){
 		fprintf( stderr, "syntax error.\n" );
 	}
 
