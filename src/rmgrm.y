@@ -12,6 +12,7 @@ typedef	union	{
 	int	ival;
 	NODE_T	*npval;
 } YYSTYPE;
+#define YYSTYPE_IS_DECLARED 1
 
 %}
 
