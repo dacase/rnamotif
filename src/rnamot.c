@@ -30,6 +30,8 @@ POS_T	rm_pos[ RM_POS_SIZE ];
 int	rm_s_pos = RM_POS_SIZE;
 int	rm_n_pos;
 
+SITE_T	*rm_sites = NULL;
+
 extern	int	yydebug;
 
 main( argc, argv )
