@@ -45,37 +45,38 @@ static	char	*sc_sbuf;
 #define	OP_MRK		3	/* Mark the stack	*/
 #define	OP_CLS		4	/* Clear the stack	*/
 #define	OP_FCL		5	/* Function Call	*/
-#define	OP_STRF		6	/* Str. El. Reference	*/
-#define	OP_LDA		7	/* Load Address		*/
-#define	OP_LOD		8	/* Load Value		*/
-#define	OP_LDC		9	/* Load Constant	*/
-#define	OP_STO		10	/* Store top of stack	*/
-#define	OP_AND		11	/* McCarthy And		*/
-#define	OP_IOR		12	/* McCarthy Or		*/
-#define	OP_NOT		13	/* Not			*/
-#define	OP_MAT		14	/* Match		*/
-#define	OP_INS		15	/* In Pairset		*/
-#define	OP_GTR		16	/* Greater Than		*/
-#define	OP_GEQ		17	/* Greater or Equal	*/
-#define	OP_EQU		18	/* Equal		*/
-#define	OP_NEQ		19	/* Not Equal		*/
-#define	OP_LEQ		20	/* Less or Equal	*/
-#define	OP_LES		21	/* Less Than		*/
-#define	OP_ADD		22	/* Addition		*/
-#define	OP_SUB		23	/* Subtraction		*/
-#define	OP_MUL		24	/* Multiplication	*/
-#define	OP_DIV		25	/* Division		*/
-#define	OP_MOD		26	/* Modulus		*/
-#define	OP_NEG		27	/* Negate		*/
-#define	OP_PRST		28	/* Make a pairset	*/
-#define	OP_BPR		29	/* Make a pair		*/
-#define	OP_I_PP		30	/* use then incr (i++)	*/
-#define	OP_PP_I		31	/* incr then use (++i)	*/
-#define	OP_I_MM		32	/* use then decr (i--)	*/
-#define	OP_MM_I		33	/* decr then use (--i)	*/
-#define	OP_FJP		34	/* False Jump		*/
-#define	OP_JMP		35	/* Jump			*/
-#define	N_OP		36
+#define	OP_SCL		6	/* Builtin  Call	*/
+#define	OP_STRF		7	/* Str. El. Reference	*/
+#define	OP_LDA		8	/* Load Address		*/
+#define	OP_LOD		9	/* Load Value		*/
+#define	OP_LDC		10	/* Load Constant	*/
+#define	OP_STO		11	/* Store top of stack	*/
+#define	OP_AND		12	/* McCarthy And		*/
+#define	OP_IOR		13	/* McCarthy Or		*/
+#define	OP_NOT		14	/* Not			*/
+#define	OP_MAT		15	/* Match		*/
+#define	OP_INS		16	/* In Pairset		*/
+#define	OP_GTR		17	/* Greater Than		*/
+#define	OP_GEQ		18	/* Greater or Equal	*/
+#define	OP_EQU		19	/* Equal		*/
+#define	OP_NEQ		20	/* Not Equal		*/
+#define	OP_LEQ		21	/* Less or Equal	*/
+#define	OP_LES		22	/* Less Than		*/
+#define	OP_ADD		23	/* Addition		*/
+#define	OP_SUB		24	/* Subtraction		*/
+#define	OP_MUL		25	/* Multiplication	*/
+#define	OP_DIV		26	/* Division		*/
+#define	OP_MOD		27	/* Modulus		*/
+#define	OP_NEG		28	/* Negate		*/
+#define	OP_PRST		29	/* Make a pairset	*/
+#define	OP_BPR		30	/* Make a pair		*/
+#define	OP_I_PP		31	/* use then incr (i++)	*/
+#define	OP_PP_I		32	/* incr then use (++i)	*/
+#define	OP_I_MM		33	/* use then decr (i--)	*/
+#define	OP_MM_I		34	/* decr then use (--i)	*/
+#define	OP_FJP		35	/* False Jump		*/
+#define	OP_JMP		36	/* Jump			*/
+#define	N_OP		37
 
 static	char	*opnames[ N_OP ] = {
 	"noop",
@@ -84,6 +85,7 @@ static	char	*opnames[ N_OP ] = {
 	"mrk",
 	"cls",
 	"fcl",
+	"scl",
 	"strf",
 	"lda",
 	"lod",
@@ -114,6 +116,21 @@ static	char	*opnames[ N_OP ] = {
 	"pdec",
 	"fjp",
 	"jmp" 
+};
+
+#define	SC_LENGTH	0
+#define	SC_MISMATCHES	1
+#define	SC_MISPAIRS	2
+#define	SC_PAIRED	3
+#define	SC_STRID	4	
+#define	N_SC		5	
+
+static	char	*scnames[ N_SC ] = {
+	"length",
+	"mismatches",
+	"mispairs",
+	"paired",
+	"STRID"
 };
 
 typedef	struct	inst_t	{
@@ -155,9 +172,15 @@ void	RM_linkscore();
 void	RM_dumpscore();
 int	RM_score();
 
+static	void	fixexpr();
+static	void	genexpr();
+static	int	is_syscall();
 static	void	fix_stref();
 static	NODE_T	*mk_call_strid();
+static	void	fix_call();
 static	void	do_fcl();
+static	void	do_scl();
+static	int	paired();
 static	void	do_strf();
 static	void	do_lda();
 static	void	do_lod();
@@ -230,7 +253,7 @@ void	RM_else()
 {
 
 	v_lab.v_type = T_INT;
-	v_lab.v_value.v_ival = loopstk[ loopstkp - 1 ];
+	v_lab.v_value.v_ival = ifstk[ ifstkp - 1 ];
 	addinst( OP_JMP, &v_lab );
 	labtab[ ifstk[ ifstkp - 1 ] ] = l_prog;
 }
@@ -363,43 +386,8 @@ void	RM_expr( lval, np )
 int	lval;
 NODE_T	*np;
 {
-	char	name[ 20 ];
-	int	l_andor;
-	VALUE_T	v_expr;
-
-	if( np ){
-		if( np->n_sym == SYM_CALL ){
-			addinst( OP_MRK, NULL );
-		}else if( np->n_sym == SYM_STREF ){
-			fix_stref( np );
-			v_expr.v_type = T_INT;
-			v_expr.v_value.v_ival = np->n_left->n_sym;
-		}else if( np->n_sym == SYM_LCURLY ){
-			addinst( OP_MRK, NULL );
-		}
-
-		RM_expr( ISLVAL( np->n_sym ), np->n_left );
-
-		if( ISRFLX( np->n_sym ) )
-			RM_expr( 0, np->n_left );
-
-		if( np->n_sym == SYM_OR || np->n_sym == SYM_AND ){
-			l_andor = nextlab;
-			nextlab++;
-			addnode( lval, np, l_andor );
-			RM_expr( 0, np->n_right );
-			labtab[ l_andor ] = l_prog;
-		}else{
-			RM_expr( 0, np->n_right );
-			addnode( lval, np, 0 );
-		}
-
-		if( np->n_sym == SYM_STREF ){
-			addinst( OP_STRF, NULL );
-		}else if( np->n_sym == SYM_LCURLY ){
-			addinst( OP_PRST, NULL );
-		}
-	}
+	fixexpr( np );
+	genexpr( lval, np );
 }
 
 void	RM_linkscore()
@@ -472,12 +460,14 @@ dumpstk( stdout, "before op" );
 			mp = sp;
 			break;
 		case OP_CLS :
-			sp = mp;
-			mp = mem[ mp ].v_value.v_ival;
+			sp = mp = -1;
 			break;
 
 		case OP_FCL :
 			do_fcl( ip );
+			break;
+		case OP_SCL :
+			do_scl( ip );
 			break;
 		case OP_STRF :
 			do_strf( ip );
@@ -573,7 +563,7 @@ dumpstk( stdout, "before op" );
 		case OP_FJP :
 			if( !mem[ sp ].v_value.v_ival )
 				pc = ip->i_val.v_value.v_ival; 
-			sp = mp;
+			sp = mp = -1;
 			break;
 		case OP_JMP :
 			pc = ip->i_val.v_value.v_ival;
@@ -584,9 +574,78 @@ dumpstk( stdout, "before op" );
 			break;
 		}
 /*
-dumpstk( stdout, "after op" );
+dumpstk( stdout, "after op " );
 */
 	}
+}
+
+static	void	fixexpr( np )
+NODE_T	*np;
+{
+	int	sc;
+
+	if( np ){
+		fixexpr( np->n_left );
+		fixexpr( np->n_right );
+		if( np->n_sym == SYM_STREF ){
+			fix_stref( np );
+		}else if( np->n_sym == SYM_CALL ){
+			fix_call( np );
+		}
+	}
+}
+
+static	void	genexpr( lval, np )
+int	lval;
+NODE_T	*np;
+{
+	char	name[ 20 ];
+	int	l_andor;
+	VALUE_T	v_expr;
+
+	if( np ){
+		if( np->n_sym == SYM_CALL ){
+			addinst( OP_MRK, NULL );
+		}else if( np->n_sym == SYM_LCURLY ){
+			addinst( OP_MRK, NULL );
+		}
+
+		genexpr( ISLVAL( np->n_sym ), np->n_left );
+
+		if( ISRFLX( np->n_sym ) )
+			genexpr( 0, np->n_left );
+
+		if( np->n_sym == SYM_OR || np->n_sym == SYM_AND ){
+			l_andor = nextlab;
+			nextlab++;
+			addnode( lval, np, l_andor );
+			genexpr( 0, np->n_right );
+			labtab[ l_andor ] = l_prog;
+		}else{
+			genexpr( 0, np->n_right );
+			addnode( lval, np, 0 );
+		}
+
+		if( np->n_sym == SYM_STREF ){
+			addinst( OP_STRF, NULL );
+		}else if( np->n_sym == SYM_LCURLY ){
+			addinst( OP_PRST, NULL );
+		}
+	}
+}
+
+static	int	is_syscall( np )
+NODE_T	*np;
+{
+	int	i;
+	char	*sp;
+
+	sp = np->n_val.v_value.v_pval;
+	for( i = 0; i < N_SC; i++ ){
+		if( !strcmp( sp, scnames[ i ] ) )
+			return( i );
+	}
+	return( UNDEF );
 }
 
 static	void	fix_stref( np )
@@ -787,10 +846,48 @@ int	strel;
 	np2 = RM_node( SYM_LIST, 0, np3, np2 );
 
 	v_expr.v_type = T_STRING;
-	v_expr.v_value.v_pval = "strid";
+	v_expr.v_value.v_pval = "STRID";
 	np3 = RM_node( SYM_IDENT, &v_expr, 0, 0 );
 	np1 = RM_node( SYM_CALL, 0, np3, np2 );
 	return( np1 );
+}
+
+static	void	fix_call( np )
+NODE_T	*np;
+{
+	int	sc, pcnt;
+	NODE_T	*np1;
+
+	sc = is_syscall( np );
+	switch( sc ){
+	case SC_LENGTH :
+		break;
+	case SC_MISMATCHES :
+	case SC_MISPAIRS :
+	case SC_PAIRED :
+		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
+			pcnt++;
+		if( pcnt != 1 ){
+			rm_emsg_lineno = np->n_lineno;
+			sprintf( emsg,
+				"fix_call: function '%s' has only 1 parameter.",
+				 scnames[ sc ] );
+			RM_errormsg( 1, emsg );
+		}
+		np1 = np->n_right;
+		np1 = np1->n_left;
+		np1 = np1->n_right;
+		np->n_right = np1;
+		break;
+	case SC_STRID :
+		rm_emsg_lineno = np->n_lineno;
+		RM_errormsg( 1, "fix_call: STRID can not be called by user." );
+		break;
+	default :
+		rm_emsg_lineno = np->n_lineno;
+		RM_errormsg( 1, "fix_call: unknown syscall." );
+		break;
+	}
 }
 
 static	void	do_fcl( ip )
@@ -807,6 +904,178 @@ INST_T	*ip;
 		mem[ mp ].v_value.v_ival = len;
 		sp = mp;
 		mp = mem[ mp ].v_value.v_ival;
+	}
+}
+
+static	void	do_scl( ip )
+INST_T	*ip;
+{
+	char	*cp;
+	int	idx, pos, len;
+	STREL_T	*stp;
+
+	switch( ip->i_val.v_value.v_ival ){
+	case SC_LENGTH :
+		cp = mem[ sp ].v_value.v_pval;
+		len = strlen( cp );
+		free( cp );
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+		mem[ sp ].v_type = T_INT;
+		mem[ sp ].v_value.v_ival = len;
+		break; 
+	case SC_MISMATCHES :
+		idx = mem[ sp - 2 ].v_value.v_ival;
+		if( idx < 0 || idx >= rm_n_descr ){
+			rm_emsg_lineno = UNDEF;
+			sprintf( emsg, 
+		"do_scl: mismatches: descr index must be between 1 and %d.",
+				rm_n_descr );
+			RM_errormsg( 1, emsg );
+		}
+		sp -= 2;
+		stp = &rm_descr[ idx ];
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+		mem[ sp ].v_type = T_INT;
+		mem[ sp ].v_value.v_ival = stp->s_n_mismatches;
+		break;
+	case SC_MISPAIRS :
+		idx = mem[ sp - 2 ].v_value.v_ival;
+		if( idx < 0 || idx >= rm_n_descr ){
+			rm_emsg_lineno = UNDEF;
+			sprintf( emsg, 
+		"do_scl: mispairs: descr index must be between 1 and %d.",
+				rm_n_descr );
+			RM_errormsg( 1, emsg );
+		}
+		sp -= 2;
+		stp = &rm_descr[ idx ];
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+		mem[ sp ].v_type = T_INT;
+		mem[ sp ].v_value.v_ival = stp->s_n_mispairs;
+		break;
+	case SC_PAIRED :
+		idx = mem[ sp - 2 ].v_value.v_ival;
+		if( idx < 0 || idx >= rm_n_descr ){
+			rm_emsg_lineno = UNDEF;
+			sprintf( emsg, 
+		"do_scl: paired: descr index must be between 1 and %d.",
+				rm_n_descr );
+			RM_errormsg( 1, emsg );
+		}
+		stp = &rm_descr[ idx ];
+		
+		pos = mem[ sp - 1 ].v_value.v_ival;
+		if( pos < 1 || pos > stp->s_matchlen ){
+			rm_emsg_lineno = UNDEF;
+			sprintf( emsg, 
+		"do_scl: paired: pos must be between 1 and %d.",
+				stp->s_matchlen );
+			RM_errormsg( 1, emsg );
+		}
+		pos--;
+
+		len = mem[ sp ].v_value.v_ival;
+		if( len == 0 ){
+			rm_emsg_lineno = UNDEF;
+			sprintf( emsg, "do_scl: paired: len must be > 0." );
+			RM_errormsg( 1, emsg );
+		}else if( len < 0 )
+			len = stp->s_matchlen - pos;
+		else
+			len = MIN( stp->s_matchlen - pos, len );
+		sp -= 2;
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+		mem[ sp ].v_type = T_INT;
+		mem[ sp ].v_value.v_ival = paired( stp, pos, len );
+		break;
+
+	case SC_STRID :
+		break;
+
+	default :
+		rm_emsg_lineno = UNDEF;
+		RM_errormsg( 1, "do_scl: undefined syscall." );
+		break;
+	}
+}
+
+static	int	paired( stp, pos, len )
+STREL_T	*stp;
+int	pos;
+int	len;
+{
+	STREL_T	*stp1, *stp2, *stp3, *stp4;
+	int	i, mlen;
+	int	p1, p2, p3, p4;
+	int	b1, b2, b3, b4;
+
+	mlen = stp->s_matchlen;
+	switch( stp->s_n_mates ){
+	case 1 : 
+		if( stp->s_index < stp->s_mates[ 0 ]->s_index )
+			stp1 = stp;
+		else
+			stp1 = stp->s_mates[ 0 ];
+		stp2 = stp1->s_mates[ 0 ];
+		p1 = stp1->s_matchoff;
+		p2 = stp2->s_matchoff + mlen - 1;
+		for( i = 0; i < len; i++ ){
+			b1 = sc_sbuf[ p1 + pos + i ];
+			b2 = sc_sbuf[ p2 - pos - i ];
+			if( !RM_paired( stp1->s_pairset, b1, b2 ) )
+				return( 0 );
+		}
+		return( 1 );
+		break;
+	case 2 :
+		if( stp->s_index < stp->s_mates[ 0 ]->s_index )
+			stp1 = stp;
+		else
+			stp1 = stp->s_mates[ 0 ];
+		stp2 = stp1->s_mates[ 0 ];
+		stp3 = stp1->s_mates[ 1 ];
+		p1 = stp1->s_matchoff;
+		p2 = stp2->s_matchoff + mlen - 1;
+		p3 = stp3->s_matchoff;
+		for( i = 0; i < len; i++ ){
+			b1 = sc_sbuf[ p1 + pos + i ];
+			b2 = sc_sbuf[ p2 - pos - i ];
+			b3 = sc_sbuf[ p3 + pos + i ];
+			if( !RM_triple( stp1->s_pairset, b1, b2, b3 ) )
+				return( 0 );
+		}
+		return( 1 );
+		break;
+	case 3 :
+		if( stp->s_index < stp->s_mates[ 0 ]->s_index )
+			stp1 = stp;
+		else
+			stp1 = stp->s_mates[ 0 ];
+		stp2 = stp1->s_mates[ 0 ];
+		stp3 = stp1->s_mates[ 1 ];
+		stp4 = stp1->s_mates[ 2 ];
+		p1 = stp1->s_matchoff;
+		p2 = stp2->s_matchoff + mlen - 1;
+		p3 = stp3->s_matchoff;
+		p4 = stp4->s_matchoff + mlen - 1;
+		for( i = 0; i < len; i++ ){
+			b1 = sc_sbuf[ p1 + pos + i ];
+			b2 = sc_sbuf[ p2 - pos - i ];
+			b3 = sc_sbuf[ p3 + pos + i ];
+			b4 = sc_sbuf[ p3 - pos - i ];
+			if( !RM_quad( stp1->s_pairset, b1, b2, b3, b4 ) )
+				return( 0 );
+		}
+		return( 1 );
+		break;
+	default :
+		rm_emsg_lineno = stp->s_lineno;
+		RM_errormsg( 1, "paired() does not accept descr type 'ss'." );
+		break;
 	}
 }
 
@@ -1115,14 +1384,14 @@ static	void	do_not()
 
 	switch( t_top ){
 	case T_INT :
-		v_top->v_value.v_ival = !( v_top->v_value.v_ival == 0 );
+		v_top->v_value.v_ival = !( v_top->v_value.v_ival != 0 );
 		break;
 	case T_FLOAT :
-		v_top->v_value.v_ival = !( v_top->v_value.v_fval == 0.0 );
+		v_top->v_value.v_ival = !( v_top->v_value.v_fval != 0.0 );
 		break;
 	case T_STRING :
 		v_top->v_value.v_ival =
-			!( *( char * )v_top->v_value.v_pval == '\0' );
+			!( *( char * )v_top->v_value.v_pval != '\0' );
 		break;
 	default :
 		rm_emsg_lineno = UNDEF;
@@ -1767,12 +2036,18 @@ int	l_andor;
 {
 	POS_T	*posp;
 	VALUE_T	v_node;
+	int	sc;
 
 	rm_emsg_lineno = np->n_lineno;
 	switch( np->n_sym ){
 
 	case SYM_CALL :
-		addinst( OP_FCL, &np->n_val );
+		if( ( sc = is_syscall( np ) ) != UNDEF ){
+			v_node.v_type = T_INT;
+			v_node.v_value.v_ival = sc;
+			addinst( OP_SCL, &v_node );
+		}else
+			addinst( OP_FCL, &np->n_val );
 		break;
 	case SYM_LIST :
 		break;
@@ -2020,6 +2295,7 @@ INST_T	*ip;
 		break;
 
 	case OP_FCL :
+	case OP_SCL :
 		break;
 	case OP_STRF :
 		break;
@@ -2078,6 +2354,8 @@ INST_T	*ip;
 	vp = &ip->i_val;
 	if( ip->i_op == OP_LDA ){
 		fprintf( fp, " %s", vp->v_value.v_pval );
+	}else if( ip->i_op == OP_SCL ){
+		fprintf( fp, " %s", scnames[ vp->v_value.v_ival ] );
 	}else if( vp->v_type == T_INT ){
 		fprintf( fp, " %d", vp->v_value.v_ival );
 	}else if( vp->v_type == T_FLOAT ) 
@@ -2098,18 +2376,18 @@ char	msg[];
 	int	i;
 	VALUE_T	*vp;
 
-	fprintf( fp, "%s\n", msg );
+	fprintf( fp, "%s: sp = %5d, mp = %5d\n", msg, sp, mp );
 	for( vp = mem, i = 0; i <= sp; i++, vp++ ){
-		fprintf( fp, "mem[%4d]: ", i );
+		fprintf( fp, "  mem[%4d]: ", i );
 		switch( vp->v_type ){
 		case T_UNDEF :
 			fprintf( fp, "U " );
 			break;
 		case T_INT :
-			fprintf( fp, "I %d", vp->v_value.v_ival );
+			fprintf( fp, "I %6d", vp->v_value.v_ival );
 			break;
 		case T_FLOAT :
-			fprintf( fp, "F %f", vp->v_value.v_fval );
+			fprintf( fp, "F %8.3f", vp->v_value.v_fval );
 			break;
 		case T_STRING :
 			fprintf( fp, "S \"%s\"", vp->v_value.v_pval );
