@@ -327,7 +327,7 @@ pairset		: SYM_LCURLY 	{ if( rm_context != CTX_SCORE )
 				  else
 					$$ = node( SYM_LCURLY, 0, 0, $2 );
 				} ;
-empty		: 		{ $$ = NULL; } ;
+empty		: 		{ $$ = (  int )NULL; } ;
 %%
 
 #include "lex.yy.c"
