@@ -245,13 +245,13 @@ STREL_T	*stp;
 	}
 
 	fprintf( fp, "\tlen      = " );
-	if( stp->s_minlen == LASTVAL )
-		fprintf( fp, "LASTVAL" );
+	if( stp->s_minlen == UNDEF )
+		fprintf( fp, "%d", 1 );
 	else
 		fprintf( fp, "%d", stp->s_minlen );
 	fprintf( fp, ":" );
-	if( stp->s_maxlen == LASTVAL )
-		fprintf( fp, "LASTVAL" );
+	if( stp->s_maxlen == UNDEF )
+		fprintf( fp, "UNBOUNDED" );
 	else
 		fprintf( fp, "%d", stp->s_maxlen );
 	fprintf( fp, "\n" );
