@@ -64,6 +64,7 @@ static	void	chk_tagorder();
 static	void	mk_links();
 static	void	duptags_error();
 static	int	chk_proper_nesting();
+static	void	find_pknots();
 static	int	chk_strel_parms();
 static	int	chk_1_strel_parms();
 static	int	chk_len_seq();
@@ -235,6 +236,9 @@ int	stype;
 	stp->s_next = NULL;
 	stp->s_mates = NULL;
 	stp->s_n_mates = 0;
+	stp->s_scopes = NULL;
+	stp->s_n_scopes = 0;
+	stp->s_scope = UNDEF;
 	stp->s_minlen = UNDEF;
 	stp->s_maxlen = UNDEF;
 	stp->s_seq = NULL;
@@ -487,8 +491,12 @@ STREL_T	descr[];
 			}
 		}else if( stp->s_type == SYM_T1 ){
 			stp1 = stp->s_mates[ 0 ];
-			if( !chk_proper_nesting( stp, stp1, descr ) )
+			if( !chk_proper_nesting( stp, stp1, descr ) ){
+				rm_emsg_lineno = stp->s_lineno;
+				errormsg( 0,
+				"Triplex elements must be properly nested." );
 				continue;
+			}
 			stp2 = stp->s_mates[ 1 ];
 			if( chk_proper_nesting( stp1, stp2, descr ) ){
 				stp->s_proper = 1;
@@ -497,11 +505,19 @@ STREL_T	descr[];
 			}
 		}else if( stp->s_type == SYM_Q1 ){
 			stp1 = stp->s_mates[ 0 ];
-			if( !chk_proper_nesting( stp, stp1, descr ) )
+			if( !chk_proper_nesting( stp, stp1, descr ) ){
+				rm_emsg_lineno = stp->s_lineno;
+				errormsg( 0,
+				"Quad elements must be properly nested." );
 				continue;
+			}
 			stp2 = stp->s_mates[ 1 ];
-			if( !chk_proper_nesting( stp1, stp2, descr ) )
+			if( !chk_proper_nesting( stp1, stp2, descr ) ){
+				rm_emsg_lineno = stp->s_lineno;
+				errormsg( 0,
+				"Quad elements must be properly nested." );
 				continue;
+			}
 			stp3 = stp->s_mates[ 2 ];
 			if( chk_proper_nesting( stp2, stp3, descr ) ){
 				stp->s_proper = 1;
@@ -511,6 +527,19 @@ STREL_T	descr[];
 			}
 		}
 	}
+	if( rm_error )
+		return( rm_error );
+
+	for( i = 0; i < n_descr; i++ )
+		descr[ i ].s_checked = 0;
+	for( i = 0; i < n_descr; i++ ){
+		stp = &descr[ i ];
+		if( stp->s_checked )
+			continue;
+		if( stp->s_type == SYM_H5 )
+			find_pknots( stp, n_descr, descr );
+	}
+
 	return( rm_error );
 }
 
@@ -611,18 +640,27 @@ int	n_tags;
 STREL_T	*tags[];
 {
 	int	i, j, k;
-	STREL_T	**stp;
+	STREL_T	**stpm;
+	STREL_T	**stps;
 
 	for( i = 0; i < n_tags; i++ ){
-		stp = ( STREL_T ** )malloc(( n_tags - 1 )* sizeof( STREL_T * ));
+		stpm = ( STREL_T ** )malloc(( n_tags-1 )* sizeof( STREL_T * ));
 		for( k = 0, j = 0; j < n_tags; j++ ){
 			if( j != i ){
-				stp[ k ] = tags[ j ];
+				stpm[ k ] = tags[ j ];
 				k++;
 			}
 		}
-		tags[ i ]->s_mates = stp;
+		tags[ i ]->s_mates = stpm;
 		tags[ i ]->s_n_mates = n_tags - 1;
+
+		stps = ( STREL_T ** )malloc(( n_tags )* sizeof( STREL_T * ));
+		for( j = 0; j < n_tags; j++ ){
+			stps[ j ] = tags[ j ];
+		}
+		tags[ i ]->s_scopes = stps;
+		tags[ i ]->s_n_scopes = n_tags;
+		tags[ i ]->s_scope = i;
 	}
 }
 
@@ -659,6 +697,90 @@ STREL_T	descr[];
 		}
 	}
 	return( 1 );
+}
+
+static	void	find_pknots( stp, n_descr, descr )
+STREL_T	*stp;
+int	n_descr;
+STREL_T	descr[];
+{
+	int	i, j, k;
+	int	pk, h5, h3;
+	STREL_T	*stp1, *stp2, *stp3;
+	STREL_T	*pknot[ 4 ];
+	STREL_T	**stps;
+
+	if( stp->s_type == SYM_SS ){
+		stp->s_checked = 1;
+		return;
+	}
+	if( stp->s_proper ){
+		stp->s_checked = 1;
+		for( j = 0; j < stp->s_n_mates; j++ ){
+			stp1 = stp->s_mates[ j ];
+			stp1->s_checked = 1;
+		}
+		return;
+	}
+
+	/* improper structure: only pknots permitted:	*/
+	stp2 = stp->s_mates[ 0 ];
+	for( pk = 0, j = stp->s_index + 1; j < n_descr; j++ ){
+		stp1 = &descr[ j ];
+		if( stp1->s_type != SYM_H5 )
+			continue;
+		stp3 = stp1->s_mates[ 0 ];
+		if( stp3->s_index > stp2->s_index ){
+			stp1->s_checked = 1;
+			stp2->s_checked = 1;
+			stp3->s_checked = 1;
+			pk = 1;
+			break;
+		}
+	}
+
+	if( !pk ){
+		rm_emsg_lineno = stp->s_lineno;
+		sprintf( emsg, "fpk: INTERNAL ERROR: improper helix %d.",
+			stp->s_index );
+		errormsg( 1, emsg );
+	}
+
+	pknot[ 0 ] = stp;
+	pknot[ 1 ] = stp1;
+	pknot[ 2 ] = stp2;
+	pknot[ 3 ] = stp3;
+	for( i = 0; i < 3; i++ ){
+		h5 = pknot[ i ]->s_index;
+		h3 = pknot[ i + 1 ]->s_index;
+		for( j = h5 + 1; j < h3; j++ ){
+			stp1 = &descr[ j ];
+			for( k = 0; k < stp1->s_n_mates; k++ ){
+				stp2 = stp1->s_mates[ k ];
+				if( stp2->s_index < h5 || stp2->s_index > h3 ){
+					rm_emsg_lineno = pknot[i]->s_lineno;
+					errormsg( 0, "improper pseudoknot." );
+					return;
+				}
+			}
+		}
+	}
+
+	if( rm_error )
+		return;
+
+	for( i = 0; i < 4; i++ ){
+		stps = ( STREL_T ** )malloc( 4 * sizeof( STREL_T * ) );
+		if( stps == NULL )
+			errormsg( 1, "find_pknot: can't alloc stps." );
+		for( j = 0; j < 4; j++ )
+			stps[ j ] = pknot[ j ];
+		free( pknot[i]->s_scopes );
+		pknot[i]->s_scopes = stps;
+		pknot[i]->s_n_scopes = 4;
+		pknot[i]->s_scope = i;
+	}
+
 }
 
 static	int	chk_strel_parms( n_descr, descr )
