@@ -7,6 +7,7 @@ extern	char	rm_dfname[];
 extern	int	rm_copt;
 extern	int	rm_dopt;
 extern	int	rm_hopt;
+extern	int	rm_vopt;
 extern	FILE	*rm_dbfp;
 extern	int	rm_dtype;
 
@@ -20,6 +21,10 @@ extern	SITE_T	*rm_sites;
 extern	SEARCH_T	**rm_searches;
 extern	int		rm_n_searches;
 
+#define	SID_SIZE	100
+static	char	sid[ SID_SIZE ];
+#define	SDEF_SIZE	10000
+static	char	sdef[ SDEF_SIZE ];
 #define	SBUF_SIZE	5000000
 static	char	sbuf[ SBUF_SIZE ];
 static	int	slen;
@@ -40,11 +45,15 @@ char	*argv[];
 {
 	IDENT_T	*ip;
 	char	*dbnp;
-	char	locus[ 20 ];
 	int	chk_both_strs;
 
 	if( RM_init( argc, argv ) )
 		exit( 1 );
+
+	if( rm_vopt ){
+		fprintf( stderr, "%s: %s.\n", argv[ 0 ], VERSION );
+		exit( 0 );
+	}
 
 	if( yyparse() ){
 		errormsg( 1, "syntax error." );
@@ -69,33 +78,6 @@ char	*argv[];
 	if( rm_copt )
 		exit( 0 );
 
-/*
-	ip = find_id( "database" );
-	if( ip == NULL ){
-		fprintf( stderr, "rnamot: 'database' not defined.\n" );
-		exit( 1 );
-	}else
-		dbnp = ip->i_val.v_value.v_pval;
-
-	for( dbp = DB_open( dbnp ); dbp; ){
-		if( slen = DB_getseq( dbp, locus, SBUF_SIZE, sbuf ) ){
-			find_motif_driver( rm_n_searches, rm_searches, rm_sites,
-				locus, 0, slen, sbuf );
-			mk_rcmp( slen, sbuf, csbuf );
-			find_motif_driver( rm_n_searches, rm_searches, rm_sites,
-				locus, 1, slen, csbuf );
-		}
-		dbp = DB_next( dbp );
-	}
-
-	while( slen = DB_getseq( stdin, locus, SBUF_SIZE, sbuf ) ){
-		find_motif_driver( rm_n_searches, rm_searches, rm_sites,
-			locus, 0, slen, sbuf );
-		mk_rcmp( slen, sbuf, csbuf );
-		find_motif_driver( rm_n_searches, rm_searches, rm_sites,
-			locus, 1, slen, csbuf );
-	}
-*/
 	ip = find_id( "chk_both_strs" );
 	if( ip == NULL ){
 		chk_both_strs = 1;
@@ -111,20 +93,20 @@ char	*argv[];
 
 	for( ; ; ){
 		if( rm_dtype == DT_FASTN ) 
-			slen = FN_fgetseq( rm_dbfp, locus, SBUF_SIZE, sbuf );
+			slen = FN_fgetseq( rm_dbfp, sid, sdef, SBUF_SIZE, sbuf );
 #ifdef	USE_GENBANK
 		else
-			slen = GB_fgetseq( dbp, locus, SBUF_SIZE, sbuf );
+			slen = GB_fgetseq( dbp, sid, SBUF_SIZE, sbuf );
 #endif
 		if( slen == 0 )
 			break;
 
 		find_motif_driver( rm_n_searches, rm_searches, rm_sites,
-			locus, 0, slen, sbuf );
+			sid, rm_dtype, sdef, 0, slen, sbuf );
 		if( chk_both_strs ){
 			mk_rcmp( slen, sbuf, csbuf );
 			find_motif_driver( rm_n_searches, rm_searches, rm_sites,
-				locus, 1, slen, csbuf );
+				sid, rm_dtype, sdef, 1, slen, csbuf );
 		}
 	}
 
