@@ -465,12 +465,22 @@ STREL_T	*stp;
 		fprintf( fp, "UNDEF\n" );
 	else
 		fprintf( fp, "%d\n", stp->s_mismatch );
+	fprintf( fp, "\tmatchfrac= " );
+	if( stp->s_matchfrac == UNDEF )
+		fprintf( fp, "UNDEF\n" );
+	else
+		fprintf( fp, "%5.3f\n", stp->s_matchfrac );
 
 	fprintf( fp, "\tmispair  = " );
 	if( stp->s_mispair == UNDEF )
 		fprintf( fp, "UNDEF\n" );
 	else
 		fprintf( fp, "%d\n", stp->s_mispair );
+	fprintf( fp, "\tpairfrac = " );
+	if( stp->s_pairfrac == UNDEF )
+		fprintf( fp, "UNDEF\n" );
+	else
+		fprintf( fp, "%5.3f\n", stp->s_pairfrac );
 
 	fprintf( fp, "\tpair     = " );
 	if( stp->s_pairset != NULL )
@@ -553,7 +563,7 @@ FILE	*fp;
 
 	for( n_sites = 0, sp = rm_sites; sp; sp = sp->s_next )
 		n_sites++;
-	fprintf( fp, "SITES: %3d sites.\n", n_sites );
+	fprintf( fp, "SITES: %4d sites.\n", n_sites );
 	for( i = 0, sp = rm_sites; sp; sp = sp->s_next, i++ ){
 		fprintf( fp, "site[%2d] = {\n", i + 1 );
 		fprintf( fp, "\tnpos    = %3d\n", sp->s_n_pos );
