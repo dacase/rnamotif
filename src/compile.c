@@ -48,6 +48,10 @@ static	void	storeexprval();
 static	PAIRSET_T	*pairop();
 
 static	void	seqlen();
+static	void	chk_tags();
+static	void	chk_tagorder();
+static	void	link_tags();
+static	void	duptags_error();
 
 int	RM_init()
 {
@@ -195,12 +199,14 @@ int	stype;
 	}
 	stp = &rm_descr[ rm_n_descr ];
 	rm_n_descr++;
+	stp->s_checked = 0;
 	stp->s_type = stype;
 	stp->s_index = rm_n_descr - 1;
 	stp->s_lineno = rm_lineno;
 	stp->s_tag = NULL;
 	stp->s_next = NULL;
 	stp->s_mates = NULL;
+	stp->s_n_mates = 0;
 	stp->s_minlen = UNDEF;
 	stp->s_maxlen = UNDEF;
 	stp->s_seq = NULL;
@@ -318,6 +324,128 @@ void	SE_close()
 		errormsg( 0, "strel minlen > maxlen.\n" );
 	}
 	def_pairset = NULL;
+}
+
+int	SE_link( n_descr, descr )
+int	n_descr;
+STREL_T	descr[];
+{
+
+	if( n_descr == 0 ){
+		errormsg( 0, "SE_link: Descriptor has 0 elements.\n" );
+		return( 1 );
+	}
+
+	chk_tags( n_descr, descr );
+
+	return( 0 );
+}
+
+static	void	chk_tags( n_descr, descr )
+int	n_descr;
+STREL_T	descr[];
+{
+	int	i, j;
+	STREL_T	*stp, *stp1;
+	STREL_T	*tags[ 4 ];
+	int	n_tags;
+	char	*tp;
+
+	for( stp = descr, i = 0; i < n_descr; i++, stp++ ){
+		if( stp->s_checked )
+			continue;
+		stp->s_checked = 1;
+		if( stp->s_tag == NULL )
+			continue;
+		tp = stp->s_tag;
+		tags[ 0 ] = stp;
+		n_tags = 1;
+		for( j = i + 1; j < n_descr; j++ ){
+			stp1 = &descr[ j ];
+			if( stp1->s_checked )
+				continue;
+			if( stp1->s_tag == NULL )
+				continue;
+			if( strcmp( tp, stp1->s_tag ) )
+				continue;
+			stp1->s_checked = 1;
+			if( n_tags < 4 )
+				tags[ n_tags ] = stp1;
+			n_tags++;
+		}
+		chk_tagorder( n_tags, tags );
+	}
+}
+
+static	void	chk_tagorder( n_tags, tags )
+int	n_tags;
+STREL_T	*tags[];
+{
+	int	t1, t2, t3, t4;
+
+	t1 = tags[ 0 ]->s_type;
+	if( t1 == SYM_SS ){
+		if( n_tags > 1 )
+			duptags_error( 1, n_tags, tags );
+	}else if( t1 == SYM_H5 ){
+		if( n_tags < 2 ){
+			sprintf( emsg, "helix '%s' has no h3() element.\n", 
+				tags[ 0 ]->s_tag );
+			rm_emsg_lineno = tags[ 0 ]->s_lineno;
+			errormsg( 0, emsg );
+		}
+		t2 = tags[ 1 ]->s_type;
+		if( t2 == SYM_H3 ){
+			if( n_tags == 2 ){
+				link_tags( n_tags, tags );
+				return;		/* h5 ... h3 pair, OK */
+			}
+			duptags_error( 2, n_tags, tags );
+		}else
+			duptags_error( 1, n_tags, tags );
+	}else if( t1 == SYM_P5 ){
+	}else if( t1 == SYM_T1 ){
+	}else if( t1 == SYM_Q1 ){
+	}else{
+		sprintf( emsg, "1st use of tag '%s' is out of order.\n",
+			tags[ 0 ]->s_tag );
+		rm_emsg_lineno = tags[ 0 ]->s_lineno;
+		errormsg( 0, emsg );
+	}
+}
+
+static	void	link_tags( n_tags, tags )
+int	n_tags;
+STREL_T	*tags[];
+{
+	int	i, j, k;
+	STREL_T	**stp;
+
+	for( i = 0; i < n_tags; i++ ){
+		stp = ( STREL_T ** )malloc(( n_tags - 1 )* sizeof( STREL_T * ));
+		for( k = 0, j = 0; j < n_tags; j++ ){
+			if( j != i ){
+				stp[ k ] = tags[ j ];
+				k++;
+			}
+		}
+		tags[ i ]->s_mates = stp;
+		tags[ i ]->s_n_mates = n_tags - 1;
+	}
+}
+
+static	void	duptags_error( need, n_tags, tags )
+int	need;
+int	n_tags;
+STREL_T	*tags[];
+{
+	int	i;
+
+	for( i = need; i < n_tags; i++ ){
+		sprintf( emsg, "duplicate tag '%s'.\n", tags[ i ]->s_tag );
+		rm_emsg_lineno = tags[ i ]->s_lineno;
+		errormsg( 0, emsg );
+	}
 }
 
 static	IDENT_T	*enter_id( name, type, class, scope, vp )
