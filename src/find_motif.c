@@ -18,13 +18,6 @@ char	sbuf[];
 	char	prefix[ 100 ];
 	int	tminlen, tmaxlen;
 	
-	find_tlen( stderr, 1, 0, descr, &tminlen, &tmaxlen );
-	fprintf( stderr, "tminlen/tmaxlen = %3d/", tminlen );
-	if( tmaxlen == UNBOUNDED )
-		fprintf( stderr, "UNBND\n" ); 
-	else
-		fprintf( stderr, "%3d\n", tmaxlen );
-
 	fprintf( stderr, "locus = %s, slen = %d\n", locus, slen );
 	fprintf( stderr,
 	"descr minl  maxl  mngl  mxgl  mnil  mxil start  stop  descr\n" );
@@ -109,6 +102,10 @@ STREL_T	descr[];
 	start = find_start( slen, stp, n_descr, descr, &l2r );
 	sprintf( tstr, "%s%d", !l2r ? "$-" : "", start );
 	fprintf( fp, " %5s", tstr );
+/*
+	start = find_start2( stp, descr );
+	fprintf( fp, " %5d", start );
+*/
 	stop = find_stop( slen, stp, n_descr, descr, &l2r );
 	sprintf( tstr, "%s%d", !l2r ? "$-" : "", stop );
 	fprintf( fp, " %5s", tstr );
@@ -290,78 +287,12 @@ fprintf( stderr, "%3d: prefix1 = '%s'\n", stp->s_index, prefix1 );
 */
 }
 
-find_tlen( fp, lev, fd, descr, tminlen, tmaxlen )
-FILE	*fp;
-int	lev;
-int	fd;
-STREL_T	descr[];
-int	*tminlen;
-int	*tmaxlen;
-{
-	int	d, d1, d2, nd;
-	int	gminlen, gmaxlen;
-	int	minlen2, minlen3;
-	int	maxlen2, maxlen3;
-	int	nlev;
-	STREL_T	*stp, *stp1, *stp2, *stp3;
-
-	*tminlen = 0;
-	*tmaxlen = 0;
-	for( d = fd; ; d = nd ){
-		stp = &descr[ d ];
-		gminlen = stp->s_minlen;
-		gmaxlen = stp->s_maxlen;
-		for( d1 = 0; d1 < stp->s_n_scopes - 1; d1++ ){
-			stp1 = stp->s_scopes[ d1 ];
-			stp2 = stp->s_scopes[ d1+1 ];
-			if( stp1->s_inner ){
-				stp3 = stp1->s_inner;
-				find_tlen( fp, lev+2, stp3->s_index,
-					descr, &minlen3, &maxlen3 );
-				stp1->s_minilen = minlen3;
-				stp1->s_maxilen = maxlen3;
-				gminlen += minlen3;
-				if( gmaxlen != UNBOUNDED ){
-					if( maxlen3 == UNBOUNDED )
-						gmaxlen = UNBOUNDED;
-					else
-						gmaxlen += maxlen3;
-				}
-			}
-			find_len( fp, lev+1, stp2, &minlen2, &maxlen2 );
-			gminlen += minlen2;
-			if( gmaxlen != UNBOUNDED ){
-				if( maxlen2 == UNBOUNDED )
-					gmaxlen = UNBOUNDED;
-				else
-					gmaxlen += maxlen2;
-			}
-		} 
-		stp->s_minglen = gminlen;
-		stp->s_maxglen = gmaxlen;
-		*tminlen += gminlen;
-		if( *tmaxlen != UNBOUNDED ){
-			if( gmaxlen == UNBOUNDED )
-				*tmaxlen = UNBOUNDED;
-			else
-				*tmaxlen += gmaxlen; 
-		}
-		if( stp->s_next )
-			nd = stp->s_next->s_index;
-		else
-			break;
-	} 
-}
-
-find_len( fp, lev, stp, minlen, maxlen )
-FILE	*fp;
-int	lev;
+int	find_start2( stp, descr )
 STREL_T	*stp;
-int	*minlen;
-int	*maxlen;
+STREL_T	descr[];
 {
-	int	i;
+	int	s0;
 
-	*minlen = stp->s_minlen;
-	*maxlen = stp->s_maxlen;
+	s0 = stp->s_scope == 0;
+	fprintf( stderr, "\nfs: idx = %d, s0 = %d\n", stp->s_index, s0 );
 }
