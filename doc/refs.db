@@ -86,3 +86,24 @@ effective descriptor for tRNA.
 %T RNABOB: a program to search for RNA secondary structures motifs in sequency
 databases
 %O Unpublished.
+
+%A M.J. Serra
+%A D.H. Turner
+%A S.M. Freier
+%T Predicting thermodynamic properties of RNA
+%J Meth. Enzymol.
+%V 259
+%P 243-261
+%D 1995
+
+%A D.H. Mathews
+%A J. Sabina
+%A M. Zuker
+%A D.H. Turner
+%T Expanded sequence dependence of thermodynamic parameters improves
+prediction of RNA secondary structure
+%J J. Mol. Biol.
+%V 288
+%P 911-940
+%D 1999
+

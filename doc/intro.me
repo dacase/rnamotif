@@ -4,10 +4,10 @@
 .ps 24
 .nf
 .ce 100
-\fBRNAMOTIF Users' Manual\fR
+\fBRNAMotif Users' Manual\fR
 
 .ps 12
-\fB(Version 1.5.0, April 2001)\fR
+\fB(Version 1.7.1, November, 2001)\fR
 
 Thomas C. Macke and David A. Case
 
@@ -25,14 +25,16 @@ the given sequence is capable of adopting the given secondary structure, but
 is not intended to be predictive.  Matches can be ranked by applying scoring
 rules that may provide finer distinctions than just matching to a profile.
 The \fIrnamotif\fR program is a (significant) extension of earlier programs
-\fIrnamot\fR and \fIrnabob\fR [2-4].  The code and most of this Users'
+\fIrnamot\fR and \fIrnabob\fR [2-4].  The nearest-neighbor energies used in
+the scoring section are based on refs. [5] and [6].
+The code and most of this Users'
 Manual was written by Tom Macke; Dave Case also contributed to this manual.
 .lp
 The basic literature references are:
 .ip [1]
 T. Macke, D. Ecker, R. Gutell, D. Gautheret, D.A. Case and R. Sampath.
 RNAMotif -- A new RNA secondary structure definition and discovery
-algorithm. \fI(manuscript in preparation)\fR.
+algorithm. \fINucl. Acids. Res.\fB 29, \fR 4724-4735 (2001).
 .ip [2]
 D. Gautheret, F. Major and R. Cedergren.  Pattern searching/alignment with
 RNA primary and secondary structures: an effective descriptor for tRNA.
@@ -44,6 +46,17 @@ An RNA pattern matching program with enhanced performance and portability.
 .ip [4]
 S.R. Eddy.  RNABOB: a program to search for RNA secondary structure motifs
 in sequence databases.  Unpublished.
+.ip [5]
+M.J. Serra, D.H. Turner, and S.M. Freier.
+Predicting thermodynamic properties of RNA. 
+\fIMeth. Enzymol.\fB 259,\fR 243-261 (1995).
+.ip [6]
+D.H. Mathews, J. Sabina, M. Zuker, and D.H. Turner.
+Expanded sequence dependence of thermodynamic parameters improves
+prediction of RNA secondary structure.
+\fIJ. Mol. Biol.\fB 288,\fR 911-940 (1999).
+
+.in 0
 .hl
 .pp
 We thank Dave Ecker and Ranga Sampath for encouragement, and ISIS

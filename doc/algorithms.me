@@ -767,7 +767,7 @@ mismatches( ss['A-Codon'] )
 mispairs( h5['D-Loop'] )
 paired( t1['Tr1',i,1], t2['Tr1',j,1], t3['Tr1',k,1] )
 .)l
-.sh 3 "Turner Energy."
+.sh 3 "Nearest-Neighbor Energies."
 .pp
 One of the more useful capabilities of the score interpreter is its ability to
 evaluate the free energy of either the current match or any part of it.
@@ -777,7 +777,8 @@ is to be evaluated.  It uses the descriptor to convert the selected seqeunce
 into a base pair and connection table and then applies the Turner energy
 function to that table.
 .pp
-The fit between the Turner rules and \fCrnamotif\fR structures is not perfect,
+The fit between the nearest-neighbor (Turner) rules and 
+\fCrnamotif\fR structures is not perfect,
 resulting in a number of clashes.  The Turner rules are defined only for those
 structures composed of perfectly nested Watson/Crick helices and therefore can
 not be applied to any structure containing (even a part of) a parallel duplex,
@@ -801,6 +802,52 @@ the user can tell \fCrnamotif\fR to create a base pair table that asserts that
 all corresponding bases in the two strands of helical element that meet that
 helix's pairing rule are paired, in which case the thermodynamic values for
 those bases as mispairs instead of loops will used.
+.pp
+We have implemented two versions of the nearest-neighbor energy rules,
+called \fIefn()\fR and \fIefn2()\fR.  The \fIefn()\fR rules are based on
+those described by Serra \fIet al.\fR,
+.[
+serra turner 1995
+.]
+implemented in a completely new recursive version based on the traversal of
+the tree formed by the helical nesting.  To test our implementation,
+several hundred medium size rna's (100-300 nt's) were extracted from
+Genbank and folded by mfold-3.1.  The resulting .ct files were then
+passed to \fIefn_drv\fR (part of the rnamotif distrib) and their energies
+calculated.  When all agreed with the mfold-3.1 energies, I considered
+\fIefn()\fR to be solid and released it.  Since its initial 
+release in September, 2000,
+3 bugs have been found and fixed: improper tetraloop indexing, improper 
+indexing of 1x2
+loops, and and = used instead of == in for stack tracking.
+.pp
+Starting with version 1.7.0, we have also implemented \fIefn2()\fR, based on
+revised rules described by Mathews \fIet al.\fR.
+.[
+zuker mathews 1999
+.]
+This was implemented by
+translating Dave Mathew's \fIefn2()\fR code (mfold-3.1/c++/*.cpp) into C.
+We cleaned up the implementation and removed the intermolcular sections
+that were not relevant to RNAMotif.  We also rebased the arrays at 0
+and reorderd all base codes so that RNAMotif's efn() and efn2() use
+the same ones.  We found and fixed three bugs in the original.  Two
+invovlved off by-1 (2) errors in reading some m-way branch loop data
+and the third treated a string position as a base.
+.pp
+Suitably chastised by early errors in the improper 4-loop indexing, we used a 
+more
+rigorous approach to testing \fIefn2()\fR.  We wrote a code that allowed one
+to take a descriptor and use RNAMotif to find instance of that
+descriptor, which were then passed to \fIefn2_drv\fR
+and mfold-3.1/bin/efn2.  The computed energies were compared and
+when no differences were found in our test set, it was released.
+The test set included: simple 4-loops,
+hairpins with bulges and/or internal loops,
+and 2-, 3-, 4-, 5- and 6-way junctions with and without bulges and
+internal loops between the arms.
+More than 38,000 total structures were examined.
+
 .sh 3 "Writing the score."
 .pp
 Every program must have a way to communicate its results to the user and
