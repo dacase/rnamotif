@@ -234,6 +234,9 @@ STREL_T	*stp;
 	}
 	fprintf( fp, "\n" );
 
+	fprintf( fp, "\tproper   = %s", stp->s_proper ? "yes" : "no" );
+	fprintf( fp, "\n" );
+
 	fprintf( fp, "\tlineno   = %d\n", stp->s_lineno );
 
 	fprintf( fp, "\ttag      = '%s'\n",
