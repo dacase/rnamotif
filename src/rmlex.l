@@ -5,6 +5,7 @@
 double	atof();		/* get it it if we ever need reals	*/
 
 VALUE_T	rmval;
+static	char	*sp;
 
 %}
 %%
@@ -32,7 +33,18 @@ q2		return( SYM_Q2 );
 q3		return( SYM_Q3 );
 q4		return( SYM_Q4 );
 
-[a-zA-Z][_a-zA-Z0-9]*	return( SYM_IDENT );
+[a-zA-Z][_a-zA-Z0-9]*	\
+		{ sp = ( char * )malloc(( yyleng + 1 ) *sizeof( char ));
+		  if( sp == NULL ){
+			fprintf( stderr,
+		"lex.yy.c: FATAL: can't alloc sp for SYM_IDENT.\n" );
+			exit( 1 );
+		  }
+		  strcpy( sp, yytext );
+		  rmval.v_type = T_STRING;
+		  rmval.v_value.v_cval = sp;
+		  return( SYM_IDENT );
+		}
 [0-9]+		{ rmval.v_type = T_INT;
 		  rmval.v_value.v_ival = atoi( yytext );
 		  return( SYM_INT );
@@ -40,12 +52,19 @@ q4		return( SYM_Q4 );
 \"[^"\n]*	{ if( yytext[ yyleng - 1 ] == '\\' )
 			yymore();
 		  else{
-			yytext[ yyleng ] = input();
+			yytext[ yyleng++ ] = input();
 			yytext[ yyleng ] = '\0';
-			strcpy( yytext, &yytext[ 1 ] );
-			yyleng = strlen( yytext );
+			sp = ( char * )malloc( ( yyleng - 1 )*sizeof( char ) );
+			if( sp == NULL ){
+				fprintf( stderr,
+			"lex.yy.c: FATAL: can't alloc sp for SYM_STRING.\n" );
+				exit( 1 );
+			}
+			strncpy( sp, &yytext[1], yyleng - 2 );
+			sp[ yyleng - 2 ] = '\0';
 			rmval.v_type = T_STRING;
-			rmval.v_value.v_cval = yytext;
+			rmval.v_value.v_cval = sp;
+fprintf( stderr, "STRING = '%s'\n", sp );
 			return( SYM_STRING );
 		  }
 		}
