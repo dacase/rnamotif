@@ -132,7 +132,6 @@ static	void	find_pknots( STREL_T *, int, STREL_T [] );
 static	int	chk_strel_parms( int, STREL_T [] );
 static	int	chk_1_strel_parms( STREL_T * );
 static	int	chk_len_seq( int, STREL_T *[] );
-static	int	chk_len_seq1( int, STREL_T *[] );
 static	int	chk_site( SITE_T * );
 static	STREL_T	*set_scopes( int, int, STREL_T [] );
 static	void	find_gi_len( int, STREL_T [], int *, int * );
@@ -1402,10 +1401,7 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 	if(	stype == SYM_SS || stype == SYM_P5 || stype == SYM_H5 ||
 		stype == SYM_T1 || stype == SYM_Q1 )
 	{
-/*
 		err = chk_len_seq( n_egroup, egroup ); 
-*/
-		err = chk_len_seq1( n_egroup, egroup ); 
 	}
 
 	/* check & set the mispair, pairfrac & pair values	*/
@@ -1495,175 +1491,6 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 
 static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 {
-	int	err;
-	int	exact, exact1, inexact, mmok;
-	int	i, l_seq;
-	int	minl, maxl;
-	int	se_minl, se_maxl;
-	int	si_minl, si_maxl;
-	int	s_minl, s_maxl;
-	STREL_T	*stp;
-	IDENT_T	*ip;
-
-	err = 0;
-	for( minl = UNDEF, i = 0; i < n_egroup; i++ ){
-		stp = egroup[ i ];
-		if( stp->s_minlen != UNDEF ){
-			if( minl == UNDEF )
-				minl = stp->s_minlen;
-			else if( stp->s_minlen != minl ){
-				err = 1;
-				rm_emsg_lineno = stp->s_lineno;
-				RM_errormsg( 0, "inconsistant minlen values." );
-			}
-		}
-	}
-
-	for( maxl = UNDEF, i = 0; i < n_egroup; i++ ){
-		stp = egroup[ i ];
-		if( stp->s_maxlen != UNDEF ){
-			if( maxl == UNDEF )
-				maxl = stp->s_maxlen;
-			else if( stp->s_maxlen != maxl ){
-				err = 1;
-				rm_emsg_lineno = stp->s_lineno;
-				RM_errormsg( 0, "inconsistant maxlen values." );
-			}
-		}
-	}
-
-	for( i = 0; i < n_egroup; i++ ){
-		stp = egroup[ i ];
-		if( stp->s_seq != NULL ){
-			l_seq = strlen( stp->s_seq );
-			l_seq = 2*l_seq > 256 ? 2*l_seq : 256;
-			stp->s_expbuf =
-				( char * )malloc( l_seq*sizeof(char) );
-			if( stp->s_expbuf == NULL ){
-				rm_emsg_lineno = stp->s_lineno;
-				RM_errormsg( 1,
-					"can't allocate s_expbuf." );
-			}
-			stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
-			compile( stp->s_seq, stp->s_expbuf,
-				stp->s_e_expbuf, '\0' );
-		}
-	}
-
-	se_minl = se_maxl = UNDEF;
-	si_minl = si_maxl = UNDEF;
-	exact = 0;
-	inexact = 0;
-	for( i = 0; i < n_egroup; i++ ){
-		stp = egroup[ i ];
-		if( stp->s_seq == NULL )
-			continue;
-		circf = *stp->s_seq == '^';
-		if(mm_seqlen(stp->s_expbuf, &s_minl, &s_maxl, &exact1, &mmok)){
-			if( !mmok && stp->s_mismatch != 0 ){
-				err = 1;
-				rm_emsg_lineno = stp->s_lineno;
-				RM_errormsg( 0,
-		"specified seq= and mismatch= >0 are not consistant." );
-			}
-			if( exact1 ){
-				if( se_minl == UNDEF ){
-					exact = 1;
-					se_minl = s_minl;
-					se_maxl = s_maxl;
-				}else{
-					if( s_minl != se_minl ){
-						err = 1;
-						rm_emsg_lineno = stp->s_lineno;
-						RM_errormsg( 0,
-						"inconsistant seq lengths." );
-					}
-					if( s_maxl != se_maxl ){
-						err = 1;
-						rm_emsg_lineno = stp->s_lineno;
-						RM_errormsg( 0,
-						"inconsistant seq lengths." );
-					}
-				}
-			}else{
-				inexact = 1;
-				if( si_minl == UNDEF ){
-					si_minl = s_minl;
-					si_maxl = s_maxl;
-				}else{
-					if( s_minl > si_minl )
-						si_minl = s_minl;
-					if( s_maxl > si_maxl )
-						si_maxl = s_maxl;
-				}
-			}
-		}
-	}
-
-	if( exact ){
-		if( inexact ){
-			if( si_minl > se_maxl ){
-				err = 1;
-				rm_emsg_lineno = egroup[ 0 ]->s_lineno;
-				RM_errormsg( 0, "inconsistant seq lengths." );
-			}
-		}
-		if( minl == UNDEF )
-			minl = se_minl;
-		else if( minl != se_minl ){
-			err = 1;
-			rm_emsg_lineno = egroup[ 0 ]->s_lineno;
-			RM_errormsg( 0, "inconsistant seq & minlen parms." );
-		}
-		if( maxl == UNDEF )
-			maxl = se_maxl;
-		else if( maxl != se_maxl ){
-			err = 1;
-			rm_emsg_lineno = egroup[ 0 ]->s_lineno;
-			RM_errormsg( 0, "inconsistant seq & maxlen parms." );
-		}
-	}else if( inexact ){
-		if( minl == UNDEF )
-			minl = si_minl;
-		if( maxl == UNDEF )
-			maxl = si_maxl;
-		else if( maxl < si_minl ){
-			err = 1;
-			rm_emsg_lineno = egroup[ 0 ]->s_lineno;
-			RM_errormsg( 0, "inconsistant seq & maxlen parms." );
-		}
-	}
-
-	if( minl == UNDEF ){
-		stp = egroup[ 0 ];
-		if( stp->s_type == SYM_H5 ){
-			ip = RM_find_id( "wc_minlen" );
-			minl = ip->i_val.v_value.v_ival;
-		}else
-			minl = 1;
-	}
-	if( maxl == UNDEF ){
-		stp = egroup[ 0 ];
-		if( stp->s_type == SYM_H5 ){
-			ip = RM_find_id( "wc_maxlen" );
-			maxl = ip->i_val.v_value.v_ival;
-		}else
-			maxl = UNBOUNDED;
-	}
-
-	if( !err ){
-		for( i = 0; i < n_egroup; i++ ){
-			stp = egroup[ i ];
-			stp->s_minlen = minl;
-			stp->s_maxlen = maxl;
-		}
-	}
-
-	return( err );
-}
-
-static	int	chk_len_seq1( int n_egroup, STREL_T *egroup[] )
-{
 	int	err, mmok;
 	int	i, size;
 	int	minl, maxl;
@@ -1703,8 +1530,11 @@ static	int	chk_len_seq1( int n_egroup, STREL_T *egroup[] )
 	for( i = 0; i < n_egroup; i++ ){
 		stp = egroup[ i ];
 		if( stp->s_seq != NULL ){
+/*
 			size = strlen( stp->s_seq );
 			size = size > 100 ? 2.5 * size : 250;
+*/
+			size = RE_BPC * strlen( stp->s_seq );
 			stp->s_expbuf =
 				( char * )malloc( size * sizeof( char ) );
 			if( stp->s_expbuf == NULL ){

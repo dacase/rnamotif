@@ -2062,8 +2062,12 @@ static	void	do_mat( INST_T *ip )
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
 	char	*s_tm1, *s_top;
+/*
 #define	EXPBUF_SIZE	256
 	static	char	expbuf[ EXPBUF_SIZE ];
+*/
+	char	*expbuf;
+	int	expbuf_size;
 
 	v_top = &mem[ sp ];
 	t_top = v_top->v_type;
@@ -2076,8 +2080,14 @@ static	void	do_mat( INST_T *ip )
 	case T_IJ( T_STRING, T_STRING ) :
 		s_tm1 = v_tm1->v_value.v_pval;
 		s_top = v_top->v_value.v_pval;
+/*
 		compile( s_top, expbuf, &expbuf[ EXPBUF_SIZE ], '\0' );
+*/
+		expbuf_size = RE_BPC * strlen( s_top );
+		expbuf = ( char * )malloc( expbuf_size * sizeof( char ) );
+		compile( s_top, expbuf, &expbuf[ expbuf_size ], '\0' );
 		v_tm1->v_value.v_ival = step( s_tm1, expbuf );
+		tm_free( expbuf );
 		tm_free( s_top );
 		tm_free( s_tm1 );
 		break;

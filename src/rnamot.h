@@ -1,7 +1,7 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.5.1 2001-may-28"
+#define	VERSION	"v1.5.3 2001-jun-03"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ seq-file ... ]\n\n\
@@ -23,6 +23,8 @@ descr:\tUse one:\n\
 #define	UNDEF	(-1)
 #define	UNBOUNDED	0x7fffffff
 #define	EFN_INFINITY	16000	/* ? */
+
+#define	RE_BPC		20
 
 #define	MIN(a,b)	((a)<(b)?(a):(b))
 #define	MAX(a,b)	((a)>(b)?(a):(b))

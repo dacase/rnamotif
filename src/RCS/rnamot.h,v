@@ -1,9 +1,19 @@
-head	1.80;
+head	1.82;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.82
+date	2001.06.04.03.28.49;	author macke;	state Exp;
+branches;
+next	1.81;
+
+1.81
+date	2001.05.31.21.02.36;	author macke;	state Exp;
+branches;
+next	1.80;
 
 1.80
 date	2001.05.29.02.54.20;	author macke;	state Exp;
@@ -411,15 +421,17 @@ desc
 @
 
 
-1.80
+1.82
 log
-@updated the version date to 2001-may-28
+@Added new const RE_BPC (20) which is the number (max) of bytes/char for
+a reg. exp.
+Updated version.
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.5.1 2001-may-28"
+#define	VERSION	"v1.5.3 2001-jun-03"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ seq-file ... ]\n\n\
@@ -441,6 +453,8 @@ descr:\tUse one:\n\
 #define	UNDEF	(-1)
 #define	UNBOUNDED	0x7fffffff
 #define	EFN_INFINITY	16000	/* ? */
+
+#define	RE_BPC		20
 
 #define	MIN(a,b)	((a)<(b)?(a):(b))
 #define	MAX(a,b)	((a)>(b)?(a):(b))
@@ -608,6 +622,29 @@ typedef	struct	incdir_t	{
 } INCDIR_T;
 
 #endif
+@
+
+
+1.81
+log
+@update version.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.5.2 2001-may-31"
+d26 2
+@
+
+
+1.80
+log
+@updated the version date to 2001-may-28
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.5.1 2001-may-28"
 @
 
 

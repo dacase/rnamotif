@@ -132,7 +132,7 @@ main( int argc, char *argv[] )
 	for( ecnt = 0; ; ){
 		slen = FN_fgetseq( rm_dbfp, sid,
 			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
-		if( slen == 0 ){
+		if( slen == EOF ){
 			rm_dbfp = FN_fnext( rm_dbfp,
 				&rm_c_dbfname, rm_n_dbfname, rm_dbfname );
 			if( rm_dbfp == NULL )

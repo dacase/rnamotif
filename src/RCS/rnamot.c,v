@@ -1,9 +1,14 @@
-head	1.61;
+head	1.62;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.62
+date	2001.05.31.21.01.49;	author macke;	state Exp;
+branches;
+next	1.61;
 
 1.61
 date	2001.02.07.19.30.55;	author macke;	state Exp;
@@ -316,10 +321,10 @@ desc
 @
 
 
-1.61
+1.62
 log
-@removed dtype, as it is always fastn, added code to deal with >1
-db files.
+@Updated to deal with FN_fgetseq() now returning 0 for a 0-length
+sequence and EOF for true end of file.
 @
 text
 @#include <stdio.h>
@@ -456,7 +461,7 @@ main( int argc, char *argv[] )
 	for( ecnt = 0; ; ){
 		slen = FN_fgetseq( rm_dbfp, sid,
 			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
-		if( slen == 0 ){
+		if( slen == EOF ){
 			rm_dbfp = FN_fnext( rm_dbfp,
 				&rm_c_dbfname, rm_n_dbfname, rm_dbfname );
 			if( rm_dbfp == NULL )
@@ -505,6 +510,18 @@ static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
 	for( sp = sbuf, cp = &csbuf[ slen - 1 ], i = 0; i < slen; i++ )
 		*cp-- = wc_cmp[ *sp++ ];
 }
+@
+
+
+1.61
+log
+@removed dtype, as it is always fastn, added code to deal with >1
+db files.
+@
+text
+@d135 1
+a135 1
+		if( slen == 0 ){
 @
 
 

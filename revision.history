@@ -1,3 +1,24 @@
+1.5.3	2001-jun-03
+	Fixed bug that used too short of a buffer for RE's with 
+	many character classes.
+
+1.5.2	2001-may-31
+	Fixed that treated 0-length seqs as EOF in FN_fgetseq().
+
+1.5.1	2001-may-28
+	Fixed bug that limited RE's with mismatches to one character 
+	class.
+	Fixed bug that had the continue stmt branch to the loop test instead
+	of the loop increment.
+
+	Added code to allow break N; and continue N; where N is an integer
+	indicating the number of loops to break out of or continue.  Optional
+	in which case N == 1.  N must be in [1,LD] where LD is the loop depth.
+
+1.5.0	2001-apr-23
+	First public release.  No changes from 1.4.3, but now includes a 
+	user manual!
+
 1.4.3	2001-mar-28
 	Fixed bug (used =, instead ==) in a loop that blitzed the bp array
 	during an eval of efn().  Apparantly only occuring rarely as it was

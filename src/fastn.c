@@ -43,9 +43,12 @@ int	FN_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	*sdef = '\0';
 	*sbuf = '\0';
 	
-	if( ( c = getc( fp ) ) == EOF )
+	if( ( c = getc( fp ) ) == EOF ){
+/*
 		return( 0 );
-	else if( c != '>' ){
+*/
+		return( EOF );
+	}else if( c != '>' ){
 		fprintf( stderr,
 			"FN_fgetseq: fastn file does not begin with '>'.\n" );
 		return( 0 );

@@ -1,9 +1,14 @@
-head	1.11;
+head	1.12;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.12
+date	2001.05.31.21.01.25;	author macke;	state Exp;
+branches;
+next	1.11;
 
 1.11
 date	2001.02.07.21.14.06;	author macke;	state Exp;
@@ -66,9 +71,9 @@ desc
 @
 
 
-1.11
+1.12
 log
-@removed local var fp from FN_fnext() as it obscured the parameter.
+@return EOF for end of file and 0 for 0 length seqs.
 @
 text
 @#include <stdio.h>
@@ -116,9 +121,12 @@ int	FN_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	*sdef = '\0';
 	*sbuf = '\0';
 	
-	if( ( c = getc( fp ) ) == EOF )
+	if( ( c = getc( fp ) ) == EOF ){
+/*
 		return( 0 );
-	else if( c != '>' ){
+*/
+		return( EOF );
+	}else if( c != '>' ){
 		fprintf( stderr,
 			"FN_fgetseq: fastn file does not begin with '>'.\n" );
 		return( 0 );
@@ -200,6 +208,20 @@ static	int	skipbl2nl( FILE *fp )
 			break;
 	return( c );
 }
+@
+
+
+1.11
+log
+@removed local var fp from FN_fnext() as it obscured the parameter.
+@
+text
+@d46 2
+a47 1
+	if( ( c = getc( fp ) ) == EOF )
+d49 3
+a51 1
+	else if( c != '>' ){
 @
 
 
