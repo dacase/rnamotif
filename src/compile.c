@@ -7,6 +7,7 @@
 
 extern	char	rm_fname[ 256 ];
 extern	int	rm_lineno;
+extern	int	rm_error;
 extern	int	rm_emsg_lineno;
 extern	VALUE_T	rm_tokval;
 
@@ -48,10 +49,11 @@ static	void	storeexprval();
 static	PAIRSET_T	*pairop();
 
 static	void	seqlen();
-static	void	chk_tags();
+static	int	link_tags();
 static	void	chk_tagorder();
-static	void	link_tags();
+static	void	mk_links();
 static	void	duptags_error();
+static	int	chk_parms();
 
 int	RM_init()
 {
@@ -307,22 +309,6 @@ void	SE_close()
 			stp->s_pairset = ip->i_val.v_value.v_pval;
 		}
 	}
-	if( stp->s_minlen != UNDEF ){
-		if( stp->s_maxlen == UNDEF )
-			stp->s_maxlen = stp->s_minlen;
-	}else if( stp->s_maxlen != UNDEF )
-		stp->s_minlen = stp->s_maxlen;
-	else if( stp->s_seq != NULL )
-		seqlen( stp->s_seq, &stp->s_minlen, &stp->s_maxlen );
-	else{
-		rm_emsg_lineno = stp->s_lineno;
-		errormsg( 0, "strel must have seq or len spec." );
-	}
-
-	if( stp->s_minlen > stp->s_maxlen ){
-		rm_emsg_lineno = stp->s_lineno;
-		errormsg( 0, "strel minlen > maxlen." );
-	}
 	def_pairset = NULL;
 }
 
@@ -336,12 +322,16 @@ STREL_T	descr[];
 		return( 1 );
 	}
 
-	chk_tags( n_descr, descr );
+	if( link_tags( n_descr, descr ) )
+		return( 1 );
+
+	if( chk_parms( n_descr, descr ) )
+		return( 1 );
 
 	return( 0 );
 }
 
-static	void	chk_tags( n_descr, descr )
+static	int	link_tags( n_descr, descr )
 int	n_descr;
 STREL_T	descr[];
 {
@@ -432,6 +422,7 @@ STREL_T	descr[];
 				stp->s_type == SYM_H5 ? "p5" : "p3" );
 		}
 	}
+	return( rm_error );
 }
 
 static	void	chk_tagorder( n_tags, tags )
@@ -454,7 +445,7 @@ STREL_T	*tags[];
 			t2 = tags[ 1 ]->s_type;
 			if( t2 == SYM_H3 ){
 				if( n_tags == 2 ){
-					link_tags( n_tags, tags );
+					mk_links( n_tags, tags );
 					return;		/* h5 ... h3 pair, OK */
 				}else
 					duptags_error( 2, n_tags, tags );
@@ -472,7 +463,7 @@ STREL_T	*tags[];
 			t2 = tags[ 1 ]->s_type;
 			if( t2 == SYM_P3 ){
 				if( n_tags == 2 ){
-					link_tags( n_tags, tags );
+					mk_links( n_tags, tags );
 					return;		/* p5 p3 pair, OK */
 				}else
 					duptags_error( 2, n_tags, tags );
@@ -491,7 +482,7 @@ STREL_T	*tags[];
 			t3 = tags[ 2 ]->s_type;
 			if( t2 == SYM_T2 && t3 == SYM_T3 ){
 				if( n_tags == 3 ){
-					link_tags( n_tags, tags );
+					mk_links( n_tags, tags );
 					return;
 				}else
 					duptags_error( 3, n_tags, tags );
@@ -511,7 +502,7 @@ STREL_T	*tags[];
 			t4 = tags[ 3 ]->s_type;
 			if( t2 == SYM_Q2 && t3 == SYM_Q3 && t4 == SYM_Q4){
 				if( n_tags == 4 ){
-					link_tags( n_tags, tags );
+					mk_links( n_tags, tags );
 					return;
 				}else
 					duptags_error( 4, n_tags, tags );
@@ -526,7 +517,7 @@ STREL_T	*tags[];
 	}
 }
 
-static	void	link_tags( n_tags, tags )
+static	void	mk_links( n_tags, tags )
 int	n_tags;
 STREL_T	*tags[];
 {
@@ -558,6 +549,30 @@ STREL_T	*tags[];
 		rm_emsg_lineno = tags[ i ]->s_lineno;
 		errormsg( 0, emsg );
 	}
+}
+
+static	int	chk_parms( n_descr, descr )
+int	n_descr;
+STREL_T	descr[];
+{
+	int	i;
+	STREL_T	*stp;
+
+	for( stp = descr, i = 0; i < n_descr; i++, stp++ ){
+		switch( stp->s_type ){
+		case SYM_SS :
+			break;
+		case SYM_H5 :
+			break;
+		case SYM_P5 :
+			break;
+		case SYM_T1 :
+			break;
+		case SYM_Q1 :
+			break;
+		}
+	}
+	return( 0 );
 }
 
 static	IDENT_T	*enter_id( name, type, class, scope, vp )
