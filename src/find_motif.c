@@ -533,7 +533,7 @@ SEARCH_T	*srp;
 				i1_len = s - 2 * hlen - szero + 1;
 				if( i1_len > i1_maxl )
 					continue;
-				i2_len = sdollar - hlen - s + 1;
+				i2_len = sdollar - hlen - s;
 				if( i2_len > i2_maxl )
 					continue;
 
