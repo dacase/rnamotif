@@ -480,7 +480,7 @@ STREL_T	*stp;
 	fprintf( fp, "}\n" );
 }
 
-RM_dump_pos( fp, p, posp )
+void	RM_dump_pos( fp, p, posp )
 FILE	*fp;
 int	p;
 POS_T	*posp;
