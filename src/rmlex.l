@@ -4,8 +4,8 @@
 #include "y.tab.h"
 double	atof();		/* get it it if we ever need reals	*/
 
-int	rmlineno = 1;
-VALUE_T	rmval;
+extern	int	rmlineno;
+extern	VALUE_T	rmval;
 static	char	*sp;
 
 %}
