@@ -83,13 +83,17 @@ typedef	struct	site_t	{
 typedef	struct	strel_t	{
 	int	s_checked;	/* used during linking	*/
 	int	s_type;
+	int	s_proper;	/* false = pseudoknot	*/
 	char	s_index;	/* index into descr array */
 	int	s_lineno;
 	char	*s_tag;
-	struct	strel_t	*s_in;
+	struct	strel_t	*s_inner;
 	struct	strel_t	*s_next;
 	struct	strel_t	**s_mates;
 	int	s_n_mates;
+	struct	strel_t	**s_scopes;
+	int	s_n_scopes;
+	int	s_scope;
 	int	s_minlen;
 	int	s_maxlen;
 	char	*s_seq;
