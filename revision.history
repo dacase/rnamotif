@@ -1,3 +1,7 @@
+1.7.1   2001-nov-29
+	Updated Users' Manual to include references and information about
+	efn() and efn2()
+
 1.7.0	2001-oct-29
 	First version with efn2(), a score builtin that evaluates the
 	improved, coaxial stacking Turner rules.
