@@ -1,9 +1,14 @@
-head	1.125;
+head	1.126;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.126
+date	2001.10.29.19.58.47;	author macke;	state Exp;
+branches;
+next	1.125;
 
 1.125
 date	2001.08.24.17.17.34;	author macke;	state Exp;
@@ -636,9 +641,10 @@ desc
 @
 
 
-1.125
+1.126
 log
-@added code to get the format from the cmd option -fmt f
+@added new vars rm_efn2init, rm_efn2dataok and rm_efnds_allocated that
+are needed to make efn2()
 @
 text
 @#include <stdio.h>
@@ -733,9 +739,12 @@ int	rm_n_searches;
 
 	/* stuff for efn rules:	*/
 int	rm_efninit;
+int	rm_efn2init;
 char	rm_efndatadir[ 256 ] = "";
 int	rm_efndataok;
+int	rm_efn2dataok;
 int	rm_l_base;
+int	rm_efnds_allocated;
 int	*rm_hstnum;
 int	*rm_bcseq;
 int	*rm_basepr;
@@ -4050,6 +4059,17 @@ static	int	pk_cmp( STREL_T **d1, STREL_T **d2 )
 
 	return( ( *d1 )->s_index - ( *d2 )->s_index );
 }
+@
+
+
+1.125
+log
+@added code to get the format from the cmd option -fmt f
+@
+text
+@d93 1
+d96 1
+d98 1
 @
 
 

@@ -30,8 +30,10 @@ extern	STREL_T	*rm_lctx;
 extern	STREL_T	*rm_rctx;
 extern	int	rm_b2bc[];
 extern	int	rm_efninit;
+extern	int	rm_efn2init;
 extern	char	rm_efndatadir[];
 extern	int	rm_efndataok;
+extern	int	rm_efn2dataok;
 extern	int	*rm_bcseq;
 extern	int	*rm_basepr;
 extern	int	*rm_hstnum;
@@ -143,19 +145,21 @@ static	char	*opnames[ N_OP ] = {
 #define	SC_STRID	0
 #define	SC_BITS		1
 #define	SC_EFN		2
-#define	SC_LENGTH	3
-#define	SC_MISMATCHES	4
-#define	SC_MISMATCHES_1	5
-#define	SC_MISMATCHES_2	6
-#define	SC_MISPAIRS	7
-#define	SC_PAIRED	8
-#define	SC_SPRINTF	9
-#define	N_SC		10
+#define	SC_EFN2		3
+#define	SC_LENGTH	4
+#define	SC_MISMATCHES	5
+#define	SC_MISMATCHES_1	6
+#define	SC_MISMATCHES_2	7
+#define	SC_MISPAIRS	8
+#define	SC_PAIRED	9
+#define	SC_SPRINTF	10
+#define	N_SC		11
 
 static	char	*scnames[ N_SC ] = {
 	"STRID",
 	"bits",
 	"efn",
+	"efn2",
 	"length",
 	"mismatches",	/* Kludge, depends on linear search!	*/
 	"mismatches",	/* Require so dumpinst() doesn't fail	*/
@@ -939,6 +943,7 @@ static	void	fix_call( NODE_T *np )
 		break;
 	case SC_BITS :
 	case SC_EFN :
+	case SC_EFN2 :
 		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
 			pcnt++;
 		if( pcnt != 2 ){
@@ -1262,6 +1267,106 @@ static	void	do_scl( INST_T *ip )
 		if( setupefn( ip, idx, pos, idx2, pos2 ) ){
 			RM_initst();
 			rval = 0.01 * RM_efn( 0, rm_l_base, 1 );
+		}else
+			rval = EFN_INFINITY;
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+		mem[ sp ].v_type = T_FLOAT;
+		mem[ sp ].v_value.v_dval = rval;
+		break;
+
+	case SC_EFN2 :
+		if( !rm_efn2init ){
+			rm_efn2init = 1;
+			idp = RM_find_id( "windowsize" );
+			if( RM_allocefnds( idp->i_val.v_value.v_ival ) )
+				rm_efndataok = 0;
+			else{
+				idp = RM_find_id( "efn_datadir" );
+				cp = ( char * )idp->i_val.v_value.v_pval;
+				if( cp == NULL || *cp == '\0' ){
+					if( ( cp = getenv( "EFNDATA" ) ) )
+						strcpy( rm_efndatadir, cp );
+				}else
+					strcpy( rm_efndatadir, cp );
+				idp = RM_find_id( "efn_usestdbp" );
+				rm_efnusestdbp = idp->i_val.v_value.v_ival;
+				rm_efn2dataok = RM_getefn2data();
+			}
+		}
+
+		idx  = mem[ sp - 5 ].v_value.v_ival;
+		if( idx < 0 || idx >= rm_n_xdescr ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, 
+		"do_scl: efn2: 1st descr index must be between 1 and %d.",
+				rm_n_xdescr );
+			RM_errormsg( 1, emsg );
+		}
+		stp = rm_xdescr[ idx ];
+		pos = mem[ sp - 4 ].v_value.v_ival;
+		if( pos == UNDEF )
+			pos = 1;
+		else if( pos < 0 ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, "do_scl: efn2: pos1 must be > 0." );
+		}else if( stp->s_matchlen == 0 ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1,
+	"do_scl: efn2: descr1 must have match len > 0." );
+		}else if( pos > stp->s_matchlen ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, "do_scl: efn2: pos1 must be <= %d.",
+				stp->s_matchlen );
+			RM_errormsg( 1, emsg );
+		}
+		pos--;
+		len  = mem[ sp - 3 ].v_value.v_ival;
+
+		idx2 = mem[ sp - 2 ].v_value.v_ival;
+		if( idx2 < 0 || idx2 >= rm_n_xdescr ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, 
+		"do_scl: efn2: 2nd descr index must be between 1 and %d.",
+				rm_n_xdescr );
+			RM_errormsg( 1, emsg );
+		}else if( idx >= idx2 ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, 
+		"do_scl: efn2: 2nd descr index must follow 1st descr.",
+				rm_n_descr );
+			RM_errormsg( 1, emsg );
+		}
+		stp2 = rm_xdescr[ idx2 ];
+		pos2 = mem[ sp - 1 ].v_value.v_ival;
+		if( pos2 == UNDEF )
+			pos2 = stp2->s_matchlen;
+		else if( pos2 < 0 ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, "do_scl: efn2: pos2 must be > 0." );
+		}else if( stp2->s_matchlen == 0 ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1,
+	"do_scl: efn2: descr2 must have match len > 0." );
+		}else if( pos > stp2->s_matchlen ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, "do_scl: efn2: pos2 must be <= %d.",
+				stp2->s_matchlen );
+			RM_errormsg( 1, emsg );
+		}
+		pos2--;
+		if( setupefn( ip, idx, pos, idx2, pos2 ) ){
+			RM_initst();
+			rval = 0.01 * RM_efn2();
 		}else
 			rval = EFN_INFINITY;
 		sp = mp;

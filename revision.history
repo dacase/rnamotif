@@ -1,3 +1,10 @@
+1.7.0	2001-oct-29
+	First version with efn2(), a score builtin that evaluates the
+	improved, coaxial stacking Turner rules.
+
+	Fixed bug in rmfmt that failed to insert a space before multi-column
+	scores.
+
 1.6.3	2001-oct-03
 	Fixed bug in efn() that incorrectly indexed tetraloops.
 

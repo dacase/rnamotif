@@ -90,9 +90,12 @@ int	rm_n_searches;
 
 	/* stuff for efn rules:	*/
 int	rm_efninit;
+int	rm_efn2init;
 char	rm_efndatadir[ 256 ] = "";
 int	rm_efndataok;
+int	rm_efn2dataok;
 int	rm_l_base;
+int	rm_efnds_allocated;
 int	*rm_hstnum;
 int	*rm_bcseq;
 int	*rm_basepr;

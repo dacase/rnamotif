@@ -1,9 +1,14 @@
-head	1.18;
+head	1.19;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.19
+date	2001.10.29.20.00.32;	author macke;	state Exp;
+branches;
+next	1.18;
 
 1.18
 date	2001.10.04.03.23.24;	author macke;	state Exp;
@@ -102,10 +107,11 @@ enough to begin integration into rnamotif.
 @
 
 
-1.18
+1.19
 log
-@collected all data into a structure.  This will make it easier
-to combine with efn2.
+@added new var rm_efnds_allocated, used to indicate the arrays holding
+the structure have been allocated.  These arrays are used by both efn()
+and efn2()
 @
 text
 @/*
@@ -142,6 +148,7 @@ extern	char	rm_bc2b[];
 extern	char	rm_efndatadir[];
 extern	int	rm_efndataok;
 extern	int	rm_l_base;
+extern	int	rm_efnds_allocated;
 extern	int	*rm_hstnum;
 extern	int	*rm_bcseq;
 extern	int	*rm_basepr;
@@ -155,11 +162,12 @@ static	char	emsg[ 256 ];
 #define	MAXTRILOOPS	50
 
 typedef	struct	efndata_t	{
-	int	e_asint1x2[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ];
-	int	e_inter[ ( MAX_IBHLOOP + 1 ) ];
-	int	e_bulge[ ( MAX_IBHLOOP + 1 ) ];
+	int	e_inter  [ ( MAX_IBHLOOP + 1 ) ];
+	int	e_bulge  [ ( MAX_IBHLOOP + 1 ) ];
 	int	e_hairpin[ ( MAX_IBHLOOP + 1 ) ];
+
 	int	e_dangle[ 5 ][ 5 ][ 5 ][ 2 ];
+
 	float	e_prelog;
 	int	e_maxpen;
 	int	e_poppen[ POPPEN_SIZE + 1 ];
@@ -174,12 +182,16 @@ typedef	struct	efndata_t	{
 	int	e_c3;
 	int	e_init;
 	int	e_gail;
-	int	e_sint2[ 6 ][ 6 ][ 5 ][ 5 ];
-	int	e_sint4[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ][ 5 ];
+
+	int	e_asint1x2[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ];
+	int	e_sint2   [ 6 ][ 6 ][ 5 ][ 5 ];
+	int	e_sint4   [ 6 ][ 6 ][ 5 ][ 5 ][ 5 ][ 5 ];
+
 	int	e_tloops[ MAXTLOOPS ][ 2 ];
 	int	e_ntloops;
 	int	e_triloops[ MAXTRILOOPS ][ 2 ];
 	int	e_ntriloops;
+
 	int	e_stack[ 5 ][ 5 ][ 5 ][ 5 ];
 	int	e_tstkh[ 5 ][ 5 ][ 5 ][ 5 ];
 	int	e_tstki[ 5 ][ 5 ][ 5 ][ 5 ];
@@ -255,6 +267,8 @@ static	int	pull( int *, int *, int * );
 int	RM_allocefnds( int size )
 {
 
+	if( rm_efnds_allocated )
+		return( 0 );
 	rm_hstnum = ( int * )malloc( size * sizeof( int ) );
 	if( rm_hstnum == NULL ){
 		RM_errormsg( 0, "RM_allocefnds: can't allocate rm_hstnum\n" );
@@ -270,6 +284,7 @@ int	RM_allocefnds( int size )
 		RM_errormsg( 0, "RM_allocefnds: can't allocate rm_basepr\n" );
 		return( 1 );
 	}
+	rm_efnds_allocated = 1;
 
 	return( 0 );
 }
@@ -1776,6 +1791,30 @@ static	int	pull( int *a, int *b, int *c )
 	stkp--;
 	return( 0 );
 }
+@
+
+
+1.18
+log
+@collected all data into a structure.  This will make it easier
+to combine with efn2.
+@
+text
+@d35 1
+d49 2
+a50 3
+	int	e_asint1x2[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ];
+	int	e_inter[ ( MAX_IBHLOOP + 1 ) ];
+	int	e_bulge[ ( MAX_IBHLOOP + 1 ) ];
+d52 1
+d54 1
+d69 5
+a73 2
+	int	e_sint2[ 6 ][ 6 ][ 5 ][ 5 ];
+	int	e_sint4[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ][ 5 ];
+d78 1
+d154 2
+d171 1
 @
 
 

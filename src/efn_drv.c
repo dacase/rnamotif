@@ -19,12 +19,13 @@
 #include "rnamot.h"
 
 int	rm_error;
-char	rm_dfname[ 256 ];
+char	rm_wdfname[ 256 ];
 int	rm_emsg_lineno = UNDEF;
 
 char	rm_bc2b[ N_BCODES ] = { 'a', 'c', 'g', 't', 'n' };
 
 char	rm_efndatadir[ 256 ];
+int	rm_efnds_allocated;
 int	rm_efndataok;
 int	rm_l_base;
 int	*rm_hstnum;
@@ -64,7 +65,7 @@ char	*argv[];
 
 	if( argc == 1 ){
 		cfp = stdin;
-		strcpy( rm_dfname, " -- stdin -- " );
+		strcpy( rm_wdfname, " -- stdin -- " );
 	}else if( argc > 2 ){
 		fprintf( stderr, "usage: %s [ ct-file ]\n", argv[ 0 ] );
 		rval = 1;
@@ -75,7 +76,7 @@ char	*argv[];
 		rval = 1;
 		goto CLEAN_UP;
 	}else
-		strcpy( rm_dfname, argv[ 1 ] );
+		strcpy( rm_wdfname, argv[ 1 ] );
 
 	if( ( n_bases = getct( cfp ) ) == 0 ){
 		rval = 1;

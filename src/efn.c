@@ -32,6 +32,7 @@ extern	char	rm_bc2b[];
 extern	char	rm_efndatadir[];
 extern	int	rm_efndataok;
 extern	int	rm_l_base;
+extern	int	rm_efnds_allocated;
 extern	int	*rm_hstnum;
 extern	int	*rm_bcseq;
 extern	int	*rm_basepr;
@@ -45,11 +46,12 @@ static	char	emsg[ 256 ];
 #define	MAXTRILOOPS	50
 
 typedef	struct	efndata_t	{
-	int	e_asint1x2[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ];
-	int	e_inter[ ( MAX_IBHLOOP + 1 ) ];
-	int	e_bulge[ ( MAX_IBHLOOP + 1 ) ];
+	int	e_inter  [ ( MAX_IBHLOOP + 1 ) ];
+	int	e_bulge  [ ( MAX_IBHLOOP + 1 ) ];
 	int	e_hairpin[ ( MAX_IBHLOOP + 1 ) ];
+
 	int	e_dangle[ 5 ][ 5 ][ 5 ][ 2 ];
+
 	float	e_prelog;
 	int	e_maxpen;
 	int	e_poppen[ POPPEN_SIZE + 1 ];
@@ -64,12 +66,16 @@ typedef	struct	efndata_t	{
 	int	e_c3;
 	int	e_init;
 	int	e_gail;
-	int	e_sint2[ 6 ][ 6 ][ 5 ][ 5 ];
-	int	e_sint4[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ][ 5 ];
+
+	int	e_asint1x2[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ];
+	int	e_sint2   [ 6 ][ 6 ][ 5 ][ 5 ];
+	int	e_sint4   [ 6 ][ 6 ][ 5 ][ 5 ][ 5 ][ 5 ];
+
 	int	e_tloops[ MAXTLOOPS ][ 2 ];
 	int	e_ntloops;
 	int	e_triloops[ MAXTRILOOPS ][ 2 ];
 	int	e_ntriloops;
+
 	int	e_stack[ 5 ][ 5 ][ 5 ][ 5 ];
 	int	e_tstkh[ 5 ][ 5 ][ 5 ][ 5 ];
 	int	e_tstki[ 5 ][ 5 ][ 5 ][ 5 ];
@@ -145,6 +151,8 @@ static	int	pull( int *, int *, int * );
 int	RM_allocefnds( int size )
 {
 
+	if( rm_efnds_allocated )
+		return( 0 );
 	rm_hstnum = ( int * )malloc( size * sizeof( int ) );
 	if( rm_hstnum == NULL ){
 		RM_errormsg( 0, "RM_allocefnds: can't allocate rm_hstnum\n" );
@@ -160,6 +168,7 @@ int	RM_allocefnds( int size )
 		RM_errormsg( 0, "RM_allocefnds: can't allocate rm_basepr\n" );
 		return( 1 );
 	}
+	rm_efnds_allocated = 1;
 
 	return( 0 );
 }

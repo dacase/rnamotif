@@ -1,9 +1,14 @@
-head	1.87;
+head	1.88;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.88
+date	2001.10.29.20.05.07;	author macke;	state Exp;
+branches;
+next	1.87;
 
 1.87
 date	2001.10.04.03.28.43;	author macke;	state Exp;
@@ -446,15 +451,15 @@ desc
 @
 
 
-1.87
+1.88
 log
-@updated version to 1.6.3.
+@updated version to 1.7.0
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.6.3 2001-oct-03"
+#define	VERSION	"v1.7.0 2001-oct-29"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
@@ -654,6 +659,17 @@ typedef	struct	incdir_t	{
 } INCDIR_T;
 
 #endif
+@
+
+
+1.87
+log
+@updated version to 1.6.3.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.6.3 2001-oct-03"
 @
 
 

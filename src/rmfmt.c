@@ -286,9 +286,12 @@ main( int argc, char *argv[] )
 					printf( "%s", ofields[ f ] );
 				}
 			}
+			printf( " " );
 			if( m_sfields == 1 ){
 				fw = strlen( sfields[ 0 ] );
+/*
 				printf( " " );
+*/
 				for( fs = 0; fs < smaxw - fw; fs++ )
 					putchar( ' ' );
 				printf( "%s", sfields[ 0 ] );

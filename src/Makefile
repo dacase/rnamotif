@@ -6,6 +6,7 @@ RNAMOTOBJS=	\
 	dbutil.o	\
 	dump.o		\
 	efn.o		\
+	efn2.o		\
 	errormsg.o	\
 	find_motif.o	\
 	mm_regexp.o	\
@@ -37,6 +38,8 @@ dumpnode.h:	y.tab.h mk_dumpnode.h
 
 efn.o:		rnamot.h
 
+efn2.o:		rnamot.h
+
 find_motif.o:	rnamot.h y.tab.h
 
 node.o:		dumpnode.h rnamot.h y.tab.h
@@ -65,6 +68,9 @@ rm2ct:		rm2ct.o split.o
 efn_drv:	efn_drv.o efn.o errormsg.o split.o
 	$(CC)	$(CFLAGS) -o efn_drv efn_drv.o efn.o errormsg.o split.o -lm
 
+efn2_drv:	efn2_drv.o efn2.o errormsg.o split.o
+	$(CC)	$(CFLAGS) -o efn2_drv efn2_drv.o efn2.o errormsg.o split.o -lm
+
 clean:
 	-rm -f 	 *.o		\
 		dumpnode.h	\
@@ -77,5 +83,6 @@ clean:
 		rmfmt		\
 		rm2ct		\
 		efn_drv		\
+		efn2_drv	\
 		core		\
 		junk*
