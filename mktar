@@ -1,0 +1,21 @@
+#! /bin/csh
+#    make a tar file for developers: keep CVS tree, etc.
+#
+set tarfile = rnamot3.`date +%d%h%y | tr "A-Z" "a-z"`.tar
+echo making $tarfile
+tar cvf $tarfile \
+	./INSTALL \
+	./mkrelease \
+	./mktar \
+	./revision.history \
+	./Makefile \
+	./config.h* \
+	./iupac.codes \
+	./letters \
+	./doc \
+	./src \
+	./test \
+	./descr \
+	./old-descr \
+	./CVS
+gzip -v $tarfile

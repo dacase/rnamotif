@@ -1,0 +1,21 @@
+#! /bin/csh
+#   make a tar file for "release"
+#   Requires an argument for the version number
+#   Be sure to do "make clean" before running this, to ensure that files
+#   like y.tab.c, y.tab.h are not put on the tar tape.
+#
+set tarfile = rnamot3-$1.tar
+echo making $tarfile
+tar cvf $tarfile \
+	./INSTALL \
+	./mkrelease \
+	./mktar \
+	./revision.history \
+	./iupac.codes \
+	./Makefile \
+	./config.h* \
+	./doc \
+	./src \
+	./test \
+	./descr
+gzip -v $tarfile
