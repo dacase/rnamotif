@@ -31,7 +31,7 @@ static	char	sbuf[ SBUF_SIZE ];
 static	int	slen;
 static	char	csbuf[ SBUF_SIZE ];
 
-IDENT_T	*find_id();
+IDENT_T	*RM_find_id();
 
 #ifdef	USE_GENBANK
 typedef	void	DBASE_T;
@@ -83,7 +83,7 @@ char	*argv[];
 	if( rm_copt )
 		exit( 0 );
 
-	ip = find_id( "chk_both_strs" );
+	ip = RM_find_id( "chk_both_strs" );
 	if( ip == NULL ){
 		chk_both_strs = 1;
 	}else
