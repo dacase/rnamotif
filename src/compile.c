@@ -6,6 +6,7 @@
 
 VALUE_T	rmval;
 int	rmlineno = 1;
+int	rmerror = 0;
 int	rmemsglineno;
 char	rmfname[ 256 ] = "--stdin--";
 static	char	emsg[ 256 ];
@@ -43,6 +44,28 @@ static	void	eval();
 static	int	loadidval();
 static	void	storeexprval();
 
+static	void	seqlen();
+
+void	PR_open()
+{
+
+	fprintf( stderr, "Open Pair:\n");
+}
+
+void	PR_add( np )
+NODE_T	*np;
+{
+
+	fprintf( stderr, "Add '%s' to pair.\n", np->n_val.v_value.v_pval ); 
+}
+
+NODE_T	*PR_close()
+{
+
+	fprintf( stderr, "Close Pair.\n");
+	return( NULL );
+}
+
 void	SE_open( stype )
 int	stype;
 {
@@ -58,6 +81,7 @@ int	stype;
 	n_descr++;
 	stp->s_type = stype;
 	stp->s_index = n_descr - 1;
+	stp->s_lineno = rmlineno;
 	stp->s_tag = NULL;
 	stp->s_next = NULL;
 	stp->s_pairs = NULL;
@@ -72,31 +96,31 @@ int	stype;
 	n_local_ids = 0;
 	val.v_type = T_STRING;
 	val.v_value.v_pval = NULL;
-	enter_id( "tag", T_STRING, C_VAR, S_LOCAL, &val );
+	enter_id( "tag", T_STRING, C_VAR, S_STREL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = UNDEF;
-	enter_id( "minlen", T_INT, C_VAR, S_LOCAL, &val );
+	enter_id( "minlen", T_INT, C_VAR, S_STREL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = UNDEF;
-	enter_id( "maxlen", T_INT, C_VAR, S_LOCAL, &val );
+	enter_id( "maxlen", T_INT, C_VAR, S_STREL, &val );
 
 	val.v_type = T_STRING;
 	val.v_value.v_pval = NULL;
-	enter_id( "seq", T_STRING, C_VAR, S_LOCAL, &val );
+	enter_id( "seq", T_STRING, C_VAR, S_STREL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 0;
-	enter_id( "mismatch", T_INT, C_VAR, S_LOCAL, &val );
+	enter_id( "mismatch", T_INT, C_VAR, S_STREL, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 0;
-	enter_id( "mispair", T_INT, C_VAR, S_LOCAL, &val );
+	enter_id( "mispair", T_INT, C_VAR, S_STREL, &val );
 
 	val.v_type = T_PAIR;
 	val.v_value.v_pval = NULL;
-	enter_id( "pair", T_PAIR, C_VAR, S_LOCAL, &val );
+	enter_id( "pair", T_PAIR, C_VAR, S_STREL, &val );
 }
 
 void	SE_addval( expr )
@@ -113,7 +137,7 @@ NODE_T	*expr;
 
 void	SE_close()
 {
-	int	i;
+	int	i, minlen, maxlen;
 	IDENT_T	*ip;
 
 	for( i = 0; i < n_local_ids; i++ ){
@@ -133,6 +157,24 @@ void	SE_close()
 		}else if( !strcmp( ip->i_name, "pair" ) ){
 			stp->s_pairdata = NULL;
 		}
+	}
+	if( stp->s_minlen != UNDEF ){
+		if( stp->s_maxlen == UNDEF )
+			stp->s_maxlen = stp->s_minlen;
+	}else if( stp->s_maxlen != UNDEF )
+		stp->s_minlen = stp->s_maxlen;
+	else if( stp->s_seq != NULL )
+		seqlen( stp->s_seq, &stp->s_minlen, &stp->s_maxlen );
+	else{
+		rmemsglineno = stp->s_lineno;
+		errormsg( 0, "strel must have seq or len spec.\n" );
+		rmerror = 1;
+	}
+
+	if( stp->s_minlen > stp->s_maxlen ){
+		rmemsglineno = stp->s_lineno;
+		errormsg( 0, "strel minlen > maxlen.\n" );
+		rmerror = 1;
 	}
 }
 
@@ -201,6 +243,8 @@ STREL_T	*stp;
 		break;
 	}
 	fprintf( fp, "\n" );
+
+	fprintf( fp, "\tlineno = %d\n", stp->s_lineno );
 
 	fprintf( fp, "\ttag  = '%s'\n",
 		stp->s_tag ? stp->s_tag : "(No tag)" );
@@ -518,4 +562,14 @@ VALUE_T	*vp;
 	}else if( type == T_PAIR ){
 		ip->i_type = T_PAIR;
 	}
+}
+
+static	void	seqlen( seq, minlen, maxlen )
+char	seq[];
+int	*minlen;
+int	*maxlen;
+{
+
+	*minlen = strlen( seq );
+	*maxlen = strlen( seq );
 }
