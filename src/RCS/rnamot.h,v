@@ -1,9 +1,29 @@
-head	1.73;
+head	1.77;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.77
+date	2001.02.07.19.31.44;	author macke;	state Exp;
+branches;
+next	1.76;
+
+1.76
+date	2001.02.07.17.35.38;	author macke;	state Exp;
+branches;
+next	1.75;
+
+1.75
+date	2001.02.06.05.45.12;	author macke;	state Exp;
+branches;
+next	1.74;
+
+1.74
+date	2001.01.18.22.46.40;	author macke;	state Exp;
+branches;
+next	1.73;
 
 1.73
 date	2000.12.18.03.05.39;	author macke;	state Exp;
@@ -376,32 +396,32 @@ desc
 @
 
 
-1.73
+1.77
 log
-@added i_left, i_right fields to IDENT_T so as to support a tree based
-symbol table.  Updated version and date to 1.4.0 2000-dec-17
+@removed DT_* support for genbank as only fastn files are supported.
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.4.0 2000-dec-17"
+#define	VERSION	"v1.4.2 2001-feb-07"
 
 #define	U_MSG_S	\
-"usage: %s [ options ] -descr descr-file [ -dtype dtype ] [ seq-file ]\n\n\
+"usage: %s [ options ] descr [ seq-file ... ]\n\n\
 options:\n\
-\t-c\n\
-\t-d\n\
-\t-h\n\
-\t-s\n\
-\t-v\n\
-\t-Did=expr\n\
-\t-Idir\n\
-\t-help\n\
+\t-c\t\t\tCompile only, no search\n\
+\t-d\t\t\tDump internal data structures\n\
+\t-h\t\t\tDump the strucure hierarchy\n\
+\t-s\t\t\tShow builtin variables\n\
+\t-v\t\t\tPrint Version Infomation\n\
+\t-Dvar=expr\t\tSet the value of var to expr\n\
+\t-Idir\t\t\tAdd include source directory, dir\n\
+\t-xdfname file-name\tPreprocessor output file\n\
+\t-help\t\t\tPrint this message\n\
 \n\
--descr descr-file\n\
-\n\
--dtype { genbank | fastn }\n"
+descr:\tUse one:\n\
+\t-descr descr-file\tMay have includes; use cmd-line defs\n\
+\t-xdescr xdescr-file\tMay not have includes; ignore cmd-line defs\n"
 
 #define	UNDEF	(-1)
 #define	UNBOUNDED	0x7fffffff
@@ -409,9 +429,6 @@ options:\n\
 
 #define	MIN(a,b)	((a)<(b)?(a):(b))
 #define	MAX(a,b)	((a)>(b)?(a):(b))
-
-#define	DT_FASTN	0
-#define	DT_GENBANK	1
 
 #define	T_UNDEF		0
 #define	T_INT		1
@@ -576,6 +593,79 @@ typedef	struct	incdir_t	{
 } INCDIR_T;
 
 #endif
+@
+
+
+1.76
+log
+@changed U_MSG_S to indicate mutliple seq-files are permitted.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.4.2 2001-feb-05"
+d7 1
+a7 1
+"usage: %s [ options ] descr [ -dtype dtype ] [ seq-file ... ]\n\n\
+d21 1
+a21 3
+\t-xdescr xdescr-file\tMay not have includes; ignore cmd-line defs\n\
+\n\
+-dtype { genbank | fastn }\n"
+a28 3
+
+#define	DT_FASTN	0
+#define	DT_GENBANK	1
+@
+
+
+1.75
+log
+@updated version number to 1.4.2
+@
+text
+@d7 1
+a7 1
+"usage: %s [ options ] descr [ -dtype dtype ] [ seq-file ]\n\n\
+@
+
+
+1.74
+log
+@updated U_MSG_S.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.4.1 2001-jan-18"
+@
+
+
+1.73
+log
+@added i_left, i_right fields to IDENT_T so as to support a tree based
+symbol table.  Updated version and date to 1.4.0 2000-dec-17
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.4.0 2000-dec-17"
+d7 1
+a7 1
+"usage: %s [ options ] -descr descr-file [ -dtype dtype ] [ seq-file ]\n\n\
+d9 9
+a17 8
+\t-c\n\
+\t-d\n\
+\t-h\n\
+\t-s\n\
+\t-v\n\
+\t-Did=expr\n\
+\t-Idir\n\
+\t-help\n\
+d19 3
+a21 1
+-descr descr-file\n\
 @
 
 

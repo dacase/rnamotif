@@ -1,9 +1,24 @@
-head	1.58;
+head	1.61;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.61
+date	2001.02.07.19.30.55;	author macke;	state Exp;
+branches;
+next	1.60;
+
+1.60
+date	2001.02.06.05.45.54;	author macke;	state Exp;
+branches;
+next	1.59;
+
+1.59
+date	2001.01.18.23.56.16;	author macke;	state Exp;
+branches;
+next	1.58;
 
 1.58
 date	2000.12.15.22.42.43;	author macke;	state Exp;
@@ -301,9 +316,10 @@ desc
 @
 
 
-1.58
+1.61
 log
-@added call to unlink() to delete the expanded descr file, rm_xdfname.
+@removed dtype, as it is always fastn, added code to deal with >1
+db files.
 @
 text
 @#include <stdio.h>
@@ -315,6 +331,8 @@ extern	FILE	*yyin;
 extern	int	rm_error;
 extern	char	*rm_dfname;
 extern	char	*rm_xdfname;
+extern	int	rm_preprocess;
+extern	int	rm_unlink_xdf;
 extern	int	rm_copt;
 extern	int	rm_dopt;
 extern	int	rm_hopt;
@@ -322,7 +340,9 @@ extern	int	rm_popt;
 extern	int	rm_sopt;
 extern	int	rm_vopt;
 extern	FILE	*rm_dbfp;
-extern	int	rm_dtype;
+extern	char	**rm_dbfname;
+extern	int	rm_n_dbfname;
+extern	int	rm_c_dbfname;
 
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
@@ -345,12 +365,8 @@ static	char	csbuf[ SBUF_SIZE ];
 
 IDENT_T	*RM_find_id();
 
-#ifdef	USE_GENBANK
-typedef	void	DBASE_T;
-DBASE_T	*dbp, *GB_opendb();
-#endif
-
-char	*RM_preprocess( void );
+char	*RM_preprocessor( void );
+FILE	*FN_fnext( FILE *, int *, int, char *[] );
 
 static	void	mk_rcmp( int, char [], char [] );
 
@@ -360,6 +376,7 @@ main( int argc, char *argv[] )
 	int	done = 0;
 	int	chk_both_strs;
 	int	show_progress;
+	int	ecnt;
 
 	if( RM_init( argc, argv ) )
 		exit( 1 );
@@ -375,8 +392,10 @@ main( int argc, char *argv[] )
 	if( done )
 		exit( 0 );
 
-	if( ( rm_xdfname = RM_preprocess() ) == NULL )
-		exit( 1 );
+	if( rm_preprocess ){
+		if( ( rm_xdfname = RM_preprocessor() ) == NULL )
+			exit( 1 );
+	}
 
 	if( ( yyin = fopen( rm_xdfname, "r" ) ) == NULL ){
 		fprintf( stderr, "%s: can't read xd-file %s.\n",
@@ -388,18 +407,22 @@ main( int argc, char *argv[] )
 		RM_errormsg( 0, "syntax error." );
 	}
 
-	unlink( rm_xdfname );
+	if( rm_unlink_xdf )
+		unlink( rm_xdfname );
 
 	if( !rm_error ){
 		if( SE_link( rm_n_descr, rm_descr ) )
 			exit( 1 );
-		fprintf( stderr, "%s: complete descr length: min/max = %d/",
-			rm_dfname, rm_dminlen );
 		RM_linkscore();
-		if( rm_dmaxlen == UNBOUNDED )
-			fprintf( stderr, "UNBND\n" );
-		else
-			fprintf( stderr, "%d\n", rm_dmaxlen );
+		if( rm_dfname != NULL ){
+			fprintf( stderr,
+				"%s: complete descr length: min/max = %d/",
+				rm_dfname, rm_dminlen );
+			if( rm_dmaxlen == UNBOUNDED )
+				fprintf( stderr, "UNBND\n" );
+			else
+				fprintf( stderr, "%d\n", rm_dmaxlen );
+		}
 	}
 
 	if( rm_dopt || rm_hopt )
@@ -426,33 +449,34 @@ main( int argc, char *argv[] )
 	else
 		show_progress = ip->i_val.v_value.v_ival;
 
-#ifdef	USE_GENBANK
-	if( rm_dtype == DT_GENBANK ){
-		if( ( dbp = GB_opendb( rm_dbfp ) ) == NULL )
-			exit( 1 );
-	}
-#endif
+	rm_dbfp = FN_fnext( rm_dbfp, &rm_c_dbfname, rm_n_dbfname, rm_dbfname );
+	if( rm_dbfp == NULL )
+		exit( 1 );
 
-	for( ; ; ){
-		if( rm_dtype == DT_FASTN )
-			slen = FN_fgetseq( rm_dbfp, sid,
-				SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
-#ifdef	USE_GENBANK
-		else
-			slen = GB_fgetseq( dbp, sid, SBUF_SIZE, sbuf );
-#endif
-		if( slen == 0 )
-			break;
+	for( ecnt = 0; ; ){
+		slen = FN_fgetseq( rm_dbfp, sid,
+			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
+		if( slen == 0 ){
+			rm_dbfp = FN_fnext( rm_dbfp,
+				&rm_c_dbfname, rm_n_dbfname, rm_dbfname );
+			if( rm_dbfp == NULL )
+				break;
+		}
 
-		if( show_progress )
-			fprintf( stderr, "%s\n", sid );
+		ecnt++;
+
+		if( show_progress ){
+			if( ecnt % show_progress == 0 )
+				fprintf( stderr, "%s: %7d: %s\n",
+					argv[ 0 ], ecnt, sid );
+		}
 
 		find_motif_driver( rm_n_searches, rm_searches, rm_sites,
-			sid, rm_dtype, sdef, 0, slen, sbuf );
+			sid, sdef, 0, slen, sbuf );
 		if( chk_both_strs ){
 			mk_rcmp( slen, sbuf, csbuf );
 			find_motif_driver( rm_n_searches, rm_searches, rm_sites,
-				sid, rm_dtype, sdef, 1, slen, csbuf );
+				sid, sdef, 1, slen, csbuf );
 		}
 	}
 
@@ -481,6 +505,94 @@ static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
 	for( sp = sbuf, cp = &csbuf[ slen - 1 ], i = 0; i < slen; i++ )
 		*cp-- = wc_cmp[ *sp++ ];
 }
+@
+
+
+1.60
+log
+@added code to print the heartbeat mes for ecnt % show_progress == 0.
+@
+text
+@d19 3
+a21 1
+extern	int	rm_dtype;
+a43 5
+#ifdef	USE_GENBANK
+typedef	void	DBASE_T;
+DBASE_T	*dbp, *GB_opendb();
+#endif
+
+d45 1
+d128 3
+a130 6
+#ifdef	USE_GENBANK
+	if( rm_dtype == DT_GENBANK ){
+		if( ( dbp = GB_opendb( rm_dbfp ) ) == NULL )
+			exit( 1 );
+	}
+#endif
+d133 8
+a140 9
+		if( rm_dtype == DT_FASTN )
+			slen = FN_fgetseq( rm_dbfp, sid,
+				SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
+#ifdef	USE_GENBANK
+		else
+			slen = GB_fgetseq( dbp, sid, SBUF_SIZE, sbuf );
+#endif
+		if( slen == 0 )
+			break;
+d151 1
+a151 1
+			sid, rm_dtype, sdef, 0, slen, sbuf );
+d155 1
+a155 1
+				sid, rm_dtype, sdef, 1, slen, csbuf );
+@
+
+
+1.59
+log
+@added test to call RM_preprocessor() only rm_preprocess == 1.  Also only
+unlink() the preprocessor output file it was not created via tempnam().
+@
+text
+@d57 1
+d137 1
+a137 1
+	for( ; ; ){
+d148 7
+a154 2
+		if( show_progress )
+			fprintf( stderr, "%s\n", sid );
+@
+
+
+1.58
+log
+@added call to unlink() to delete the expanded descr file, rm_xdfname.
+@
+text
+@d10 2
+d47 1
+a47 1
+char	*RM_preprocess( void );
+d72 4
+a75 2
+	if( ( rm_xdfname = RM_preprocess() ) == NULL )
+		exit( 1 );
+d87 2
+a88 1
+	unlink( rm_xdfname );
+a92 2
+		fprintf( stderr, "%s: complete descr length: min/max = %d/",
+			rm_dfname, rm_dminlen );
+d94 9
+a102 4
+		if( rm_dmaxlen == UNBOUNDED )
+			fprintf( stderr, "UNBND\n" );
+		else
+			fprintf( stderr, "%d\n", rm_dmaxlen );
 @
 
 
