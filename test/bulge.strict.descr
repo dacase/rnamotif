@@ -1,0 +1,17 @@
+parms
+	EMAX = -10;
+
+descr
+	h5( len=3, strict=3 )
+		ss( minlen=1, maxlen=3 )
+		h5( len=3 )
+			ss( seq="^gnra$" )
+		h3
+		ss( minlen=1, maxlen=3 )
+	h3
+
+score
+	{ SCORE = efn( h5[1], h3[NSE] );
+	  if( SCORE > EMAX )
+		REJECT;
+	}

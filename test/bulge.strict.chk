@@ -1,0 +1,33 @@
+#RM scored
+#RM descr ctx h5 ss h5 ss h3 ss h3 ctx
+MTERR16S  -10.100 0 1182 22 tggga tgc gaa ggg gcga ccc gga gca aatct
+AGCRR18S  -10.300 1  507 18 ttacg ggg c   ctc gaaa gag t   ccc gtatt
+BRARREA   -10.300 1  508 18 ttacg ggg c   ctc gaaa gag t   ccc gtatt
+BRARREA1  -10.300 1  369 18 ttacg ggg c   ctc gaaa gag t   ccc gtatt
+CMSRR18S  -10.300 1  507 18 ttacg ggg c   ctc gaaa gag c   ccc gtatt
+CMSRRE    -10.300 1  507 18 ttacg ggg c   ctc gaaa gag t   ccc gtatt
+FSLRRNA   -10.300 0  180 22 ctatg ccc tga ccc gcga ggg aac ggg tggat
+GLHRRNA   -10.300 0  180 22 ctatg ccc tga ccc gcga ggg aac ggg tgcat
+HYURR18S  -10.300 0  426 18 nnnnn ccc g   aac gaaa gtt g   ggg gctcg
+MIYRRE    -10.300 1  507 18 ttacg ggg c   ctc gaaa gag t   ccc gtatt
+MYARREA1  -10.300 1  321 18 ttacg ggg c   ctc gaaa gag t   ccc gtatt
+RASRRE    -10.300 1  507 18 ttacg ggg c   ctc gaaa gag t   ccc gtatt
+CNYRRDX   -10.400 0 1457 19 gctgc gcc aa  ccc gcaa ggg a   ggc angcc
+CNYRRDY   -10.400 0 1458 19 gctga gcc aa  ccc gcaa ggg a   ggc aggcc
+HXM16RR   -10.400 1 1466 20 cttcg tgc at  gcc gcga ggc gc  gca ctctg
+PGMRRDX   -10.400 0 1458 19 gctga gcc aa  ccc gcaa ggg a   ggc aggcc
+PGMRRDY   -10.400 0 1458 19 gctgc gcc aa  ccc gcaa ggg a   ggc aggcc
+TSTRRNA   -10.500 0  180 22 atatg ccc tga ccc gtaa ggg aat ggg tggat
+CHT16SR   -10.600 0 1521 18 ggtag ccc t   acc ggaa ggt g   ggg ctgga
+MPLRRD    -10.600 0 1502 18 ggtat ccc t   acc ggaa ggt g   ggg atgga
+TRPRG16S  -10.600 0 1469 21 cacta gcc taa ccc gcaa ggg ag  ggc ggtgc
+EHIRRNA   -10.800 0  180 22 ctatg ccc tga ccc gcaa ggg aac ggg tggat
+LBORNA    -10.900 0  180 22 ctatg ccc tga ccc gtaa ggg gac ggg tggat
+RBLRR16S  -10.900 0  980 22 agacg ggc gtt ccc gcaa ggg ctt gcc gcaca
+ERLRR16SB -11.000 0 1202 22 tgagc agc gat ccc gcaa ggg tca gct aatct
+BORRR16SX -11.100 0  884 20 gggga gta tg  ctc gcaa gag tg  tac gcgag
+HLPRRX    -11.100 0 1266 21 agggc agc gaa ccc gcaa ggg ga  gct aatct
+WHTMTRRE  -11.100 0   66 20 agcta gcc gt  agg ggaa cct gt  ggc tgcat
+LANRREA3  -11.200 0  115 21 gtcta ccc tgg ccc ggaa ggg tt  ggg haacc
+HNMRR18S  -11.400 0  158 22 ctatg ccc tga ccc gcga ggg gac ggg tggat
+CLWRNA    -11.900 0  180 22 ctaag ccc tga ccc gcaa ggg gac ggg tggat

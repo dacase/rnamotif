@@ -1,0 +1,28 @@
+#RM scored
+#RM descr ctx h5 ss h3 ctx
+TTERRDA   1.000 0   61 22 agtcg cgcgcccgg ggcg ccgggcgcg gcgca
+TTERRDA   1.000 1   82 22 tgcgc cgcgcccgg cgcc ccgggcgcg cgact
+THCLRRNA  0.889 0  261 22 ctgaa ccctccggg gaaa cccggaggg gatgt
+THCLRRNA  0.889 1  282 22 acatc ccctccggg tttc cccggaggg ttcag
+TRRBRDNAA 0.889 0  116 22 attgc gcccgccag tatt ctggcgggc atgcc
+TRRBRDNAA 0.889 1  137 22 ggcat gcccgccag aata ctggcgggc gcaat
+PYWRRDX   0.875 0   47 20 aaggg ggcgtccc  ttct  gggacgcc accgg
+PYWRRDX   0.875 1   66 20 ccggt ggcgtccc  agaa  gggacgcc ccctt
+ARFRRLSA  0.857 0  137 18 gggga cgctccc   ttac   gggagcg ggaac
+ARFRRLSA  0.857 1  154 18 gttcc cgctccc   gtaa   gggagcg tcccc
+CHKUR5B   0.857 0   97 18 ttgag gctccgc   ttcg   gcggagc ta   
+CHKUR5B   0.857 1  114 18 ta    gctccgc   cgaa   gcggagc ctcaa
+CLORR16SR 0.857 0  809 18 gtgta ggggggt   atcg   acccccc ctgtg
+CLORR16SR 0.857 1  826 18 cacag ggggggt   cgat   acccccc tacac
+LBARRNAZ  0.857 0 1000 18 tccga tcgcgcg   gaga   cgcgcga gacct
+LBARRNAZ  0.857 1 1017 18 aggtc tcgcgcg   tctc   cgcgcga tcgga
+POB16SRRN 0.857 0  505 18 tgaaa tccgggg   ctcn   ccccgga actgc
+POB16SRRN 0.857 1  522 18 gcagt tccgggg   ngag   ccccgga tttca
+RHSRRITSA 0.857 0   40 18 cgctg gcctcgc   tcgc   gcgaggc atgtg
+RHSRRITSA 0.857 1   57 18 cacat gcctcgc   gcga   gcgaggc cagcg
+RSPRR16SD 0.857 0  953 18 gtcgc gcctcgg   gaga   ccgaggc tttca
+RSPRR16SD 0.857 1  970 18 tgaaa gcctcgg   tctc   ccgaggc gcgac
+TRPRRDSB  0.857 0 1036 18 aggga ccgcctg   gaga   caggcgg agcgc
+TRPRRDSB  0.857 1 1053 18 gcgct ccgcctg   tctc   caggcgg tccct
+ULOERRNAA 0.857 0  225 18 ccaat cgtgccc   tcac   gggcacg ctcac
+ULOERRNAA 0.857 1  242 18 gtgag cgtgccc   gtga   gggcacg attgg

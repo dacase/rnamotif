@@ -1,0 +1,14 @@
+	emax = -12;
+
+descr
+	h5( minlen=4, maxlen=7 )
+		ss( len=4 )
+	h3
+
+score
+	{ sc1 = efn( h5[1], h3[NSE] );
+	  if( sc1 > emax )
+		REJECT;
+	  sc2 = length( h5[1] );
+	  SCORE = sprintf( '%.3f,%d,%s', sc1, sc2, ss[2] );
+	}

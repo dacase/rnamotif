@@ -1,0 +1,7 @@
+descr
+	h5( minlen=4, maxlen=6, tag='h1' )
+		ss( seq="^uucg$" )
+	h3( tag='h1' )
+
+score
+	{ SCORE = efn( h5['h1'], h3['h1'] ); }
