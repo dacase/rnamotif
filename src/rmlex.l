@@ -7,6 +7,7 @@ double	atof();		/* get it it if we ever need reals	*/
 extern	int	rm_lineno;
 extern	VALUE_T	rm_tokval;
 static	char	*sp;
+static	POS_T	*posp;
 
 %}
 %%
@@ -36,9 +37,8 @@ q4		return( SYM_Q4 );
 [a-zA-Z][_a-zA-Z0-9]*	{
 		  sp = ( char * )malloc(( yyleng + 1 ) *sizeof( char ));
 		  if( sp == NULL ){
-			fprintf( stderr,
-		"lex.yy.c: FATAL: can't alloc sp for SYM_IDENT.\n" );
-			exit( 1 );
+			errormsg( 1, 
+				"lex.yy.c: can't alloc sp for SYM_IDENT." );
 		  }
 		  strcpy( sp, yytext );
 		  rm_tokval.v_type = T_STRING;
@@ -56,9 +56,8 @@ q4		return( SYM_Q4 );
 			yytext[ yyleng ] = '\0';
 			sp = ( char * )malloc( ( yyleng - 1 )*sizeof( char ) );
 			if( sp == NULL ){
-				fprintf( stderr,
-			"lex.yy.c: FATAL: can't alloc sp for SYM_STRING.\n" );
-				exit( 1 );
+				errormsg( 1,
+				"lex.yy.c: can't alloc sp for SYM_STRING." );
 			}
 			strncpy( sp, &yytext[1], yyleng - 2 );
 			sp[ yyleng - 2 ] = '\0';
@@ -73,7 +72,20 @@ q4		return( SYM_Q4 );
 \-=		return( SYM_MINUS_ASSIGN );
 \+		return( SYM_PLUS );
 \-		return( SYM_MINUS );
-\$		return( SYM_DOLLAR );
+\$		{ posp = ( POS_T * )malloc( sizeof( POS_T ) );
+		  if( posp == NULL ){
+			errormsg( 1,
+				"lex.yy.c: can't alloc posp for SYM_DOLLAR." );
+		  }
+		  posp->p_type = SYM_DOLLAR;
+		  posp->p_lineno = rm_lineno;
+		  posp->p_tag = NULL;
+		  posp->p_l2r = 0;
+		  posp->p_offset = 0;
+		  rm_tokval.v_type = T_POS;
+		  rm_tokval.v_value.v_pval = posp;
+		  return( SYM_DOLLAR );
+		}
 \(		return( SYM_LPAREN );
 \)		return( SYM_RPAREN );
 \{		return( SYM_LCURLY );
