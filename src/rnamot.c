@@ -8,6 +8,7 @@ int	rm_lineno;
 int	rm_emsg_lineno;
 char	rm_fname[ 256 ] = "--stdin--";
 int	rm_copt = 0;
+int	rm_dopt = 0;
 
 #define	RM_GLOBAL_IDS_SIZE	50
 IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ] = {
@@ -53,6 +54,7 @@ char	*argv[];
 	DBASE_T	*dbp;
 	IDENT_T	*ip;
 	char	*dbnp;
+	char	locus[ 20 ];
 
 	RM_init( argc, argv );
 
@@ -64,7 +66,11 @@ char	*argv[];
 			exit( 1 );
 	}
 
-	RM_dump( stderr, 1, 1, 1 );
+	if( rm_dopt )
+		RM_dump( stderr, 1, 1, 1 );
+
+	if( rm_error )
+		exit( 1 );
 
 	if( rm_copt )
 		exit( 0 );
@@ -77,9 +83,9 @@ char	*argv[];
 		dbnp = ip->i_val.v_value.v_pval;
 
 	for( dbp = DB_open( dbnp ); dbp; ){
-		if( slen = DB_getseq( dbp, SBUFSIZE, sbuf ) ){
+		if( slen = DB_getseq( dbp, locus, SBUFSIZE, sbuf ) ){
 			find_motif( rm_n_descr, rm_descr, rm_sites,
-				slen, sbuf );
+				locus, slen, sbuf );
 		}
 		dbp = DB_next( dbp );
 	}
