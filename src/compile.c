@@ -10,17 +10,26 @@
 	/* site section.						*/
 
 #define	CTX_START	0
-#define	CTX_PAIR	1
-#define	CTX_PARM	2
-#define	CTX_DESCR	3
-#define	CTX_SITE	4
-#define	CTX_ERROR	5
+#define	CTX_PARM	1
+#define	CTX_DESCR	2
+#define	CTX_SITE	3
+#define	CTX_ERROR	4
 
 static	int	rmc_context = CTX_START;
 
 #define	VALSTKSIZE	20
 static	VALUE_T	valstk[ VALSTKSIZE ];
 static	int	n_valstk;
+
+static	IDENT_T	idtab[] = {
+	{ "wc", T_PAIR, C_VAR },
+	{ "gu", T_PAIR, C_VAR },
+	{ "tr", T_PAIR, C_VAR },
+	{ "qu", T_PAIR, C_VAR },
+	{ "overlap", T_INT, C_VAR },
+	{ "db", T_STRING, C_VAR }
+};
+static	int	n_idtab = sizeof( idtab ) / sizeof( IDENT_T );
 
 #define	DESCRSIZE 100
 static	STREL_T	descr[ DESCRSIZE ];
@@ -30,34 +39,21 @@ static	STREL_T	*stp;
 void	SE_dump();
 void	SE_dump_descr();
 
-void	RMC_context( sym )
+void	set_context( sym )
 int	sym;
 {
 
 	switch( sym ){
-	case SYM_PAIR :
-		if( rmc_context < CTX_PAIR )
-			rmc_context = CTX_PAIR;
-		else if( rmc_context == CTX_PAIR ){
-			fprintf( stderr,
-		"RMC_context: FATAL: At most 1 `pair' section permitted.\n" );
-			exit( 1 );
-		}else if( rmc_context > CTX_PAIR ){
-			fprintf( stderr,
-	"RMC_context: FATAL: section order is `pair', parm, descr, site.\n" );
-			exit( 1 );
-		}
-		break;
 	case SYM_PARM :
 		if( rmc_context < CTX_PARM )
 			rmc_context = CTX_PARM;
 		else if( rmc_context == CTX_PARM ){
 			fprintf( stderr,
-		"RMC_context: FATAL: At most 1 `parm' section permitted.\n" );
+		"set_context: FATAL: At most 1 `parm' section permitted.\n" );
 			exit( 1 );
 		}else if( rmc_context > CTX_PARM ){
 			fprintf( stderr,
-	"RMC_context: FATAL: section order is pair, `parm', descr, site.\n" );
+	"set_context: FATAL: section order is pair, `parm', descr, site.\n" );
 			exit( 1 );
 		}
 		break;
@@ -67,11 +63,11 @@ int	sym;
 			rmc_context = CTX_DESCR;
 		else if( rmc_context == CTX_DESCR ){
 			fprintf( stderr,
-		"RMC_context: FATAL: At most 1 `descr' section permitted.\n" );
+		"set_context: FATAL: At most 1 `descr' section permitted.\n" );
 			exit( 1 );
 		}else if( rmc_context > CTX_DESCR ){
 			fprintf( stderr,
-	"RMC_context: FATAL: section order is pair, parm, `descr', site.\n" );
+	"set_context: FATAL: section order is pair, parm, `descr', site.\n" );
 			exit( 1 );
 		}
 		break;
@@ -80,17 +76,17 @@ int	sym;
 			rmc_context = CTX_SITE;
 		else if( rmc_context == CTX_SITE ){
 			fprintf( stderr,
-		"RMC_context: FATAL: At most 1 `site' section permitted.\n" );
+		"set_context: FATAL: At most 1 `site' section permitted.\n" );
 			exit( 1 );
 		}else if( rmc_context < CTX_DESCR ){
 			fprintf( stderr,
-	"RMC_context: FATAL: section order is pair, parm, descr, `site'.\n" );
+	"set_context: FATAL: section order is pair, parm, descr, `site'.\n" );
 			exit( 1 );
 		}
 		break;
 	default :
 		fprintf( stderr,
-			"RMC_context: FATAL: unexpected symbol: %d.\n", sym );
+			"set_context: FATAL: unexpected symbol: %d.\n", sym );
 		exit( 1 );
 		break;
 	}
@@ -125,106 +121,11 @@ int	stype;
 	}
 }
 
-void	SE_saveval( vp )
-VALUE_T	*vp;
+void	SE_addval( expr )
+NODE_T	*expr;
 {
 
-	if( n_valstk == VALSTKSIZE ){
-		fprintf( stderr, "SE_saveval: FATAL: valstk overflow.\n" );
-		exit( 1 );
-	}
-	valstk[ n_valstk ].v_sym = vp->v_sym;
-	switch( vp->v_sym ){
-	case SYM_INT :
-		valstk[ n_valstk ].v_sym = SYM_INT;
-		valstk[ n_valstk ].v_value.v_ival = vp->v_value.v_ival;
-		break;
-	case SYM_DOLLAR :
-		valstk[ n_valstk ].v_sym = SYM_DOLLAR;
-		valstk[ n_valstk ].v_value.v_ival = 0; 
-		break;
-	case SYM_STRING :
-		valstk[ n_valstk ].v_sym = SYM_STRING;
-		valstk[ n_valstk ].v_value.v_cval = vp->v_value.v_cval;
-		break;
-	case SYM_IDENT :
-		valstk[ n_valstk ].v_sym = SYM_IDENT;
-		valstk[ n_valstk ].v_value.v_pval = vp->v_value.v_cval;
-		break;
-	default :
-		fprintf( stderr,
-			"SE_saveval: FATAL: unkwnown value sym %d.\n",
-			vp->v_sym );
-		exit( 1 );
-		break;
-	}
-	n_valstk++;
-}
-
-void	SE_addtag( vp )
-VALUE_T	*vp;
-{
-	char	*sp;
-
-	if( rmc_context == CTX_DESCR ){
-		if( vp->v_sym == SYM_IDENT )
-			stp->s_tag = vp->v_value.v_cval;
-		else{
-			fprintf( stderr,
-				"SE_addtag: Unknown value symbol %d.\n",
-				vp->v_sym );
-			exit( 1 );
-		}
-	}
-}
-
-void	SE_addlen()
-{
-	VALUE_T	*vp1, *vp2;
-
-	if( rmc_context == CTX_DESCR ){
-		if( n_valstk == 1 ){
-			vp1 = &valstk[ n_valstk - 1 ];
-			if( vp1->v_sym == SYM_INT ){
-				stp->s_minlen = vp1->v_value.v_ival;
-				stp->s_maxlen = vp1->v_value.v_ival;
-			}else{
-				stp->s_minlen = LONGEST;
-				stp->s_maxlen = LONGEST;
-			}
-		}else{
-			vp2 = &valstk[ n_valstk - 2 ];
-			vp1 = &valstk[ n_valstk - 1 ];
-			if( vp2->v_sym == SYM_INT ){	/* N-$ */
-				stp->s_minlen = vp2->v_value.v_ival;
-				if( vp1->v_sym == SYM_INT )
-					stp->s_maxlen = vp1->v_value.v_ival;
-				else
-					stp->s_maxlen = LONGEST;
-			}else if( vp1->v_sym == SYM_DOLLAR ){	/* $-$ */
-				stp->s_minlen = LONGEST;
-				stp->s_maxlen = LONGEST;
-			}else{
-				fprintf( stderr, 
-			"SE_addlen: $-N: first length > second length.\n" );
-					exit( 1 );
-			}
-		}
-		n_valstk = 0;
-	}
-}
-
-void	SE_addseq()
-{
-
-	if( rmc_context == CTX_DESCR ){
-		stp->s_seq = valstk[ n_valstk - 1 ].v_value.v_cval;
-		n_valstk = 0;
-	}else{
-		fprintf( stderr,
-			"SE_addseq: seq parm not allowed in site defs.\n" );
-		exit( 1 );
-	}
+	dumpexpr( stderr, expr, 0 );
 }
 
 void	SE_dump( fp, d_pair, d_parm, d_descr, d_site )
@@ -294,13 +195,13 @@ STREL_T	*stp;
 	fprintf( fp, "\n" );
 
 	fprintf( fp, "\tlen  = " );
-	if( stp->s_minlen == LONGEST )
-		fprintf( fp, "LONGEST" );
+	if( stp->s_minlen == LASTVAL )
+		fprintf( fp, "LASTVAL" );
 	else
 		fprintf( fp, "%d", stp->s_minlen );
 	fprintf( fp, ":" );
-	if( stp->s_maxlen == LONGEST )
-		fprintf( fp, "LONGEST" );
+	if( stp->s_maxlen == LASTVAL )
+		fprintf( fp, "LASTVAL" );
 	else
 		fprintf( fp, "%d", stp->s_maxlen );
 	fprintf( fp, "\n" );
