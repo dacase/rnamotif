@@ -20,8 +20,9 @@ extern	SEARCH_T	**rm_searches;
 extern	int	circf;	/* reg. exp. ^ kludge	*/
 
 static	char	fm_emsg[ 256 ];
-static	char	*fm_seqid;
-static	int	fm_comp;
+static	char	*fm_sid;
+static	int	fm_dtype;
+static	char	*fm_sdef;
 static	int	fm_comp;
 static	int	fm_slen;
 static	char	*fm_sbuf;
@@ -67,11 +68,13 @@ static	void	set_mbuf();
 IDENT_T	*find_id();
 
 int	find_motif_driver( n_searches, searches, sites,
-	seqid, comp, slen, sbuf )
+	sid, dtype, sdef, comp, slen, sbuf )
 int	n_searches;
 SEARCH_T	*searches[];
 SITE_T	*sites;
-char	seqid[];
+char	sid[];
+int	dtype;
+char	sdef[];
 int	comp;
 int	slen;
 char	sbuf[];
@@ -105,7 +108,9 @@ char	sbuf[];
 			"find_motif_driver: can't allocate fm_chk_seq." );
 	}
 
-	fm_seqid = seqid;
+	fm_sid = sid;
+	fm_dtype = dtype;
+	fm_sdef = sdef;
 	fm_comp = comp;
 	fm_slen = slen;
 	fm_sbuf = sbuf;
@@ -255,11 +260,11 @@ SEARCH_T	*srp;
 		rv = find_motif( n_srp );
 	}else{
 		rv = 1;
-		print_match( stdout, fm_seqid, fm_comp, rm_n_descr, rm_descr );
+		print_match( stdout, fm_sid, fm_comp, rm_n_descr, rm_descr );
 /*
 		if( chk_motif( rm_n_descr, rm_descr, rm_sites ) ){
 			rv = 1;
-			print_match( stdout, fm_seqid, fm_comp,
+			print_match( stdout, fm_sid, fm_comp,
 				rm_n_descr, rm_descr );
 		}else
 			rv = 0;
@@ -1466,9 +1471,9 @@ SITE_T	*sip;
 	return( rv );
 }
 
-static	void	print_match( fp, seqid, comp, n_descr, descr )
+static	void	print_match( fp, sid, comp, n_descr, descr )
 FILE	*fp;
-char	seqid[];
+char	sid[];
 int	comp;
 int	n_descr;
 STREL_T	descr[];
@@ -1495,31 +1500,17 @@ STREL_T	descr[];
 	for( stp = descr, len = 0, d = 0; d < n_descr; d++, stp++ )
 		len += stp->s_matchlen;
 
-	fprintf( fp, "%-12s %d", seqid, comp );
-/*
 	stp = descr; 
-	set_mbuf( stp->s_matchoff, stp->s_matchlen, mbuf );
-
-	if( fm_comp ){
+	if( comp ){
 		offset = fm_slen - stp->s_matchoff;
 	}else
 		offset = stp->s_matchoff + 1;
 
-	fprintf( fp, " %7d %4d %s", offset, len, mbuf );
-*/
-	stp = descr; 
-	if( fm_comp ){
-		offset = fm_slen - stp->s_matchoff;
-	}else
-		offset = stp->s_matchoff + 1;
+	fprintf( fp, "%-12s %d", sid, comp );
 	fprintf( fp, " %7d %4d", offset, len );
 
 	for( d = 0; d < n_descr; d++, stp++ ){
 		if( stp->s_matchlen > 0 ){
-/*
-			set_mbuf( stp->s_matchoff, stp->s_matchlen, mbuf );
-			fprintf( fp, " %s", mbuf );
-*/
 			fprintf( fp, " %.*s",
 				stp->s_matchlen, &fm_sbuf[ stp->s_matchoff ] );
 		}else
