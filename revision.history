@@ -1,5 +1,9 @@
+2.0.2	2002-jan-07
+	Fixed bug in optimizer that allowed right end of the search region
+	to extend past the end of the sequence.
+
 2.0.1   2001-dec-20
-    Added a section to the Users' Manual explaining the new optimizations.
+	Added a section to the Users' Manual explaining the new optimizations.
 
 2.0.0	2001-dec-19
 	Added query optimization that looks for the best fixed subpattern among
