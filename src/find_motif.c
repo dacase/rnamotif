@@ -267,7 +267,7 @@ SEARCH_T	*srp;
 		rv = 1;
 		if( !chk_sites( rm_n_descr, rm_descr, rm_sites ) )
 			return( 0 );
-		if( SC_run() )
+		if( SC_run( fm_sbuf ) )
 			print_match( stdout,
 				fm_sid, fm_comp, rm_n_descr, rm_descr );
 /*
