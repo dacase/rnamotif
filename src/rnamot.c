@@ -38,7 +38,6 @@ main( argc, argv )
 int	argc;
 char	*argv[];
 {
-	DBASE_T	*dbp;
 	IDENT_T	*ip;
 	char	*dbnp;
 	char	locus[ 20 ];
