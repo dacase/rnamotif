@@ -1,7 +1,7 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.3.3 2002-nov-29"
+#define	VERSION	"v2.3.4 2003-jan-20"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ data ]\n\n\
@@ -9,6 +9,7 @@ options:\n\
 \t-c\t\t\tCompile only, no search\n\
 \t-d\t\t\tDump internal data structures\n\
 \t-h\t\t\tDump the structure hierarchy\n\
+\t-N size\t\t\tSize of longest input. (default=30000000)\n\
 \t-On\t\t\tMin #chars, best seq= for opt. (default=2.5)\n\
 \t-p\t\t\tDump the score code\n\
 \t-s\t\t\tShow builtin variables\n\
@@ -36,6 +37,7 @@ data:\t(Optional) Use one:\n\
 
 #define	UNBOUNDED	0x7fffffff
 #define	EFN_INFINITY	16000	/* ? */
+#define	MAXSLEN		30000000
 
 #define	RE_BPC		20
 
@@ -233,6 +235,7 @@ typedef	struct	args_t	{
 	int	a_copt;
 	int	a_dopt;
 	int	a_hopt;
+	int	a_maxslen;
 	float	a_o_emin;
 	int	a_popt;
 	int	a_sopt;

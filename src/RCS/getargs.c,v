@@ -1,9 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2003.01.20.21.19.58;	author macke;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.09.26.20.04.45;	author macke;	state Exp;
@@ -41,9 +46,10 @@ desc
 @
 
 
-1.6
+1.7
 log
-@forgot to declare atof(), so was treated as int instead of double.
+@added code to handle the -N size option, which is used to set the length
+of the longest input sequence.
 @
 text
 @#include <stdio.h>
@@ -85,7 +91,23 @@ ARGS_T	*RM_getargs( int argc, char *argv[] )
 			argp->a_dopt = TRUE;
 		else if( !strcmp( argv[ ac ], "-h" ) )
 			argp->a_hopt = TRUE;
-		else if( !strncmp( argv[ ac ], "-O", 2 ) ){
+		else if( !strcmp( argv[ ac ], "-N" ) ){
+			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}else if( argp->a_maxslen != 0 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}else{
+				ac++;
+				argp->a_maxslen = atoi( argv[ ac ] ) + 1;
+
+fprintf( stderr, "getargs: set maxslen to %d\n", argp->a_maxslen );
+
+			}
+		}else if( !strncmp( argv[ ac ], "-O", 2 ) ){
 			sp = &argv[ ac ][ 2 ];
 			if( *sp == '\0' ){
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
@@ -217,6 +239,9 @@ ARGS_T	*RM_getargs( int argc, char *argv[] )
 	if( err )
 		return( NULL );
 
+	if( argp->a_maxslen == 0 )
+		argp->a_maxslen = MAXSLEN + 1;
+
 	if( cldsize > 0 ){
 		cldsize++;	/* add space for '\0'	*/
 		argp->a_cldefs = ( char * )malloc( cldsize * sizeof( char ) );
@@ -239,6 +264,18 @@ ARGS_T	*RM_getargs( int argc, char *argv[] )
 
 	return( argp );
 }
+@
+
+
+1.6
+log
+@forgot to declare atof(), so was treated as int instead of double.
+@
+text
+@d40 17
+a56 1
+		else if( !strncmp( argv[ ac ], "-O", 2 ) ){
+d187 3
 @
 
 

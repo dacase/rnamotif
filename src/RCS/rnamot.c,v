@@ -1,9 +1,14 @@
-head	1.70;
+head	1.71;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.71
+date	2003.01.20.21.21.34;	author macke;	state Exp;
+branches;
+next	1.70;
 
 1.70
 date	2002.09.09.19.32.10;	author macke;	state Exp;
@@ -361,10 +366,13 @@ desc
 @
 
 
-1.70
+1.71
 log
-@renamed DT_X_STR to DT_X as only the strings are needed for the
-data format.
+@Two changes.  1) the size of the longest seqeunce (ie sbuf) is now set
+at run time.  User use the -N option to change from the default of 30000000.
+2) Create the rev. comp in situ rather than using a sep. (big) csbuf.
+I've known how to do this since 1985, but (*sigh*) just never go around
+to it.
 @
 text
 @#include <stdio.h>
@@ -395,10 +403,9 @@ extern	int		rm_n_searches;
 static	char	sid[ SID_SIZE ];
 #define	SDEF_SIZE	20000
 static	char	sdef[ SDEF_SIZE ];
-#define	SBUF_SIZE	30000000
-static	char	sbuf[ SBUF_SIZE ];
+static	int	s_sbuf;
+static	char	*sbuf;
 static	int	slen;
-static	char	csbuf[ SBUF_SIZE ];
 
 IDENT_T	*RM_find_id();
 
@@ -408,7 +415,7 @@ int	FN_fgetseq( FILE *, char *, int, char *, int, char * );
 int	PIR_fgetseq( FILE *, char *, int, char *, int, char * );
 int	GB_fgetseq( FILE *, char *, int, char *, int, char * );
 
-static	void	mk_rcmp( int, char [], char [] );
+static	void	mk_rcmp( int, char [] );
 
 main( int argc, char *argv[] )
 {
@@ -509,9 +516,17 @@ main( int argc, char *argv[] )
 	if( rm_dbfp == NULL )
 		exit( 1 );
 
+	s_sbuf = rm_args->a_maxslen;
+	sbuf = ( char * )malloc( s_sbuf * sizeof( char ) );
+	if( sbuf == NULL ){
+		fprintf( stderr, "%s: can't allocate sbuf (s_sbuf=%d)\n",
+			argv[ 0 ], s_sbuf );
+		exit( 1 );
+	}
+	
 	for( ecnt = 0; ; ){
 		slen = fgetseq( rm_dbfp, sid,
-			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
+			SDEF_SIZE, sdef, s_sbuf, sbuf );
 		if( slen == EOF ){
 			rm_dbfp = DB_fnext( rm_dbfp,
 				&rm_args->a_c_dbfname, rm_args->a_n_dbfname,
@@ -531,21 +546,21 @@ main( int argc, char *argv[] )
 		find_motif_driver( rm_n_searches, rm_searches, rm_sites,
 			sid, sdef, 0, slen, sbuf );
 		if( chk_both_strs ){
-			mk_rcmp( slen, sbuf, csbuf );
+			mk_rcmp( slen, sbuf );
 			find_motif_driver( rm_n_searches, rm_searches, rm_sites,
-				sid, sdef, 1, slen, csbuf );
+				sid, sdef, 1, slen, sbuf );
 		}
 	}
 
 	exit( 0 );
 }
 
-static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
+static	void	mk_rcmp( int slen, char sbuf[] )
 {
 	static	int	init = 0;
 	static	char	wc_cmp[ 128 ];
 	char	*sp, *cp;
-	int	i;
+	int	i, c;
 
 	if( !init ){
 		init = 1;
@@ -558,10 +573,51 @@ static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
 		wc_cmp[ 'u' ] = 'a'; wc_cmp[ 'U' ] = 'a';
 	}
 
+	for( sp = sbuf, cp = &sbuf[ slen - 1 ]; sp <= cp; sp++, cp-- ){
+		c = wc_cmp[ *sp ];
+		*sp = wc_cmp[ *cp ];
+		*cp = c;
+	}
+}
+@
+
+
+1.70
+log
+@renamed DT_X_STR to DT_X as only the strings are needed for the
+data format.
+@
+text
+@d29 2
+a30 2
+#define	SBUF_SIZE	30000000
+static	char	sbuf[ SBUF_SIZE ];
+a31 1
+static	char	csbuf[ SBUF_SIZE ];
+d41 1
+a41 1
+static	void	mk_rcmp( int, char [], char [] );
+d142 8
+d152 1
+a152 1
+			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
+d172 1
+a172 1
+			mk_rcmp( slen, sbuf, csbuf );
+d174 1
+a174 1
+				sid, sdef, 1, slen, csbuf );
+d181 1
+a181 1
+static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
+d186 1
+a186 1
+	int	i;
+d199 5
+a203 3
 	csbuf[ slen ] = '\0';
 	for( sp = sbuf, cp = &csbuf[ slen - 1 ], i = 0; i < slen; i++ )
 		*cp-- = wc_cmp[ *sp++ ];
-}
 @
 
 

@@ -14,14 +14,12 @@
 #define	MIN(a,b)	((a)<(b)?(a):(b))
 #define	MAX(a,b)	((a)>(b)?(a):(b))
 
-#define	MT_GETHOSTID	0
-#define	MT_HOSTID	1
-#define	MT_SETUP	2
-#define	MT_RUN	 	3
-#define	MT_READY	4
-#define	MT_RESULT	5
-#define	MT_QUIT		6	/* sent from 0 -> 1,np-1	*/
-#define	MT_ERROR	7	/* sent from 1,np-1 -> 0	*/
+#define	MT_HOSTID	0
+#define	MT_READY	1
+#define	MT_RUN	 	2
+#define	MT_RESULT	3
+#define	MT_QUIT		4	/* sent from 0 -> 1,np-1	*/
+#define	MT_ERROR	5	/* sent from 1,np-1 -> 0	*/
 
 static	int	my_rank, n_proc, n_wproc;
 static	char	hostname[ 256 ];
@@ -29,7 +27,8 @@ static	char	xhostname[ 256 ];
 
 static	int	err;
 static	char	emsg[ 1024 ];
-static	int	err;
+
+static	char	**hosts;
 
 #define	CMD_SIZE	1024
 static	char	rncmd[ CMD_SIZE ];
@@ -38,7 +37,6 @@ static	int	s_rncmd;
 static	char	*xdescr;
 static	int	s_xdescr;
 static	char	xdfname[ 256 ];	/* used only by r1..rnp-1	*/
-static	char	**hosts;
 
 static	FMAP_T	*fmap;
 
@@ -65,7 +63,6 @@ static	int	s_jobs;
 static	int	n_jobs;
 static	int	*actjobs;
 
-static	int	qbuf;
 static	char	*sbuf;
 static	int	s_sbuf;
 static	int	rcnt, scnt;
@@ -87,8 +84,8 @@ static	int	setup_jobs( ARGS_T *, FMAP_T * );
 static	int	mk_jobqs( void );
 static	int	qjob( int, int );
 static	JOB_T	*dqjob( int );
-static	int	r0_handle_msg( MPI_Status * );
-static	int	rn_handle_msg( MPI_Status * );
+static	int	r0_handle_msg( MPI_Status *, int * );
+static	int	rn_handle_msg( MPI_Status *, int * );
 static	int	rn_setup( char * );
 static	int	rn_run( char * );
 static	int	nextjob( int );
@@ -100,37 +97,30 @@ char	*getenv();
 
 main( int argc, char *argv[] )
 {
-	int	p;
+	int	p, qbuf;
+	int	gridon = 0, done;
 	MPI_Status	pstatus, rstatus;
 
 	MPI_Init( &argc, &argv );
 	MPI_Comm_rank( MPI_COMM_WORLD, &my_rank );
 	MPI_Comm_size( MPI_COMM_WORLD, &n_proc );
 
-	gethostname( hostname, sizeof( hostname ) );
-	sprintf( xhostname, "%s_%d", hostname, my_rank );
-
-	if( n_proc < 2 ){
-		fprintf( stderr, "%s: n_proc must be > 1\n", xhostname );
+	if( all_init() )
 		err = 1;
-		goto CLEAN_UP;
-	}else
-		n_wproc = n_proc - 1;
-
-	if( all_init() ){
-		err = 1;
-		goto CLEAN_UP;
+	else if( my_rank == 0 ){
+		if( r0_init( argc, argv, CMD_SIZE, rncmd ) )
+			err = 1;
+		else{
+			s_sbuf = s_rncmd + s_xdescr;
+			gridon = 1;
+		}
 	}
 
-	if( my_rank == 0 ){
-		if( r0_init( argc, argv, CMD_SIZE, rncmd ) ){
-			err = 1;
-			goto CLEAN_UP;
-		}
-		s_sbuf = s_rncmd + s_xdescr;
-
-fprintf( stderr, "%s: n_jobs = %d\n", xhostname, n_jobs );
-
+	/* If no error, then turn on the grid	*/
+	MPI_Bcast( &gridon, 1, MPI_INT, 0, MPI_COMM_WORLD );
+	if( !gridon ){
+		err = 1;
+		goto CLEAN_UP;
 	}
 
 	MPI_Bcast( &s_sbuf, 1, MPI_INT, 0, MPI_COMM_WORLD );
@@ -154,11 +144,11 @@ fprintf( stderr, "%s: n_jobs = %d\n", xhostname, n_jobs );
 	}
 
 	if( my_rank == 0 ){
-		for( rcnt = 0; ; ){
+		for( rcnt = 0, done = 0; !done; ){
 			MPI_Probe( MPI_ANY_SOURCE, MPI_ANY_TAG,
 				MPI_COMM_WORLD, &pstatus );
 
-			if( r0_handle_msg( &pstatus ) ){
+			if( r0_handle_msg( &pstatus, &done ) ){
 				err = 1;
 				goto CLEAN_UP;
 			}
@@ -167,20 +157,24 @@ fprintf( stderr, "%s: n_jobs = %d\n", xhostname, n_jobs );
 		while( !MPI_Probe( MPI_ANY_SOURCE, MPI_ANY_TAG,
 			MPI_COMM_WORLD, &pstatus ) )
 		{
-			if( rn_handle_msg( &pstatus ) ){
+			if( rn_handle_msg( &pstatus, &done ) ){
 				err = 1;
 				break;
 			}
+			if( done )
+				break;
 		}
 	}
 
 CLEAN_UP : ;
 
 	if( my_rank == 0 ){
-		for( p = 1; p < n_proc; p++ ){
-			qbuf = -1;
-			MPI_Send( &qbuf, 1, MPI_INT,
-				p, MT_QUIT, MPI_COMM_WORLD );
+		if( gridon ){
+			for( p = 1; p < n_proc; p++ ){
+				qbuf = 0;
+				MPI_Send( &qbuf, 1, MPI_INT,
+					p, MT_QUIT, MPI_COMM_WORLD );
+			}
 		}
 	}
 
@@ -191,11 +185,24 @@ CLEAN_UP : ;
 
 static	int	all_init( void )
 {
-	int	p, buf = 0;
-	char	*hp, hname[ 256 ];
+	int	p;
+	char	*rhp, rhostname[ 256 ];
 	MPI_Status	status;
 	int	rval = 0;
 
+	gethostname( hostname, sizeof( hostname ) );
+	sprintf( xhostname, "%s_%d", hostname, my_rank );
+
+	/* r0 is admin only, needs >= 1 other for work	*/
+	if( n_proc < 2 ){
+		fprintf( stderr,
+			"%s: all_init: n_proc must be > 1\n", xhostname );
+		rval = 1;
+		goto CLEAN_UP;
+	}else
+		n_wproc = n_proc - 1;
+
+	/* r0 needs the names of hosts in order to parcel out jobs	*/
 	if( my_rank == 0 ){
 		hosts = ( char ** )malloc( n_proc * sizeof( char * ) );
 		if( hosts == NULL ){
@@ -204,35 +211,22 @@ static	int	all_init( void )
 			rval = 1;
 			goto CLEAN_UP;
 		}
-
-		hp = strdup( hostname );
-		if( hp == NULL ){
-			fprintf( stderr,
-				"%s: all_init: can't allocate hp for %s_%d\n",
-				xhostname, hostname, 0 );
-			rval = 1;
-			goto CLEAN_UP;
-		}
-		hosts[ 0 ] = hp;
+		hosts[ 0 ] = hostname;
 
 		for( p = 1; p < n_proc; p++ ){
-			MPI_Send( &buf, 1, MPI_INT,
-				p, MT_GETHOSTID, MPI_COMM_WORLD );
-			MPI_Recv( hname, sizeof( hname ), MPI_CHAR,
+			MPI_Recv( rhostname, sizeof( rhostname ), MPI_CHAR,
 				p, MT_HOSTID, MPI_COMM_WORLD, &status );
-			hp = strdup( hname );
-			if( hp == NULL ){
+			rhp = strdup( rhostname );
+			if( rhp == NULL ){
 				fprintf( stderr,
-			"%s: all_init: can't allocate hp for host %s_%d\n",
-					hname, p );
+			"%s: all_init: can't allocate rhp for host %s_%d\n",
+					xhostname, rhostname, p );
 				rval = 1;
 				goto CLEAN_UP;
 			}
-			hosts[ p ] = hp;
+			hosts[ p ] = rhp;
 		}
 	}else{
-		MPI_Recv( &buf, 1, MPI_INT,
-			0, MT_GETHOSTID, MPI_COMM_WORLD, &status );
 		MPI_Send( hostname, strlen( hostname ) + 1, MPI_CHAR,
 			0, MT_HOSTID, MPI_COMM_WORLD );
 	}
@@ -652,91 +646,60 @@ static	JOB_T	*dqjob( int qnum )
 	return( jp );
 }
 
-static	int	r0_handle_msg( MPI_Status *pstatus )
+static	int	r0_handle_msg( MPI_Status *pstatus, int *done )
 {
 	char	sbuf[ 256 ];
 	MPI_Status	rstatus;
-	int	count;
+	int	ibuf;
 	int	s, j;
 	int	rval = 0;
 
-	/* expect MT_READY, MT_RESULT, MT_ERROR	*/
-
+	*done = 0;
 	switch( pstatus->MPI_TAG ){
 	case MT_READY :
-	case MT_ERROR :
-		MPI_Get_count( pstatus, MPI_CHAR, &count );
-		if( count > s_rbuf ){
-			if( rbuf != NULL )
-				free( rbuf );
-			s_rbuf = count;
-			rbuf = ( char * )malloc( s_rbuf * sizeof( char ) );
-			if( rbuf == NULL ){
-				fprintf( stderr,
-				"%s: r0_handle_msg: can't allocate rbuf\n",
-					xhostname );
-				rval = 1;
-				break;
-			}
-		}
-		MPI_Recv( rbuf, s_rbuf, MPI_CHAR,
-			pstatus->MPI_SOURCE,
-			pstatus->MPI_TAG, MPI_COMM_WORLD, &rstatus );
-
-		if( pstatus->MPI_TAG == MT_READY ){
-			rcnt++;
+		rcnt++;
 
 fprintf( stderr, "%s: READY: %s_%d: rcnt = %d\n",
 	xhostname, hosts[ pstatus->MPI_SOURCE ], pstatus->MPI_SOURCE, rcnt );
 
-			s = pstatus->MPI_SOURCE;
-			j = actjobs[ s ];
-			if( j != UNDEF ){
-				jobs[ j ] = JS_DONE;
-				actjobs[ s ] = UNDEF;
-			}
+		MPI_Recv( &ibuf, 1, MPI_INT, pstatus->MPI_SOURCE,
+			MT_READY, MPI_COMM_WORLD, &rstatus );
 
-			if( rcnt >= n_wproc + n_jobs ){
-				rval = 1;
+		s = pstatus->MPI_SOURCE;
+		j = actjobs[ s ];
+		if( j != UNDEF ){
+			jobs[ j ] = JS_DONE;
+			actjobs[ s ] = UNDEF;
+		}
+
+		if( rcnt >= n_wproc + n_jobs ){
+			*done = 1;
+		}
+		if( scnt < n_jobs ){
+
+			if( ( j = nextjob( s ) ) == UNDEF )
 				break;
-			}
-			if( scnt < n_jobs ){
 
-				if( ( j = nextjob( s ) ) == UNDEF )
-					break;
-
-				sprintf( sbuf, "%s/%s", fmap->f_root,
-					fmap->f_entries[ j ].f_fname );
-				jobs[ j ] = JS_RUNNING;
-				actjobs[ s ] = j;
+			sprintf( sbuf, "%s/%s", fmap->f_root,
+				fmap->f_entries[ j ].f_fname );
+			jobs[ j ] = JS_RUNNING;
+			actjobs[ s ] = j;
 
 fprintf( stderr, "%s: RUN: search '%s' on %s_%d\n", xhostname, sbuf,
 	hosts[ pstatus->MPI_SOURCE ], pstatus->MPI_SOURCE );
 
-				scnt++;
-				MPI_Send( sbuf, strlen( sbuf ) + 1, MPI_CHAR,
-					pstatus->MPI_SOURCE,
-					MT_RUN, MPI_COMM_WORLD );
-			}
-		}else{
-
-fprintf( stderr, "%s: ERROR: %s\n", xhostname, rbuf );
-
-			rval = 1;
+			MPI_Send( sbuf, strlen( sbuf ) + 1, MPI_CHAR,
+				pstatus->MPI_SOURCE, MT_RUN, MPI_COMM_WORLD );
+			scnt++;
 		}
-
 		break;
 	case MT_RESULT :
-
 		MPI_Recv( work, sizeof( work ), MPI_CHAR,
 			pstatus->MPI_SOURCE,
 			MT_RESULT, MPI_COMM_WORLD, &rstatus );
 		fputs( work, stdout );
 		break;
 
-	case MT_SETUP :
-	case MT_RUN :
-	case MT_QUIT :
 	default :
 		fprintf( stderr,
 			"%s: r0_handle_msg: unexpected mesg tag %d\n",
@@ -748,41 +711,14 @@ fprintf( stderr, "%s: ERROR: %s\n", xhostname, rbuf );
 	return( rval );
 }
 
-static	int	rn_handle_msg( MPI_Status *pstatus )
+static	int	rn_handle_msg( MPI_Status *pstatus, int *done )
 {
 	int	count;
 	MPI_Status	rstatus;
 	int	rval = 0;
 
-	/* expect MT_SETUP, MT_RUN, MT_QUIT	*/
-
+	*done = 0;
 	switch( pstatus->MPI_TAG ){
-	case MT_QUIT :
-		if( *xdfname )
-			unlink( xdfname );
-		rval = 1;
-		break;
-/*
-	case MT_SETUP :
-		MPI_Get_count( pstatus, MPI_CHAR, &count );
-		if( count > s_rbuf ){
-			if( rbuf != NULL )
-				free( rbuf );
-			s_rbuf = count;
-			rbuf = ( char * )malloc( s_rbuf * sizeof( char ) );
-			if( rbuf == NULL ){
-				rval = 1;
-				break;
-			}
-		}
-		MPI_Recv( rbuf, s_rbuf, MPI_CHAR, 0,
-			pstatus->MPI_TAG, MPI_COMM_WORLD, &rstatus );
-		if( rn_setup( rbuf ) ){
-			rval = 1;
-			break;
-		}
-		break;
-*/
 	case MT_RUN :
 		MPI_Get_count( pstatus, MPI_CHAR, &count );
 		if( count > s_rbuf ){
@@ -803,12 +739,17 @@ static	int	rn_handle_msg( MPI_Status *pstatus )
 		}
 		break;
 
-	case MT_SETUP :
-	case MT_RESULT :
-	case MT_READY :
-	case MT_ERROR :
+	case MT_QUIT :
+		if( *xdfname )
+			unlink( xdfname );
+		*done = 1;
+		break;
+
 	default :
-		rval = 1;	/* create errmsg, send back to 0 */
+		fprintf( stderr,
+			"%s: rn_handle_msg: unexpected mesg tag %d\n",
+			pstatus->MPI_TAG );
+		rval = 1;
 		break;
 	}
 
@@ -821,6 +762,7 @@ static	int	rn_setup( char *rbuf )
 	int	s_rncmd, s_xdescr;
 	int	xdfd;
 	FILE	*xdfp = NULL;
+	int	ibuf;
 	int	rval = 0;
 
 	for( rp = rbuf; *rp; rp++ )
@@ -848,8 +790,12 @@ static	int	rn_setup( char *rbuf )
 	fclose( xdfp );
 	xdfp = NULL;
 
+/*
 	*work = '\0';
 	MPI_Send( work, 1, MPI_CHAR, 0, MT_READY, MPI_COMM_WORLD );
+*/
+	ibuf = 0;
+	MPI_Send( &ibuf, 1, MPI_INT, 0, MT_READY, MPI_COMM_WORLD );
 
 CLEAN_UP : ;
 
@@ -871,6 +817,7 @@ static	int	rn_run( char *fname )
 	char	*wp, *cp, cmd[ 1024 ];
 	FILE	*fp = NULL;
 	char	line[ 10240 ];
+	int	ibuf;
 	int	rval = 0;
 
 	sprintf( cmd, rncmd, xdfname, fname );
@@ -900,8 +847,8 @@ static	int	rn_run( char *fname )
 	pclose( fp );
 	fp = NULL;
 
-	MPI_Send( cmd, strlen( cmd ) + 1, MPI_CHAR,
-		0, MT_READY, MPI_COMM_WORLD );
+	ibuf = 0;
+	MPI_Send( &ibuf, 1, MPI_INT, 0, MT_READY, MPI_COMM_WORLD );
 
 CLEAN_UP : ;
 

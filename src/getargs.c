@@ -37,7 +37,23 @@ ARGS_T	*RM_getargs( int argc, char *argv[] )
 			argp->a_dopt = TRUE;
 		else if( !strcmp( argv[ ac ], "-h" ) )
 			argp->a_hopt = TRUE;
-		else if( !strncmp( argv[ ac ], "-O", 2 ) ){
+		else if( !strcmp( argv[ ac ], "-N" ) ){
+			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}else if( argp->a_maxslen != 0 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = TRUE;
+				break;
+			}else{
+				ac++;
+				argp->a_maxslen = atoi( argv[ ac ] ) + 1;
+
+fprintf( stderr, "getargs: set maxslen to %d\n", argp->a_maxslen );
+
+			}
+		}else if( !strncmp( argv[ ac ], "-O", 2 ) ){
 			sp = &argv[ ac ][ 2 ];
 			if( *sp == '\0' ){
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
@@ -168,6 +184,9 @@ ARGS_T	*RM_getargs( int argc, char *argv[] )
 
 	if( err )
 		return( NULL );
+
+	if( argp->a_maxslen == 0 )
+		argp->a_maxslen = MAXSLEN + 1;
 
 	if( cldsize > 0 ){
 		cldsize++;	/* add space for '\0'	*/

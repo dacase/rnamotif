@@ -26,10 +26,9 @@ extern	int		rm_n_searches;
 static	char	sid[ SID_SIZE ];
 #define	SDEF_SIZE	20000
 static	char	sdef[ SDEF_SIZE ];
-#define	SBUF_SIZE	30000000
-static	char	sbuf[ SBUF_SIZE ];
+static	int	s_sbuf;
+static	char	*sbuf;
 static	int	slen;
-static	char	csbuf[ SBUF_SIZE ];
 
 IDENT_T	*RM_find_id();
 
@@ -39,7 +38,7 @@ int	FN_fgetseq( FILE *, char *, int, char *, int, char * );
 int	PIR_fgetseq( FILE *, char *, int, char *, int, char * );
 int	GB_fgetseq( FILE *, char *, int, char *, int, char * );
 
-static	void	mk_rcmp( int, char [], char [] );
+static	void	mk_rcmp( int, char [] );
 
 main( int argc, char *argv[] )
 {
@@ -140,9 +139,17 @@ main( int argc, char *argv[] )
 	if( rm_dbfp == NULL )
 		exit( 1 );
 
+	s_sbuf = rm_args->a_maxslen;
+	sbuf = ( char * )malloc( s_sbuf * sizeof( char ) );
+	if( sbuf == NULL ){
+		fprintf( stderr, "%s: can't allocate sbuf (s_sbuf=%d)\n",
+			argv[ 0 ], s_sbuf );
+		exit( 1 );
+	}
+	
 	for( ecnt = 0; ; ){
 		slen = fgetseq( rm_dbfp, sid,
-			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
+			SDEF_SIZE, sdef, s_sbuf, sbuf );
 		if( slen == EOF ){
 			rm_dbfp = DB_fnext( rm_dbfp,
 				&rm_args->a_c_dbfname, rm_args->a_n_dbfname,
@@ -162,21 +169,21 @@ main( int argc, char *argv[] )
 		find_motif_driver( rm_n_searches, rm_searches, rm_sites,
 			sid, sdef, 0, slen, sbuf );
 		if( chk_both_strs ){
-			mk_rcmp( slen, sbuf, csbuf );
+			mk_rcmp( slen, sbuf );
 			find_motif_driver( rm_n_searches, rm_searches, rm_sites,
-				sid, sdef, 1, slen, csbuf );
+				sid, sdef, 1, slen, sbuf );
 		}
 	}
 
 	exit( 0 );
 }
 
-static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
+static	void	mk_rcmp( int slen, char sbuf[] )
 {
 	static	int	init = 0;
 	static	char	wc_cmp[ 128 ];
 	char	*sp, *cp;
-	int	i;
+	int	i, c;
 
 	if( !init ){
 		init = 1;
@@ -189,7 +196,9 @@ static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
 		wc_cmp[ 'u' ] = 'a'; wc_cmp[ 'U' ] = 'a';
 	}
 
-	csbuf[ slen ] = '\0';
-	for( sp = sbuf, cp = &csbuf[ slen - 1 ], i = 0; i < slen; i++ )
-		*cp-- = wc_cmp[ *sp++ ];
+	for( sp = sbuf, cp = &sbuf[ slen - 1 ]; sp <= cp; sp++, cp-- ){
+		c = wc_cmp[ *sp ];
+		*sp = wc_cmp[ *cp ];
+		*cp = c;
+	}
 }
