@@ -5,19 +5,16 @@
 #define	RM_R2L(st)	\
 	((st)==SYM_P3||(st)==SYM_H3||(st)==SYM_T2||(st)==SYM_Q2||(st)==SYM_Q4)
 
-static	int	strel_name();
+static	void	print_limits();
+static	void	print_1_limit();
+static	void	ext_prefix();
+static	void	strel_name();
 static	int	find_start();
-static	int	find_start2();
 static	int	find_stop();
-static	int	find_stop2();
-static	void	find_plen();	
-static	int	find_nlen();	
-static	int	find_start3();
-static	int	contains_unbnd();
+static	int	closes_unbnd();
 static	int	min_prefixlen();
 static	int	max_prefixlen();
 static	int	min_suffixlen();
-static	int	max_suffixlen();
 
 int	find_motif( n_descr, descr, sites, locus, slen, sbuf )
 int	n_descr;
@@ -37,7 +34,7 @@ char	sbuf[];
 	print_limits( stderr, slen, 0, prefix, 0, n_descr - 1, n_descr, descr );
 }
 
-print_limits( fp, slen, lev, prefix, fd, ld, n_descr, descr )
+static	void	print_limits( fp, slen, lev, prefix, fd, ld, n_descr, descr )
 FILE	*fp;
 int	slen;
 int	lev;
@@ -73,7 +70,7 @@ STREL_T	descr[];
 	} 
 }
 
-print_1_limit( fp, slen, lev, prefix, stp, n_descr, descr )
+static	void	print_1_limit( fp, slen, lev, prefix, stp, n_descr, descr )
 FILE	*fp;
 int	slen;
 int	lev;
@@ -127,18 +124,12 @@ STREL_T	descr[];
 		sprintf( bp, " %5d", stp->s_maxilen );
 	bp += strlen( bp );
 
-/*
-	start = find_start2( stp, descr, &l2r );
-*/
-	start = find_start3( stp, descr, &l2r );
+	start = find_start( stp, descr, &l2r );
 	sprintf( tstr, "%s%d", !l2r ? "$-" : "", start );
 	sprintf( bp, " %5s", tstr );
 	bp += strlen( bp );
 
-/*
 	stop = find_stop( slen, stp, n_descr, descr, &l2r );
-*/
-	stop = find_stop2( slen, stp, n_descr, descr, &l2r );
 	sprintf( tstr, "%s%d", !l2r ? "$-" : "", stop );
 	sprintf( bp, " %5s", tstr );
 	bp += strlen( bp );
@@ -157,7 +148,36 @@ STREL_T	descr[];
 	fputs( buf, fp );
 }
 
-static	int	strel_name( stp, name )
+static	void	ext_prefix( stp, prefix, prefix1 )
+STREL_T	*stp;
+char	prefix[];
+char	prefix1[];
+{
+	char	*pp, *pp1;
+	int	plen;
+	STREL_T	*stp0;
+	int	inner, next, first;
+
+	strcpy( prefix1, prefix );
+	plen = strlen( prefix1 );
+	pp = &prefix1[ plen - 1 ];
+
+	inner = stp->s_inner != NULL;
+	if( inner )
+		first = stp->s_scope == 0;
+	else
+		first = 0;
+	next = stp->s_next != NULL;
+	if( next )
+		*pp = '|';
+	else if( *pp != '|' )
+		*pp = ' ';
+	if( first )
+		strcat( prefix1, "  |" );
+	strcat( prefix1, "  +" );
+}
+
+static	void	strel_name( stp, name )
 STREL_T	*stp;
 char	name[];
 {
@@ -206,89 +226,7 @@ char	name[];
 	}
 }
 
-static	int	find_start( slen, stp, n_descr, descr, l2r )
-int	slen;
-STREL_T	*stp;
-int	n_descr;
-STREL_T	descr[];
-int	*l2r;
-{
-	int	i;
-	int	start;
-	STREL_T	*stp1;
-
-	if(    	stp->s_type == SYM_SS ||
-		stp->s_type == SYM_H5 || stp->s_type == SYM_P5 ||
-		stp->s_type == SYM_T1 || stp->s_type == SYM_T3 ||
-		stp->s_type == SYM_Q1 || stp->s_type == SYM_Q4 )
-	{
-		*l2r = 1;
-		start = 0;
-		for( stp1 = descr, i = 0; i < stp->s_index; i++, stp1++ )
-			start += stp1->s_minlen;
-		return( start + 1 );
-	}else{
-		*l2r = 0;
-		start = 0;
-		for( i = stp->s_index + 1; i < n_descr; i++, stp1++ ){
-			stp1 = &descr[ i ];
-			start += stp1->s_minlen;
-		}
-		return( start );
-	}
-}
-
 static	int	find_stop( slen, stp, n_descr, descr, l2r )
-int	slen;
-STREL_T	*stp;
-int	n_descr;
-STREL_T	descr[];
-int	*l2r;
-{
-	int	i, unbnd;
-	int	stop;
-	STREL_T	*stp1;
-
-	if(    	stp->s_type == SYM_SS ||
-		stp->s_type == SYM_H5 || stp->s_type == SYM_P5 ||
-		stp->s_type == SYM_T1 || stp->s_type == SYM_T3 ||
-		stp->s_type == SYM_Q1 || stp->s_type == SYM_Q4 )
-	{
-		*l2r = 0;
-		stop = 0;
-		for( i = stp->s_index + 1; i < n_descr; i++, stp1++ ){
-			stp1 = &descr[ i ];
-			stop += stp1->s_minlen;
-		}
-		return( stop );
-	}else{
-		for( unbnd = 0, i = stp->s_index - 1; i >= 0; i-- ){
-			stp1 = &descr[ i ];
-			if( stp1->s_maxlen == UNBOUNDED ){
-				unbnd = 1;
-				break;
-			}
-		}
-		if( unbnd ){
-			*l2r = 1;
-			stop = 0;
-			for( i = stp->s_index - 1; i >= 0; i-- ){
-				stp1 = &descr[ i ];
-				stop += stp1->s_minlen;
-			}
-		}else{
-			*l2r = 0;
-			stop = 0;
-			for( i = stp->s_index - 1; i >= 0; i-- ){
-				stp1 = &descr[ i ];
-				stop += stp1->s_maxlen;;
-			}
-		}
-		return( stop );
-	}
-}
-
-static	int	find_stop2( slen, stp, n_descr, descr, l2r )
 int	slen;
 STREL_T	*stp;
 int	n_descr;
@@ -311,122 +249,7 @@ int	*l2r;
 	return( stop );
 }
 
-ext_prefix( stp, prefix, prefix1 )
-STREL_T	*stp;
-char	prefix[];
-char	prefix1[];
-{
-	char	*pp, *pp1;
-	int	plen;
-	STREL_T	*stp0;
-	int	inner, next, first;
-
-	strcpy( prefix1, prefix );
-	plen = strlen( prefix1 );
-	pp = &prefix1[ plen - 1 ];
-
-	inner = stp->s_inner != NULL;
-	if( inner )
-		first = stp->s_scope == 0;
-	else
-		first = 0;
-	next = stp->s_next != NULL;
-	if( next )
-		*pp = '|';
-	else if( *pp != '|' )
-		*pp = ' ';
-	if( first )
-		strcat( prefix1, "  |" );
-	strcat( prefix1, "  +" );
-}
-
-int	find_start2( stp, descr, l2r )
-STREL_T	*stp;
-STREL_T	descr[];
-int	*l2r;
-{
-	int	start, s;
-	int	plen, nlen;
-	STREL_T	*stp1, *stp2;
-	int	unbnd, s_unbnd, p_unbnd, n_unbnd ;
-
-	s_unbnd = stp->s_maxlen == UNBOUNDED;
-	if( RM_R2L( stp->s_type ) ){
-		if( s_unbnd ){
-			start = 0;
-			for( stp1 = stp->s_next; stp1; stp1 = stp1->s_next )
-				start += stp1->s_minglen;
-		}else{
-			find_plen( stp, descr, &p_unbnd, &start );
-			if( p_unbnd ){
-			}else{
-				start += stp->s_maxlen; 
-			}
-		}
-		*l2r = !( s_unbnd || p_unbnd );
-		if( *l2r )
-			start--;
-	}else{
-		*l2r = 1;
-		p_unbnd = 0;
-		for( start = 0, stp1 = stp->s_prev; stp1; stp1 = stp1->s_prev ){
-			start += stp1->s_minglen;
-			if( stp1->s_maxglen == UNBOUNDED )
-				p_unbnd = 1;
-		}
-		for( s = stp->s_scope - 1; s >= 0; s-- ){
-			stp2 = stp->s_scopes[ s ];
-			start += stp2->s_minlen + stp2->s_minilen;
-			if( stp2->s_maxlen==UNBOUNDED ||
-				stp2->s_maxilen==UNBOUNDED )
-				unbnd = 1;
-		}
-	}
-	return( start );
-}
-
-static	void	find_plen( stp, descr, p_unbnd, plen )
-STREL_T	*stp;
-STREL_T	descr[];
-int	*p_unbnd;
-int	*plen;
-{
-	int	start, s, sl;
-	STREL_T	*stp1, *stp2, *stp3; 
-
-	*p_unbnd = 0;
-	*plen = 0;
-	stp1 = stp->s_outer;
-	for( s = stp->s_index - 1; s >= stp1->s_index; s-- ){
-		stp2 = &descr[ s ];
-		if( stp2->s_maxlen == UNBOUNDED ){
-			*p_unbnd = 1;
-			break;
-		}else
-			*plen += stp2->s_maxlen;
-	}
-	if( !*p_unbnd ){
-		for( stp2 = stp1->s_prev; stp2; stp2 = stp2->s_prev ){
-			if( stp2->s_maxglen == UNBOUNDED ){
-				*p_unbnd = UNBOUNDED;
-				break;
-			}else
-				*plen += stp2->s_maxglen;
-		}
-	}else{
-		*plen = 0;
-		if( stp->s_n_scopes > 0 ){
-			stp3 = stp->s_scopes[ stp->s_n_scopes - 1 ];
-			sl = stp3->s_index;
-			for( s = stp->s_index + 1; s <= sl; s++ ){
-				stp2 = &descr[ sl ];
-				*plen += stp2->s_minlen;
-			}
-		}
-	}
-}
-
-find_start3( stp, descr, l2r )
+static	int	find_start( stp, descr, l2r )
 STREL_T	*stp;
 STREL_T	descr[];
 int	*l2r;
@@ -443,7 +266,7 @@ int	*l2r;
 		start = 0;
 	}else{
 		if( RM_R2L( stp->s_type ) ){
-			if( contains_unbnd( stp, descr ) ){
+			if( closes_unbnd( stp, descr ) ){
 				start = min_suffixlen( stp, descr );
 				*l2r = 0;
 			}else{
@@ -460,7 +283,7 @@ int	*l2r;
 	return( start );
 }
 
-static	int	contains_unbnd( stp, descr )
+static	int	closes_unbnd( stp, descr )
 STREL_T	*stp;
 STREL_T	descr[];
 {
@@ -535,37 +358,5 @@ STREL_T	descr[];
 	stp0 = stp->s_scopes[ 0 ];
 	for( stp1 = stp0->s_next; stp1; stp1 = stp1->s_next )
 		slen += stp1->s_minlen;
-	return( slen );
-}
-
-static	int	max_suffixlen( stp, descr )
-STREL_T	*stp;
-STREL_T	descr[];
-{
-	STREL_T	*stp0, *stp1, *stpn;
-	int	s, slen;
-
-	if( stp->s_scope == UNDEF || stp->s_scope == 0 ){
-		for( stp1 = stp->s_next; stp1; stp1 = stp1->s_next ){
-			if( stp1->s_maxlen == UNBOUNDED )
-				return( UNBOUNDED );
-			slen += stp1->s_maxlen;
-		}
-		return( slen );
-	}
-
-	slen = 0;
-	stpn = stp->s_scopes[ stp->s_n_scopes - 1 ];
-	for( s = stp->s_index + 1; s <= stpn->s_index; s++ ){
-		stp1 = &descr[ s ];
-		if( stp1->s_maxlen == UNBOUNDED )
-			return( UNBOUNDED );
-		slen += stp1->s_maxlen;
-	}
-	stp0 = stp->s_scopes[ 0 ];
-	for( stp1 = stp0->s_next; stp1; stp1 = stp1->s_next )
-		if( stp1->s_maxlen == UNBOUNDED )
-			return( UNBOUNDED );
-		slen += stp1->s_maxlen;
 	return( slen );
 }
