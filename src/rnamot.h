@@ -39,6 +39,17 @@ typedef	struct	ident_t	{
 	VALUE_T	i_val;
 } IDENT_T;
 
+#define	BCODE_A		0
+#define	BCODE_C		1
+#define	BCODE_G		2
+#define	BCODE_T		3
+#define	BCODE_N		4
+#define N_BCODES	5
+
+typedef	int	BP_MAT_T[ N_BCODES ][ N_BCODES ];
+typedef	int	BT_MAT_T[ N_BCODES ][ N_BCODES ][ N_BCODES ];
+typedef	int	BQ_MAT_T[ N_BCODES ][ N_BCODES ][ N_BCODES ][ N_BCODES ];
+
 typedef	struct	pair_t	{
 	int	p_n_bases;
 	char	p_bases[ 4 ];
@@ -47,6 +58,7 @@ typedef	struct	pair_t	{
 typedef	struct	pairset_t	{
 	int	ps_n_pairs;
 	PAIR_T	*ps_pairs;
+	void	*ps_mat;
 } PAIRSET_T;
 
 typedef	struct	pairlist_t	{
