@@ -26,6 +26,7 @@ void	RM_dump_descr();
 void	RM_dump_sites();
 void	RM_strel_name();
 
+static	char	*attr2str();
 static	void	print_hierarchy();
 static	void	print_1_element();
 static	void	mk_prefix();
@@ -330,7 +331,7 @@ STREL_T	*stp;
 	}
 	fprintf( fp, "\n" );
 
-	fprintf( fp, "\tproper   = %s", stp->s_proper ? "yes" : "no" );
+	fprintf( fp, "\tattr     = %s", attr2str( stp->s_attr ) );
 	fprintf( fp, "\n" );
 
 	fprintf( fp, "\tlineno   = %d\n", stp->s_lineno );
@@ -623,6 +624,38 @@ char	name[];
 		strcpy( name, "q4" );
 		break;
 	}
+}
+
+static	char	*attr2str( attr )
+int	attr;
+{
+	int	i, acnt;
+	static	char	astr[ 256 ];
+
+	strcpy( astr, "{ " );
+	for( acnt = 0, i = 0; i < SA_N_ATTR; i++ ){
+		switch( attr & (1<<i) ){
+		case SA_PROPER :
+			if( acnt > 0 )
+				strcat( astr, "," );
+			strcat( astr, "P" );
+			acnt++;
+			break;
+		case SA_5PAIRED :
+			if( acnt > 0 )
+				strcat( astr, "," );
+			strcat( astr, "p5" );
+			acnt++;
+			break;
+		case SA_3PAIRED :
+			if( acnt > 0 )
+				strcat( astr, "," );
+			strcat( astr, "p3" );
+			acnt++;
+			break;
+		}
+	}
+	strcat( astr, " }" );
 }
 
 static	void	print_hierarchy( fp, lev, prefix, fd, descr )
