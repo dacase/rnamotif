@@ -17,7 +17,7 @@ IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ] = {
 	{ "overlap", T_INT, C_VAR, S_GLOBAL, { T_INT, 0 } },
 	{ "database", T_STRING, C_VAR, S_GLOBAL, { T_STRING, NULL } }
 };
-int	rm_s_global_ids = RM_GLOBAL_IDS_SIZE;;
+int	rm_s_global_ids = RM_GLOBAL_IDS_SIZE;
 int	rm_n_global_ids = 6;
 
 #define	RM_DESCR_SIZE 100
