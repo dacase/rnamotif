@@ -84,6 +84,7 @@ static	int	chk_site();
 static	STREL_T	*set_scopes();
 static	void	find_gi_len();
 static	void	find_limits();
+static	void	find_search_order();
 
 static	void	find_limits();
 static	void	find_1_limit();
@@ -447,6 +448,8 @@ STREL_T	descr[];
 	find_gi_len( 0, descr, &rm_dminlen, &rm_dmaxlen );
 
 	find_limits( 0, descr );
+
+	find_search_order( 0, descr );
 
 	return( err );
 }
@@ -2266,4 +2269,85 @@ STREL_T	descr[];
 	for( stp1 = stp0->s_next; stp1; stp1 = stp1->s_next )
 		slen += stp1->s_minlen;
 	return( slen );
+}
+
+static	void	find_search_order( fd, descr )
+int	fd;
+STREL_T	descr[];
+{
+	int	d, nd;
+	STREL_T	*stp, *stp1, *stp2;
+
+	for( d = fd; ; d = nd ){
+		stp = &descr[ d ];
+		switch( stp->s_type ){
+		case SYM_SS :
+fprintf( stderr, "%3d: ss\n", stp->s_index );
+			break;
+
+		case SYM_H5 :
+			if( stp->s_proper ){
+fprintf( stderr, "%3d: h5\n", stp->s_index );
+				stp1 = stp->s_inner;
+				if( stp1 != NULL )
+					find_search_order( stp1->s_index,
+						descr );
+			}else{	/* pseudoknot */
+fprintf( stderr, "%3d: h5\n", stp->s_index );
+				stp1 = stp->s_inner;
+				if( stp1 != NULL )
+					find_search_order( stp1->s_index,
+						descr );
+				stp1 = stp->s_scopes[ 1 ];
+fprintf( stderr, "%3d: h5\n", stp1->s_index );
+				stp2 = stp1->s_inner;
+				if( stp2 != NULL )
+					find_search_order( stp2->s_index,
+						descr );
+				stp1 = stp->s_scopes[ 2 ];
+				stp2 = stp1->s_inner;
+				if( stp2 != NULL )
+					find_search_order( stp2->s_index,
+						descr );
+			}
+			break;
+
+		case SYM_P5 :
+			rm_emsg_lineno = stp->s_lineno;
+			errormsg( 1,
+		"find_search_order: parallel helix finder not implemented." );
+			break;
+		case SYM_T1 :
+			rm_emsg_lineno = stp->s_lineno;
+			errormsg( 1,
+		"find_search_order: triple helix finder not implemented." );
+			break;
+		case SYM_Q1 :
+			rm_emsg_lineno = stp->s_lineno;
+			errormsg( 1,
+		"find_search_order: quad helix finder not implemented." );
+			break;
+
+		case SYM_H3 :
+		case SYM_P3 :
+		case SYM_T2 :
+		case SYM_T3 :
+		case SYM_Q2 :
+		case SYM_Q3 :
+		case SYM_Q4 :
+			break;
+
+		default :
+			rm_emsg_lineno = stp->s_lineno;
+			sprintf( emsg, "find_search_order: illegal sybmol %d.",
+				stp->s_type );
+			errormsg( 1, emsg );
+			break;
+		}
+		stp1 = stp->s_next;
+		if( stp1 == NULL )
+			return;
+		else
+			nd = stp1->s_index;
+	}
 }
