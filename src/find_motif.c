@@ -17,6 +17,8 @@ extern	int	rm_b2bc[];
 
 extern	SEARCH_T	**rm_searches;
 
+extern	int	circf;	/* reg. exp. ^ kludge	*/
+
 static	char	fm_emsg[ 256 ];
 static	char	*fm_locus;
 static	int	fm_comp;
@@ -237,6 +239,7 @@ SEARCH_T	*srp;
 	if( stp->s_seq != NULL ){
 		strncpy( fm_chk_seq, &fm_sbuf[ szero ], slen );
 		fm_chk_seq[ slen ] = '\0';
+		circf = *stp->s_seq == '^';
 		if( !step( fm_chk_seq, stp->s_expbuf ) )
 			return( 0 );
 	}
@@ -739,12 +742,14 @@ int	*hlen;
 	if( stp->s_seq != NULL ){
 		strncpy( fm_chk_seq,  &fm_sbuf[ s5 ], *hlen );
 		fm_chk_seq[ *hlen ] = '\0';
+		circf = *stp->s_seq == '^';
 		if( !step( fm_chk_seq, stp->s_expbuf ) )
 			return( 0 );
 	}
 	if( stp3->s_seq != NULL ){
 		strncpy( fm_chk_seq,  &fm_sbuf[ s3 - *hlen + 1 ], *hlen );
 		fm_chk_seq[ *hlen ] = '\0';
+		circf = *stp3->s_seq == '^';
 		if( !step( fm_chk_seq, stp3->s_expbuf ) )
 			return( 0 );
 	}
@@ -813,12 +818,14 @@ int	*hlen;
 		if( stp->s_seq != NULL ){
 			strncpy( fm_chk_seq, &fm_sbuf[ s5 ], *hlen );
 			fm_chk_seq[ *hlen ] = '\0'; 
+			circf = *stp->s_seq == '^';
 			if( !step( fm_chk_seq, stp->s_expbuf ) )
 				return( 0 );
 		}
 		if( stp3->s_seq != NULL ){
 			strncpy( fm_chk_seq, &fm_sbuf[ s3-*hlen+1 ], *hlen );
 			fm_chk_seq[ *hlen ] = '\0'; 
+			circf = *stp3->s_seq == '^';
 			if( !step( fm_chk_seq, stp3->s_expbuf ) )
 				return( 0 );
 		}
@@ -867,6 +874,7 @@ int	tlen;
 	if( stp1->s_seq != NULL ){
 		strncpy( fm_chk_seq, &fm_sbuf[ s2 - tlen + 1 ], tlen );
 		fm_chk_seq[ tlen ] = '\0';
+		circf = *stp1->s_seq == '^';
 		if( !step( fm_chk_seq, stp1->s_expbuf ) )
 			return( 0 );
 	}
@@ -917,6 +925,7 @@ int	qlen;
 	if( stp1->s_seq != NULL ){
 		strncpy( fm_chk_seq, &fm_sbuf[ s2 ], qlen );
 		fm_chk_seq[ qlen ] = '\0';
+		circf = *stp1->s_seq == '^';
 		if( !step( fm_chk_seq, stp1->s_expbuf ) )
 			return( 0 );
 	}
@@ -924,6 +933,7 @@ int	qlen;
 	if( stp2->s_seq != NULL ){
 		strncpy( fm_chk_seq, &fm_sbuf[ s3 - qlen + 1 ], qlen );
 		fm_chk_seq[ qlen ] = '\0';
+		circf = *stp2->s_seq == '^';
 		if( !step( fm_chk_seq, stp2->s_expbuf ) )
 			return( 0 );
 	}
