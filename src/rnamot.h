@@ -85,11 +85,12 @@ typedef	struct	site_t	{
 } SITE_T;
 
 typedef	struct	strel_t	{
-	int	s_checked;	/* used during linking	*/
+	int	s_checked;	/* used during linking		*/
 	int	s_type;
-	int	s_proper;	/* false = pseudoknot	*/
-	char	s_index;	/* index into descr array */
+	int	s_proper;	/* false = pseudoknot		*/
+	char	s_index;	/* index into descr array	*/
 	int	s_lineno;
+	int	s_searchno;	/* index into searches[]	*/
 	char	*s_tag;
 	struct	strel_t	*s_next;
 	struct	strel_t	*s_prev;
@@ -116,8 +117,10 @@ typedef	struct	strel_t	{
 
 typedef	struct	search_t	{
 	STREL_T	*s_descr;
-	STREL_T	*s_next;
+	STREL_T	*s_forward;
 	STREL_T	*s_backup;
+	int	s_zero;
+	int	s_dollar;
 } SEARCH_T;
 
 typedef	struct	dbase_t	{
