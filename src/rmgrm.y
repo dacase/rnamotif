@@ -1,3 +1,12 @@
+%{
+
+#include <stdio.h>
+#include "rnamot.h"
+
+extern	VALUE_T	rmval;
+
+%}
+
 %token	SYM_PAIR
 %token	SYM_PARM
 %token	SYM_DESCR
@@ -59,21 +68,24 @@ val		: SYM_IDENT
 descr_part	: SYM_DESCR strel_list ;
 strel_list	: strel
 		| strel strel_list ;
-strel		: strtype strtag SYM_LPAREN strparm_list SYM_RPAREN ;
-strtype		: SYM_SS
-		| SYM_H5
-		| SYM_H3
-		| SYM_P5
-		| SYM_P3
-		| SYM_T1
-		| SYM_T2
-		| SYM_T3
-		| SYM_Q1
-		| SYM_Q2
-		| SYM_Q3
-		| SYM_Q4 ;
+strel		: strtype strtag SYM_LPAREN strparm_list SYM_RPAREN 
+				{ SE_close(); } ;
+strtype		: SYM_SS	{ SE_new( SYM_SS ); }
+		| SYM_H5	{ SE_new( SYM_H5 ); }
+		| SYM_H3	{ SE_new( SYM_H3 ); }
+		| SYM_P5	{ SE_new( SYM_H5 ); }
+		| SYM_P3	{ SE_new( SYM_P3 ); }
+		| SYM_T1	{ SE_new( SYM_T1 ); }
+		| SYM_T2	{ SE_new( SYM_T2 ); }
+		| SYM_T3	{ SE_new( SYM_T3 ); }
+		| SYM_Q1	{ SE_new( SYM_Q1 ); }
+		| SYM_Q2	{ SE_new( SYM_Q2 ); }
+		| SYM_Q3	{ SE_new( SYM_Q3 ); }
+		| SYM_Q4	{ SE_new( SYM_Q4 ); } ;
 strtag		: SYM_PERIOD SYM_IDENT
+				{ SE_addtag( &rmval ); }
 		| SYM_PERIOD SYM_INT
+				{ SE_addtag( &rmval ); }
 		| ;
 strparm_list	: strparm
 		| strparm SYM_COMMA strparm_list ;
