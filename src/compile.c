@@ -429,8 +429,8 @@ int	stype;
 	stp->s_e_expbuf = NULL;
 	stp->s_mismatch = 0;
 	stp->s_matchfrac = 1.0;
-	stp->s_mispair = 0;
-	stp->s_pairfrac = 1.0;
+	stp->s_mispair = UNDEF;
+	stp->s_pairfrac = UNDEF;
 	stp->s_pairset = NULL;
 	
 	n_local_ids = 0;
@@ -464,11 +464,11 @@ int	stype;
 
 	if( stype != SYM_SS ){ 
 		val.v_type = T_INT;
-		val.v_value.v_ival = 0;
+		val.v_value.v_ival = UNDEF;
 		ip = RM_enter_id( "mispair", T_INT, C_VAR, S_STREL, 0, &val );
 
 		val.v_type = T_FLOAT;
-		val.v_value.v_fval = 1.0;
+		val.v_value.v_fval = UNDEF;
 		ip = RM_enter_id( "pairfrac",
 			T_FLOAT, C_VAR, S_STREL, 0, &val );
 
@@ -517,7 +517,8 @@ NODE_T	*expr;
 
 void	SE_close()
 {
-	int	i, s_minlen, s_maxlen, s_len, l_seq;
+	int	i, s_minlen, s_maxlen, s_len, s_mispair, s_pairfrac;
+	int	l_seq;
 	IDENT_T	*ip;
 
 	s_minlen = 0;
@@ -538,7 +539,7 @@ void	SE_close()
 				if( s_minlen || s_maxlen ){
 					rm_emsg_lineno = stp->s_lineno;
 					RM_errormsg( 0,
-				"len= can't be used with minlen=/maxlen=" );
+				"len= can't be used with minlen=/maxlen=." );
 				}else{
 					stp->s_minlen=ip->i_val.v_value.v_ival;
 					stp->s_maxlen=ip->i_val.v_value.v_ival;
@@ -557,15 +558,23 @@ void	SE_close()
 			}else
 				stp->s_matchfrac = ip->i_val.v_value.v_fval;
 		}else if( !strcmp( ip->i_name, "mispair" ) ){
+			s_mispair = ip->i_val.v_value.v_ival != UNDEF;
 			stp->s_mispair = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "pairfrac" ) ){
-			if( ip->i_val.v_value.v_fval < 0. ||
-				ip->i_val.v_value.v_fval > 1. ){
-				rm_emsg_lineno = stp->s_lineno;
-				RM_errormsg( 0,
-				"pairfrac must be >= 0 and <= 1." );
-			}else
-				stp->s_pairfrac = ip->i_val.v_value.v_fval;
+			s_pairfrac = ip->i_val.v_value.v_fval != UNDEF;
+			if( s_pairfrac ){
+				if( s_mispair ){
+					rm_emsg_lineno = stp->s_lineno;
+					RM_errormsg( 0,
+				"pairfrac= can't be used with mispair=." );
+				}else if( ip->i_val.v_value.v_fval < 0. ||
+					ip->i_val.v_value.v_fval > 1. ){
+					rm_emsg_lineno = stp->s_lineno;
+					RM_errormsg( 0,
+					"pairfrac must be >= 0 and <= 1." );
+				}
+			}
+			stp->s_pairfrac = ip->i_val.v_value.v_fval;
 		}else if( !strcmp( ip->i_name, "pair" ) ){
 			stp->s_pairset = ip->i_val.v_value.v_pval;
 		}
@@ -1033,12 +1042,13 @@ STREL_T	descr[];
 static	int	chk_1_strel_parms( stp )
 STREL_T	*stp;
 {
-	int	err;
+	int	err, pfrac;
 	int	stype;
 	STREL_T	*egroup[ 4 ];
 	int	i, n_egroup;
 	STREL_T	*stp1, *stpv;
 	int	ival;
+	float	fval;
 	PAIRSET_T	*pval;
 	IDENT_T	*ip;
 
@@ -1074,11 +1084,11 @@ STREL_T	*stp;
 		err = chk_len_seq( n_egroup, egroup ); 
 	}
 
-	/* check & set the mispair & pair values	*/
+	/* check & set the mispair, pairfrac & pair values	*/
 	if(	stype == SYM_P5 || stype == SYM_H5 ||
 		stype == SYM_T1 || stype == SYM_Q1 )
 	{
-		for( stpv = NULL, i = 0; i < n_egroup; i++ ){
+		for( pfrac = 0, stpv = NULL, i = 0; i < n_egroup; i++ ){
 			stp1 = egroup[ i ];
 			if( stp1->s_mispair != UNDEF ){
 				if( stpv == NULL )
@@ -1089,13 +1099,33 @@ STREL_T	*stp;
 					RM_errormsg( 0,
 					"inconsistant mispair values." );
 				}
+			}else if( stp1->s_pairfrac != UNDEF ){
+				pfrac = 1;
+				if( stpv == NULL )
+					stpv = stp1;
+				else if( stpv->s_pairfrac != stp1->s_pairfrac ){
+					err = 1;
+					rm_emsg_lineno = stp1->s_lineno;
+					RM_errormsg( 0,
+					"inconsistant pairfrac values." );
+				}
 			}
 		}
 		if( !err ){
-			ival = stpv ? stpv->s_mispair : 0;
-			for( i = 0; i < n_egroup; i++ ){
-				stp1 = egroup[ i ];
-				stp1->s_mispair = ival;
+			if( pfrac ){
+				fval = stpv ? stpv->s_pairfrac : 1.;
+				for( i = 0; i < n_egroup; i++ ){
+					stp1 = egroup[ i ];
+					stp1->s_pairfrac = fval;
+					stp1->s_mispair = 0;
+				}
+			}else{
+				ival = stpv ? stpv->s_mispair : 0;
+				for( i = 0; i < n_egroup; i++ ){
+					stp1 = egroup[ i ];
+					stp1->s_mispair = ival;
+					stp1->s_pairfrac = 1.0;
+				}
 			}
 		}
 
