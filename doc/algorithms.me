@@ -571,6 +571,46 @@ has been found that matches all the elements in the descriptor.  In this case,
 site restrictions and then passes all scoring rules, at which time it accepted
 and is printed along with identifying information and score values to
 \fCstdout\fR.
+.sh 3 "Optimization of the searching algorithm"
+.pp
+Starting with version 2.0.0, \fIrnamotif\fR uses some heuristics to
+accelerate the search procedure.  These are controlled by the \fI-O\fR flag.
+Basically, the new routine searches for fixed patterns inside the
+descriptor;
+if a long enough sequence string is found, it begins the search there,
+rather than by just starting at the beginning of the descriptor.  For
+descriptors that have significant fixed sequences, this can dramatically
+improve run times; for other descriptors it may have little or no effect.
+Results of the program should be independent of the optimization level.
+.pp
+The new option is \fI-On\fR, where \fIn\fR is the minimumlength of best
+sequence to search for first. Set \fI-O0\fR ("minus captial O zero") to turn
+off all optimization.  The default value for \fIn\fR is 2.5.  Potential
+search strings are scored by the following parameters:
+.(l
+a,c,g,t         = 1.0
+r, y, etc       = 0.5
+[acg], etc      = 0.25
+n               = 0
+.)l
+Thus "gnra" is scored at 2.5.  The minimum length is: sequence length \-
+number of mismatches, so that 
+.(l
+ss( seq="^grna$", mismatch=1 )
+.)l
+will not be optimized.  Speedup is about `2 sup n`, where \fIn\fR is the
+mismatch-adjusted length.
+.pp
+The sequence to be searched first need not be pinned, but must occur in an element 
+whose length is fixed. Hence
+.(l
+ss( seq="grna" )
+.)l
+is not optimized because it can start anywhere, but
+.(l
+seq( seq="gnra", len=6 )
+.)l
+is becuase it can start at most -2 from the gnra.
 .sh 3 "Imperfect Helices."
 .pp
 Many nucleic acid secondary structures contain helices that are not perfectly

@@ -20,7 +20,7 @@ if( m?/Dest /s2_2 ? ){ s?/Count -1 ?/Count -3 ?; next; }
 if( m?/Dest /s2_4 ? ){ s?/Count -1 ?/Count -3 ?; next; }
 if( m?/Dest /s3_4 ? ){ s?/Count -1 ?/Count -4 ?; next; }
 if( m?/Dest /s4_1 ? ){ s?/Count -1 ?/Count -3 ?; next; }
-if( m?/Dest /s4_2 ? ){ s?/Count -1 ?/Count -2 ?; next; }
+if( m?/Dest /s4_2 ? ){ s?/Count -1 ?/Count -3 ?; next; }
 if( m?/Dest /s4_4 ? ){ s?/Count -1 ?/Count -3 ?; next; }
 
 s?/Count -1 ??;
