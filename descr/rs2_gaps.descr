@@ -1,0 +1,30 @@
+parms
+	TGT = 'ggccggac';
+	MINL = 8;
+	MAXL = 12;
+
+descr
+	ss( minlen=MINL, maxlen=MAXL, seq="^g.*c$" )
+
+score
+	{ len = length( ss[1] );
+	  if( len == MINL ){
+		if( ss[1] == TGT ){
+			SCORE = sprintf( '%d,%d', 0, 0 );
+			ACCEPT;
+		}else
+			REJECT;
+	  }
+	  for( pl = MINL - 1; pl >= 1; pl-- ){
+		sl = MINL - pl;
+		msp = len - sl + 1;
+		tsp = MINL - sl + 1;
+		if( ss[1,1,pl] == substr(TGT,1,pl) &&
+			ss[1,msp,sl] == substr(TGT,tsp,sl) )
+		{
+			SCORE = sprintf( '%d,%d', pl + 1, len - MINL );
+			ACCEPT;
+		}
+	  }
+	  REJECT;
+	}
