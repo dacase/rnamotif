@@ -25,12 +25,12 @@ IDENT_T	rm_global_ids[ RM_GLOBAL_IDS_SIZE ] = {
 int	rm_s_global_ids = RM_GLOBAL_IDS_SIZE;
 int	rm_n_global_ids = 8;
 
-int	rm_tminlen;
-int	rm_tmaxlen;
 #define	RM_DESCR_SIZE 100
 STREL_T	rm_descr[ RM_DESCR_SIZE ];
 int	rm_s_descr = RM_DESCR_SIZE;
 int	rm_n_descr;
+int	rm_dminlen;	/* min. len. of entire motif	*/
+int	rm_dmaxlen;	/* max. len. of entire motif	*/
 
 #define	RM_POS_SIZE	10
 POS_T	rm_pos[ RM_POS_SIZE ];
@@ -70,11 +70,11 @@ char	*argv[];
 		if( SE_link( rm_n_descr, rm_descr ) )
 			exit( 1 );
 		fprintf( stderr, "%s: complete descr length: min/max = %d/",
-			rm_fname, rm_tminlen );
-		if( rm_tmaxlen == UNBOUNDED )
+			rm_fname, rm_dminlen );
+		if( rm_dmaxlen == UNBOUNDED )
 			fprintf( stderr, "UNBND\n" );
 		else
-			fprintf( stderr, "%d\n", rm_tmaxlen );
+			fprintf( stderr, "%d\n", rm_dmaxlen );
 	}
 
 	if( rm_dopt || rm_hopt )
