@@ -3,6 +3,9 @@
 #include "rnamot.h"
 #include "y.tab.h"
 
+#define	MIN(a,b)	((a)<(b)?(a):(b))
+#define	MAX(a,b)	((a)>(b)?(a):(b))
+
 extern	int	rm_emsg_lineno;
 extern	int	rm_dminlen;
 extern	int	rm_dmaxlen;
@@ -10,7 +13,7 @@ extern	int	rm_b2bc[];
 
 static	char	fm_emsg[ 256 ];
 static	char	*fm_locus;
-static	char	fm_slen;
+static	int	fm_slen;
 static	char	*fm_sbuf;
 static	int	*fm_window;
 static	int	fm_windowsize;
@@ -19,6 +22,7 @@ static	int	find_motif();
 static	int	find_ss();
 static	int	find_wchlx();
 static	int	find_pknot();
+static	int	match_helix();
 static	int	paired();
 
 IDENT_T	*find_id();
@@ -91,10 +95,10 @@ int	sdollar;
 	srp = searches[ slev ];
 	stp = srp->s_descr;
 
+/*
 fprintf( stderr, "fm: slev = %d, str = 0, %4d:%4d, %4d\n",
 	slev, szero, sdollar, fm_slen - 1 );
-
-	return(1);
+*/
 
 	switch( stp->s_type ){
 	case SYM_SS :
@@ -154,18 +158,44 @@ SEARCH_T	*searches[];
 int	szero;
 int	sdollar;
 {
-	int	s, s3lim;
-	int	b5, b3;
 	SEARCH_T	*srp;
 	STREL_T	*stp;
+	int	s, s3lim, slen;
+	int	h_minl, h_maxl;
+	int	i_minl;
+
+/*
+fprintf( stderr, "fwch:\n" );
+*/
 
 	srp = searches[ slev ];
 	stp = srp->s_descr;
+	slen = sdollar - szero + 1;
+	h_minl = stp->s_minlen;
+	h_maxl = stp->s_maxlen;
+	i_minl = stp->s_minilen;
 
-	b5 = fm_sbuf[ szero ];
+/*
+fprintf( stderr, "fwch: szero  = %4d, sdollar = %4d\n", szero, sdollar );
+fprintf( stderr, "fwch: slen   = %4d\n", slen );
+fprintf( stderr, "fwch: h_minl = %4d, h_maxl  = %4d\n", h_minl, h_maxl );
+fprintf( stderr, "fwch: i_minl = %4d\n", i_minl );
+*/
+
+	s3lim = ( i_minl + 2 * h_minl );
+
+/*
+fprintf( stderr, "fwch: s3lim = ( i_minl + 2 * h_minl ) = %d\n", s3lim );
+*/
+
+	s3lim = szero + s3lim - 1;
+
+/*
+fprintf( stderr, "fwch: s3lim = szero + s3lim - 1 = %d\n", s3lim );
+*/
+
 	for( s = sdollar; s >= s3lim; s-- ){
-		b3 = fm_sbuf[ s ];
-		if( paired( stp, b5, b3 ) ){
+		if( match_helix( stp, szero, s, s3lim ) ){
 		}
 	}
 }
@@ -178,6 +208,71 @@ int	szero;
 int	sdollar;
 {
 
+}
+static	int	match_helix( stp, s5, s3, s3lim )
+STREL_T	*stp;
+int	s5;
+int	s3;
+int	s3lim;
+{
+	int	s, s3_5plim;
+	int	b5, b3;
+	int	bpcnt, hlen, mpr;
+
+	b5 = fm_sbuf[ s5 ];
+	b3 = fm_sbuf[ s3 ];
+	if( !paired( stp, b5, b3 ) )
+		return( 0 );
+
+	s3_5plim = s3lim - stp->s_minlen + 1;
+	s3_5plim = MAX( s3_5plim, s3 - stp->s_maxlen + 1 );
+
+/*
+fprintf( stderr, "mhlx: s3_5plim = %4d\n", s3_5plim );
+fprintf( stderr,
+	"mhlx.1: s5 = %4d, s3 = %4d, s3lim =    %3d, b5 = %c, b3 = %c\n",
+	s5, s3, s3lim, b5, b3 );
+*/
+
+	bpcnt = 1;
+	hlen = 1;
+	mpr = 0;
+	for( bpcnt = 1, hlen = 1, s = s3 - 1; s >= s3_5plim; s--, hlen++ ){
+		b5 = fm_sbuf[ s5 + hlen ];
+		b3 = fm_sbuf[ s3 - hlen ];
+/*
+fprintf( stderr,
+	"mhlx.2: s5 = %4d, s3 = %4d, s3_5plim = %3d, b5 = %c, b3 = %c\n",
+	s5 + hlen, s3 - hlen, s3_5plim, b5, b3 );
+*/
+
+		if( paired( stp, b5, b3 ) ){
+			bpcnt++;
+		}else{
+			mpr++;
+			if( mpr > stp->s_mispair ){
+				if( hlen < stp->s_minlen ){
+
+/*
+fprintf( stderr, "mhlx.3: #mpr = %4d, > stp->s_mispair (%4d)\n",
+	mpr, stp->s_mispair );
+*/
+
+					return( 0 );
+				}else
+					break;
+			}
+		}
+	}
+
+fprintf( stderr, "mhlx.4: hlx!\n" );
+for( s = 0; s < hlen; s++ ){ 
+	b5 = fm_sbuf[ s5 + s ];
+	b3 = fm_sbuf[ s3 - s ];
+	fprintf( stderr, " %4d-%4d: %c-%c\n", s5+s, s3-s, b5, b3 );
+}
+
+	return( 1 );
 }
 
 static	int	paired( stp, b5, b3 )
@@ -193,6 +288,5 @@ int	b3;
 	b5i = rm_b2bc[ b5 ];
 	b3i = rm_b2bc[ b3 ];
 	rv = (*bpmatp)[b5i][b3i];
-fprintf( stderr, "paired: b5 = %c, b3 = %c, %d\n", b5, b3, rv );
 	return( rv );
 }
