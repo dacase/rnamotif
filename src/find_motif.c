@@ -77,30 +77,16 @@ fprintf( stderr, "fmd   : locus = %s, slen = %d\n", locus, slen );
 	srp = searches[ 0 ];
 	l_szero = slen - w_winsize;
 	for( szero = 0; szero < l_szero; szero++ ){
-		f_sdollar = szero + w_winsize - 1;
-		l_sdollar = szero + rm_dminlen - 1;
-		for( sdollar = f_sdollar; sdollar >= l_sdollar; sdollar-- ){
-/*
-fprintf( stderr, "fm.1  : szero = %4d, sdollar = %4d\n", szero, sdollar );
-*/
-			srp->s_zero = szero;
-			srp->s_dollar = sdollar;
-			find_1_motif( srp );
-		}
+		srp->s_zero = szero;
+		srp->s_dollar = szero + w_winsize - 1;
+		find_motif( srp );
 	}
 
 	l_szero = slen - rm_dminlen;
-	f_sdollar = slen - 1;
+	srp->s_dollar = slen - 1;
 	for( ; szero <= l_szero; szero++ ){
-		l_sdollar = szero + rm_dminlen - 1;
-		for( sdollar = f_sdollar; sdollar >= l_sdollar; sdollar-- ){
-/*
-fprintf( stderr, "fm.2  : szero = %4d, sdollar = %4d\n", szero, sdollar );
-*/
-			srp->s_zero = szero;
-			srp->s_dollar = sdollar;
-			find_1_motif( srp );
-		}
+		srp->s_zero = szero;
+		find_motif( srp );
 	}
 
 	return( 0 );
@@ -109,7 +95,14 @@ fprintf( stderr, "fm.2  : szero = %4d, sdollar = %4d\n", szero, sdollar );
 static	int	find_motif( srp )
 SEARCH_T	*srp;
 {
+	int	sdollar, f_sdollar, l_sdollar; 
 
+	f_sdollar = srp->s_dollar;
+	l_sdollar = srp->s_zero + rm_dminlen - 1;
+	for( sdollar = f_sdollar; sdollar >= l_sdollar; sdollar-- ){
+		srp->s_dollar = sdollar;
+		find_1_motif( srp );
+	}
 }
 
 static	int	find_1_motif( srp )
@@ -126,9 +119,7 @@ fprintf( stderr, "fm1   : descr = %2d, str = 0, %4d:%4d, %4d\n",
 
 	switch( stp->s_type ){
 	case SYM_SS :
-/*
-		find_ss( slev, n_searches, searches, szero, sdollar );
-*/
+		find_ss( srp );
 		break;
 	case SYM_H5 :
 		if( stp->s_proper ){
@@ -168,60 +159,50 @@ fprintf( stderr, "fm1   : descr = %2d, str = 0, %4d:%4d, %4d\n",
 	}
 }
 
-static	int	find_ss( slev, n_searches, searches, szero, sdollar )
-int	slev;
-int	n_searches;
-SEARCH_T	*searches[];
-int	szero;
-int	sdollar;
+static	int	find_ss( srp )
+SEARCH_T	srp;
 {
+	int	szero, sdollar;
 
 }
 
 static	int	find_wchlx( srp )
 SEARCH_T	*srp;
 {
-	STREL_T	*stp;
+	STREL_T	*stp, *i_stp, *n_stp;
 	int	s, s3lim, slen, szero, sdollar;
 	int	h_minl, h_maxl;
-	int	i_minl;
+	int	i_minl, i_maxl, i_len;
 	int	h3, hlen;
+	SEARCH_T	*i_srp, *n_srp;
 
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
 	slen = sdollar - szero + 1;
 	stp = srp->s_descr;
 
-/*
-fprintf( stderr, "fwchlx: descr = %2d, str = 0, %4d:%4d, %4d\n",
-	stp->s_index, szero, sdollar, fm_slen - 1 );
-*/
-
 	h_minl = stp->s_minlen;
 	h_maxl = stp->s_maxlen;
 	i_minl = stp->s_minilen;
+	i_maxl = stp->s_maxilen;
 
-/*
-	s3lim = ( i_minl + 2 * h_minl );
-	s3lim = szero + s3lim - 1;
-*/
 	s3lim = sdollar - szero + 1;
 	s3lim = ( s3lim - i_minl ) / 2;
 	s3lim = MIN( s3lim, h_maxl );
 	s3lim = sdollar - s3lim + 1;
 
-/*
-fprintf( stderr, "fwchlx: s3lim = %4d\n", s3lim );
-*/
-
 	if( match_helix( stp, szero, sdollar, s3lim, &h3, &hlen ) ){
 
-fprintf( stderr, "fwchlx: %4d %.*s %4d %.*s\n",
-	szero+1, hlen, &fm_sbuf[ szero ],
-	h3 - hlen + 2, hlen, &fm_sbuf[ h3 - hlen + 1 ] ); 
+		i_len = h3 - szero - 2 * hlen + 1;
+		if( i_len > i_maxl )
+			return( 0 );
 
-fprintf( stderr, "fwchlx: inner = %4d %4d; next = %4d, %4d\n",
-	szero + hlen + 1, h3 - hlen + 1, h3 + 1, sdollar );
+fprintf( stderr, "fwchlx: %4d %.*s %4d %.*s\n",
+	szero, hlen, &fm_sbuf[ szero ],
+	h3 - hlen + 1, hlen, &fm_sbuf[ h3 - hlen + 1 ] ); 
+
+fprintf( stderr, "fwchlx: inner = %4d %4d, i_len = %4d; next = %4d, %4d\n",
+	szero + hlen + 1, h3 - hlen + 1, i_len, h3 + 1, sdollar );
 
 	}
 }
