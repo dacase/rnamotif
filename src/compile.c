@@ -11,6 +11,7 @@ extern	int	rm_lineno;
 extern	int	rm_emsg_lineno;
 extern	char	rm_fname[];
 extern	int	rm_copt;
+extern	int	rm_dopt;
 
 static	char	emsg[ 256 ];
 
@@ -78,6 +79,8 @@ char	*argv[];
 	for( ac = 1; ac < argc; ac++ ){
 		if( !strcmp( argv[ ac ], "-c" ) )
 			rm_copt = 1;
+		else if( !strcmp( argv[ ac ], "-d" ) )
+			rm_dopt = 1;
 	}
 
 	rm_lineno = 0;
@@ -311,20 +314,33 @@ NODE_T	*expr;
 
 void	SE_close()
 {
-	int	i, minlen, maxlen;
+	int	i, s_minlen, s_maxlen, s_len;
 	IDENT_T	*ip;
 
+	s_minlen = 0;
+	s_maxlen = 0;
 	for( i = 0; i < n_local_ids; i++ ){
 		ip = local_ids[ i ];
 		if( !strcmp( ip->i_name, "tag" ) ){
 			stp->s_tag = ip->i_val.v_value.v_pval;
 		}else if( !strcmp( ip->i_name, "minlen" ) ){
+			s_minlen = ip->i_val.v_value.v_ival != UNDEF;
 			stp->s_minlen = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "maxlen" ) ){
+			s_maxlen = ip->i_val.v_value.v_ival != UNDEF;
 			stp->s_maxlen = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "len" ) ){
-			stp->s_minlen = ip->i_val.v_value.v_ival;
-			stp->s_maxlen = ip->i_val.v_value.v_ival;
+			s_len = ip->i_val.v_value.v_ival != UNDEF;
+			if( s_len ){
+				if( s_minlen || s_maxlen ){
+					rm_emsg_lineno = stp->s_lineno;
+					errormsg( 0,
+				"len= can't be used with minlen=/maxlen=" );
+				}else{
+					stp->s_minlen=ip->i_val.v_value.v_ival;
+					stp->s_maxlen=ip->i_val.v_value.v_ival;
+				}
+			}
 		}else if( !strcmp( ip->i_name, "seq" ) ){
 			stp->s_seq = ip->i_val.v_value.v_pval;
 		}else if( !strcmp( ip->i_name, "mismatch" ) ){
