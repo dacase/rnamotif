@@ -33,8 +33,8 @@ q2		return( SYM_Q2 );
 q3		return( SYM_Q3 );
 q4		return( SYM_Q4 );
 
-[a-zA-Z][_a-zA-Z0-9]*	\
-		{ sp = ( char * )malloc(( yyleng + 1 ) *sizeof( char ));
+[a-zA-Z][_a-zA-Z0-9]*	{
+		  sp = ( char * )malloc(( yyleng + 1 ) *sizeof( char ));
 		  if( sp == NULL ){
 			fprintf( stderr,
 		"lex.yy.c: FATAL: can't alloc sp for SYM_IDENT.\n" );
