@@ -987,6 +987,7 @@ STREL_T	*egroup[];
 	int	si_minl, si_maxl;
 	int	s_minl, s_maxl;
 	STREL_T	*stp;
+	IDENT_T	*ip;
 
 	err = 0;
 	for( minl = UNDEF, i = 0; i < n_egroup; i++ ){
@@ -1092,10 +1093,22 @@ STREL_T	*egroup[];
 		}
 	}
 
-	if( minl == UNDEF )
-		minl = 1;
-	if( maxl == UNDEF )
-		maxl = UNBOUNDED;
+	if( minl == UNDEF ){
+		stp = egroup[ 0 ];
+		if( stp->s_type == SYM_H5 ){
+			ip = find_id( "wc_minlen" );
+			minl = ip->i_val.v_value.v_ival;
+		}else
+			minl = 1;
+	}
+	if( maxl == UNDEF ){
+		stp = egroup[ 0 ];
+		if( stp->s_type == SYM_H5 ){
+			ip = find_id( "wc_maxlen" );
+			maxl = ip->i_val.v_value.v_ival;
+		}else
+			maxl = UNBOUNDED;
+	}
 
 	if( !err ){
 		for( i = 0; i < n_egroup; i++ ){
