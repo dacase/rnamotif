@@ -332,6 +332,7 @@ POS_T	*posp;
 	fprintf( fp, "\t\tlineno   = %d\n", posp->p_lineno );
 	fprintf( fp, "\t\ttag      = '%s'\n",
 		posp->p_tag ? posp->p_tag : "(No tag)" );
+	fprintf( fp, "\t\tdindex   = %d\n", posp->p_dindex );
 	fprintf( fp, "\t\tl2r      = %s\n", posp->p_l2r ? "TRUE" : "FALSE" );
 	fprintf( fp, "\t\toffset   = %d\n", posp->p_offset );
 	fprintf( fp, "\t}\n" );
