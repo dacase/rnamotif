@@ -25,6 +25,11 @@ STREL_T	rm_descr[ RM_DESCR_SIZE ];
 int	rm_s_descr = RM_DESCR_SIZE;
 int	rm_n_descr;
 
+#define	RM_POS_SIZE	10
+POS_T	rm_pos[ RM_POS_SIZE ];
+int	rm_s_pos = RM_POS_SIZE;
+int	rm_n_pos;
+
 extern	int	yydebug;
 
 main( argc, argv )
