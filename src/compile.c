@@ -427,7 +427,9 @@ int	stype;
 	stp->s_expbuf = NULL;
 	stp->s_e_expbuf = NULL;
 	stp->s_mismatch = 0;
+	stp->s_matchfrac = 1.0;
 	stp->s_mispair = 0;
+	stp->s_pairfrac = 1.0;
 	stp->s_pairset = NULL;
 	
 	n_local_ids = 0;
@@ -455,10 +457,18 @@ int	stype;
 	val.v_value.v_ival = UNDEF;
 	ip = RM_enter_id( "mismatch", T_INT, C_VAR, S_STREL, 0, &val );
 
+	val.v_type = T_FLOAT;
+	val.v_value.v_fval = UNDEF;
+	ip = RM_enter_id( "matchfrac", T_FLOAT, C_VAR, S_STREL, 0, &val );
+
 	if( stype != SYM_SS ){ 
 		val.v_type = T_INT;
 		val.v_value.v_ival = UNDEF;
 		ip = RM_enter_id( "mispair", T_INT, C_VAR, S_STREL, 0, &val );
+
+		val.v_type = T_FLOAT;
+		val.v_value.v_fval = UNDEF;
+		ip = RM_enter_id( "pairfrac", T_FLOAT, C_VAR, S_STREL, 0, &val );
 
 		switch( stype ){
 		case SYM_SS :
@@ -534,27 +544,26 @@ void	SE_close()
 			}
 		}else if( !strcmp( ip->i_name, "seq" ) ){
 			stp->s_seq = str2seq( ip->i_val.v_value.v_pval );
-/*
-			if( stp->s_seq && *stp->s_seq != '\0' ){
-				l_seq = strlen( stp->s_seq );
-				l_seq = 2*l_seq > 256 ? 2*l_seq : 256 ;
-				stp->s_expbuf =
-					( char * )malloc( l_seq*sizeof(char) );
-				if( stp->s_expbuf == NULL ){
-					rm_emsg_lineno = stp->s_lineno;
-					errormsg( 1,
-						"can't allocate s_expbuf." );
-				}
-				stp->s_e_expbuf = &stp->s_expbuf[ l_seq ];
-				compile( stp->s_seq,
-					stp->s_expbuf, stp->s_e_expbuf, '\0' );
-			}else
-				stp->s_seq = NULL;
-*/
 		}else if( !strcmp( ip->i_name, "mismatch" ) ){
 			stp->s_mismatch = ip->i_val.v_value.v_ival;
+		}else if( !strcmp( ip->i_name, "matchfrac" ) ){
+			if( ip->i_val.v_value.v_fval < 0. ||
+				ip->i_val.v_value.v_fval > 1. ){
+				rm_emsg_lineno = stp->s_lineno;
+				errormsg( 0,
+				"matchfrac must be >= 0 and <= 1." );
+			}else
+				stp->s_matchfrac = ip->i_val.v_value.v_fval;
 		}else if( !strcmp( ip->i_name, "mispair" ) ){
 			stp->s_mispair = ip->i_val.v_value.v_ival;
+		}else if( !strcmp( ip->i_name, "pairfrac" ) ){
+			if( ip->i_val.v_value.v_fval < 0. ||
+				ip->i_val.v_value.v_fval > 1. ){
+				rm_emsg_lineno = stp->s_lineno;
+				errormsg( 0,
+				"pairfrac must be >= 0 and <= 1." );
+			}else
+				stp->s_pairfrac = ip->i_val.v_value.v_fval;
 		}else if( !strcmp( ip->i_name, "pair" ) ){
 			stp->s_pairset = ip->i_val.v_value.v_pval;
 		}
