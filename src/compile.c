@@ -1629,8 +1629,10 @@ int	d_ok;
 			r_type = valstk[ n_valstk - 1 ].v_type;
 			if( r_type == T_IDENT )
 				r_type = loadidval( &valstk[ n_valstk - 1 ] );
-			if( l_type == T_UNDEF )
-				ip->i_type = r_type;
+			if( l_type == T_UNDEF ){
+				l_type = r_type; 
+				ip->i_type = l_type;
+			}
 
 			switch(  T_IJ( l_type, r_type ) ){
 			case T_IJ( T_INT, T_INT ) :
