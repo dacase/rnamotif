@@ -1,9 +1,14 @@
-head	1.14;
+head	1.15;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.15
+date	2001.03.29.17.40.24;	author macke;	state Exp;
+branches;
+next	1.14;
 
 1.14
 date	2000.10.09.20.22.55;	author macke;	state Exp;
@@ -82,10 +87,13 @@ enough to begin integration into rnamotif.
 @
 
 
-1.14
+1.15
 log
-@converted RM_efn() from interated function to recursive.  Much easier
-to understand.
+@fixed bug in efn.c that had a '=' instead of a '==' in a while
+loop that resulted in the BP table being corrupted, producing a
+pknot, causing an infinite recursion! Ugh.  Occurred only for the
+1st hairpin and then only if the first hairpin did not cover the
+entire sequence.
 @
 text
 @/*
@@ -1236,7 +1244,7 @@ int	RM_efn( int i, int j, int open )
 				j--;
 			}
 		}else{
-			while( rm_basepr[i]= UNDEF && rm_basepr[i+1]==UNDEF ){
+			while( rm_basepr[i]==UNDEF && rm_basepr[i+1]==UNDEF ){
 				i++;
 				if( i >= j-1 )
 					return( e );
@@ -1643,6 +1651,18 @@ static	int	pull( int *a, int *b, int *c )
 	stkp--;
 	return( 0 );
 }
+@
+
+
+1.14
+log
+@converted RM_efn() from interated function to recursive.  Much easier
+to understand.
+@
+text
+@d1149 1
+a1149 1
+			while( rm_basepr[i]= UNDEF && rm_basepr[i+1]==UNDEF ){
 @
 
 

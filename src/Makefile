@@ -17,6 +17,7 @@ RNAMOTOBJS=	\
 	y.tab.o	
 
 all:	rnamotif	\
+	rmprune		\
 	rmfmt
 
 rnamotif:	$(RNAMOTOBJS)
@@ -51,6 +52,9 @@ y.tab.h:	rmgrm.y lex.yy.c
 lex.yy.c:	rmlex.l
 		$(LEX) rmlex.l
 
+rmprune:	rmprune.o split.o
+	$(CC)	$(CFLAGS) -o rmprune rmprune.o split.o
+
 rmfmt:		rmfmt.o split.o
 	$(CC)	$(CFLAGS) -o rmfmt rmfmt.o split.o
 
@@ -65,6 +69,7 @@ clean:
 		y.output	\
 		lex.yy.c	\
 		rnamotif	\
+		rmprune		\
 		rmfmt		\
 		efn_drv		\
 		core		\

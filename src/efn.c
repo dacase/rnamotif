@@ -1146,7 +1146,7 @@ int	RM_efn( int i, int j, int open )
 				j--;
 			}
 		}else{
-			while( rm_basepr[i]= UNDEF && rm_basepr[i+1]==UNDEF ){
+			while( rm_basepr[i]==UNDEF && rm_basepr[i+1]==UNDEF ){
 				i++;
 				if( i >= j-1 )
 					return( e );
