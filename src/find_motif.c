@@ -12,6 +12,10 @@
 extern	int	rm_emsg_lineno;
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
+extern	STREL_T	*rm_lctx;
+extern	int	rm_lctx_explicit;
+extern	STREL_T	*rm_rctx;
+extern	int	rm_rctx_explicit;
 extern	int	rm_dminlen;
 extern	int	rm_dmaxlen;
 extern	SITE_T	*rm_sites;
@@ -57,9 +61,12 @@ static	int	find_4plex( SEARCH_T * );
 static	int	find_4plex_inner( SEARCH_T *, int, int );
 static	int	match_wchlx( STREL_T *, STREL_T *, int, int, int,
 			int [], int [], int [] );
-static	int	match_phlx( STREL_T *, STREL_T *, int, int, int, int, int *, int * );
-static	int	match_triplex( STREL_T *, STREL_T *, int, int, int, int, int * );
-static	int	match_4plex( STREL_T *, STREL_T *, int, int, int, int, int, int * );
+static	int	match_phlx( STREL_T *, STREL_T *,
+			int, int, int, int, int *, int * );
+static	int	match_triplex( STREL_T *, STREL_T *,
+			int, int, int, int, int * );
+static	int	match_4plex( STREL_T *, STREL_T *,
+			int, int, int, int, int, int * );
 static	void	mark_ss( STREL_T *, int, int );
 static	void	unmark_ss( STREL_T *, int, int );
 static	void	mark_duplex( STREL_T *, int, STREL_T *, int, int );
@@ -70,6 +77,7 @@ static	int	chk_wchlx( STREL_T *, int, STREL_T [] );
 static	int	chk_phlx( STREL_T *, int, STREL_T [] );
 static	int	chk_triplex( STREL_T *, int, STREL_T [] );
 static	int	chk_4plex( STREL_T *, int, STREL_T [] );
+static	int	set_context( int, STREL_T [] );
 static	int	chk_sites( int, STREL_T [], SITE_T * );
 static	int	chk_1_site( int, STREL_T *, SITE_T * );
 static	int	chk_seq( STREL_T *, char [], int );
@@ -254,7 +262,9 @@ static	int	find_ss( SEARCH_T *srp )
 		rv = find_motif( n_srp );
 	}else{
 		rv = 1;
-		if( !chk_sites( rm_n_descr, rm_descr, rm_sites ) ){
+		if( !set_context( rm_n_descr, rm_descr ) ){
+			rv = 0;
+		}else if( !chk_sites( rm_n_descr, rm_descr, rm_sites ) ){
 			rv = 0;
 		}else if( RM_score( fm_comp, fm_slen, fm_sbuf ) )
 			print_match( stdout,
@@ -1496,6 +1506,32 @@ static	int	chk_4plex( STREL_T *stp, int n_descr, STREL_T descr[] )
 	return( 1 );
 }
 
+static	int	set_context( int n_descr, STREL_T descr[] )
+{
+	STREL_T	*stp;
+	int	offset;
+	int	rv = 1;
+
+	if( rm_lctx == NULL ){
+		if( rm_rctx == NULL )
+			return( 1 );
+	}else{
+		stp = &descr[ 0 ];
+		rm_lctx->s_matchoff =
+			MAX( stp->s_matchoff - rm_lctx->s_maxlen, 0 );
+		rm_lctx->s_matchlen = 
+			stp->s_matchoff - rm_lctx->s_matchoff;
+	}
+	if( rm_rctx != NULL ){
+		stp = &descr[ n_descr - 1 ];
+		rm_rctx->s_matchoff = stp->s_matchoff + stp->s_matchlen;
+		offset = MIN( rm_rctx->s_matchoff+rm_rctx->s_maxlen, fm_slen );
+		rm_rctx->s_matchlen = offset - rm_rctx->s_matchoff;
+	}
+
+	return( rv );
+}
+
 static	int	chk_sites( int n_descr, STREL_T descr[], SITE_T *sites )
 {
 	SITE_T	*sip;
@@ -1518,7 +1554,10 @@ static	int	chk_1_site( int n_descr, STREL_T descr[], SITE_T *sip )
 	int	rv;
 
 	for( pp = sip->s_pos, p = 0; p < sip->s_n_pos; p++, pp++ ){
+/*
 		stp = &descr[ pp->p_dindex ];
+*/
+		stp = pp->p_descr;
 		ap = &pp->p_addr;
 		if( ap->a_l2r ){
 			if( ap->a_offset > stp->s_matchlen )
@@ -1574,11 +1613,27 @@ static	void	print_match( FILE *fp, char sid[], int comp,
 		first = 0;
 		fprintf( fp, "#RM scored\n" );
 		fprintf( fp, "#RM descr" );
+		if( rm_lctx != NULL ){
+			RM_strel_name( rm_lctx, name );
+			fprintf( fp, " %s", name );
+			if( rm_lctx->s_tag != NULL ){
+				mk_cstr( rm_lctx->s_tag, cstr );
+				fprintf( fp, "(tag='%s')", cstr );
+			}
+		}
 		for( stp = descr, d = 0; d < n_descr; d++, stp++ ){
 			RM_strel_name( stp, name );
 			fprintf( fp, " %s", name );
 			if( stp->s_tag != NULL ){
 				mk_cstr( stp->s_tag, cstr );
+				fprintf( fp, "(tag='%s')", cstr );
+			}
+		}
+		if( rm_rctx != NULL ){
+			RM_strel_name( rm_rctx, name );
+			fprintf( fp, " %s", name );
+			if( rm_rctx->s_tag != NULL ){
+				mk_cstr( rm_rctx->s_tag, cstr );
 				fprintf( fp, "(tag='%s')", cstr );
 			}
 		}
@@ -1611,10 +1666,26 @@ static	void	print_match( FILE *fp, char sid[], int comp,
 	}
 	fprintf( fp, " %d %7d %4d", comp, offset, len );
 
+	if( rm_lctx != NULL ){
+		if( rm_lctx->s_matchlen > 0 ){
+			fprintf( fp, " %.*s",
+				rm_lctx->s_matchlen,
+				&fm_sbuf[ rm_lctx->s_matchoff ] );
+		}else
+			fprintf( fp, " ." );
+	}
 	for( d = 0; d < n_descr; d++, stp++ ){
 		if( stp->s_matchlen > 0 ){
 			fprintf( fp, " %.*s",
 				stp->s_matchlen, &fm_sbuf[ stp->s_matchoff ] );
+		}else
+			fprintf( fp, " ." );
+	}
+	if( rm_rctx != NULL ){
+		if( rm_rctx->s_matchlen > 0 ){
+			fprintf( fp, " %.*s",
+				rm_rctx->s_matchlen,
+				&fm_sbuf[ rm_rctx->s_matchoff ] );
 		}else
 			fprintf( fp, " ." );
 	}

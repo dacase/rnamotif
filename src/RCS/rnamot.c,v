@@ -1,9 +1,14 @@
-head	1.62;
+head	1.63;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.63
+date	2001.07.30.19.56.22;	author macke;	state Exp;
+branches;
+next	1.62;
 
 1.62
 date	2001.05.31.21.01.49;	author macke;	state Exp;
@@ -321,10 +326,10 @@ desc
 @
 
 
-1.62
+1.63
 log
-@Updated to deal with FN_fgetseq() now returning 0 for a 0-length
-sequence and EOF for true end of file.
+@bumped size of sbuf to 30,000,000 so as to deal with
+largest HS chromo file.
 @
 text
 @#include <stdio.h>
@@ -363,7 +368,7 @@ extern	int		rm_n_searches;
 static	char	sid[ SID_SIZE ];
 #define	SDEF_SIZE	20000
 static	char	sdef[ SDEF_SIZE ];
-#define	SBUF_SIZE	5000000
+#define	SBUF_SIZE	30000000
 static	char	sbuf[ SBUF_SIZE ];
 static	int	slen;
 static	char	csbuf[ SBUF_SIZE ];
@@ -510,6 +515,18 @@ static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
 	for( sp = sbuf, cp = &csbuf[ slen - 1 ], i = 0; i < slen; i++ )
 		*cp-- = wc_cmp[ *sp++ ];
 }
+@
+
+
+1.62
+log
+@Updated to deal with FN_fgetseq() now returning 0 for a 0-length
+sequence and EOF for true end of file.
+@
+text
+@d37 1
+a37 1
+#define	SBUF_SIZE	5000000
 @
 
 

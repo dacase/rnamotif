@@ -44,6 +44,7 @@ sites		return( SYM_SITES );
 score		return( SYM_SCORE );
 
 se		return( SYM_SE );
+ctx		return( SYM_CTX );
 ss		return( SYM_SS );
 h5		return( SYM_H5 );
 h3		return( SYM_H3 );

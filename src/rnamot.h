@@ -1,7 +1,7 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.5.3 2001-jun-03"
+#define	VERSION	"v1.5.98 2001-jun-29"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ seq-file ... ]\n\n\
@@ -11,6 +11,7 @@ options:\n\
 \t-h\t\t\tDump the strucure hierarchy\n\
 \t-s\t\t\tShow builtin variables\n\
 \t-v\t\t\tPrint Version Infomation\n\
+\t-context\t\tPrint solution context\n\
 \t-Dvar=expr\t\tSet the value of var to expr\n\
 \t-Idir\t\t\tAdd include source directory, dir\n\
 \t-xdfname file-name\tPreprocessor output file\n\
@@ -123,7 +124,7 @@ typedef	struct	pos_t	{
 	int	p_type;
 	int	p_lineno;
 	char	*p_tag;
-	int	p_dindex;
+	void	*p_descr;
 	ADDR_T	p_addr;
 } POS_T;
 

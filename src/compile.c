@@ -26,6 +26,7 @@ int	rm_hopt = 0;
 int	rm_popt = 0;
 int	rm_sopt = 0;
 int	rm_vopt = 0;
+int	rm_show_context = 0;
 FILE	*rm_dbfp = NULL;
 char	**rm_dbfname;
 int	rm_n_dbfname;
@@ -35,10 +36,6 @@ int	rm_c_dbfname;
 static	VALUE_T	valstk[ VALSTKSIZE ];
 static	int	n_valstk;
 
-/*
-#define	RM_GLOBAL_IDS_SIZE	50
-IDENT_T	*rm_global_ids[ RM_GLOBAL_IDS_SIZE ];
-*/
 IDENT_T	*rm_global_ids;
 int	rm_n_global_ids = 0;
 
@@ -60,8 +57,12 @@ int	n_curpair;
 STREL_T	rm_descr[ RM_DESCR_SIZE ];
 int	rm_s_descr = RM_DESCR_SIZE;
 int	rm_n_descr;
-int	rm_dminlen;	/* min len. of entire motif	*/
-int	rm_dmaxlen;	/* max len. of entire motif	*/
+int	rm_dminlen;		/* min len. of entire motif	*/
+int	rm_dmaxlen;		/* max len. of entire motif	*/
+STREL_T	*rm_lctx = NULL;	/* left context */
+int	rm_lctx_explicit = 0;	/* set via a ctx element	*/
+STREL_T	*rm_rctx = NULL;	/* left context */
+int	rm_rctx_explicit = 0;	/* set via a ctx element	*/
 static	STREL_T	*stp;
 #define	SCOPE_STK_SIZE	100
 static	STREL_T	*scope_stk[ SCOPE_STK_SIZE ];
@@ -112,6 +113,7 @@ static	IDENT_T	*findid( IDENT_T *, char * );
 
 char	*RM_str2seq( char [] );
 
+static	void	SE_init( STREL_T *, int );
 static	int	ends2attr( char [] );
 static	void	eval( NODE_T *, int );
 static	int	loadidval( VALUE_T *vp );
@@ -121,6 +123,7 @@ static	void	*mk_bmatp( PAIRSET_T * );
 static	void	*mk_rbmatp( PAIRSET_T * );
 static	POS_T	*posop( char [], void *, POS_T * );
 static	int	seqlen( char [], int *, int *, int *, int * );
+static	int	chk_context( void );
 static	int	link_tags( int, STREL_T [] );
 static	void	chk_tagorder( int, STREL_T *[] );
 static	void	mk_links( int, STREL_T *[] );
@@ -179,6 +182,8 @@ int	RM_init( int argc, char *argv[] )
 			rm_sopt = 1;
 		else if( !strcmp( argv[ ac ], "-v" ) )
 			rm_vopt = 1;
+		else if( !strcmp( argv[ ac ], "-context" ) )
+			rm_show_context = 1;
 		else if( !strcmp( argv[ ac ], "-descr" ) ){
 			if( ac == argc - 1 ){
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
@@ -355,6 +360,18 @@ int	RM_init( int argc, char *argv[] )
 	RM_enter_id( "show_progress", T_INT, C_VAR, S_GLOBAL, 0, &val );
 
 	val.v_type = T_INT;
+	val.v_value.v_ival = 0;
+	RM_enter_id( "ctx_minlen", T_INT, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 100;
+	RM_enter_id( "ctx_maxlen", T_INT, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = 10000;
+	RM_enter_id( "ALL", T_INT, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_INT;
 	val.v_value.v_ival = 3;
 	RM_enter_id( "wc_minlen", T_INT, C_VAR, S_GLOBAL, 0, &val );
 
@@ -510,8 +527,6 @@ NODE_T	*PR_close( void )
 
 void	SE_open( int stype )
 {
-	VALUE_T	val;
-	IDENT_T	*ip;
 
 	n_valstk = 0;
 	if( stype == SYM_SE ){
@@ -519,18 +534,62 @@ void	SE_open( int stype )
 		RM_errormsg( 1,
 			"SE_open: strel 'se' allowed only in score section." );
 	}
-	if( rm_n_descr == rm_s_descr ){
+	if( stype != SYM_CTX ){
+		if( rm_rctx != NULL ){
+			rm_emsg_lineno = rm_lineno;
+			RM_errormsg( 1,
+			"SE_open: Right ctx element must be last element." );
+		}
+		if( rm_n_descr == rm_s_descr ){
+			rm_emsg_lineno = rm_lineno;
+			sprintf( emsg,
+				"SE_open: descr array size(%d) exceeded.",
+				rm_s_descr );
+			RM_errormsg( 1, emsg );
+		}
+		stp = &rm_descr[ rm_n_descr ];
+		rm_n_descr++;
+	}else if( rm_n_descr == 0 ){
+		if( rm_lctx == NULL ){
+			stp = ( STREL_T * )malloc( sizeof( STREL_T ) );
+			if( stp == NULL ){
+				rm_emsg_lineno = rm_lineno;
+				RM_errormsg( 1,
+			"SE_open: can't allocate stp for left ctx element." );
+			}
+			rm_lctx = stp;
+			rm_lctx_explicit = 1;
+		}else{
+			rm_emsg_lineno = rm_lineno;
+			RM_errormsg( 1,
+		"SE_open: ctx elements must contain a real descriptor." );
+		}
+	}else if( rm_rctx == NULL ){
+		stp = ( STREL_T * )malloc( sizeof( STREL_T ) );
+		if( stp == NULL ){
+			rm_emsg_lineno = rm_lineno;
+			RM_errormsg( 1,
+			"SE_open: can't allocate stp for right ctx element." );
+		}
+		rm_rctx = stp;
+		rm_rctx_explicit = 1;
+	}else{
 		rm_emsg_lineno = rm_lineno;
-		sprintf( emsg, "SE_open: descr array size(%d) exceeded.",
-			rm_s_descr );
-		RM_errormsg( 1, emsg );
+		RM_errormsg( 1,
+		"SE_open: Descr can contain at most 1 right ctx element." );
 	}
-	stp = &rm_descr[ rm_n_descr ];
-	rm_n_descr++;
+	SE_init( stp, stype );
+}
+
+static	void	SE_init( STREL_T *stp, int stype )
+{
+	VALUE_T	val;
+	IDENT_T	*ip;
+
 	stp->s_checked = 0;
 	stp->s_type = stype;
 	stp->s_attr = 0;
-	stp->s_index = rm_n_descr - 1;
+	stp->s_index = stype != SYM_CTX ? rm_n_descr - 1 : UNDEF;
 	stp->s_lineno = rm_lineno;
 	stp->s_searchno = UNDEF;
 	stp->s_matchoff = UNDEF;
@@ -688,9 +747,6 @@ void	SE_close( void )
 				}
 			}
 		}else if( !strcmp( ip->i_name, "seq" ) ){
-/*
-			stp->s_seq = str2seq( ip->i_val.v_value.v_pval );
-*/
 			stp->s_seq = ip->i_val.v_value.v_pval;
 		}else if( !strcmp( ip->i_name, "mismatch" ) ){
 			stp->s_mismatch = ip->i_val.v_value.v_ival;
@@ -744,6 +800,9 @@ int	SE_link( int n_descr, STREL_T descr[] )
 		return( 1 );
 	}
 
+	if( chk_context() )
+		return( 1 );
+
 	if( link_tags( n_descr, descr ) )
 		return( 1 );
 
@@ -770,6 +829,37 @@ int	SE_link( int n_descr, STREL_T descr[] )
 	set_search_order_links( rm_n_searches, rm_searches );
 
 	return( err );
+}
+
+static	int	chk_context( void )
+{
+
+	if( !rm_show_context )
+		return( 0 );
+
+	if( rm_lctx == NULL ){
+		rm_lctx = ( STREL_T * )malloc( sizeof( STREL_T ) );
+		if( rm_lctx == NULL ){
+			rm_emsg_lineno = rm_lineno;
+			RM_errormsg( 1,
+				"chk_context: can't allocate rm_lctx." );
+			return( 1 );
+		}
+		SE_init( rm_lctx, SYM_CTX );
+	}
+
+	if( rm_rctx == NULL ){
+		rm_rctx = ( STREL_T * )malloc( sizeof( STREL_T ) );
+		if( rm_rctx == NULL ){
+			rm_emsg_lineno = rm_lineno;
+			RM_errormsg( 1,
+				"chk_context: can't allocate rm_rctx." );
+			return( 1 );
+		}
+		SE_init( rm_rctx, SYM_CTX );
+	}
+
+	return( 0 );
 }
 
 static	int	link_tags( int n_descr, STREL_T descr[] )
@@ -1357,6 +1447,16 @@ static	int	chk_strel_parms( int n_descr, STREL_T descr[] )
 			stp->s_mismatch = 0;
 	for( err = 0, stp = descr, i = 0; i < n_descr; i++, stp++ )
 		err |= chk_1_strel_parms( stp );
+	if( rm_lctx != NULL ){
+		if( rm_lctx->s_mismatch == UNDEF )
+			rm_lctx->s_mismatch = 0;
+		err != chk_1_strel_parms( rm_lctx );
+	}
+	if( rm_rctx != NULL ){
+		if( rm_rctx->s_mismatch == UNDEF )
+			rm_rctx->s_mismatch = 0;
+		err != chk_1_strel_parms( rm_rctx );
+	}
 	return( err );
 }
 
@@ -1398,7 +1498,8 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 	n_egroup = stp->s_n_mates + 1;
 
 	/* check & set the lengths from minlen, maxlen & seq		*/ 
-	if(	stype == SYM_SS || stype == SYM_P5 || stype == SYM_H5 ||
+	if(	stype == SYM_CTX || stype == SYM_SS ||
+		stype == SYM_P5 || stype == SYM_H5 ||
 		stype == SYM_T1 || stype == SYM_Q1 )
 	{
 		err = chk_len_seq( n_egroup, egroup ); 
@@ -1530,10 +1631,6 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 	for( i = 0; i < n_egroup; i++ ){
 		stp = egroup[ i ];
 		if( stp->s_seq != NULL ){
-/*
-			size = strlen( stp->s_seq );
-			size = size > 100 ? 2.5 * size : 250;
-*/
 			size = RE_BPC * strlen( stp->s_seq );
 			stp->s_expbuf =
 				( char * )malloc( size * sizeof( char ) );
@@ -1586,7 +1683,9 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 	}else if( stp0->s_type == SYM_H5 ){
 		ip = RM_find_id( "wc_minlen" );
 		minl = ip->i_val.v_value.v_ival;
-	}else
+	}else if( stp0->s_type == SYM_CTX )
+		minl = 0;
+	else
 		minl = 1;
 
 	if( x_maxl != UNDEF ){
@@ -1604,6 +1703,9 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 		maxl = i_maxl;
 	}else if( stp0->s_type == SYM_H5 ){
 		ip = RM_find_id( "wc_maxlen" );
+		maxl = ip->i_val.v_value.v_ival;
+	}else if( stp0->s_type == SYM_CTX ){
+		ip = RM_find_id( "ctx_maxlen" );
 		maxl = ip->i_val.v_value.v_ival;
 	}else
 		maxl = UNBOUNDED;
@@ -1631,27 +1733,6 @@ IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
 	IDENT_T	*ip;
 	char	*np;
 
-/*
-	if( scope == S_GLOBAL ){
-		if( rm_n_global_ids >= RM_GLOBAL_IDS_SIZE ){
-			RM_errormsg( 1, 
-				"RM_enter_id: global symbol tab overflow." );
-		}
-		ip = &rm_global_ids[ rm_n_global_ids ];
-		rm_n_global_ids++;
-	}else{
-		if( n_local_ids >= LOCAL_IDS_SIZE ){
-			RM_errormsg( 1,
-				"RM_enter_id: local symbol tab overflow." );
-		}
-		ip = ( IDENT_T * )malloc( sizeof( IDENT_T ) );
-		if( ip == NULL ){
-			RM_errormsg( 1, "RM_enter_id: can't alloc local ip." );
-		}
-		local_ids[ n_local_ids ] = ip;
-		n_local_ids++;
-	}
-*/
 	ip = ( IDENT_T * )malloc( sizeof( IDENT_T ) );
 	if( ip == NULL ){
 		sprintf( emsg, "RM_enter_id: can't alloc ip for %s id '%s'.",
@@ -1696,13 +1777,6 @@ IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
 		}
 	}
 	if( scope == S_GLOBAL ){
-/*
-		if( rm_n_global_ids >= RM_GLOBAL_IDS_SIZE ){
-			RM_errormsg( 1, 
-				"RM_enter_id: global symbol tab overflow." );
-		}
-		rm_global_ids[ rm_n_global_ids ] = ip;
-*/
 		rm_global_ids = enterid( rm_global_ids, ip );
 		rm_n_global_ids++;
 	}else{
@@ -1726,19 +1800,6 @@ IDENT_T	*RM_find_id( char name[] )
 		if( !strcmp( name, ip->i_name ) )
 			return( ip );
 	}
-/*
-	for( ip = rm_global_ids, i = 0; i < rm_n_global_ids; i++, ip++ ){
-		if( !strcmp( name, ip->i_name ) )
-			return( ip );
-	}
-*/
-/*
-	for( i = 0; i < rm_n_global_ids; i++ ){
-	 	ip = rm_global_ids[ i ];
-		if( !strcmp( name, ip->i_name ) )
-			return( ip );
-	}
-*/
 	return( findid( rm_global_ids, name ) );
 }
 
@@ -2748,7 +2809,7 @@ void	POS_open( int ptype )
 	posp->p_type = ptype;
 	posp->p_lineno = rm_lineno;
 	posp->p_tag = NULL;
-	posp->p_dindex = UNDEF;
+	posp->p_descr = NULL;
 	posp->p_addr.a_l2r = 1;	/* 1 = 1..$; 0 = $..1	*/
 	posp->p_addr.a_offset = 0;
 
@@ -2850,11 +2911,11 @@ static	int	chk_site( SITE_T *sip )
 				if( stp->s_type != posp->p_type )
 					continue;
 				if( !strcmp( sp, stp->s_tag ) ){
-					posp->p_dindex = stp->s_index;
+					posp->p_descr = stp;
 					break;
 				}
 			}
-			if( posp->p_dindex == UNDEF ){
+			if( posp->p_descr == NULL ){
 				err = 1;
 				sprintf( emsg,
 					"position with undefined tag '%s'.",
@@ -2865,9 +2926,9 @@ static	int	chk_site( SITE_T *sip )
 		}
 	}
 	for( posp = sip->s_pos, i = 0; i < sip->s_n_pos; i++, posp++ ){
-		if( posp->p_dindex == UNDEF )
+		if( posp->p_descr == NULL )
 			continue;
-		stp = &rm_descr[ posp->p_dindex ];
+		stp = posp->p_descr;
 		if( posp->p_addr.a_l2r ){
 			if( posp->p_addr.a_offset > stp->s_minlen ){
 				err = 1;
@@ -3177,30 +3238,6 @@ static	void	find_search_order( int fd, STREL_T descr[] )
 					find_search_order( stp1->s_index,
 						descr );
 			}else{	/* snarl */
-/*
-				for( s = 0; s < stp->s_n_scopes; s++ ){
-					stp1 = stp->s_scopes[ s ];
-					if( stp1->s_type == SYM_H5 ){
-						srp = ( SEARCH_T * )
-						    malloc(sizeof(SEARCH_T));
-						if( srp == NULL ){
-							sprintf( emsg,
-			"find_search_order: can't allocate srp for hlx h5." );
-							RM_errormsg( 1, emsg );
-						}
-						srp->s_descr = stp1;
-						stp1->s_searchno=rm_n_searches;
-						srp->s_forward = NULL;
-						srp->s_backup = NULL;
-						rm_searches[rm_n_searches]=srp;
-						rm_n_searches++;
-					}
-					stp2 = stp1->s_inner;
-					if( stp2 != NULL )
-						find_search_order(
-							stp2->s_index, descr );
-				}
-*/
 				for( s = 0; s < stp->s_n_scopes; s++ ){
 					stp1 = stp->s_scopes[ s ];
 					if( stp1->s_type == SYM_H5 ){

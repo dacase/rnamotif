@@ -14,18 +14,19 @@ static	int	n_fields;
 static	char	ra_line[ LINE_SIZE ];
 static	char	line[ LINE_SIZE ];
 
-#define	DT_SS	0
-#define	DT_H5	1
-#define	DT_H3	2
-#define	DT_P5	3
-#define	DT_P3	4
-#define	DT_T1	5
-#define	DT_T2	6
-#define	DT_T3	7
-#define	DT_Q1	8
-#define	DT_Q2	9
-#define	DT_Q3	10
-#define	DT_Q4	11
+#define	DT_CTX	0
+#define	DT_SS	1
+#define	DT_H5	2
+#define	DT_H3	3
+#define	DT_P5	4
+#define	DT_P3	5
+#define	DT_T1	6
+#define	DT_T2	7
+#define	DT_T3	8
+#define	DT_Q1	9
+#define	DT_Q2	10
+#define	DT_Q3	11
+#define	DT_Q4	12
 
 typedef	struct	dn2t_t	{
 	char	*d_name;
@@ -33,6 +34,7 @@ typedef	struct	dn2t_t	{
 } DN2DT_T;
 
 static	DN2DT_T	dnames[] = {
+	{ "ctx", DT_CTX },
 	{ "ss", DT_SS },
 	{ "h5", DT_H5 },
 	{ "h3", DT_H3 },

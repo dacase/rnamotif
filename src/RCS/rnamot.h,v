@@ -1,9 +1,14 @@
-head	1.82;
+head	1.83;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.83
+date	2001.07.30.19.52.33;	author macke;	state Exp;
+branches;
+next	1.82;
 
 1.82
 date	2001.06.04.03.28.49;	author macke;	state Exp;
@@ -421,17 +426,17 @@ desc
 @
 
 
-1.82
+1.83
 log
-@Added new const RE_BPC (20) which is the number (max) of bytes/char for
-a reg. exp.
-Updated version.
+@updated msg to show context changed field of STREL_T that
+used an index to the current descr to use a pointer.  Updated
+version & date.
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.5.3 2001-jun-03"
+#define	VERSION	"v1.5.98 2001-jun-29"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ seq-file ... ]\n\n\
@@ -441,6 +446,7 @@ options:\n\
 \t-h\t\t\tDump the strucure hierarchy\n\
 \t-s\t\t\tShow builtin variables\n\
 \t-v\t\t\tPrint Version Infomation\n\
+\t-context\t\tPrint solution context\n\
 \t-Dvar=expr\t\tSet the value of var to expr\n\
 \t-Idir\t\t\tAdd include source directory, dir\n\
 \t-xdfname file-name\tPreprocessor output file\n\
@@ -553,7 +559,7 @@ typedef	struct	pos_t	{
 	int	p_type;
 	int	p_lineno;
 	char	*p_tag;
-	int	p_dindex;
+	void	*p_descr;
 	ADDR_T	p_addr;
 } POS_T;
 
@@ -622,6 +628,23 @@ typedef	struct	incdir_t	{
 } INCDIR_T;
 
 #endif
+@
+
+
+1.82
+log
+@Added new const RE_BPC (20) which is the number (max) of bytes/char for
+a reg. exp.
+Updated version.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v1.5.3 2001-jun-03"
+d14 1
+d127 1
+a127 1
+	int	p_dindex;
 @
 
 

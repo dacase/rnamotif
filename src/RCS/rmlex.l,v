@@ -1,9 +1,14 @@
-head	1.34;
+head	1.35;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.35
+date	2001.07.30.19.48.47;	author macke;	state Exp;
+branches;
+next	1.34;
 
 1.34
 date	2000.12.18.03.04.34;	author macke;	state Exp;
@@ -181,10 +186,9 @@ desc
 @
 
 
-1.34
+1.35
 log
-@rm_wdfname is now always allocated and all of its value are live during
-a run. Save the file name from the # line N 'XXX' lines.
+@added coded to return SYM_CTX on encountering new symbol ctx.
 @
 text
 @%{
@@ -233,6 +237,7 @@ sites		return( SYM_SITES );
 score		return( SYM_SCORE );
 
 se		return( SYM_SE );
+ctx		return( SYM_CTX );
 ss		return( SYM_SS );
 h5		return( SYM_H5 );
 h3		return( SYM_H3 );
@@ -440,6 +445,16 @@ static	FNAME_T	*enter_fname( FNAME_T **root, char fname[] )
 		fnp = *root;
 	return( fnp );
 }
+@
+
+
+1.34
+log
+@rm_wdfname is now always allocated and all of its value are live during
+a run. Save the file name from the # line N 'XXX' lines.
+@
+text
+@d47 1
 @
 
 

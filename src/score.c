@@ -24,6 +24,8 @@ extern	int	rm_lineno;
 extern	int	rm_emsg_lineno;	
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
+extern	STREL_T	*rm_lctx;
+extern	STREL_T	*rm_rctx;
 extern	int	rm_b2bc[];
 extern	int	rm_efninit;
 extern	char	rm_efndatadir[];
@@ -34,6 +36,9 @@ extern	int	*rm_hstnum;
 extern	int	rm_l_base;
 extern	int	rm_efnusestdbp;
 extern	PAIRSET_T	*rm_efnstdbp;
+
+static	STREL_T	**rm_xdescr;
+static	int	rm_n_xdescr;
 
 IDENT_T	*RM_find_id();
 IDENT_T	*RM_enter_id();
@@ -463,7 +468,7 @@ void	RM_expr( int lval, NODE_T *np )
 
 void	RM_linkscore( void )
 {
-	int	i;
+	int	i, x;
 	INST_T	*ip;
 	VALUE_T	v_svars;
 
@@ -476,6 +481,27 @@ void	RM_linkscore( void )
 				labtab[ ip->i_val.v_value.v_ival ];
 		}
 	}
+
+	rm_n_xdescr = rm_n_descr;
+	if( rm_lctx != NULL )
+		rm_n_xdescr++;
+	if( rm_rctx != NULL )
+		rm_n_xdescr++;
+	rm_xdescr = ( STREL_T ** )malloc( rm_n_xdescr * sizeof( STREL_T * ) );
+	if( rm_xdescr == NULL ){
+		rm_emsg_lineno = UNDEF;
+		RM_errormsg( 1, "RM_linkscore: can't allocate rm_xdescr." );
+	}
+	if( rm_lctx != NULL ){
+		rm_xdescr[ 0 ] = rm_lctx;
+		x = 1;
+	}else
+		x = 0;
+	for( i = 0; i < rm_n_descr; i++, x++ )
+		rm_xdescr[ x ] = &rm_descr[ i ];
+	if( rm_rctx != NULL )
+		rm_xdescr[ x ] = rm_rctx;
+
 	v_svars.v_type = T_INT;
 	v_svars.v_value.v_ival = rm_n_descr;
 	RM_enter_id( "NSE", T_INT, C_VAR, S_GLOBAL, 1, &v_svars );
@@ -1295,15 +1321,21 @@ static	int	strid( int stype, VALUE_T *v_id )
 
 	if( v_id->v_type == T_INT ){
 		idx = v_id->v_value.v_ival;
+/*
 		if( idx < 1 || idx > rm_n_descr ){
+*/
+		if( idx < 1 || idx > rm_n_xdescr ){
 			rm_emsg_lineno = UNDEF;
 			sprintf( emsg,
 				"strid: index (%d) out of range: 1 .. %d.",
-				idx, rm_n_descr );
+				idx, rm_n_xdescr );
 			RM_errormsg( 1, emsg );
 		}
 		idx--;
+/*
 		stp = &rm_descr[ idx ];
+*/
+		stp = rm_xdescr[ idx ];
 		if( stype != SYM_SE ){
 			if( stp->s_type != stype ){
 				mk_stref_name( stype, name1 );
@@ -1317,8 +1349,12 @@ static	int	strid( int stype, VALUE_T *v_id )
 		}
 	}else if( v_id->v_type == T_STRING ){
 		tag = v_id->v_value.v_pval;
+/*
 		stp = rm_descr;
 		for( idx = UNDEF, s = 0; s < rm_n_descr; s++, stp++ ){ 
+*/
+		for( idx = UNDEF, s = 0; s < rm_n_xdescr; s++ ){ 
+			stp = rm_xdescr[ s ];
 			if( stp->s_tag == NULL )
 				continue;
 			else if( !strcmp( stp->s_tag, tag ) ){
@@ -1328,16 +1364,6 @@ static	int	strid( int stype, VALUE_T *v_id )
 				}else if(stp->s_type==SYM_SS && stype==SYM_SE){ 
 					idx = s;
 					break;
-/*
-				}else{
-					mk_stref_name( stype, name1 );
-					mk_stref_name( stp->s_type, name2 );
-					rm_emsg_lineno = UNDEF;
-					sprintf( emsg,
-				"strid: ambiguous descr reference: %s vs %s.",
-						name1, name2 );
-					RM_errormsg( 1, emsg );
-*/
 				}
 			}
 		}
@@ -1712,13 +1738,19 @@ static	void	do_strf( INST_T *ip )
 	len   = mem[ sp     ].v_value.v_ival;
 	pos   = mem[ sp - 1 ].v_value.v_ival;
 	index = mem[ sp - 2 ].v_value.v_ival;
+/*
 	if( index < 0 || index >= rm_n_descr ){
+*/
+	if( index < 0 || index >= rm_n_xdescr ){
 		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;;
 		sprintf( emsg, "do_strf: no such descriptor %d.", index );
 		RM_errormsg( 1, emsg );
 	}
+/*
 	stp = &rm_descr[ index ];
+*/
+	stp = rm_xdescr[ index ];
 	if( pos == UNDEF )
 		pos = 1;
 	else if( pos < 0 ){
@@ -2970,6 +3002,7 @@ static	void	addnode( int lval, NODE_T *np, int l_andor )
 	case SYM_SITES :
 		break;
 
+	case SYM_CTX :
 	case SYM_SS :
 	case SYM_H5 :
 	case SYM_H3 :

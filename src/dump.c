@@ -7,14 +7,15 @@
 
 extern	INCDIR_T	*rm_idlist;
 
-/*
-extern	IDENT_T	*rm_global_ids[];
-*/
 extern	IDENT_T	*rm_global_ids;
 extern	int	rm_n_global_ids;
 
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
+extern	STREL_T	*rm_lctx;
+extern	int	rm_lctx_explicit;
+extern	STREL_T	*rm_rctx;
+extern	int	rm_rctx_explicit;
 
 extern	SITE_T	*rm_sites;
 
@@ -57,16 +58,6 @@ void	RM_dump( FILE *fp,
 
 	if( d_parms ){
 		fprintf( fp, "PARMS: %3d global symbols.\n", rm_n_global_ids );
-/*
-		for( ip = rm_global_ids, i = 0; i < rm_n_global_ids; i++, ip++ )
-			RM_dump_id( fp, ip, d_parms );
-*/
-/*
-		for( i = 0; i < rm_n_global_ids; i++ ){
-			ip = rm_global_ids[ i ];
-			RM_dump_id( fp, ip, d_parms );
-		}
-*/
 		RM_dump_gids( fp, rm_global_ids, d_parms );
 	}
 
@@ -74,6 +65,16 @@ void	RM_dump( FILE *fp,
 		fprintf( fp, "DESCR: %3d structure elements.\n", rm_n_descr );
 		for( stp = rm_descr, i = 0; i < rm_n_descr; i++, stp++ )
 			RM_dump_descr( fp, stp );
+		if( rm_lctx != NULL ){
+			fprintf( fp, "DESCR: left context (%s).\n",
+				rm_lctx_explicit ? "Explicit" : "Implicit" );
+			RM_dump_descr( fp, rm_lctx );
+		}
+		if( rm_rctx != NULL ){
+			fprintf( fp, "DESCR: right context (%s).\n",
+				rm_rctx_explicit ? "Explicit" : "Implicit" );
+			RM_dump_descr( fp, rm_rctx );
+		}
 	}
 
 	if( d_sites ){
@@ -312,6 +313,9 @@ void	RM_dump_descr( FILE *fp, STREL_T *stp )
 	fprintf( fp, "descr[%3d] = {\n", stp->s_index );
 	fprintf( fp, "\ttype     = " );
 	switch( stp->s_type ){
+	case SYM_CTX :
+		fprintf( fp, "ctx" );
+		break;
 	case SYM_SS :
 		fprintf( fp, "ss" );
 		break;
@@ -518,6 +522,7 @@ void	RM_dump_descr( FILE *fp, STREL_T *stp )
 
 void	RM_dump_pos( FILE *fp, int p, POS_T *posp )
 {
+	STREL_T	*stp;
 
 	fprintf( fp, "\tpos[%2d] = {\n", p + 1 );
 	fprintf( fp, "\t\ttype     = " );
@@ -567,7 +572,11 @@ void	RM_dump_pos( FILE *fp, int p, POS_T *posp )
 	fprintf( fp, "\t\tlineno   = %d\n", posp->p_lineno );
 	fprintf( fp, "\t\ttag      = '%s'\n",
 		posp->p_tag ? posp->p_tag : "(No tag)" );
-	fprintf( fp, "\t\tdindex   = %d\n", posp->p_dindex );
+	stp = posp->p_descr;
+/*
+	fprintf( fp, "\t\tdindex   = %d\n", posp->p_descr->s_index );
+*/
+	fprintf( fp, "\t\tdindex   = %d\n", stp->s_index );
 	fprintf( fp, "\t\tl2r      = %s\n",
 		posp->p_addr.a_l2r ? "TRUE" : "FALSE" );
 	fprintf( fp, "\t\toffset   = %d\n", posp->p_addr.a_offset );
@@ -599,6 +608,10 @@ void	RM_strel_name( STREL_T *stp, char name[] )
 {
 
 	switch( stp->s_type ){
+	case SYM_CTX :
+		strcpy( name, "ctx" );
+		break;
+
 	case SYM_SS :
 		strcpy( name, "ss" );
 		break;

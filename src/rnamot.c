@@ -34,7 +34,7 @@ extern	int		rm_n_searches;
 static	char	sid[ SID_SIZE ];
 #define	SDEF_SIZE	20000
 static	char	sdef[ SDEF_SIZE ];
-#define	SBUF_SIZE	5000000
+#define	SBUF_SIZE	30000000
 static	char	sbuf[ SBUF_SIZE ];
 static	int	slen;
 static	char	csbuf[ SBUF_SIZE ];

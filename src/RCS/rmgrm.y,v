@@ -1,9 +1,14 @@
-head	1.35;
+head	1.36;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.36
+date	2001.07.30.19.51.04;	author macke;	state Exp;
+branches;
+next	1.35;
 
 1.35
 date	2001.05.29.00.17.07;	author macke;	state Exp;
@@ -186,10 +191,9 @@ desc
 @
 
 
-1.35
+1.36
 log
-@modified to permit break N; or continue N; where N is an integer indicating
-the number of loops to break from or continue.  Default is 1.
+@added production for new structure element ctx.
 @
 text
 @%{
@@ -210,6 +214,7 @@ static	NODE_T	*np;
 %token	SYM_SCORE
 
 %token	SYM_SE
+%token	SYM_CTX
 %token	SYM_SS
 %token	SYM_H5
 %token	SYM_H3
@@ -317,6 +322,7 @@ strhdr		: strtype	{ if( rm_context == CTX_DESCR )
 					$$ = RM_node( $1, 0, 0, 0 );
 				} ;
 strtype		: SYM_SE	{ $$ = SYM_SE; }
+		| SYM_CTX	{ $$ = SYM_CTX; }
 		| SYM_SS	{ $$ = SYM_SS; }
 		| SYM_H5	{ $$ = SYM_H5; }
 		| SYM_H3	{ $$ = SYM_H3; }
@@ -561,6 +567,17 @@ char	msg[];
 	fprintf( stderr, "yyerror: %s\n", msg );
 	return( 0 );
 }
+@
+
+
+1.35
+log
+@modified to permit break N; or continue N; where N is an integer indicating
+the number of loops to break from or continue.  Default is 1.
+@
+text
+@d19 1
+d127 1
 @
 
 
