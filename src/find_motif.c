@@ -280,6 +280,7 @@ SEARCH_T	*srp;
 	s3lim = MIN( s3lim, h_maxl );
 	s3lim = sdollar - s3lim + 1;
 
+	rv = 0;
 	if( match_wchlx( stp, stp3, szero, sdollar, s3lim, &h3, &hlen ) ){
 
 		if( !chk_wchlx0( srp, szero, h3 ) )
@@ -298,8 +299,8 @@ SEARCH_T	*srp;
 
 		rv = find_motif( i_srp );
 		unmark_duplex( stp, szero, stp3, h3, hlen );
-	}else
-		return( 0 );
+	}
+	return( rv );
 }
 
 static	int	find_pknot(  srp )
@@ -319,6 +320,7 @@ SEARCH_T	*srp;
 	int	i1_len, i2_len, i3_len;
 	STREL_T	*i1_stp, *i2_stp, *i3_stp;
 	SEARCH_T	*i1_srp, *i2_srp, *i3_srp;
+	int	rv;
 
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
@@ -355,6 +357,7 @@ SEARCH_T	*srp;
 	s13_lim = MIN( s13_lim, h1_maxl );
 	s13_lim = s1_dollar - s13_lim + 1;
 
+	rv = 0;
 	if( match_wchlx( stp, stp2, szero, s1_dollar, s13_lim, &h13, &h1len ) ){
 
 		mark_duplex( stp, szero, stp2, h13, h1len );
@@ -368,20 +371,14 @@ SEARCH_T	*srp;
 				s2,sdollar,s23_lim,&h23,&h2len)){
 
 				i1_len = s2 - szero - h1len;
-				if( i1_len > i1_maxl ){
-					unmark_duplex(stp,szero,stp2,h13,h1len);
-					return( 0 );
-				}
+				if( i1_len > i1_maxl )
+					continue;
 				i2_len = h13 - h1len - ( s2 + h2len ) + 1;
-				if( i2_len > i2_maxl ){
-					unmark_duplex(stp,szero,stp2,h13,h1len);
-					return( 0 );
-				}
+				if( i2_len > i2_maxl )
+					continue;
 				i3_len = h23 - h13 - h2len;
-				if( i3_len > i3_maxl ){
-					unmark_duplex(stp,szero,stp2,h13,h1len);
-					return( 0 );
-				}
+				if( i3_len > i3_maxl )
+					continue;
 
 				mark_duplex( stp1, s2, stp3, h23, h2len );
 
@@ -392,17 +389,13 @@ SEARCH_T	*srp;
 				i3_srp->s_zero = h13 + 1;
 				i3_srp->s_dollar = h23 - h2len;
 
-				if( find_motif( i1_srp ) ){
-					return( 1 );
-				}else{
-					unmark_duplex(stp,szero,stp2,h13,h1len);
-					unmark_duplex(stp1,s2,stp3,h23,h2len );
-					return( 0 );
-				}
+				rv |= find_motif( i1_srp );
+				unmark_duplex( stp1, s2, stp3, h23, h2len );
 			}
 		}
+		unmark_duplex( stp, szero, stp2, h13, h1len );
 	}
-	return( 0 );
+	return( rv );
 }
 
 static	int	find_phlx( srp )
