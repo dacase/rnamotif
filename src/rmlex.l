@@ -1,5 +1,11 @@
 %{
+
+#include "rnamot.h"
 #include "y.tab.h"
+double	atof();		/* get it it if we ever need reals	*/
+
+VALUE_T	rmval;
+
 %}
 %%
 
@@ -27,13 +33,19 @@ q3		return( SYM_Q3 );
 q4		return( SYM_Q4 );
 
 [a-zA-Z][_a-zA-Z0-9]*	return( SYM_IDENT );
-[0-9]+		return( SYM_INT );
+[0-9]+		{ rmval.v_type = T_INT;
+		  rmval.v_value.v_ival = atoi( yytext );
+		  return( SYM_INT );
+		}
 \"[^"\n]*	{ if( yytext[ yyleng - 1 ] == '\\' )
 			yymore();
 		  else{
 			yytext[ yyleng ] = input();
 			yytext[ yyleng ] = '\0';
 			strcpy( yytext, &yytext[ 1 ] );
+			yyleng = strlen( yytext );
+			rmval.v_type = T_STRING;
+			rmval.v_value.v_cval = yytext;
 			return( SYM_STRING );
 		  }
 		}
