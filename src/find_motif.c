@@ -66,7 +66,7 @@ static	void	print_match();
 static	void	mk_cstr();
 static	void	set_mbuf();
 
-IDENT_T	*find_id();
+IDENT_T	*RM_find_id();
 
 int	find_motif_driver( n_searches, searches, sites,
 	sid, dtype, sdef, comp, slen, sbuf )
@@ -88,7 +88,7 @@ char	sbuf[];
 	int	rv;
 	
 	if( fm_winbuf == NULL ){
-		ip = find_id( "windowsize" );
+		ip = RM_find_id( "windowsize" );
 		if( ip == NULL )
 			errormsg( 1,
 				"find_motif_driver: windowsize undefined." );
@@ -267,7 +267,9 @@ SEARCH_T	*srp;
 		rv = 1;
 		if( !chk_sites( rm_n_descr, rm_descr, rm_sites ) )
 			return( 0 );
-		print_match( stdout, fm_sid, fm_comp, rm_n_descr, rm_descr );
+		if( SC_run() )
+			print_match( stdout,
+				fm_sid, fm_comp, rm_n_descr, rm_descr );
 /*
 		if( chk_motif( rm_n_descr, rm_descr, rm_sites ) ){
 			rv = 1;
