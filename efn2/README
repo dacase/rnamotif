@@ -1,0 +1,19 @@
+These are the only diff's found be *.cpp *.cpp-3.1 and *.h and *.h-3.1
+
+diff algorith.cpp algorith.cpp-3.1
+3036c3036
+< for (count=1;count<=46;count++) th1 >> lineoftext;//get past text in file
+---
+> for (count=1;count<=47;count++) th1 >> lineoftext;//get past text in file
+3065c3065
+< for (count=1;count<=46;count++) ti1 >> lineoftext;//get past text in file
+---
+> for (count=1;count<=47;count++) ti1 >> lineoftext;//get past text in file
+3397c3397
+< for (count=1;count<=46;count++) st2 >> lineoftext;//get past text in file
+---
+> for (count=1;count<=47;count++) st2 >> lineoftext;//get past text in file
+3442c3442
+< for (count=1;count<=46;count++) tsm >> lineoftext;//get past text in file
+---
+> for (count=1;count<=47;count++) tsm >> lineoftext;//get past text in file
