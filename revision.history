@@ -1,3 +1,15 @@
+3.0.3	2004-apr-14
+	Added #include <malloc.h> to every source file that uses malloc(),
+	calloc(), etc.  
+
+	Also added proto or mm_regdup() to mm_regexp.h, and
+	#include mm_regexp.h to compile.c  as this might be the cause of
+	the core dump J Smith reported
+
+3.0.2	2004-mar-24
+	Added a new line #RM dfile <descr-file-name> to the header of the
+	output.  Requested by Chris Fields <cjfields@uiuc.edu>
+	
 3.0.1	2003-nov-10
 	Modified rmlex.l to treat \r as white space.
 
