@@ -1,3 +1,18 @@
+1.3.3	2000-nov-15
+	Several (tricky) modifications done to permit users to set/reset
+	parameters from the cmd line.  The trick was to get the parser to
+	look at the sequence of cmd line defs as several potential defs,
+	like pairsets are rather complicated.  The solution was to collect
+	the defs into a file that is scanned after the descriptor is scanned,
+	this having the salutory effect of making cmd-line defs supercede
+	the defs in the descr.  To this however, required making a input
+	file consisting of entirely a parms section legal, which was done,
+	but covered by insisting that the actual descriptor file have a 
+	descriptor.  A side effect of all of this was to get about 2/3 of
+	the way to allowing includes.
+
+	Fixed oversight in compile.eval() that disallowed negates!
+
 1.3.2	2000-oct-29
 	Fixed bug that caused core dump when using empty sequence "".  
 	Problem didn't affect strings ('').

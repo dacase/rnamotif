@@ -2,8 +2,11 @@
 
 #include "rnamot.h"
 
+extern	FILE	*yyin;
+
 extern	int	rm_error;
 extern	char	rm_dfname[];
+extern	char	*rm_cldfname;
 extern	int	rm_copt;
 extern	int	rm_dopt;
 extern	int	rm_hopt;
@@ -64,6 +67,14 @@ main( int argc, char *argv[] )
 
 	if( yyparse() ){
 		RM_errormsg( 1, "syntax error." );
+	}
+	fclose( yyin );
+	if( rm_n_descr == 0 ){
+		RM_errormsg( 1, "no descriptor." );
+	}
+	if( rm_cldfname != NULL ){
+		if( RM_evalcldefs() )
+			exit( 1 );
 	}
 	if( !rm_error ){
 		if( SE_link( rm_n_descr, rm_descr ) )

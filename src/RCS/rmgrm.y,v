@@ -1,9 +1,14 @@
-head	1.31;
+head	1.32;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.32
+date	2000.11.15.05.19.31;	author macke;	state Exp;
+branches;
+next	1.31;
 
 1.31
 date	2000.03.27.22.52.51;	author macke;	state Exp;
@@ -166,11 +171,10 @@ desc
 @
 
 
-1.31
+1.32
 log
-@working version of "indexed" (h5[...]) descriptors in the score
-section.  Need to move some productions around to make it look
-nicer tho!
+@made the descr section optional in order to allow parsing of a file
+of cmd line defs after the descr has been parsed.
 @
 text
 @%{
@@ -269,7 +273,8 @@ program		: parm_part descr_part site_part score_part ;
 
 parm_part	: SYM_PARMS { rm_context = CTX_PARMS; } pd_list
 		| ;
-descr_part	: SYM_DESCR { rm_context = CTX_DESCR; } se_list ;
+descr_part	: SYM_DESCR { rm_context = CTX_DESCR; } se_list
+		| ;
 site_part	: SYM_SITES { rm_context = CTX_SITES; } kw_site_list
 		| ;
 score_part	: SYM_SCORE { rm_context = CTX_SCORE; } rule_list
@@ -538,6 +543,19 @@ char	msg[];
 	fprintf( stderr, "yyerror: %s\n", msg );
 	return( 0 );
 }
+@
+
+
+1.31
+log
+@working version of "indexed" (h5[...]) descriptors in the score
+section.  Need to move some productions around to make it look
+nicer tho!
+@
+text
+@d97 2
+a98 1
+descr_part	: SYM_DESCR { rm_context = CTX_DESCR; } se_list ;
 @
 
 

@@ -13,6 +13,7 @@ VALUE_T	rm_tokval;
 int	rm_lineno;
 int	rm_emsg_lineno;
 char	rm_dfname[ 256 ] = "--stdin--";
+char	*rm_cldfname = NULL;
 int	rm_copt = 0;
 int	rm_dopt = 0;
 int	rm_hopt = 0;
@@ -138,9 +139,11 @@ int	RM_init( int argc, char *argv[] )
 	NODE_T	*np;
 	char	*dfnp, *dbfnp;
 	VALUE_T	val;
+	FILE	*cfp;
 
 	dfnp = NULL;	/* descriptor file name	*/
 	dbfnp = NULL;	/* database file name	*/
+	cfp = NULL;	/* defs from the cmd line */
 	for( err = 0, ac = 1; ac < argc; ac++ ){
 		if( !strcmp( argv[ ac ], "-c" ) )
 			rm_copt = 1;
@@ -184,6 +187,21 @@ int	RM_init( int argc, char *argv[] )
 					break;
 				}
 			}
+		}else if( !strncmp( argv[ ac ], "-D", 2 ) ){
+			if( rm_cldfname == NULL )
+				rm_cldfname = tempnam( NULL, "defs" );
+			if( cfp == NULL ){
+				cfp = fopen( rm_cldfname, "w" );
+				if( cfp == NULL ){
+					fprintf( stderr,
+		"%s: argv[ 0 ], can't write cmd line defs to file %s.\n",
+						argv[ 0 ], rm_cldfname );
+					err = 1;
+					break;
+				}
+				fprintf( cfp, "parms\n" );
+			}
+			fprintf( cfp, "%s;\n", &argv[ ac ][ 2 ] );
 		}else if( *argv[ ac ] == '-' ){
 			fprintf( stderr, U_MSG_S, argv[ 0 ] );
 			err = 1;
@@ -195,8 +213,15 @@ int	RM_init( int argc, char *argv[] )
 		}else
 			dbfnp = argv[ ac ];
 	}
-	if( err )
+	if( cfp != NULL ){
+		fclose( cfp );
+		cfp = NULL;
+	}
+	if( err ){
+		if( rm_cldfname != NULL )
+			unlink( rm_cldfname );
 		return( 1 );
+	}
 
 	if( dfnp != NULL ){
 		if( ( yyin = fopen( dfnp, "r" ) ) == NULL ){
@@ -329,6 +354,34 @@ int	RM_init( int argc, char *argv[] )
 	RM_enter_id( "efn_stdbp", T_PAIRSET, C_VAR, S_GLOBAL, 0, &np->n_val );
 
 	rm_lineno = 1;
+
+	return( 0 );
+}
+
+int	RM_evalcldefs( void )
+{
+	char	save_rm_dfname[ 256 ];
+	int	save_rm_lineno;
+
+	strcpy( save_rm_dfname, rm_dfname );
+	save_rm_lineno = rm_lineno;
+	strcpy( rm_dfname, rm_cldfname );
+	rm_lineno = 1;
+
+	if( ( yyin = fopen( rm_dfname, "r" ) ) == NULL ){
+		rm_emsg_lineno = UNDEF;
+		RM_errormsg( 0, "can't read cmd-line defs file." );
+		unlink( rm_dfname );
+		return( 1 );
+	}
+	if( yyparse() ){
+		RM_errormsg( 1, "syntax error." );
+	}
+	fclose( yyin );
+	unlink( rm_dfname );
+
+	strcpy( rm_dfname, save_rm_dfname );
+	rm_lineno = save_rm_lineno;
 
 	return( 0 );
 }
@@ -1997,6 +2050,25 @@ static	void	eval( NODE_T *expr, int d_ok )
 			n_valstk--;
 			break;
 
+		case SYM_NEGATE :
+			r_type = valstk[ n_valstk - 1 ].v_type;
+			if( r_type == T_IDENT )
+				r_type = loadidval( &valstk[ n_valstk - 2 ] );
+			switch( r_type ){
+			case T_INT :
+				valstk[ n_valstk - 1 ].v_value.v_ival =
+					-valstk[ n_valstk - 1 ].v_value.v_ival;
+				break;
+			case T_FLOAT :
+				valstk[ n_valstk - 1 ].v_value.v_dval =
+					-valstk[ n_valstk - 1 ].v_value.v_dval;
+				break;
+			default :
+				RM_errormsg( 1, "eval: type mismatch '-'." );
+				break;
+			}
+			break;
+
 		case SYM_ASSIGN :
 			ip = valstk[ n_valstk - 2 ].v_value.v_pval;
 			l_type = ip->i_type;
@@ -2012,8 +2084,8 @@ static	void	eval( NODE_T *expr, int d_ok )
 			case T_IJ( T_INT, T_INT ) :
 				break;
 			case T_IJ( T_INT, T_FLOAT ) :
-				valstk[n_valstk-1].v_value.v_ival =
-					valstk[n_valstk-1].v_value.v_dval;
+				/* promote _variable_ to float: */
+				valstk[n_valstk-1].v_type = T_FLOAT;
 				break;
 			case T_IJ( T_FLOAT, T_INT ) :
 				valstk[n_valstk-1].v_value.v_dval =
