@@ -1,0 +1,65 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	2000.09.14.22.54.00;	author macke;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2000.09.14.21.55.02;	author macke;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@windows stuff.
+@
+text
+@//	TProgressDialog is opened to notify the user of the progress of
+//	the folding algorithm
+
+class TProgressDialog 
+{
+	public:
+
+   	void update(int frac) {
+		cout << frac <<"%\n";
+	}
+};
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 2
+a3 6
+
+
+///////////////////////////////////////////////////////////////////////////
+////////TProgressDialog is opened to notify the user of the progress of
+////////the folding algorithm
+
+a10 2
+
+
+a11 6
+
+
+/////////////////////////////////////////////////////////////////////////
+/////////TRnaDialog is the main program interface
+
+
+@

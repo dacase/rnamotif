@@ -1,0 +1,178 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@// @;
+
+
+1.2
+date	2000.09.14.22.09.46;	author macke;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2000.09.14.21.55.02;	author macke;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@removed commented out routines, reformatted to be readable.
+@
+text
+@//SGI platform code for RNAstructure
+# define bool int
+# define true 1
+# define false 0
+# define TRUE 1
+# define FALSE 0
+//# define try /* not supported on SGI */
+//# define catch /* not supported on SGI */
+//# define (xalloc) /* not defined on SGI */
+//#define floor ffloor
+//#define floor /*floor*/
+#define sgifix strcat(line," ");
+#define binary in
+
+#include <math.h>
+
+int min(int i, int j)
+{
+
+	if (i>j) return j;
+	return i;
+}
+
+int max (int i,int j)
+{
+
+	if (i<j) return j;
+	return i;
+}
+
+int pow10(int i)
+{
+	int j, n;
+
+	if (i==0) return 1;
+	j = 1;
+
+	for (n=1;n<=i;n++) {
+		j = 10*j;
+	}
+
+	return j;
+}
+
+void itoa (int x, char *ch, int i) 
+{
+	float y;
+
+	y = float (x);
+	gcvt(y,6,ch);
+}
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a0 2
+
+
+a14 1
+
+d17 2
+a18 2
+
+int min(int i, int j) {
+d20 2
+a21 4
+if (i>j) return j;
+
+return i;
+
+d24 2
+a25 3
+int max (int i,int j) {
+
+if (i<j) return j;
+d27 2
+a28 2
+return i;
+
+d31 3
+a33 9
+int pow10(int i) {
+int j,n;
+
+if (i==0) return 1;
+j = 1;
+
+for (n=1;n<=i;n++) {
+	j = 10*j;
+}
+d35 2
+a36 6
+return j;
+}
+
+
+/*void itoa (int column,char *number,int i )
+{
+d38 3
+a40 1
+int check,n,m,digit[10];
+d42 1
+a42 7
+check = column;
+for (n=1;check;n++) {
+	digit[n] = column - (int (pow10(n)))*int (floor(column/int (pow10(n))));
+	for (m=1;m<=n-1;m++) digit[n] = digit[n] - int (pow10(m))*digit[m];
+	check = check - digit[n];
+	digit[n] = digit[n]/int (pow10(n-1));
+   number[n-1]=digit[n];
+d45 1
+a45 5
+}*/
+
+
+
+void itoa (int x,char *ch,int i) 
+d47 1
+a47 1
+float y;
+d49 2
+a50 3
+y = float (x);
+gcvt(y,6,ch);
+
+a51 20
+
+
+
+
+
+/*double log(double i) {
+
+
+return (log (double(i)));
+
+
+}*/
+
+/*int floor(float i) {
+
+return (ffloor (i));
+
+}*/
+
+
+@
