@@ -33,6 +33,7 @@ static	int	context = CTX_START;
 
 %token	SYM_IDENT
 %token	SYM_INT
+%token	SYM_FLOAT
 %token	SYM_STRING
 
 %token	SYM_ASSIGN
@@ -78,6 +79,7 @@ add_op		: SYM_PLUS	{ $$ = SYM_PLUS; }
 val		: ident		{ $$ = $1; }
 		| pairval 	{ $$ = $1; }
 		| SYM_INT	{ $$ = node( SYM_INT, &rm_tokval, 0, 0 ); }
+		| SYM_FLOAT	{ $$ = node( SYM_FLOAT, &rm_tokval, 0, 0 ); }
 		| SYM_DOLLAR	{ $$ = node( SYM_DOLLAR, &rm_tokval, 0, 0 ); }
 		| SYM_STRING	{ $$ = node( SYM_STRING, &rm_tokval, 0, 0 ); } ;
 
