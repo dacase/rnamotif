@@ -149,13 +149,14 @@ static	char	*opnames[ N_OP ] = {
 #define	SC_EFN		2
 #define	SC_EFN2		3
 #define	SC_LENGTH	4
-#define	SC_MISMATCHES	5
-#define	SC_MISMATCHES_1	6
-#define	SC_MISMATCHES_2	7
-#define	SC_MISPAIRS	8
-#define	SC_PAIRED	9
-#define	SC_SPRINTF	10
-#define	N_SC		11
+#define	SC_LOC		5
+#define	SC_MISMATCHES	6
+#define	SC_MISMATCHES_1	7
+#define	SC_MISMATCHES_2	8
+#define	SC_MISPAIRS	9
+#define	SC_PAIRED	10
+#define	SC_SPRINTF	11
+#define	N_SC		12
 
 static	char	*scnames[ N_SC ] = {
 	"STRID",
@@ -163,6 +164,7 @@ static	char	*scnames[ N_SC ] = {
 	"efn",
 	"efn2",
 	"length",
+	"loc",
 	"mismatches",	/* Kludge, depends on linear search!	*/
 	"mismatches",	/* Require so dumpinst() doesn't fail	*/
 	"mismatches",
@@ -989,6 +991,30 @@ static	void	fix_call( NODE_T *np )
 		break;
 	case SC_LENGTH :
 		break;
+	case SC_LOC :
+		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
+			pcnt++;
+		if( pcnt != 1 ){
+			rm_wdfname = np->n_filename;
+			rm_emsg_lineno = np->n_lineno;
+			sprintf( emsg,
+				"fix_call: function '%s' has 1 parameters.",
+				 scnames[ sc ] );
+			RM_errormsg( 1, emsg );
+		}
+		np1 = np->n_right;
+		np1 = np1->n_left;
+		if( np1->n_sym != SYM_KW_STREF && np1->n_sym != SYM_IX_STREF ){
+			rm_wdfname = np1->n_filename;
+			rm_emsg_lineno = np1->n_lineno;
+			sprintf( emsg,
+			"fix_call: function '%s' takes only strel arguments.",
+				scnames[ sc ] );
+			RM_errormsg( 1, emsg );
+		}else
+			np1 = np1->n_right;
+		np->n_right = np1;
+		break;
 	case SC_MISMATCHES :	/* 1 or 2 parms */
 		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
 			pcnt++;
@@ -1373,6 +1399,44 @@ static	void	do_scl( INST_T *ip )
 		mem[ sp ].v_type = T_INT;
 		mem[ sp ].v_value.v_ival = len;
 		break; 
+
+	case SC_LOC :
+		idx  = mem[ sp - 2 ].v_value.v_ival;
+		if( idx < 0 || idx >= rm_n_xdescr ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, 
+		"do_scl: loc: descr index must be between 1 and %d.",
+				rm_n_xdescr );
+			RM_errormsg( 1, emsg );
+		}
+		stp = rm_xdescr[ idx ];
+		pos = mem[ sp - 1 ].v_value.v_ival;
+		if( pos == UNDEF )
+			pos = 1;
+		else if( pos < 0 ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1, "do_scl: loc: pos must be > 0." );
+		}else if( stp->s_matchlen == 0 ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( 1,
+	"do_scl: loc: descr must have match len > 0." );
+		}else if( pos > stp->s_matchlen ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg, "do_scl: loc: pos must be <= %d.",
+				stp->s_matchlen );
+			RM_errormsg( 1, emsg );
+		}
+		pos--;
+		len  = mem[ sp ].v_value.v_ival;
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+		mem[ sp ].v_type = T_INT;
+		mem[ sp ].v_value.v_ival = stp->s_matchoff + 1;
+		break;
 
 /*
 	case SC_MISMATCHES :
@@ -2009,18 +2073,12 @@ static	void	do_strf( INST_T *ip )
 	len   = mem[ sp     ].v_value.v_ival;
 	pos   = mem[ sp - 1 ].v_value.v_ival;
 	index = mem[ sp - 2 ].v_value.v_ival;
-/*
-	if( index < 0 || index >= rm_n_descr ){
-*/
 	if( index < 0 || index >= rm_n_xdescr ){
 		rm_wdfname = ip->i_filename;
 		rm_emsg_lineno = ip->i_lineno;;
 		sprintf( emsg, "do_strf: no such descriptor %d.", index );
 		RM_errormsg( 1, emsg );
 	}
-/*
-	stp = &rm_descr[ index ];
-*/
 	stp = rm_xdescr[ index ];
 	if( pos == UNDEF )
 		pos = 1;

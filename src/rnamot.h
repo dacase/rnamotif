@@ -1,7 +1,7 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.1.2 2002-mar-08"
+#define	VERSION	"v2.1.3 2002-apr-11"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
