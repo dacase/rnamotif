@@ -1,3 +1,10 @@
+2.0.0	2001-dec-19
+	Added query optimization that looks for the best fixed subpattern among
+	the seq=, and if this sub pat is long enough, has a bounded prefix and
+	optimization is on, searches each seq in the DB for instances of this
+	subpattern then for each such instance seaches the appropriate
+	containing region for instances of the entire pattern.  Fast!
+
 1.7.1   2001-nov-29
 	Updated Users' Manual to include references and information about
 	efn() and efn2()
