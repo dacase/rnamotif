@@ -271,3 +271,59 @@ STREL_T	*stp;
 
 	fprintf( fp, "}\n" );
 }
+
+RM_dump_pos( fp, posp )
+FILE	*fp;
+POS_T	*posp;
+{
+
+	fprintf( fp, "\ttype     = " );
+	switch( posp->p_type ){
+	case SYM_SS :
+		fprintf( fp, "ss" );
+		break;
+	case SYM_H5 :
+		fprintf( fp, "h5" );
+		break;
+	case SYM_H3 :
+		fprintf( fp, "h3" );
+		break;
+	case SYM_P5 :
+		fprintf( fp, "p5" );
+		break;
+	case SYM_P3 :
+		fprintf( fp, "p3" );
+		break;
+	case SYM_T1 :
+		fprintf( fp, "t1" );
+		break;
+	case SYM_T2 :
+		fprintf( fp, "t2" );
+		break;
+	case SYM_T3 :
+		fprintf( fp, "t3" );
+		break;
+	case SYM_Q1 :
+		fprintf( fp, "q1" );
+		break;
+	case SYM_Q2 :
+		fprintf( fp, "q2" );
+		break;
+	case SYM_Q3 :
+		fprintf( fp, "q3" );
+		break;
+	case SYM_Q4 :
+		fprintf( fp, "q4" );
+		break;
+	default :
+		fprintf( fp, "unknown (%d)", posp->p_type );
+		break;
+	}
+	fprintf( fp, "\n" );
+
+	fprintf( fp, "\tlineno   = %d\n", posp->p_lineno );
+	fprintf( fp, "\ttag      = '%s'\n",
+		posp->p_tag ? posp->p_tag : "(No tag)" );
+	fprintf( fp, "\tl2r      = %s\n", posp->p_l2r ? "TRUE" : "FALSE" );
+	fprintf( fp, "\toffset   = %d\n", posp->p_offset );
+}
