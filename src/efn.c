@@ -38,8 +38,39 @@ extern	int	*rm_basepr;
 
 static	char	emsg[ 256 ];
 
-static	int	asint3[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ];
 #define	MAX_IBHLOOP	30
+#define	EPARAM_SIZE	16
+#define	POPPEN_SIZE	4
+#define	MAXTLOOPS	100
+#define	MAXTRILOOPS	50
+
+typedef	struct	efndata_t	{
+	int	e_asint1x2[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ];
+	int	e_inter[ ( MAX_IBHLOOP + 1 ) ];
+	int	e_bulge[ ( MAX_IBHLOOP + 1 ) ];
+	int	e_hairpin[ ( MAX_IBHLOOP + 1 ) ];
+	int	e_dangle[ 5 ][ 5 ][ 5 ][ 2 ];
+	float	e_prelog;
+	int	e_maxpen;
+	int	e_eparam[ EPARAM_SIZE ];
+	int	e_poppen[ POPPEN_SIZE + 1 ];
+	int	e_sint2[ 6 ][ 6 ][ 5 ][ 5 ];
+	int	e_sint4[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ][ 5 ];
+	int	e_tloops[ MAXTLOOPS ][ 2 ];
+	int	e_ntloops;
+	int	e_triloops[ MAXTRILOOPS ][ 2 ];
+	int	e_ntriloops;
+	int	e_stack[ 5 ][ 5 ][ 5 ][ 5 ];
+	int	e_tstkh[ 5 ][ 5 ][ 5 ][ 5 ];
+	int	e_tstki[ 5 ][ 5 ][ 5 ][ 5 ];
+} EFNDATA_T;
+
+static	EFNDATA_T	efndata;
+static	EFNDATA_T	*efdp = &efndata;
+
+/*
+static	int	asint1x2[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ];
+
 static	int	inter[ ( MAX_IBHLOOP + 1 ) ];
 static	int	bulge[ ( MAX_IBHLOOP + 1 ) ];
 static	int	hairpin[ ( MAX_IBHLOOP + 1 ) ];
@@ -48,24 +79,21 @@ static	int	dangle[ 5 ][ 5 ][ 5 ][ 2 ];
 
 static	float	prelog;
 static	int	maxpen;
-#define	EPARAM_SIZE	16
 static	int	eparam[ EPARAM_SIZE ];
-#define	POPPEN_SIZE	4
 static	int	poppen[ POPPEN_SIZE + 1 ];
 
 static	int	sint2[ 6 ][ 6 ][ 5 ][ 5 ];
 static	int	sint4[ 6 ][ 6 ][ 5 ][ 5 ][ 5 ][ 5 ];
 
-#define	MAXTLOOPS	100
 static	int	tloops[ MAXTLOOPS ][ 2 ];
 static	int	n_tloops;
-#define	MAXTRILOOPS	50
 static	int	triloops[ MAXTRILOOPS ][ 2 ];
 static	int	n_triloops;
 
 static	int	stack[ 5 ][ 5 ][ 5 ][ 5 ];
 static	int	tstkh[ 5 ][ 5 ][ 5 ][ 5 ];
 static	int	tstki[ 5 ][ 5 ][ 5 ][ 5 ];
+*/
 
 #define	STKSIZE	500
 static	int	stk[ STKSIZE ][ 3 ];
@@ -74,16 +102,16 @@ static	int	stkp;
 char	*getenv( char * );
 
 int	RM_getefndata( void );
-static	int	gettloops( void );
-static	int	gettriloops( void );
-static	int	getmiscloop( void );
-static	int	getdangle( void );
-static	int	getibhloop( void );
+static	int	gettloops( char [] );
+static	int	gettriloops( char [] );
+static	int	getmiscloop( char [] );
+static	int	getdangle( char [] );
+static	int	getibhloop( char [] );
 static	int	getstack( char [], int [5][5][5][5], int );
 static	int	stacktest( char [], int [5][5][5][5] );
-static	int	getsymint( void );
+static	int	getsymint( char [], char [] );
 static	int	symtest( void );
-static	int	getasymint( void );
+static	int	getasymint( char [] );
 static	int	packloop( char [] );
 
 static	int	skipto( FILE *, char [], long, char [] );
@@ -135,60 +163,64 @@ int	RM_getefndata( void )
 		return( 0 );
 	}
 
-	if( !gettloops() )
+	if( !gettloops( "tloop.dat" ) )
 		rval = 0;
 
-	if( !gettriloops() )
+	if( !gettriloops( "triloop.dat" ) )
 		rval = 0;
 
-	if( !getmiscloop() )
+	if( !getmiscloop( "miscloop.dat" ) )
 		rval = 0;
 
-	if( !getdangle() )
+	if( !getdangle( "dangle.dat" ) )
 		rval = 0;
 
-	if( !getibhloop() )
+	if( !getibhloop( "loop.dat" ) )
 		rval = 0;
 
-	if( !getstack( "stack.dat", stack, EFN_INFINITY ) )
+	if( !getstack( "stack.dat", efdp->e_stack, EFN_INFINITY ) )
 		rval = 0;
-	if( !stacktest( "stack.dat", stack ) )
-		rval = 0;
-
-	if( !getstack( "tstackh.dat", tstkh, 0 ) )
-		rval = 0;
-	if( !stacktest( "tstackh.dat", stack ) )
+	if( !stacktest( "stack.dat", efdp->e_stack ) )
 		rval = 0;
 
-	if( !getstack( "tstacki.dat", tstki, 0 ) )
+	if( !getstack( "tstackh.dat", efdp->e_tstkh, 0 ) )
 		rval = 0;
-	if( !stacktest( "tstacki.dat", stack ) )
+/*	This test will fail, as this stack is not symmetric
+	if( !stacktest( "tstackh.dat", efdp->e_tstkh ) )
 		rval = 0;
+*/
 
-	if( !getsymint() )
+	if( !getstack( "tstacki.dat", efdp->e_tstki, 0 ) )
+		rval = 0;
+/*	This test will fail, as this stack is not symmetric
+	if( !stacktest( "tstacki.dat", efdp->e_tstki ) )
+		rval = 0;
+*/
+
+	if( !getsymint( "sint2.dat", "sint4.dat" ) )
 		rval = 0;
 	if( !symtest() )
 		rval = 0;
 
-	if( !getasymint() )
+	if( !getasymint( "asint1x2.dat" ) )
 		rval = 0;
 
 	return( rval );
 }
 
-static	int	gettloops( void )
+static	int	gettloops( char fname[] )
 {
-	char	fname[ 256 ];
+	char	pname[ 256 ];
 	FILE	*fp;
 	char	line[ 256 ];
 	char	loop[ 20 ];
 	float	energy;
 	int	t, rval;
 
-	sprintf( fname, "%s/%s", rm_efndatadir, "tloop.dat" );
-	if( ( fp = fopen( fname, "r" ) ) == NULL ){
+	sprintf( pname, "%s/%s", rm_efndatadir, fname );
+	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "gettloops: can't read tloops file '%s'.",
-			fname );
+			pname );
 		RM_errormsg( 0, emsg );
 		return( 0 );
 	}
@@ -197,8 +229,9 @@ static	int	gettloops( void )
 		for( t = 0; fgets( line, sizeof( line ), fp ); t++ ){
 			sscanf( line, "%s %f", loop, &energy );
 			if( t < MAXTLOOPS ){
-				tloops[ t ][ 0 ] = packloop( loop );
-				tloops[ t ][ 1 ] = NINT( 100.0 * energy );
+				efdp->e_tloops[ t ][ 0 ] = packloop( loop );
+				efdp->e_tloops[ t ][ 1 ] =
+					NINT( 100.0 * energy );
 			}
 		}
 	}else
@@ -210,26 +243,26 @@ static	int	gettloops( void )
 "gettloops: # of tloops (%d) exceeds MAXTLOOPS (%d), last %d tloops ignored.",
 			t, MAXTLOOPS, t - MAXTLOOPS );
 		RM_errormsg( 0, emsg );
-		n_tloops = MAXTLOOPS;
+		efdp->e_ntloops = MAXTLOOPS;
 	}else
-		n_tloops = t;
+		efdp->e_ntloops = t;
 
 	return( rval );
 }
 
-static	int	gettriloops( void )
+static	int	gettriloops( char fname[] )
 {
-	char	fname[ 256 ];
+	char	pname[ 256 ];
 	FILE	*fp;
 	char	line[ 256 ];
 	char	loop[ 20 ];
 	float	energy;
 	int	t, rval;
 
-	sprintf( fname, "%s/%s", rm_efndatadir, "triloop.dat" );
-	if( ( fp = fopen( fname, "r" ) ) == NULL ){
+	sprintf( pname, "%s/%s", rm_efndatadir, fname );
+	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "gettriloops: can't read triloops file '%s'.",
-			fname );
+			pname );
 		RM_errormsg( 0, emsg );
 		return( 0 );
 	}
@@ -238,8 +271,8 @@ static	int	gettriloops( void )
 		for( t = 0; fgets( line, sizeof( line ), fp ); t++ ){
 			sscanf( line, "%s %f", loop, &energy );
 			if( t < MAXTRILOOPS ){
-				triloops[ t ][ 0 ] = packloop( loop );
-				triloops[ t ][ 1 ] = NINT( 100.0 * energy );
+				efdp->e_triloops[ t ][ 0 ] = packloop( loop );
+				efdp->e_triloops[ t ][ 1 ] = NINT( 100.0 * energy );
 			}
 		}
 	}else
@@ -251,25 +284,25 @@ static	int	gettriloops( void )
 "gettloops: # of triloops (%d) exceeds MAXTRILOOPS (%d), last %d triloops ignored.",
 			t, MAXTRILOOPS, t - MAXTRILOOPS );
 		RM_errormsg( 0, emsg );
-		n_triloops = MAXTRILOOPS;
+		efdp->e_ntriloops = MAXTRILOOPS;
 	}else
-		n_triloops = t;
+		efdp->e_ntriloops = t;
 
 	return( rval );
 }
 
-static	int	getmiscloop( void )
+static	int	getmiscloop( char fname[] )
 {
-	char	fname[ 256 ];
+	char	pname[ 256 ];
 	FILE	*fp;
 	char	line[ 256 ];
 	float	fv1, fv2, fv3, fv4;
 	int	i, rval;
 
-	sprintf( fname, "%s/%s", rm_efndatadir, "miscloop.dat" );
-	if( ( fp = fopen( fname, "r" ) ) == NULL ){
+	sprintf( pname, "%s/%s", rm_efndatadir, fname );
+	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "getmiscloop: can't read miscloop file '%s'.",
-			fname );
+			pname );
 		RM_errormsg( 0, emsg );
 		return( 0 );
 	}
@@ -277,8 +310,8 @@ static	int	getmiscloop( void )
 	rval = 1;
 	if( skipto( fp, "-->", sizeof( line ), line ) ){
 		fgets( line, sizeof( line ), fp );
-		sscanf( line, "%f", &prelog );
-		prelog *= 10.0;
+		sscanf( line, "%f", &efdp->e_prelog );
+		efdp->e_prelog *= 10.0;
 	}else{
 		RM_errormsg( 0, "getmiscloop: no prelog." );
 		rval = 0;
@@ -288,7 +321,7 @@ static	int	getmiscloop( void )
 	if( skipto( fp, "-->", sizeof( line ), line ) ){
 		fgets( line, sizeof( line ), fp );
 		sscanf( line, "%f", &fv1 );
-		maxpen = NINT( 100.0*fv1 );
+		efdp->e_maxpen = NINT( 100.0*fv1 );
 	}else{
 		RM_errormsg( 0, "getmiscloop: no maxpen." );
 		rval = 0;
@@ -298,30 +331,30 @@ static	int	getmiscloop( void )
 	if( skipto( fp, "-->", sizeof( line ), line ) ){
 		fgets( line, sizeof( line ), fp );
 		sscanf( line, "%f %f %f %f", &fv1, &fv2, &fv3, &fv4 );
-		poppen[ 0 ] = 0;
-		poppen[ 1 ] = NINT( 100.0*fv1 );
-		poppen[ 2 ] = NINT( 100.0*fv2 );
-		poppen[ 3 ] = NINT( 100.0*fv3 );
-		poppen[ 4 ] = NINT( 100.0*fv4 );
+		efdp->e_poppen[ 0 ] = 0;
+		efdp->e_poppen[ 1 ] = NINT( 100.0*fv1 );
+		efdp->e_poppen[ 2 ] = NINT( 100.0*fv2 );
+		efdp->e_poppen[ 3 ] = NINT( 100.0*fv3 );
+		efdp->e_poppen[ 4 ] = NINT( 100.0*fv4 );
 	}else{
 		RM_errormsg( 0, "getmiscloop: no poppen values." );
 		rval = 0;
 		goto CLEAN_UP;
 	}
 
-	eparam[ 0 ] = 0;
-	eparam[ 1 ] = 0;
-	eparam[ 2 ] = 0;
-	eparam[ 3 ] = 0;
-	eparam[ 6 ] = 30;
-	eparam[ 7 ] = 30;
+	efdp->e_eparam[ 0 ] = 0;
+	efdp->e_eparam[ 1 ] = 0;
+	efdp->e_eparam[ 2 ] = 0;
+	efdp->e_eparam[ 3 ] = 0;
+	efdp->e_eparam[ 6 ] = 30;
+	efdp->e_eparam[ 7 ] = 30;
 
 	if( skipto( fp, "-->", sizeof( line ), line ) ){
 		fgets( line, sizeof( line ), fp );
 		sscanf( line, "%f %f %f", &fv1, &fv2, &fv3 );
-		eparam[ 4 ] = NINT( 100.0*fv1 );
-		eparam[ 5 ] = NINT( 100.0*fv2 );
-		eparam[ 8 ] = NINT( 100.0*fv3 );
+		efdp->e_eparam[ 4 ] = NINT( 100.0*fv1 );
+		efdp->e_eparam[ 5 ] = NINT( 100.0*fv2 );
+		efdp->e_eparam[ 8 ] = NINT( 100.0*fv3 );
 	}else{
 		RM_errormsg( 0, "getmiscloop: no multibranched loop values." );
 		rval = 0;
@@ -330,7 +363,7 @@ static	int	getmiscloop( void )
 
 	if( !skipto( fp, "-->", sizeof( line ), line ) ){
 		for( i = 9; i < EPARAM_SIZE; i++ )
-			eparam[ i ] = 0;
+			efdp->e_eparam[ i ] = 0;
 	}else{	
 		/* these parms are not currently used */
 		fgets( line, sizeof( line ), fp );
@@ -339,7 +372,7 @@ static	int	getmiscloop( void )
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
 			sscanf( line, "%f", &fv1 );
-			eparam[ 9 ] = NINT( 100.0*fv1 );
+			efdp->e_eparam[ 9 ] = NINT( 100.0*fv1 );
 		}else{
 			RM_errormsg( 0,
 				"getmiscloop: no terminal AU penalty." );
@@ -350,7 +383,7 @@ static	int	getmiscloop( void )
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
 			sscanf( line, "%f", &fv1 );
-			eparam[ 10 ] = NINT( 100.0*fv1 );
+			efdp->e_eparam[ 10 ] = NINT( 100.0*fv1 );
 		}else{
 			RM_errormsg( 0, "getmiscloop: no GGG hairpin term." );
 			rval = 0;
@@ -360,7 +393,7 @@ static	int	getmiscloop( void )
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
 			sscanf( line, "%f", &fv1 );
-			eparam[ 11 ] = NINT( 100.0*fv1 );
+			efdp->e_eparam[ 11 ] = NINT( 100.0*fv1 );
 		}else{
 			RM_errormsg( 0, "getmiscloop: no c hairpin slope." );
 			rval = 0;
@@ -370,7 +403,7 @@ static	int	getmiscloop( void )
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
 			sscanf( line, "%f", &fv1 );
-			eparam[ 12 ] = NINT( 100.0*fv1 );
+			efdp->e_eparam[ 12 ] = NINT( 100.0*fv1 );
 		}else{
 			RM_errormsg( 0,
 				"getmiscloop: no c hairpin intercept." );
@@ -381,7 +414,7 @@ static	int	getmiscloop( void )
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
 			sscanf( line, "%f", &fv1 );
-			eparam[ 13 ] = NINT( 100.0*fv1 );
+			efdp->e_eparam[ 13 ] = NINT( 100.0*fv1 );
 		}else{
 			RM_errormsg( 0,
 				"getmiscloop: no c hairpin of 3 term." );
@@ -392,7 +425,7 @@ static	int	getmiscloop( void )
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
 			sscanf( line, "%f", &fv1 );
-			eparam[ 14 ] = NINT( 100.0*fv1 );
+			efdp->e_eparam[ 14 ] = NINT( 100.0*fv1 );
 		}else{
 			RM_errormsg( 0,
 			"getmiscloop: no Intermol init free energy." );
@@ -402,7 +435,7 @@ static	int	getmiscloop( void )
 	
 		if( skipto( fp, "-->", sizeof( line ), line ) ){
 			fgets( line, sizeof( line ), fp );
-			sscanf( line, "%d", &eparam[ 15 ] );
+			sscanf( line, "%d", &efdp->e_eparam[ 15 ] );
 		}else{
 			RM_errormsg( 0, "getmiscloop: no GAIL Rule term." );
 			rval = 0;
@@ -416,9 +449,9 @@ CLEAN_UP : ;
 	return( rval );
 }
 
-static	int	getdangle( void )
+static	int	getdangle( char fname[] )
 {
-	char	fname[ 256 ];
+	char	pname[ 256 ];
 	FILE	*fp;
 	char	line[ 256 ];
 	int	v1, v2, v3, v4;
@@ -426,10 +459,10 @@ static	int	getdangle( void )
 	int	f, n_fields;
 	int	rval;
 
-	sprintf( fname, "%s/%s", rm_efndatadir, "dangle.dat" );
-	if( ( fp = fopen( fname, "r" ) ) == NULL ){
+	sprintf( pname, "%s/%s", rm_efndatadir, fname );
+	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "getdangle: can't read dangle file '%s'.",
-			fname );
+			pname );
 		RM_errormsg( 0, emsg );
 		return( 0 );
 	}
@@ -456,7 +489,7 @@ static	int	getdangle( void )
 				v2 = f / 4;
 				v3 = f % 4;
 				if( *fields[ f ] != '.' )
-					dangle[v1][v2][v3][v4] = 
+					efdp->e_dangle[v1][v2][v3][v4] = 
 						NINT( 100.0*atof( fields[f] ) );
 				free( fields[ f ] );
 			}
@@ -469,19 +502,19 @@ CLEAN_UP : ;
 	return( rval );
 }
 
-static	int	getibhloop( void )
+static	int	getibhloop( char fname[] )
 {
-	char	fname[ 256 ];
+	char	pname[ 256 ];
 	FILE	*fp;
 	char	line[ 256 ];
 	char	*fields[ 4 ];
 	int	i, f, n_fields;
 	int	rval;
 
-	sprintf( fname, "%s/%s", rm_efndatadir, "loop.dat" );
-	if( ( fp = fopen( fname, "r" ) ) == NULL ){
+	sprintf( pname, "%s/%s", rm_efndatadir, fname );
+	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "getibhloop: can't read ibhloop file '%s'.",
-			fname );
+			pname );
 		RM_errormsg( 0, emsg );
 		return( 0 );
 	}
@@ -499,17 +532,20 @@ static	int	getibhloop( void )
 		if( i <= MAX_IBHLOOP ){
 			n_fields = split( line, fields, " \t\n" );
 			if( *fields[ 1 ] == '.' )
-				inter[ i ] = EFN_INFINITY;
+				efdp->e_inter[ i ] = EFN_INFINITY;
 			else
-				inter[ i ] = NINT( 100.0*atof( fields[ 1 ] ) );
+				efdp->e_inter[ i ] =
+					NINT( 100.0*atof( fields[ 1 ] ) );
 			if( *fields[ 2 ] == '.' )
-				bulge[ i ] = EFN_INFINITY;
+				efdp->e_bulge[ i ] = EFN_INFINITY;
 			else
-				bulge[ i ] = NINT( 100.0*atof( fields[ 2 ] ) );
+				efdp->e_bulge[ i ] =
+					NINT( 100.0*atof( fields[ 2 ] ) );
 			if( *fields[ 3 ] == '.' )
-				hairpin[ i ] = EFN_INFINITY;
+				efdp->e_hairpin[ i ] = EFN_INFINITY;
 			else
-				hairpin[i] = NINT( 100.0*atof( fields[ 3 ] ) );
+				efdp->e_hairpin[i] =
+					NINT( 100.0*atof( fields[ 3 ] ) );
 			for( f = 0; f < n_fields; f++ )
 				free( fields[ f ] );
 		}
@@ -523,7 +559,7 @@ CLEAN_UP : ;
 
 static	int	getstack( char sfname[], int stack[5][5][5][5], int defval ) 
 {
-	char	fname[ 256 ];
+	char	pname[ 256 ];
 	FILE	*fp;
 	char	line[ 256 ];
 	int	v1, v2, v3, v4;
@@ -531,10 +567,10 @@ static	int	getstack( char sfname[], int stack[5][5][5][5], int defval )
 	int	f, n_fields;
 	int	rval;
 	
-	sprintf( fname, "%s/%s", rm_efndatadir, sfname );
-	if( ( fp = fopen( fname, "r" ) ) == NULL ){
-		sprintf( emsg, "getibhloop: can't read stack file '%s'.",
-			sfname );
+	sprintf( pname, "%s/%s", rm_efndatadir, sfname );
+	if( ( fp = fopen( pname, "r" ) ) == NULL ){
+		sprintf( emsg, "getstack: can't read stack file '%s'.",
+			pname );
 		RM_errormsg( 0, emsg );
 		return( 0 );
 	}
@@ -553,7 +589,7 @@ static	int	getstack( char sfname[], int stack[5][5][5][5], int defval )
 		if( !skipto( fp, "<--", sizeof( line ), line ) ){
 			sprintf( emsg,
 				"getstack: premature end of stack file '%s'.",
-				fname );
+				pname );
 			RM_errormsg( 0, emsg );
 			rval = 0;
 			goto CLEAN_UP;
@@ -605,9 +641,9 @@ static	int	stacktest( char sname[], int stack[5][5][5][5] )
 	return( rval );
 }
 
-static	int	getsymint( void )
+static	int	getsymint( char s2fname[], char s4fname[] )
 {
-	char	fname[ 256 ];
+	char	pname[ 256 ];
 	FILE	*fp;
 	char	line[ 256 ];
 	int	v1, v2, v3, v4, v5, v6;
@@ -616,10 +652,10 @@ static	int	getsymint( void )
 	int	lval, worst;
 	int	rval;
 	
-	sprintf( fname, "%s/%s", rm_efndatadir, "sint2.dat" );
-	if( ( fp = fopen( fname, "r" ) ) == NULL ){
+	sprintf( pname, "%s/%s", rm_efndatadir, s2fname );
+	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "getsymint: can't read sym-2 loop file '%s'.",
-			fname );
+			pname );
 		RM_errormsg( 0, emsg );
 		return( 0 );
 	}
@@ -628,7 +664,7 @@ static	int	getsymint( void )
 	/* Skip the header */	
 	if( !skipto( fp, "<--", sizeof( line ), line ) ){
 		sprintf( emsg, "getsymint: error in sym-2 loop file '%s'.",
-			fname );
+			pname );
 		RM_errormsg( 0, emsg );
 		rval = 0;
 		goto CLEAN_UP;
@@ -638,7 +674,7 @@ static	int	getsymint( void )
 		if( !skipto( fp, "<--", sizeof( line ), line ) ){
 			sprintf( emsg,
 			"getsymint: premature end of sym-2 loop file '%s'.",
-				fname );
+				pname );
 			RM_errormsg( 0, emsg );
 			rval = 0;
 			goto CLEAN_UP;
@@ -650,7 +686,7 @@ static	int	getsymint( void )
 				v2 = f / 4;
 				v4 = f % 4;
 				lval = NINT( 100.0*atof( fields[ f ] ) );
-				sint2[v1][v2][v3][v4] = lval;
+				efdp->e_sint2[v1][v2][v3][v4] = lval;
 				free( fields[ f ] );
 			}
 		}
@@ -661,19 +697,20 @@ static	int	getsymint( void )
 		for( v2 = 0; v2 < 6; v2++ ){
 			for( worst = -999, v3 = 0; v3 < 4; v3++ ){
 				for( v4 = 0; v4 < 4; v4++ )
-					worst=MAX(worst, sint2[v1][v2][v3][v4]);
+					worst=MAX(worst,
+						efdp->e_sint2[v1][v2][v3][v4]);
 			}
 			for( v3 = 0; v3 < 5; v3++ ){
-				sint2[v1][v2][v3][ 4] = worst;
-				sint2[v1][v2][ 4][v3] = worst;
+				efdp->e_sint2[v1][v2][v3][ 4] = worst;
+				efdp->e_sint2[v1][v2][ 4][v3] = worst;
 			}
 		}
 	}
 
-	sprintf( fname, "%s/%s", rm_efndatadir, "sint4.dat" );
-	if( ( fp = fopen( fname, "r" ) ) == NULL ){
+	sprintf( pname, "%s/%s", rm_efndatadir, s4fname );
+	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "getsymint: can't read sym-4 loop file '%s'.",
-			fname );
+			pname );
 		RM_errormsg( 0, emsg );
 		return( 0 );
 	}
@@ -681,7 +718,7 @@ static	int	getsymint( void )
 	/* Skip the header */	
 	if( !skipto( fp, "<--", sizeof( line ), line ) ){
 		sprintf( emsg, "getsymint: error in sym-4 loop file '%s'.",
-			fname );
+			pname );
 		RM_errormsg( 0, emsg );
 		rval = 0;
 		goto CLEAN_UP;
@@ -692,7 +729,7 @@ static	int	getsymint( void )
 		if( !skipto( fp, "<--", sizeof( line ), line ) ){
 		    sprintf( emsg,
 			"getsymint: premature end of sym-2 loop file '%s'.",
-			fname );
+			pname );
 		    RM_errormsg( 0, emsg );
 		    rval = 0;
 		    goto CLEAN_UP;
@@ -705,7 +742,7 @@ static	int	getsymint( void )
 			    v5 = f / 4;
 			    v6 = f % 4;
 			    lval = NINT( 100.0*atof( fields[f] ) );
-			    sint4[v1][v2][v3][v4][v5][v6]= lval;
+			    efdp->e_sint4[v1][v2][v3][v4][v5][v6]= lval;
 			    free( fields[ f ] );
 			}
 		    }
@@ -720,7 +757,7 @@ static	int	getsymint( void )
 			for( v5 = 0; v5 < 4; v5++ ){
 			    for( v6 = 0; v6 < 4; v6++ ){
 				worst = MAX( worst,
-				    sint4[v1][v2][v3][v4][v5][v6] );
+				    efdp->e_sint4[v1][v2][v3][v4][v5][v6] );
 			    }
 			}
 		    }
@@ -728,10 +765,10 @@ static	int	getsymint( void )
 		for( v3 = 0; v3 < 5; v3++ ){
 		    for( v4 = 0; v4 < 5; v4++ ){
 			for( v5 = 0; v5 < 5; v5++ ){
-			    sint4[v1][v2][v3][v4][v5][ 4] = worst;
-			    sint4[v1][v2][v3][v4][ 4][v5] = worst;
-			    sint4[v1][v2][v3][ 4][v4][v5] = worst;
-			    sint4[v1][v2][ 4][v3][v4][v5] = worst;
+			    efdp->e_sint4[v1][v2][v3][v4][v5][ 4] = worst;
+			    efdp->e_sint4[v1][v2][v3][v4][ 4][v5] = worst;
+			    efdp->e_sint4[v1][v2][v3][ 4][v4][v5] = worst;
+			    efdp->e_sint4[v1][v2][ 4][v3][v4][v5] = worst;
 			}
 		    }
 		}
@@ -755,12 +792,14 @@ static	int	symtest( void )
 		v2a = v2 >= 4 && v2 < 6 ? 9 - v2 : 3 - v2;
 		for( v3 = 0; v3 < 4; v3++ ){
 		    for( v4 = 0; v4 < 4; v4++ ){
-			if( sint2[v1][v2][v3][v4] != sint2[v2a][v1a][v4][v3] ){
+			if( efdp->e_sint2[v1][v2][v3][v4] !=
+				efdp->e_sint2[v2a][v1a][v4][v3] )
+			{
 			    rval = 0;
 			    sprintf( emsg,
 "symtest: sint2 failure: sint2[%d][%d][%d][%d] (%d) != sint2[%d][%d][%d][%d] (%d)",
-				v1, v2, v3, v4, sint2[v1][v2][v3][v4],
-				v2a, v1a, v4, v3, sint2[v2a][v1a][v4][v3] );
+				v1,v2,v3,v4,efdp->e_sint2[v1][v2][v3][v4],
+				v2a,v1a,v4,v3,efdp->e_sint2[v2a][v1a][v4][v3] );
 			    RM_errormsg( 0, emsg );
 			}
 		    }
@@ -776,15 +815,16 @@ static	int	symtest( void )
 		    for( v4 = 0; v4 < 4; v4++ ){
 			for( v5 = 0; v5 < 4; v5++ ){
 			    for( v6 = 0; v6 < 4; v6++ ){
-				if(sint4[v1][v2][v3][v4][v5][v6] !=
-				    sint4[v2a][v1a][v6][v5][v4][v3] ){
+				if(efdp->e_sint4[v1][v2][v3][v4][v5][v6] !=
+				    efdp->e_sint4[v2a][v1a][v6][v5][v4][v3] )
+				{
 				    rval = 0;
 				    sprintf( emsg, 
 "symtest: sint4 failure: sint4[%d][%d][%d][%d][%d][%d] (%d) != sint4[%d][%d][%d][%d][%d][%d] (%d)\n",
 					v1, v2, v3, v4, v5, v6,
-					sint4[v1][v2][v3][v4][v5][v6],
+					efdp->e_sint4[v1][v2][v3][v4][v5][v6],
 					v2a, v1a, v6, v5, v4, v3,
-					sint4[v2a][v1a][v6][v5][v4][v3] );
+				    efdp->e_sint4[v2a][v1a][v6][v5][v4][v3] );
 				    RM_errormsg( 0, emsg );
 				}
 			    }
@@ -796,9 +836,9 @@ static	int	symtest( void )
 
 	return( rval );
 }
-static	int	getasymint( void )
+static	int	getasymint( char fname[] )
 {
-	char	fname[ 256 ];
+	char	pname[ 256 ];
 	FILE	*fp;
 	char	line[ 256 ];
 	int	v1, v2, v3, v4, v5;
@@ -807,11 +847,11 @@ static	int	getasymint( void )
 	int	lval;
 	int	rval;
 	
-	sprintf( fname, "%s/%s", rm_efndatadir, "asint1x2.dat" );
-	if( ( fp = fopen( fname, "r" ) ) == NULL ){
+	sprintf( pname, "%s/%s", rm_efndatadir, fname );
+	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg,
 			"getasymint: can't read asym-1x2 loop file '%s'.",
-			fname );
+			pname );
 		RM_errormsg( 0, emsg );
 		return( 0 );
 	}
@@ -831,7 +871,7 @@ static	int	getasymint( void )
 		for( v3 = 0; v3 < 5; v3++ ){
 		    for( v4 = 0; v4 < 5; v4++ ){
 			for( v5 = 0; v5 < 5; v5++ )
-			    asint3[v1][v2][v3][v4][v5] = EFN_INFINITY;
+			    efdp->e_asint1x2[v1][v2][v3][v4][v5] = EFN_INFINITY;
 		    }
 		}
 	    }
@@ -854,7 +894,7 @@ static	int	getasymint( void )
 			v2 = f / 4;
 			v4 = f % 4;
 			lval = NINT( 100.0*atof( fields[ f ] ) );
-			asint3[v1][v2][v3][v4][v5] = lval;
+			efdp->e_asint1x2[v1][v2][v3][v4][v5] = lval;
 			free( fields[ f ] );
 		    }
 		}
@@ -917,9 +957,9 @@ void	RM_dumpefndata( FILE *fp )
 
 	dumpdangle( fp );
 	dumpibhloop( fp );
-	dumpstack( fp, "stack", stack );
-	dumpstack( fp, "tstackh", tstkh );
-	dumpstack( fp, "tstacki", tstki );
+	dumpstack( fp, "stack", efdp->e_stack );
+	dumpstack( fp, "tstackh", efdp->e_tstkh );
+	dumpstack( fp, "tstacki", efdp->e_tstki );
 	dumpsint( fp );
 }
 
@@ -953,7 +993,8 @@ static	void	dumpdangle( FILE *fp )
 				if( v2 > 0 )
 					fprintf( fp, "|" );
 				for( v3 = 0; v3 < 4; v3++ ){
-					dval = 0.01*dangle[v1][v2][v3][v4];
+					dval = 
+					    0.01*efdp->e_dangle[v1][v2][v3][v4];
 					if( dval == 0 )
 						fprintf( fp, " .   " );
 					else
@@ -973,18 +1014,18 @@ static	void	dumpibhloop( FILE *fp )
 	fprintf( fp, "\nibh:\n" );
 	for( i = 1; i <= MAX_IBHLOOP; i++ ){
 		fprintf( fp, "%3d", i );
-		if( inter[ i ] == EFN_INFINITY )
+		if( efdp->e_inter[ i ] == EFN_INFINITY )
 			fprintf( fp, "   .  " );
 		else
-			fprintf( fp, " %5.2f", 0.01*inter[ i ] );
-		if( bulge[ i ] == EFN_INFINITY )
+			fprintf( fp, " %5.2f", 0.01*efdp->e_inter[ i ] );
+		if( efdp->e_bulge[ i ] == EFN_INFINITY )
 			fprintf( fp, "   .  " );
 		else
-			fprintf( fp, " %5.2f", 0.01*bulge[ i ] );
-		if( hairpin[ i ] == EFN_INFINITY )
+			fprintf( fp, " %5.2f", 0.01*efdp->e_bulge[ i ] );
+		if( efdp->e_hairpin[ i ] == EFN_INFINITY )
 			fprintf( fp, "   .  " );
 		else
-			fprintf( fp, " %5.2f", 0.01*hairpin[ i ] );
+			fprintf( fp, " %5.2f", 0.01*efdp->e_hairpin[ i ] );
 		fprintf( fp, "\n" );
 	}
 }
@@ -1042,7 +1083,7 @@ static	void	dumpsint( FILE *fp )
 			for( v2 = 0; v2 < 6; v2++ ){
 				for( v4 = 0; v4 < 4; v4++ ){
 					fprintf( fp, "%5.2f",
-						.01*sint2[v1][v2][v3][v4] );
+					    .01*efdp->e_sint2[v1][v2][v3][v4] );
 				}
 				if( v2 < 5 )
 					fprintf( fp, "|" );
@@ -1063,7 +1104,7 @@ static	void	dumpsint( FILE *fp )
 					y1 = v4 / 4;
 					y2 = v4 % 4;
 					fprintf( fp, "%5.2f",
-					.01*sint4[v1][v2][x1][x2][y1][y2] );
+				    .01*efdp->e_sint4[v1][v2][x1][x2][y1][y2] );
 				}
 				fprintf( fp, "\n" );
 				if( v3 == 15 )
@@ -1120,27 +1161,27 @@ int	RM_efn( int i, int j, int open )
 		if( open == 0 ){
 			while( rm_basepr[i]==UNDEF && rm_basepr[i+1]==UNDEF ){
 				i++;
-				e += eparam[5];
+				e += efdp->e_eparam[5];
 				if( i >= j-1 )
 					return( e );
 			}
 			while( rm_basepr[j]==UNDEF && rm_basepr[j-1]==UNDEF ){
 				j--;
-				e += eparam[5];
+				e += efdp->e_eparam[5];
 				if( i >= j-1 )
 					return( e );
 			}
 
 			if( rm_basepr[i] == UNDEF && rm_basepr[i+1] > i+1 ){
 				e += MIN( 0, e_dangle(rm_basepr[i+1],i+1,i,1) )
-					+ eparam[5];
+					+ efdp->e_eparam[5];
 				i++;
 			}
 			if( rm_basepr[j] == UNDEF && rm_basepr[j-1] != UNDEF &&
 				rm_basepr[j-1] < j-1 )
 			{
 				e += MIN( 0, e_dangle(j-1,rm_basepr[j-1],j,0) )
-					+ eparam[5];
+					+ efdp->e_eparam[5];
 				j--;
 			}
 		}else{
@@ -1196,7 +1237,7 @@ int	RM_efn( int i, int j, int open )
 		return( e );
 	}else{
 		if( !open )
-			e += eparam[8];
+			e += efdp->e_eparam[8];
 		e += e_aupen( i, j );
 
 		for( open = 0; ; ){
@@ -1234,7 +1275,8 @@ int	RM_efn( int i, int j, int open )
 			}else{
 				is = i + 1;
 				js = j - 1;
-				e += eparam[4] + eparam[8] + e_aupen( i, j );
+				e += efdp->e_eparam[4] +
+					efdp->e_eparam[8] + e_aupen( i, j );
 				if( rm_basepr[i+1]==UNDEF &&
 					rm_basepr[i+2]!=UNDEF )
 				{
@@ -1245,7 +1287,7 @@ int	RM_efn( int i, int j, int open )
 						is = i + 2;
 						e += MIN( 0,
 							e_dangle( i,j,i+1,0 )) +
-							eparam[5];
+							efdp->e_eparam[5];
 					}
 				}
 				if( rm_basepr[i+1]==UNDEF &&
@@ -1253,7 +1295,7 @@ int	RM_efn( int i, int j, int open )
 				{
 					is = i + 2;
 					e += MIN( 0, e_dangle( i,j,i+1,0 ) ) +
-						eparam[5];
+						efdp->e_eparam[5];
 				}
 				if( rm_basepr[j-1]==UNDEF &&
 					rm_basepr[j-2]!=UNDEF )
@@ -1265,7 +1307,7 @@ int	RM_efn( int i, int j, int open )
 						js = j - 2;
 						e += MIN( 0,
 							e_dangle( i,j,j-1,1 )) +
-							eparam[5];
+							efdp->e_eparam[5];
 					}
 				}
 				if( rm_basepr[j-1]==UNDEF &&
@@ -1273,7 +1315,7 @@ int	RM_efn( int i, int j, int open )
 				{
 					js = j - 2;
 					e += MIN( 0, e_dangle( i,j,j-1,1 ) ) +
-						eparam[5];
+						efdp->e_eparam[5];
 				}
 				e += RM_efn( is, js, 0 );
 				return( e );
@@ -1291,8 +1333,9 @@ static	int	e_stack( int i, int j )
 	if( i == rm_l_base || j == rm_l_base + 1 )
 		return( EFN_INFINITY );
 
-	rval = stack[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[i+1]][rm_bcseq[j-1]] +
-		eparam[0];
+	rval = efdp->e_stack[rm_bcseq[i]][rm_bcseq[j]]
+		[rm_bcseq[i+1]][rm_bcseq[j-1]] +
+		efdp->e_eparam[0];
 	return( rval );
 }
 
@@ -1301,7 +1344,6 @@ static	int	e_ibloop( int i, int j, int ip, int jp )
 {
 	int	size, size1, size2, min4;
 	int	lopsid, loginc;
-	int	a, b;
 	int	lf, rt;
 	int	rval;
 
@@ -1317,67 +1359,80 @@ static	int	e_ibloop( int i, int j, int ip, int jp )
 	if( size1 == 0 || size2 == 0 ){ /* bulges */
 		if( size == 1 ){
 			rval += 
-		    stack[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[ip]][rm_bcseq[jp]]
-			    + bulge[size] + eparam[1];
+	    efdp->e_stack[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[ip]][rm_bcseq[jp]]
+			    + efdp->e_bulge[size] + efdp->e_eparam[1];
 		}else{
 			rval += e_aupen( i, j ) + e_aupen( ip, jp );
 			if( size > 30 ){
-				loginc = NINT( prelog*log( size / 30.0 ) );
-				rval += bulge[30] + loginc + eparam[1];
+				loginc = NINT(efdp->e_prelog*log(size / 30.0));
+				rval += efdp->e_bulge[30] + loginc +
+				efdp->e_eparam[1];
 			}else
-				rval += bulge[size] + eparam[1];
+				rval += efdp->e_bulge[size] + efdp->e_eparam[1];
 		}
 	}else{	/* internal loops */
 		lopsid = fabs( ( double )( size1 - size2 ) );
 		if( size > 30 ){			/* BIG loops	*/
-			loginc = NINT( prelog*log( size / 30. ) );
-			if( ( size1 == 1 || size2 == 1 ) && eparam[ 15 ] == 1 ){
+			loginc = NINT( efdp->e_prelog*log( size / 30. ) );
+			if( ( size1==1 || size2==1 ) && efdp->e_eparam[15]==1 ){
 				rval +=
-			tstki[rm_bcseq[i]][rm_bcseq[j]][BCODE_A][BCODE_A] +
-			tstki[rm_bcseq[jp]][rm_bcseq[ip]][BCODE_A][BCODE_A]+
-					inter[30] + loginc + eparam[2] +
-					MIN( maxpen, lopsid*poppen[min4] );
+		efdp->e_tstki[rm_bcseq[i]][rm_bcseq[j]][BCODE_A][BCODE_A] +
+		efdp->e_tstki[rm_bcseq[jp]][rm_bcseq[ip]][BCODE_A][BCODE_A]+
+					efdp->e_inter[30] + loginc +
+					efdp->e_eparam[2] +
+					MIN(efdp->e_maxpen,
+						lopsid*efdp->e_poppen[min4]);
 			}else{
 				rval +=
-	tstki[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[i+1]][rm_bcseq[j-1]] +
-	tstki[rm_bcseq[jp]][rm_bcseq[ip]][rm_bcseq[jp+1]][rm_bcseq[ip-1]] +
-					inter[30] + loginc + eparam[2] +
-					MIN( maxpen, lopsid*poppen[min4] );
+efdp->e_tstki[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[i+1]][rm_bcseq[j-1]] +
+efdp->e_tstki[rm_bcseq[jp]][rm_bcseq[ip]][rm_bcseq[jp+1]][rm_bcseq[ip-1]] +
+					efdp->e_inter[30] + loginc +
+					efdp->e_eparam[2] +
+					MIN(efdp->e_maxpen,
+						lopsid*efdp->e_poppen[min4]);
 			}
 		}else if( lopsid == 1 && size == 3 ){	/* 2x1 loops	*/
 			if( size1 < size2 ){
 				if( WC( rm_bcseq[i], rm_bcseq[j] ) )
-					a = rm_bcseq[i];
+					lf = rm_bcseq[i];
 				else if( GU( rm_bcseq[i], rm_bcseq[j] ) )
-					a = 4;
+					lf = 4;
 				else if( GU( rm_bcseq[j], rm_bcseq[i] ) ) 
-					a = 5;
+					lf = 5;
+				else
+					return( EFN_INFINITY );
 				if( WC( rm_bcseq[ip], rm_bcseq[jp] ) )
-					b = rm_bcseq[ip];
+					rt = rm_bcseq[ip];
 				else if( GU( rm_bcseq[ip], rm_bcseq[jp] ) )
-					b = 4;
+					rt = 4;
 				else if( GU( rm_bcseq[jp], rm_bcseq[ip] ) ) 
-					b = 5;
+					rt = 5;
+				else
+					return( EFN_INFINITY );
 				if( size == 3 ){ /* allow exp. for 3x2 loops */
-					rval += eparam[2] +
-		asint3[a][b][rm_bcseq[i+1]][rm_bcseq[j-1]][rm_bcseq[jp+1]];
+					rval += efdp->e_eparam[2] +
+	efdp->e_asint1x2[lf][rt][rm_bcseq[i+1]][rm_bcseq[j-1]][rm_bcseq[jp+1]];
 				}
 			}else{
 				if( WC( rm_bcseq[jp], rm_bcseq[ip] ) )
-					a = rm_bcseq[jp];
+					lf = rm_bcseq[jp];
 				else if( GU( rm_bcseq[jp], rm_bcseq[ip] ) )
-					a = 4;
+					lf = 4;
 				else if( GU( rm_bcseq[ip], rm_bcseq[jp] ) ) 
-					a = 5;
+					lf = 5;
+				else
+					return( EFN_INFINITY );
 				if( WC( rm_bcseq[j], rm_bcseq[i] ) )
-					b = rm_bcseq[j];
+					rt = rm_bcseq[j];
 				else if( GU( rm_bcseq[j], rm_bcseq[i] ) )
-					b = 4;
+					rt = 4;
 				else if( GU( rm_bcseq[i], rm_bcseq[j] ) ) 
-					b = 5;
+					rt = 5;
+				else
+					return( EFN_INFINITY );
 				if( size == 3 ){ /* allow exp. for 3x2 loops */
-					rval += eparam[2] +
-		asint3[a][b][rm_bcseq[jp+1]][rm_bcseq[ip-1]][rm_bcseq[i+1]];
+					rval += efdp->e_eparam[2] +
+	efdp->e_asint1x2[lf][rt][rm_bcseq[jp+1]][rm_bcseq[ip-1]][rm_bcseq[i+1]];
 				}
 			}
 		}else if( lopsid == 0 && size <= 4 ){	/* 1x1, 2x2 loops */
@@ -1397,25 +1452,27 @@ static	int	e_ibloop( int i, int j, int ip, int jp )
 			else
 				return( EFN_INFINITY );
 			if( size == 2 ){
-				rval += eparam[2] +
-				    sint2[lf][rt][rm_bcseq[i+1]][rm_bcseq[j-1]];
+				rval += efdp->e_eparam[2] +
+			    efdp->e_sint2[lf][rt][rm_bcseq[i+1]][rm_bcseq[j-1]];
 			}else if( size == 4 ){
-				rval += eparam[2] +
-sint4[lf][rt][rm_bcseq[i+1]][rm_bcseq[j-1]][rm_bcseq[ip-1]][rm_bcseq[jp+1]];
+				rval += efdp->e_eparam[2] +
+efdp->e_sint4[lf][rt][rm_bcseq[i+1]][rm_bcseq[j-1]][rm_bcseq[ip-1]][rm_bcseq[jp+1]];
 			}
 		}else{					/* 3x2 loops & up */
-			if( ( size1 == 1 || size2 == 1 ) && eparam[15] == 1 ){
-				rval += eparam[2] +
-			tstki[rm_bcseq[i]][rm_bcseq[j]][BCODE_A][BCODE_A] +
-			tstki[rm_bcseq[jp]][rm_bcseq[ip]][BCODE_A][BCODE_A]+
-					inter[size>30?30:size] +
-					MIN( maxpen, lopsid*poppen[min4] );
+			if( ( size1==1 || size2==1 ) && efdp->e_eparam[15]==1 ){
+				rval += efdp->e_eparam[2] +
+		efdp->e_tstki[rm_bcseq[i]][rm_bcseq[j]][BCODE_A][BCODE_A] +
+		efdp->e_tstki[rm_bcseq[jp]][rm_bcseq[ip]][BCODE_A][BCODE_A]+
+					efdp->e_inter[size>30?30:size] +
+					MIN(efdp->e_maxpen,
+						lopsid*efdp->e_poppen[min4]);
 			}else{
-				rval += eparam[2] +
-	tstki[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[i+1]][rm_bcseq[j-1]] +
-	tstki[rm_bcseq[jp]][rm_bcseq[ip]][rm_bcseq[jp+1]][rm_bcseq[ip-1]] +
-					inter[size>30?30:size] +
-					MIN( maxpen, lopsid*poppen[min4] );
+				rval += efdp->e_eparam[2] +
+efdp->e_tstki[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[i+1]][rm_bcseq[j-1]] +
+efdp->e_tstki[rm_bcseq[jp]][rm_bcseq[ip]][rm_bcseq[jp+1]][rm_bcseq[ip-1]] +
+					efdp->e_inter[size>30?30:size] +
+					MIN(efdp->e_maxpen,
+						lopsid*efdp->e_poppen[min4]);
 			}
 		}
 	}
@@ -1444,7 +1501,9 @@ static	int	e_hploop( int i, int j )
 			break;
 	}
 	if( ccnt == size ){
-		rval = ( size == 3 ) ? eparam[13] : eparam[12]+size*eparam[11];
+		rval = ( size == 3 ) ?
+			efdp->e_eparam[13] :
+			efdp->e_eparam[12]+size*efdp->e_eparam[11];
 	}
 
 	/* ggg loop */
@@ -1454,7 +1513,7 @@ static	int	e_hploop( int i, int j )
 			rm_bcseq[i-2]==BCODE_G &&
 			rm_bcseq[j] == BCODE_T )
 		{
-			rval += eparam[10];
+			rval += efdp->e_eparam[10];
 		}
 	}
 
@@ -1463,36 +1522,37 @@ static	int	e_hploop( int i, int j )
 			key = rm_bcseq[i+size+1];
 			for( k = size; k >= 0; k-- )
 				key = ( key << 3 ) + rm_bcseq[i+k];
-			for( lval = 0, k = 0; k < n_triloops; k++ ){
-				if( triloops[k][0] == key ){
-					lval = triloops[k][1];
+			for( lval = 0, k = 0; k < efdp->e_ntriloops; k++ ){
+				if( efdp->e_triloops[k][0] == key ){
+					lval = efdp->e_triloops[k][1];
 					break;
 				}
 			}
 		}else
 			lval = 0;
-		rval += hairpin[size] + eparam[3] + e_aupen(i,j) + lval;
+		rval += efdp->e_hairpin[size] + efdp->e_eparam[3]
+			+ e_aupen(i,j) + lval;
 	}else if( size <= 30 ){ /* loops of 4-30 */
 		if( size == 4 ){
 			key = rm_bcseq[i+size+1];
 			for( k = size; k >= 0; k-- )
 				key = ( key << 3 ) + rm_bcseq[i+k];
-			for( lval = 0, k = 0; k < n_tloops; k++ ){
-				if( tloops[k][0] == key ){
-					lval = tloops[k][1];
+			for( lval = 0, k = 0; k < efdp->e_ntloops; k++ ){
+				if( efdp->e_tloops[k][0] == key ){
+					lval = efdp->e_tloops[k][1];
 					break;
 				}
 			}
 		}else
 			lval = 0;
 		rval +=
-		tstkh[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[i+1]][rm_bcseq[j-1]] +
-			hairpin[size] + eparam[3] + lval;
+	efdp->e_tstkh[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[i+1]][rm_bcseq[j-1]] +
+			efdp->e_hairpin[size] + efdp->e_eparam[3] + lval;
 	}else{	/* BIG (>30) loops */
-		loginc = NINT( prelog*log( size / 30.0 ) );
+		loginc = NINT( efdp->e_prelog*log( size / 30.0 ) );
 		rval +=
-		tstkh[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[i+1]][rm_bcseq[j-1]] +
-			hairpin[30] + loginc + eparam[3];
+	efdp->e_tstkh[rm_bcseq[i]][rm_bcseq[j]][rm_bcseq[i+1]][rm_bcseq[j-1]] +
+			efdp->e_hairpin[30] + loginc + efdp->e_eparam[3];
 	}
 
 	return( rval );
@@ -1503,7 +1563,8 @@ static	int	e_dangle( int i, int j, int ip, int jp )
 {
 	int	rval;
 
-	rval = dangle[ rm_bcseq[i] ][ rm_bcseq[j] ][ rm_bcseq[ip] ][ jp ]; 
+	rval = efdp->e_dangle[ rm_bcseq[i] ][ rm_bcseq[j] ]
+		[ rm_bcseq[ip] ][ jp ]; 
 	return( rval );
 }
 
@@ -1517,7 +1578,7 @@ static	int	e_aupen( int i, int j )
 		{ 0, 0, 0, 0, 0 } };
 	int	rval = 0;
 
-	rval = pval[ rm_bcseq[i] ][ rm_bcseq[j] ] * eparam[ 9 ];
+	rval = pval[ rm_bcseq[i] ][ rm_bcseq[j] ] * efdp->e_eparam[ 9 ];
 	return( rval );
 }
 

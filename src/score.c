@@ -10,7 +10,7 @@
 #define	FMTFLAGS	"'-+ #0"
 
 #define	MIN(a,b)	((a)<(b)?(a):(b))
-#define	LG(v)		(3.32192809488736234789*log(v))
+#define	LG(v)		(3.32192809488736234789*log10(v))
 
 #define	ISLVAL(s)	\
 	((s)==SYM_ASSIGN||(s)==SYM_PLUS_ASSIGN||(s)==SYM_MINUS_ASSIGN||\
@@ -41,6 +41,8 @@ extern	PAIRSET_T	*rm_efnstdbp;
 
 static	STREL_T	**rm_xdescr;
 static	int	rm_n_xdescr;
+
+extern	int	circf;	/* reg. exp. ^ kludge	*/
 
 IDENT_T	*RM_find_id();
 IDENT_T	*RM_enter_id();
@@ -143,16 +145,20 @@ static	char	*opnames[ N_OP ] = {
 #define	SC_EFN		2
 #define	SC_LENGTH	3
 #define	SC_MISMATCHES	4
-#define	SC_MISPAIRS	5
-#define	SC_PAIRED	6
-#define	SC_SPRINTF	7
-#define	N_SC		8
+#define	SC_MISMATCHES_1	5
+#define	SC_MISMATCHES_2	6
+#define	SC_MISPAIRS	7
+#define	SC_PAIRED	8
+#define	SC_SPRINTF	9
+#define	N_SC		10
 
 static	char	*scnames[ N_SC ] = {
 	"STRID",
 	"bits",
 	"efn",
 	"length",
+	"mismatches",	/* Kludge, depends on linear search!	*/
+	"mismatches",	/* Require so dumpinst() doesn't fail	*/
 	"mismatches",
 	"mispairs",
 	"paired",
@@ -903,8 +909,13 @@ static	NODE_T	*mk_call_strid( int strel, NODE_T *n_id )
 	np3 = RM_node( SYM_INT, &v_expr, 0, 0 );
 	np2 = RM_node( SYM_LIST, 0, np3, np2 );
 
+/*
 	v_expr.v_type = T_STRING;
 	v_expr.v_value.v_pval = "STRID";
+*/
+	v_expr.v_type = T_INT;
+	v_expr.v_value.v_ival = SC_STRID;
+
 	np3 = RM_node( SYM_IDENT, &v_expr, 0, 0 );
 	np1 = RM_node( SYM_CALL, 0, np3, np2 );
 	return( np1 );
@@ -916,6 +927,10 @@ static	void	fix_call( NODE_T *np )
 	NODE_T	*np1, *np2, *np3;
 
 	sc = is_syscall( np );
+
+	np->n_val.v_type = T_INT;
+	np->n_val.v_value.v_ival = sc;
+
 	switch( sc ){
 	case SC_STRID :
 		rm_wdfname = np->n_filename;
@@ -967,7 +982,40 @@ static	void	fix_call( NODE_T *np )
 		break;
 	case SC_LENGTH :
 		break;
-	case SC_MISMATCHES :
+	case SC_MISMATCHES :	/* 1 or 2 parms */
+		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
+			pcnt++;
+/*
+		if( pcnt < 1 || pcnt > 2 ){
+			rm_wdfname = np->n_filename;
+			rm_emsg_lineno = np->n_lineno;
+			sprintf( emsg,
+				"fix_call: function '%s' has 1 parameter.",
+				 scnames[ sc ] );
+			RM_errormsg( 1, emsg );
+		}
+		np1 = np->n_right;
+		np1 = np1->n_left;
+		np1 = np1->n_right;
+		np->n_right = np1;
+*/
+		if( pcnt == 1 ){
+			np1 = np->n_right;
+			np1 = np1->n_left;
+			np1 = np1->n_right;
+			np->n_right = np1;
+			np->n_val.v_value.v_ival = SC_MISMATCHES_1;
+		}else if( pcnt == 2 ){
+			np->n_val.v_value.v_ival = SC_MISMATCHES_2;
+		}else{
+			rm_wdfname = np->n_filename;
+			rm_emsg_lineno = np->n_lineno;
+			sprintf( emsg,
+				"fix_call: function '%s' has 1 parameter.",
+				 scnames[ sc ] );
+			RM_errormsg( 1, emsg );
+		}
+		break;
 	case SC_MISPAIRS :
 	case SC_PAIRED :
 		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
@@ -1000,6 +1048,10 @@ static	void	do_fcl( INST_T *ip )
 	char	*cp;
 	int	len;
 
+	rm_wdfname = ip->i_filename;
+	rm_emsg_lineno = ip->i_lineno;
+	RM_errormsg( 1, "do_fcl: Unimplemented instruction." );
+/*
 	if( !strcmp( ip->i_val.v_value.v_pval, "length" ) ){
 		cp = mem[ sp ].v_value.v_pval;
 		len = strlen( cp );
@@ -1009,14 +1061,19 @@ static	void	do_fcl( INST_T *ip )
 		sp = mp;
 		mp = mem[ mp ].v_value.v_ival;
 	}
+*/
 }
 
 static	void	do_scl( INST_T *ip )
 {
-	char	*cp;
+	char	*cp, *pp;
 	VALUE_T	*v_id;
-	int	i, stype, idx, pos, len;
+	int	i, stype, idx, pos, len, size;
 	int	idx2, pos2;
+	static	int	eb_size = 0;
+	static	char	*expbuf = NULL;
+	char	*e_expbuf;
+	int	n_mm;
 	STREL_T	*stp, *stp2;
 	IDENT_T	*idp;
 	float	rval;
@@ -1223,7 +1280,10 @@ static	void	do_scl( INST_T *ip )
 		mem[ sp ].v_value.v_ival = len;
 		break; 
 
+/*
 	case SC_MISMATCHES :
+*/
+	case SC_MISMATCHES_1 :
 		idx = mem[ sp - 2 ].v_value.v_ival;
 		if( idx < 0 || idx >= rm_n_xdescr ){
 			rm_wdfname = ip->i_filename;
@@ -1238,6 +1298,39 @@ static	void	do_scl( INST_T *ip )
 		mp = mem[ mp ].v_value.v_ival;
 		mem[ sp ].v_type = T_INT;
 		mem[ sp ].v_value.v_ival = stp->s_n_mismatches;
+		break;
+
+	case SC_MISMATCHES_2 :
+		pp = mem[ sp ].v_value.v_pval;
+		size = RE_BPC * strlen( pp );
+		if( size > eb_size ){
+			if( expbuf != NULL ){
+				free( expbuf );
+				expbuf = NULL;
+			}
+			eb_size = size;
+			expbuf = ( char * )malloc( eb_size * sizeof( char ) );
+			if( expbuf == NULL ){
+				rm_wdfname = ip->i_filename;
+				rm_emsg_lineno = ip->i_lineno;
+				RM_errormsg( 1, "do_scl: can't alloc expbuf" );
+			}
+		}
+		e_expbuf = &expbuf[ eb_size ];
+		compile( pp, expbuf, e_expbuf, '\0' );
+		cp = mem[ sp - 1 ].v_value.v_pval;
+
+		circf = *pp == '^';
+		mm_step( cp, expbuf, eb_size, &n_mm );
+/*
+fprintf( stderr, "mm2: cp = '%s', pp = '%s', n_mm = %d, \n", cp, pp, n_mm );
+*/
+		tm_free( pp );
+		tm_free( cp );
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+		mem[ sp ].v_type = T_INT;
+		mem[ sp ].v_value.v_ival = n_mm;
 		break;
 
 	case SC_MISPAIRS :
@@ -3110,12 +3203,20 @@ static	void	addnode( int lval, NODE_T *np, int l_andor )
 	switch( np->n_sym ){
 
 	case SYM_CALL :
+/*
 		if( ( sc = is_syscall( np ) ) != UNDEF ){
 			v_node.v_type = T_INT;
 			v_node.v_value.v_ival = sc;
 			addinst( np, OP_SCL, &v_node );
 		}else
 			addinst( np, OP_FCL, &np->n_val );
+*/
+		v_node.v_type = T_INT;
+/*
+		v_node.v_value.v_ival = sc = is_syscall( np );
+*/
+		v_node.v_value.v_ival = sc = np->n_val.v_value.v_ival;
+		addinst( np, OP_SCL, &v_node );
 		break;
 	case SYM_LIST :
 		break;
