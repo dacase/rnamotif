@@ -34,7 +34,7 @@ T. Macke, D. Ecker, R. Gutell, D. Gautheret, D.A. Case and R. Sampath.
 RNAMotif -- A new RNA secondary structure definition and discovery
 algorithm. \fI(manuscript in preparation)\fR.
 .ip [2]
-D. Gautheret, F. Major and R. Cedrgren.  Pattern searching/alignment with
+D. Gautheret, F. Major and R. Cedergren.  Pattern searching/alignment with
 RNA primary and secondary structures: an effective descriptor for tRNA.
 \fICABIOS\fB 6,\fR 325-311 (1990).
 .ip [3]
@@ -84,7 +84,8 @@ for similarities among sequences; these strategies are much less useful
 with the four-letter alphabet of nucleic acids.  Second, there are many more
 proteins than RNA fragments whose structure has been been determined, so
 that much more is known about sequence-structure relations.  Even at the
-secondary structure level, it is most often the case that hydrogen bond
+secondary structure level, it is most often the case that RNA hydrogen bond
+(base-pairing)
 patterns have to be inferred from analysis of sequence variation (and
 co-variation) among related members of some family, rather then being
 directly visible in crystal or NMR structures, which is often the case in
@@ -117,7 +118,7 @@ or \fIpknots\fR
 eddy pseudoknot
 .]
 to see if the proposed structure is low in energy (based on empirical
-base-pairing energies) relative to alternative folds; this can often be a
+base-pairing energies) relative to alternative folds; this can often be
 useful to further prune profile matches.  The "scoring section" of
 \fIrnamotif\fR provides an interface to describe other models for ranking
 hits that can be based on empirical knowledge or just intuition.
@@ -232,7 +233,7 @@ it finds eleven possible hairpins:
         Sol   Off Ln
 	 1	1 14 aaaa   aacccc   tttt
 	 2	1 15 aaaaa  acccc   ttttt
-	 3	1 16 aaaaa  acccct  ttttt	4
+	 3	1 16 aaaaa  acccct  ttttt
 	 4	1 16 aaaaaa cccc   tttttt	
 	 5	2 13 aaaa   acccc    tttt
 	 6	2 14 aaaa   acccct   tttt
@@ -247,9 +248,9 @@ Many of these hairpins are merely subsets of the base pairs of the others.
 .(l
         Sol   Off Ln
 	 1	1 14 aaaa   aacccc   tttt
-	 2	1 15 aaaaa  acccc   ttttt	contains 5
-	 4	1 16 aaaaaa cccc   tttttt	contains 3,6,7,8
-	 8 	2 15 aaaaa  cccct   ttttt	contains 10
+	 2	1 15 aaaaa  acccc   ttttt    contains 5
+	 4	1 16 aaaaaa cccc   tttttt    contains 3,6,7,8
+	 8 	2 15 aaaaa  cccct   ttttt    contains 10
 	11	3 14 aaaa   cccctt   tttt
 .)l
 .pp
@@ -266,7 +267,7 @@ following rnamotif:
 The first is a viewing option that removes the fastn definition line from
 the rnamotif output.  At the same time sequences that correspond to long
 fields in the descriptor (ie > 20 bases) are condensed, showing only the
-1st 3 and last 3 bases surroungind the total length of the string in parens.
+1st 3 and last 3 bases surrounding the total length of the string in parens.
 For example the string 'acgtacgtacgtacgtacgtacgt' (len=24) would be
 replaced by 'acg...(24)...cgt'.  The strings are also aligned so that
 strings that represent ss, h5, p5, t1, t3, q1 and q3 elements are left
@@ -278,7 +279,7 @@ the value of the score column (#2) placing the best (or worst) solutions at
 the top.  This format option is specified by the -l option.
 .pp
 The second format option is to convert the rnamotif output into a fastn
-format alignemnt.  Justification is as in -l, but the fill characater is
+format alignment.  Justification is as in -l, but the fill characater is
 the dash (-).  Fields are separated by a vertical bar (|).  Aligned output
 is not sorted and the fastn definition lines are retained.  This format
 option is specified by the -a option.
@@ -297,7 +298,7 @@ or /var/tmp.
 The \fI-a\fR flag creates a "fasta" format alignment, and the output is not
 sorted.
 The flags \fI-a\fR and \fI-l\fR can be used together in which
-case the file is formatted with dashes, unsorted and the names of the
+case the file is formatted with dashes (unsorted) and the names of the
 sequences are reduced to the last name in the bar separated name section
 of the fastn definition line.
 
@@ -316,6 +317,6 @@ pipe:
 .pp
 The ct-format can only represent duplexes, for this reason rm2ct exits with
 an error message if its input contains triples or quads.  However, all
-dumplexes, including parallel duplexes and pseudoknots are converted,
-although not it is likely that many ct-format plotting programs can not
+duplexes, including parallel duplexes and pseudoknots are converted,
+although it is likely that many ct-format plotting programs can not
 handle such structures.

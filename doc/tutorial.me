@@ -85,12 +85,13 @@ This type of parameter list scheme is adequate for this example but it is
 unsatisfactory for more complicated descriptors.  Each \fCrnamotif\fR structure
 element has several properties, all of which have default values.  One of the
 design goals of \fCrnamotif\fR was that if the default value is acceptable, it 
-doesn't need to be explicitly set.  The default values for W/C helix lengths
+does not need to be explicitly set.  The default values for W/C helix lengths
 are 3 to 30, and you only have to explicitly set the one(s) you wish to differ
 from these default values.  For example, had we wished to find UUCG-loops that
 had a stem length of 3 to 6 base pairs, we would have only had to set the
 maximum helix length to 6.  But now we cannot decide if this 6, as in
-\fCh5( 6 )\fR, means the minimum length or the maximum length!  And in fact it's
+\fCh5( 6 )\fR, means the minimum length or the maximum length!  And in fact
+it is
 even worse, since an \fCh5\fR element has four integer valued parameters \(em
 the minimum length, the maximum length, the number of mispairs allowed in the
 helix and the number of mismatches to any sequence constraint.  The way
@@ -124,7 +125,7 @@ one shown at the beginning of this section, in that it lacks the two characters
 The meanings of (and need for) these special characters are due to the fact that
 sequence constraints in \fCrnamotif\fR are \*(lqunanchored\*(rq.  This means
 that the constraint \fCseq="UUCG"\fR matches not just \fCUUCG\fR, but \fIany\fR
-occurrance of \fCUUCG\fR in a longer string, eg \fCaUUCG\fR, \fCUUCGu\fR or
+occurence of \fCUUCG\fR in a longer string, eg \fCaUUCG\fR, \fCUUCGu\fR or
 \fCaUUCGu\fR.  When you wish \fCrnamotif\fR to limit its matches to only those
 sequences that begin with \fCUUCG\fR, you precede the \fCUUCG\fR with a \fC^\fR,
 a \*(lqmeta-character\*(rq which  matches the \*(lqbeginning of the string\*(rq.
@@ -152,12 +153,12 @@ APSRRE     0.000 0  227 12 cacc   ttcg   ggtg
 AQF16SRRN  0.000 1   39 12 agcg   ttcg   cgct
 AQF16SRRN  0.000 1   40 14 cagcg  ttcg  cgctg
 .)l
-Why, if we looked for \fCUUCG\fR does the output contain only \fCttcg\fR, and
+Why, if we looked for \fCUUCG\fR, does the output contain only \fCttcg\fR, and
 why are they all lower case?  First, \fCrnamotif\fR considers \fCu\fR and
 \fCt\fR to be the same, and as \fCt\fR is used to represent \fCu\fR in most
 databases, it translates any \fCu\fR's in sequence constraints, as well as in
 the databases that are being searched to \fCt\fR's.  Second, any upper case
-literal sequences and data base sequences are converted to their lower case
+literal sequences and database sequences are converted to their lower case
 equivalents as well.
 .sh 3 "Sequences and Regular Expressions."
 .pp
@@ -185,7 +186,7 @@ least one \fCa\fR.  Similarly the RE \fCag\fR matches any string that contains
 an \fCag\fR, and as we've already seen, the RE \fCuucg\fR matches any string
 containing \fCuucg\fR, or actually \fCttcg\fR as \fCrnamotif\fR translates all
 \fCu\fR's to \fCt\fR's in both literal strings and in the sequences of the
-databases being searched.  This is of course is useful, but what gives RE's
+databases being searched.  This is of course useful, but what gives RE's
 their power is the set of meta-characters and how they interact with the
 ordinary characters.  The \fCrnamotif\fR meta-characters, along with their
 meanings are shown in the folllowing table.
@@ -220,15 +221,15 @@ the sequence \fC"g$"\fR forces this strand of the helix, whatever its length, to
 \fCh3\fR element forces that helical strand to \fIbegin\fR with two pyrimidines,
 as \fCy\fR is the IUPAC code for \fCc\fR or \fCu\fR.  Note that the two sequence
 constraints have different lengths, which is acceptable as long as the two
-lengths are consistant.  In this example, the 5' constraint requires a helix
+lengths are consistent.  In this example, the 5' constraint requires a helix
 of at least one base pair, while the 3' constraint requires a helix that has at
-least two base pairs.  These two constraints are consistant as they can both be
+least two base pairs.  These two constraints are consistent as they can both be
 satisified with a helix of two or more base pairs.  This indirectly specified
 minimum length of two overrides the default W/C helix minimum length of 3, but
 the maximum length of this helix is unchanged from 30.  Had the sequence
-lengths inferred from the \fCseq\fR constraints been inconsistant with each
+lengths inferred from the \fCseq\fR constraints been inconsistent with each
 other or with other explicit length information, \fCrnamotif\fR would report
-this inconsistancy to the user, and then exit without performing the search.
+this inconsistency to the user, and then exit without performing the search.
 This descriptor also introduces one more \fCrnamotif\fR feature, the \fClen\fR
 keyword.  This keyword is a convenient shortcut for use when the minimum and
 maximum length (\fCminlen\fR, \fCmaxlen\fR) of a structural element are the
@@ -241,7 +242,9 @@ table, we see that the star operator (\fC*\fR) means accept \fIzero\fR or more
 instances of the RE that precedes it.  Thus \fCg*\fR matches ` epsilon ` (the
 empty sequence of \fIzero\fR \fCg\fR's), \fCg\fR, \fCgg\fR, \fCggg\fR, etc.
 Similarly \fCy*\fR, \fCb*\fR and \fCn*\fR match runs (including the zero length
-run) of pyrimidines, any base but \fCa\fR and any base at all.  The next
+run) of pyrimidines, any base but \fCa\fR, and any base at all, respectively.
+.pp
+The next
 descriptor finds tetraloops where the 5' helical stem is composed solely of
 pyrimidines
 .(l
@@ -263,7 +266,7 @@ Next we consider sequence constraints that require either a run of \fIn\fR
 or \fIn\fR to \fIm\fR instances of the preceding RE.  This is done by following 
 the character (or character class, eg \fCy\fR) with either \fC\\{\fIn\fC\\}\fR
 for a run of \fIn\fR instances or \fC\\{\fIn\fC,\fIm\fC\\}\fR for a run of
-\fIn\fR to \fIm\fR instances.  These operators are not as useful that they seem,
+\fIn\fR to \fIm\fR instances.  These operators are not as useful as they seem,
 in part because they imply more than what they actually do.  Consider finding
 our usual tetra-loops with stems of length 4 to 6 that contain runs of exactly
 2-4 pyrimidines.  Accordingly we try this next descriptor 
@@ -285,21 +288,23 @@ find only sequences containing helices with runs of 2-4 pyrimidines, but only
 when those helices begin and/or end with a purine. It no longer finds helices
 that begin and/or end with a pyrimidine even when those sequences have runs of
 the correct length.  If we attempt to fix this RE by using \fCr*\fR for \fCr\fR,
-we're right back where we started because \fCr*\fR matches runs of zero purines
+we're right back where we started because \fCr*\fR matches runs of zero
+purines,
 once again allowing runs of pyrimidines longer than 4.  In fact, there is no
 way to do this with regular expressions because they are simply not powerful
 enough to count.  However, the \fCrnamotif\fR score section can count and we
-will return to this and other counting problems in that section which contains
+will return to this (and other counting problems) below, in a section which 
+contains
 a descriptor that does find all tetra-loops that contain only runs of 2-4
 pyrimidines in the helical stem.
 .pp
 We conclude this section on sequence constraints and regular expressions with a
-discussion about the use of character classes.  There are two kinds, ordinary
-character classes which specify a set of acceptable characters and negated
-character classes which specify a set of unacceptable characters  A character
+discussion about the use of character classes.  There are two kinds: ordinary
+character classes which specify a set of acceptable characters, and negated
+character classes which specify a set of unacceptable characters.  A character
 class is two or more characters enclosed in brackets.  A negated character class
 is two or more characters enclosed in brackets, where the first character that
-follows the left bracket is a circumflex (\fC^\fR)  For example, \fC[ag]\fR, is
+follows the left bracket is a circumflex (\fC^\fR). For example, \fC[ag]\fR is
 a character class that accepts either an \fCa\fR or a \fCg\fR and \fC[^a]\fR
 is a negated character class that accepts anything but an \fCa\fR. Functionally,
 they act like the IUPAC characters \fCr\fR and \fCb\fR.  They are most useful
@@ -316,7 +321,7 @@ for \fCr\fR.
 .pp
 In all of the examples up to this point, the helices have contained only strict
 Watson/Crick pairs: {\fC"a:u"\fR, \fC"c:g"\fR, \fC"g:c"\fR, \fC"u:a"\fR}.
-However, there are many motifs that contain other base pairs and \fCrnamotif\fR
+However, there are many motifs that contain other base pairs, and \fCrnamotif\fR
 allows the user to specify which pairs (or triples or quads) are acceptable in
 the various helical elements of the descriptor.  Two levels of control are
 provided.  By adding a statement in the optional parms section, the user can
@@ -325,7 +330,7 @@ Watson/Crick, parallel duplex, triplex and quadruplex.  In addition the user
 can set the \fCpair\fR parameter of any particular helical element which will
 set the pairing rule for this helix.  The default base pairs or
 \*(lqpairsets\*(rq for each type of \fCrnamotif\fR helical element are shown in
-Table X.
+Chapter 5.
 .pp
 A pairset is a comma separated list of special strings enclosed in curly
 brackets.  Each string in a pairset contains 2-4 instances of \fCa\fR, \fCc\fR,
@@ -335,7 +340,8 @@ represent the bases on the first, second (and third or even fourth) strand that
 make an acceptable base pair (or triple or quad).  For example, the strings
 \fC"a:u"\fR, \fC"a:u:u"\fR and \fC"g:g:g:g"\fR specify a standard A:U basepair,
 an A:U:U triple, where the second U is the Hoogsteen base from the third strand,
-a four-stranded G-quartet.  The strand directions are \(ua:\(da, \(ua:\(da:\(ua,
+and a four-stranded G-quartet, respectively.
+The strand directions are \(ua:\(da, \(ua:\(da:\(ua,
 and \(ua:\(da:\(ua:\(da respectively.  All elements of pairset must have the
 same number of bases.  For example, a pairset may not contain both pairs and
 triples.
@@ -365,7 +371,7 @@ The most common non-standard base pair is the G:U or \*(lqwobble\*(rq pair.  In
 order to search for UUCG-loops that permit G:U pairing in the stem, all we do
 to the descriptor from \(sc1.1 is change the pairing rule via the \fCpair\fR
 parameter to the \fCh5\fR (or \fCh3\fR) structural element. Since we wish to
-add both the G:U and U:G pairs we use \*(lqincrement\*(rq operator \fC+=\fR.
+add both the G:U and U:G pairs, we use \*(lqincrement\*(rq operator \fC+=\fR.
 .(l
 descr
 	h5( minlen=4,maxlen=6,pair+={"g:u","u:g"} ) ss( seq="^UUCG$" ) h3
@@ -373,7 +379,7 @@ descr
 In fact, G:U pairs are so common in RNA sequences, that \fCrnamotif\fR provides
 a predefined pairset called \fCgu\fR which is equal to \fC{"g:u","u:g"}\fR.
 Instead of using the literal pairset \fC{"g:u","u:g"}\fR as the value to be
-added to the \fCpair\fR parameter we could have used the shorter \fCgu\fR as
+added to the \fCpair\fR parameter, we could have used the shorter \fCgu\fR as
 in
 .(l
 descr
@@ -441,7 +447,7 @@ surrounded by single quotes (\fC'\fR) instead of the double quotes (\fC"\fR)
 that surround literal sequences.  This is necessary because sequences and
 strings are different.  For example, in the \fIsequence\fR \fC"gnra"\fR, the
 \fCn\fR and the \fCr\fR are the IUPAC codes for any base and \fCa\fR or \fCg\fR.
-In adddition any upper case letters in a literal sequence are converted to lower
+In addition, any upper case letters in a literal sequence are converted to lower
 case, and any \fCu\fR's are converted to \fCt\fR's.  However, the literal
 \fIstring\fR \fC'gnra'\fR is just the four characters, \fCgnra\fR.  Characters
 in strings are case sensitive, are never IUPAC codes and \fCu\fR's represent
@@ -543,12 +549,14 @@ descriptor also shows some new \fCrnamotif\fR features.  The first line which
 begins with a \fC#\fR is a \*(lqcomment\*(rq and is ignored by \fCrnamotif\fR.
 Comments, which may be placed anywhere in a descriptor and not just on lines by
 themselves, always begin with a \fC#\fR and tell \fCrnamotif\fR to ignore the
-rest of the line.  A descriptor may extend over more that one line.  In
+rest of the line.  A descriptor may extend over more than one line.  In
 fact, \fCrnamotif\fR is \*(lqfree-format\*(rq meaning that the descriptor may
-be spread over as many lines (including blank lines) as are convenient and that
+be spread over as many lines (including blank lines) as are convenient, and that
 the various elements may be indented to improved readability, although
 \fCrnamotif\fR ignores indenting, treating any run of spaces, tabs and newlines
-as a single space.  Two final comments about this descriptor:  Had we wished to
+as a single space.
+.pp
+Two final comments about this descriptor:  Had we wished to
 find three or more consecutive hairpins we simply would have added additional
 instances of the \fCh5 ss h3\fR skeleton, along with constraints following the
 UUCG-loop in this descriptor.  And if any of the hairpins were adjacent, ie,
@@ -564,15 +572,15 @@ simple \(em \fCrnamotif\fR does not permit bulges in helices.  Instead,
 subdivided into two or more helices such that the bulge(s) become single
 stranded sections that now connect nested helices.
 .pp
-The rationale for this restriction is that pattern based descriptors, while
+The rationale for this restriction is that pattern-based descriptors, while
 powerful, suffer from two serious shortcomings.  One of these, their inability
-to count, was mentioned in \(sc1.2.  The second limitation of pattern based
-descriptors in they have difficulty dealing with context.  An example of this
-problem is shown in \(sc2.2.2.  The \fCrnamotif\fR score section (\(sc6)
+to count; a second 
+is that they have difficulty dealing with context.
+The \fCrnamotif\fR score section
 removes these two limitations, but in order to do so, \fCrnamotif\fR requires
-that every position in every element of the descriptor have a unique name and
-it is this unique name requirement that is incompatible with helices with
-bulges.
+that every position in every element of the descriptor have a unique name, and
+it is this unique name requirement that is incompatible with helices
+containing bulges.
 .pp
 To understand why this is so, consider a helix that contains a single
 \fIoptional\fR bulge of one base.  If the bulge is absent, the length of the
@@ -594,12 +602,12 @@ ambiguous.  And there are problems with bulges.  In general the user would not
 only like to specify their size(s), but their location(s), including which
 bulges are allowed to oppose each other.  Taken all together, satisfying these
 requirements would greatly increase the complexity of the helical descriptor
-elements and so \fCrnamotif\fR just makes the user break the helix into
+elements, so \fCrnamotif\fR just makes the user break the helix into
 subhelices to accomodate bulges.  Optional bulges are repesented by \fCss\fR
 elements with a \fCminlen=0\fR.
 .sh 4 "UUCG-loop with a helical bulge."
 .pp
-In this section we return once again the UUCG-loop.  However, this time we would
+In this section we return once again to the UUCG-loop.  However, this time we would
 like UUCG-loops that not only contain stems of 4-6 basepairs but may include
 an optional bulge base either 2-3 bases from the 5' end and/or 2-3 bases from
 the 3' end of the 5' strand of the helix.  Based on the rule discussed in the
@@ -664,7 +672,7 @@ descr
 	ss( len=3 )
 .)l
 Although this descriptor does find all sequences that could be IRE's, it also
-finds sequences that are not IREs.  This is bacause an IRE has either an
+finds sequences that are not IREs.  This is because an IRE has either an
 internal loop of 3:1 bases \fIor\fR a single 5' bulge, but this descriptor
 accepts any sequences that contain any of the six possible internal loops that
 have 1 to 3 5' bases opposing 0 to 1 3' bases (1\(mu0, 2\(mu0, 3\(mu0, 1\(mu1,
@@ -672,13 +680,14 @@ have 1 to 3 5' bases opposing 0 to 1 3' bases (1\(mu0, 2\(mu0, 3\(mu0, 1\(mu1,
 As such it illustrates the second major limitation of pattern based
 descriptors \(em there is no easy way to use the part of the solution that has
 already been found as context to limit what will be an acceptable solution for
-the part still to be found.  Specifically, what we need is some what to tell
+the part still to be found.  Specifically, what we need is some way to tell
 \fCrnamotif\fR that if it has found a partial solution that contains a 3 base
-bulge on the 5' side of the helix to accept only a single base bulge on the 3'
+bulge on the 5' side of the helix, then it should 
+accept only a single base bulge on the 3'
 side of this helix.  Similarly, if it is has found a single base 5' bulge, then
 it must only accept a 0 length bulge on the 3' side.  All other matches, while
 they do indeed match the descriptor, are not IRE's and must be discarded.  The
-solution to this problem is provided by the \fCrnamotif\fR's score section and
+solution to this problem is provided by the \fCrnamotif\fR's score section, and
 the complete IRE descriptor is provided and discussed there.
 .sh 4 "Using consecutive helices to change the pairing rules."
 .pp
@@ -694,7 +703,7 @@ Since the G and the A that open and close the loop form an unusual G:A pair,
 we now wish to search for possible GNRA-loops where the last base pairs of the
 stem are G:A.  To do this we will need to break the original stem of 4-6 base
 pairs into two helices \(em the outer of 3-5 (standard) base pairs and the inner
-of length 1 that using only G:A pairs.  Here is the descriptor.
+of length 1 that uses only G:A pairs.  Here is the descriptor.
 .(l
 descr
 	h5( minlen=3, maxlen=5 )
@@ -704,7 +713,7 @@ descr
 	h3
 .)l
 Our usual search over the RNA part of Genbank 111.0 (15-Apr-1999) finds 124 
-instances of this motif with the first 10 show below. 
+instances of this motif with the first 10 shown below. 
 .(l
 AGCRR18S   0.000 0 1706 12 ggg   g ggaa a   ccc
 BLHRR24S   0.000 0  676 12 tgc   g gtaa a   gca
@@ -751,14 +760,15 @@ Pseudoknots are a class of structures composed of improperly nested W/C
 helices.  The mininal pseudoknot consists of two such helices where the 5'
 strand of the second helix begins between the 5' and 3' strands of the first
 helix.  Originally considered unlikely, pseudoknots have been found to be
-involved in a number of RNA functions, such as read through, Y and Z.
+involved in a number of RNA functions, such as read through and
+frameshifting.
 .pp
 In the section, \fBProperly Nested Hairpins\fR (\(sc2), we pointed out that
 improperly nested hairpins are precisely those in which the corresponding 5' and
 3' strands of each helix can not be automatically paired using the \*(lqcurrent
 unpaired \fCh3\fR element goes with the closest unpaired \fCh5\fR element\*(lq
 rule.  For this reason, pseudoknots require some way to explicitly link the
-corresponding \fCh5\fR and \fCh3\fR elements and in \fCrnamotif\fR this is done
+corresponding \fCh5\fR and \fCh3\fR elements, and in \fCrnamotif\fR this is done
 by \*(lqtagging\*(rq the corresponding helical elements by setting the \fCtag\fR
 parameter of these elements.  A descriptor for a mininal (two helix) pseudoknot
 is shown below.
@@ -775,10 +785,12 @@ descr
 			ss( seq="^uucg$" )
 		h3( tag='h2' )
 .)l
-The two helices, as shown by the values of their \fCtag\fR parameters are called
+The two helices, as shown by the values of their \fCtag\fR parameters,
+are called
 \fCh1\fR and \fCh2\fR.  Structure element tags can be up to 255 characters in
 length and can be any convenient string of characters including spaces, but may
-not include newlines.  Because \fCtag\fR values are strings and not sequences
+not include newlines.  Because \fCtag\fR values are strings and not
+sequences,
 they should be enclosed in single quotes (\fC'\fR) instead of the double quotes
 (\fC"\fR) used for literal sequences. A search of GBRNA v. 111.0 (15-Apr-1999)
 finds only six sequences that are consistant with the secondary structure of
@@ -807,7 +819,7 @@ of that non-W/C helix.
 .pp
 A parallel duplex is represented by the \fCrnamotif\fR descriptor elements
 \fCp5\fR and \fCp3\fR which represent the 5' and 3' strands of the parallel
-duplex.  These two structural have the same parameters as the W/C elements
+duplex.  These two structures have the same parameters as the W/C elements
 \fCh5\fR and \fCh3\fR except that the default base pairing is held in the 
 \fCrnamotif\fR variable \fCph\fR.
 .(l
@@ -833,7 +845,7 @@ descr
 .sh 3 "4-Stranded helices (Quadruplexes)."
 .pp
 Similary, \fCrnamotif\fR uses the four symbols \fCq1\fR, \fCq2\fR, \fCq3\fR and
-\fCq4\fR in that order to represent the four strands of a quadrplex.  \fCq1\fR
+\fCq4\fR in that order to represent the four strands of a quadruplex.  \fCq1\fR
 is the 5'-most strand and is followed by \fCq2\fR, \fCq3\fR and \fCq4\fR
 representing the first antiparallel strand the second parallel strand  and
 finally the 3'-most antiparallel strand.  The default pairset for 4-stranded
@@ -855,7 +867,7 @@ elements.  This section is optional, but if present must be the first section
 of an \fCrnamotif\fR descriptor preceding the required \fCdescr\fR section.
 The parms section is introduced by the reserved word \fCparms\fR which is then
 followed by one or more parameter definitions.  Each parameter definition takes
-the form of an assignmment statement.
+the form of an assignment statement.
 .sh 2 "Sites."
 .pp
 One of the major shortcomings of pattern based descriptors is a general 
@@ -869,8 +881,8 @@ simple \*(lqsites\*(rq list discussed here and much more powerful score section
 dicussed in \(sc6.
 .pp
 The sites section is an optional part of an \fCrnamotif\fR descriptor.  If
-present it immediately follows the \fCdescr\fR section and introduced by the
-reserved word \fCsites\fR.  This word is then followed by one or site
+present it immediately follows the \fCdescr\fR section and is introduced by the
+reserved word \fCsites\fR.  This word is then followed by one more or site
 specifiers.  A site specifier is a colon (\fC:\fR) separated list of 
 structural elements followed by the reserved word \fCin\fR followed by a
 pairset containing the acceptable combinations of bases at the position 
@@ -881,7 +893,7 @@ sites
 	h5( tag='2', pos=1 ):h3( tag='2', pos=$ ) in { "g:c" }
 .)l
 The first site specifies that the second base in the W/C helix named \fC1\fR
-is restricted to either an A:U or a G:C and the second site specifies that the
+is restricted to either an A:U or a G:C, and the second site specifies that the
 first base of the W/C helix named \fC2\fR be G:C.  Here's how the sites section
 works.  Each site specifier in top to bottom order is tested against the 
 current candidate to see if the bases at the specified positions are in the
@@ -902,8 +914,8 @@ imposes the requirement that the bases at positions 3 and 2 of the single
 stranded regions named \fCss1\fR and \fCss2\fR be either an A:U or a G:C.  The
 biggest limitation to using sites is they are \*(lqall or nothing\*(rq.  The
 candidate sequence either passes all the site specifiers or it is rejected.
-This is often too severe and the score section can be used to create more
-flexible acceptance criteria based on site like objects.
+This is often too severe, and the score section can be used to create more
+flexible acceptance criteria based on site-like objects.
 .he '\fR\n(mo/\n(dy/\n(y2'Scoring'%'
 .bp
 .sh 1 "Scoring."
@@ -967,10 +979,11 @@ dependent default value before the rules are applied to the current match.
 Thus each match is evaluated without memory of previous matches.
 .pp
 Another important class of \fCrnamotif\fR variables are the substrings
-of the current match that were found by the patten structural elements of the
-\fCdescr\fR section.  These substrings are read-only but may otherwise examined,
+of the current match that were found by the pattern structural elements of the
+\fCdescr\fR section.  These substrings are read-only but may be
+otherwise examined,
 compared, concatenated and assigned to \fCscore\fR section variables.  Of
-paricular interest are the substrings of these strings, as it is by examining
+particular interest are the substrings of these strings, as it is by examining
 these individual bases, that users can write \fCscore\fR programs that can
 count things like the percentage of certain bases or the number of bases
 between mispairs.  These substrings are accessed with construct very similar
@@ -1028,13 +1041,13 @@ following scoring rule:
 	}
 .)l
 This rule sums the total number of mispairs into the special variable 
-\fCSCORE\fR, which  is written out immediately following the name of each
+\fCSCORE\fR, which is written out immediately following the name of each
 matched sequence.  The \fCfor\fR loop causes the local variable \fCi\fR to
 range over the values `1, 2, ..., \fCNSE\fR`.  On each iteration it selects the
-`\fCi\fR sup th` structural element, which since its secondary structure is
-unknown is done with the generic structural element \fCse\fR and passes it to
-the builtin function \fCmispairs()\fR which in turn returns the number of
-mispairs in the string that matched that element.  For consistancy, all
+`\fCi\fR sup th` structural element, which (since its secondary structure is
+unknown) is done with the generic structural element \fCse\fR and passes it to
+the builtin function \fCmispairs()\fR; this in turn returns the number of
+mispairs in the string that matched that element.  For consistency, all
 elements of type \fCss\fR are defined to have 0 mispairs.  After the loop is
 completed, the \fCif\fR statement tests the value of \fCSCORE\fR and if it is
 not equal to 1, executes a \fCREJECT\fR statement, rejecting the current match.
@@ -1067,8 +1080,9 @@ h5[4,2]	 gacg	The last four bases.
 h5[4,2,3]	 gac
 .TE
 While both the keyword and indexed forms provide the same access to the strings 
-that have matched the structure elements, there are some important diferences.
-Because the values are unambiguously assigned in the keyword version their order
+that have matched the structure elements, there are some important differences.
+Because the values are unambiguously assigned in the keyword version,
+their order
 is unimportant.  However, in the indexed version, since all three values can
 be integers, their order is required to be id, pos, len.  If only two values
 are present, the missing  value is the length which is, as in the keyword 
@@ -1078,13 +1092,13 @@ We close this section on accessing the substrings that were found to match
 the various elements of the descriptor with a few final notes.  In the examples,
 all the values were either literal strings or integers, but any string or
 integer valued expression can be used to select substrings.  Tagged versions
-(\fCh5(tag='p1')\fR, \fCh5['p1']\fR), can not be used with the generic
+(\fCh5(tag='p1')\fR, \fCh5['p1']\fR) cannot be used with the generic
 structure element \fCse\fR, because, except in the case where it refers to an
 \fCss\fR element, the reference is ambiguous as all elements of the same helix
-must either have no tag or the same tag.  And finally, referencing a position
+must either have no tag or the same tag.  Finally, referencing a position
 beyond the end of a descriptor or indexing a descriptor < 1 or > \fCNSE\fR is
-an error and will abort the search with error message describing the errant
-reference; however a length that exceeds the length of the current string is
+an error, and will abort the search with error message describing the errant
+reference. However, a length that exceeds the length of the current string is
 silently reduced to that length. 
 .sh 2 "rnamotif Expressions."
 .pp

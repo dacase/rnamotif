@@ -20,15 +20,15 @@ the structure elements in the search pattern can have a second related meaning.
 In the pattern section they describe the motif, but in the score section they
 represent (with some qualification) the actual sequences that matched those
 pattern elements.  For example, in the pattern section, the symbols
-\fCh5(tag='hlx-A')\fR, represent the 5'-end of a Watson/Crick duplex labelled
+\fCh5(tag='hlx-A')\fR represent the 5'-end of a Watson/Crick duplex labelled
 \fChlx-A\fR, but the same symbols in the score section would represent the
 actual sequence that matched that part of the pattern.  Allowing these symbols
-to act like readonly string variables with length and substring operations
+to act like read-only string variables with length and substring operations
 and combining them with standard programming constructs like assignments,
 expressions, testing and looping, makes it easy to implement the arbitrary
 context relations that \fCrnamotif\fR's predecessors so sorely needed.
 .pp
-\fCrnamotif\fR uses a two stage algorithm to perform the search. Stage one
+\fCrnamotif\fR uses a two-stage algorithm to perform the search. Stage one
 compiles the motif along with any scoring rules into a search list and a set of
 instructions for the scoring interpreter.  Stage two executes the search,
 testing each entry in the sequence database first, for matches to the pattern,
@@ -38,7 +38,7 @@ written to \fCstdout\fR.
 .sh 2 "Compilation."
 .pp
 The target secondary structure, along with its scoring rules and other
-information is called a descriptor.  Descriptors are stored as ASCII text files
+information, is called a descriptor.  Descriptors are stored as ASCII text files
 and are created via a text editor.  The inputs to an \fCrnamotif\fR run are
 a descriptor and the database file to be searched.
 .pp
@@ -48,7 +48,7 @@ section is required. The parameters section is used to define variables that
 are used in the rest of the descriptor.  It is also used to set \fCrnamotif\fR
 defaults.  The descriptor section defines the secondary structure or motif to
 search for.  The sites section allows users to specify simple relations among
-the elements of the descriptor and the score section is a set of
+the elements of the descriptor, and the score section is a set of
 condition/action pairs that provides direct access to the actual sequences that
 matched the elements of the descriptor.  The score section is used for two
 things.  It tests each sequence that matched the pattern to see that it also
@@ -60,12 +60,12 @@ The descriptor language is formally specified via \fClex\fR and \fCyacc\fR.  The
 lexical or text level is specified as a \fClex\fR input file, which contains a
 set of regular expressions that define the basic symbols of the descriptor
 language.  These are things like numbers, strings, reserved words, special
-characters etc.  The scanner generator \fClex\fR converts this file into a
+characters, etc.  The scanner generator \fClex\fR converts this file into a
 function, called a scanner, that converts the stream of characters in the
 descriptor file into a stream of symbols in the \fCrnamotif\fR descriptor
 language.  The syntax of this language is specified as a context free grammar
 for the parser generator \fCyacc\fR which uses it to produce a parser for the
-language.  This parser takes the the stream of symbols produced by the scanner
+language.  This parser takes the stream of symbols produced by the scanner
 and assembles it into the actual search list and score program that will perform
 the search.
 .sh 3 "Preprocessor."
@@ -76,10 +76,8 @@ definitions.  Unlike the \fCrnamotif\fR language itself which is free format,
 file inclusion is line oriented.  File inclusion is indicated via the
 preprocessor directive
 .(l
-.ft C
 # include \fIfile-name\fC
-.ft R
-.)b
+.)l
 whose action is to replace this line with the contents of the named file.  File
 includes may be nested.  Include files whose names are not absolute paths are
 assumed to be located in the current directory.  Additional include directories
@@ -93,16 +91,16 @@ section, if present, contains one or more assignment statements of the form
 \fIvar \fC=\fI expr\fC;\fR  Immediately after parsing the semicolon, the
 expression, \fIexpr\fR, is evaluated and stored in the variable \fIvar\fR.
 These variables, instead of their values, can then be used elsewhere in the
-descriptor removing literals and increasing its readability.  This same
+descriptor, removing literals and increasing its readability.  This same
 assignment mechanism is also used to change the default values of the
-\fCrnamotif\fR search algorithm.  These defaults, which include things like
-the pairing rules and minimum and maximum lengths for each type of helix are
+\fCrnamotif\fR search algorithm.  These defaults, which include
+the pairing rules and minimum and maximum lengths for each type of helix, are
 made available to the user as a set of predefined variables.  When
 \fCrnamotif\fR is invoked, the user can place one or more variable definitions
 on the command line.  The preprocessor interpolates these definitions into the
 expanded source immediately before the reserved word \fCdescr\fR which starts
 the mandatory descriptor section.  The result is that these command line
-definitions are the last parameter values to be assigned which means that these
+definitions are the last parameter values to be assigned, which means that these
 new values will replace any previous values, including the default values of
 the builtin variables.  For example, running \fCrnamotif\fR with the command
 line definition \fC-Dwc+=gu\fR makes GU pairing the default for all
@@ -110,32 +108,30 @@ Watson/Crick helices in the current descriptor.
 .sh 3 "Parsing."
 .pp
 The syntax of the descriptor language is specified by a context free grammar.
-Such grammars provide a precise convenient way of describing recursive
+Such grammars provide a precise and convenient way of describing recursive
 structures like computer languages.  Because nucleic acid secondary structures
 are also recursive \(em helices contain other helices which contain still other
 helices \(em we suspect that a context free grammar can be written that
 generates nucleic secondary structures and that it will be easy to integrate
 this new grammar with the one that describes the traditional computer language
-part of an \fCrnamotif\fR descriptor. Unfortunately, this is not the case as
+part of an \fCrnamotif\fR descriptor. Unfortunately, this is not the case, as
 context free grammars are not powerful enough to generate arbitrary pseudoknots,
 which are an important class of nucleic acid secondary structures.
 Nevertheless, the idea of decomposing complex objects into a well defined
 hierarchy of simple building blocks is a powerful one, and the insights gained
 from how a context free grammar can generate many important nucleic acid
-secondary structure are used throughout \fCrnamotif\fR.
+secondary structures are used throughout \fCrnamotif\fR.
 .pp
 Consider the following grammar.  This grammar is extremely simple, yet it can
 generate a large number of nucleic acid secondary structures.  It consists of
 one rule with three parts.
 .(l
-.ft C
 \fIS\fC		:  \fIS\fC h5 \fIS\fC h3 \fIS\fC
 		|  ss
 		| 
-.ft R
-.)b
-This is a rewriting rule and when used it replaces the generic secondary
-structure \fIS\fR, on the left side of the rule with one of the more detailed
+.)l
+This is a rewriting rule, and when used it replaces the generic secondary
+structure \fIS\fR on the left side of the rule with one of the more detailed
 secondary structures on the right side. The process continues until all of
 the unspecified secondary structure has been replaced by either Watson/Crick
 helices, single stranded stretches or nothing.  The rule and the process it
@@ -147,7 +143,6 @@ example below, the rule is used four times to create a simple hairpin.  In the
 first and third applications, the third part of the rule (\fIS\fC ->\fR ) is
 used so that this structure begins and ends with a helix. 
 .(l
-.ft C
 \fIS\fC		-> \c
 \kx\l'\w"\fIS\fC"u\(ul'\h'|\nx'\fIS\fC \c
 h5 \fIS\fC h3 \fIS\fC
@@ -157,34 +152,28 @@ h3 \fIS\fC
 		-> h5 ss h3 \c
 \kx\l'\w"\fIS\fC"u\(ul'\h'|\nx'\fIS\fC
 		-> h3 ss h3
-.ft R
-.)b
+.)l
 .pp
 There are two ways to apply this rule to create more complex structures.  If
 the second application is to the trailing (or leading) \fIS\fR, the result is
 two consecutive hairpins:
 .(l
-.ft C
 \fIS\fC		-> \fIS\fC h5 \fIS\fC h3 \c
 \kx\l'\w"\fIS\fC"u\(ul'\h'|\nx'\fIS\fC
 		-> \fIS\fC h5 \fIS\fC h3 \fIS\fC h5 \fIS\fC h3 \fIS\fC
-.ft R
-.)b
+.)l
 The more interesting case is when the rule is applied to the interior \fIS\fR:
 .(l
-.ft C
 \fIS\fC		-> \fIS\fC h5 \c
 \kx\l'\w"\fIS\fC"u\(ul'\h'|\nx'\fIS\fC          \|\|\c
 h3 \fIS\fC
 		-> \fIS\fC h5 \fIS\fC h5 \fIS\fC h3 \fIS\fC h3 \fIS\fC
-.ft R
-.)b
+.)l
 which creates an \fIinterior\fR loop, (the outer \fCh5\fR ... \fCh3\fR)
 containing a hairpin.  Repeated application of this rule easily creates more
 complicated structures.  In the next example, the rule is used four times to
 create a tRNA cloverleaf.
 .(l
-.ft C
 \fIS\fC		-> \fIS\fC h5 \c
 \kx\l'\w"\fIS\fC"u\(ul'\h'|\nx'\fIS\fC                              \c
 h3 \fIS\fC
@@ -199,22 +188,19 @@ h3 \fIS\fC
 		     |    |    |    |    |   |    |    |
 		     |    +----+    +----+   +----+    |
 		     +---------------------------------+
-.ft R
-.)b
+.)l
 Finally, this basic rule can be extended to create other types of helices. Here
 is an extension to create  parallel duplexes, triplexes and quadruplexes,
 although in the case of the 3- and 4- strand helices, the rule does not define
 the strand order.
 .(l
-.ft C
 \fIS\fC		:  \fIS\fC h5 \fIS\fC h3 \fIS\fC
 		|  \fIS\fC p5 \fIS\fC p3 \fIS\fC
 		|  \fIS\fC t1 \fIS\fC t2 \fIS\fC t3 \fIS\fC
 		|  \fIS\fC q1 \fIS\fC q2 \fIS\fC q3 \fIS\fC q4 \fIS\fC
 		|  ss  
 		|
-.ft R
-.)b
+.)l
 .pp
 As powerful as the basic rule is, there is an important class of structures,
 the pseudoknots, that it can not generate.  The basic rule can only generate
@@ -226,15 +212,13 @@ The canonical pseudoknot consists of two helices, whose nesting is shown below.
 The two helices are clearly connected, but neither is contained inside the
 other.
 .(l
-.ft C
 		h5 \fIS\fC h5 \fIS\fC h3 \fIS\fC h3
 		^    ^    ^    ^
 		|    |    |    |
 		+---------+    | 
 		     |         |
 		     +---------+
-.ft R
-.)b
+.)l
 .pp
 That the rule can not generate such improperly nested structures follows 
 immediately from the fact that its application replaces \fIone\fR
@@ -255,15 +239,13 @@ the 5'-part and one for the 3'-part.  Of course, we could extend the basic
 rule to generate canonical pseudoknots directly, and one such extension is
 shown below.
 .(l
-.ft C
 \fIS\fC		:  \fIS\fC h5 \fIS\fC h3 \fIS\fC
 		|  \fIS\fC pk5 \fIS\fC pj5 \fIS\fC pk3 \fIS\fC pj3 \fIS\fC
 		|  ss
 		|
-.ft R
-.)b
+.)l
 This rule generates two helix pseudoknots (\fCpk5\fR/\fCpk3\fR,
-\fCpj5\fR/\fCpj3\fR) but it can't generate ones with three (or more) helices.
+\fCpj5\fR/\fCpj3\fR), but it cannot generate ones with three (or more) helices.
 We could add more rules for each class of pseudoknots that \fCrnamotif\fR is to
 support, but this would add complexity, lack elegance and worst of all, would
 limit the \fCrnamotif\fR's descriptive and search abilities to pseudoknots of
@@ -275,10 +257,8 @@ because many sequences of these symbols are ambiguous \(em the various
 \fCh5\fR/\fCh3\fR elements can be paired up in several different ways.  The
 symbols below illustrate this.
 .(l
-.ft C
 		h5 \fIS\fC h5 \fIS\fC h3 \fIS\fC h3
-.ft R
-.)b
+.)l
 If the outermost \fCh5\fR/\fCh3\fR are paired, the result is an
 internal/hairpin loop, but if the first \fCh5\fR is paired with first \fCh3\fR,
 the result is a pseudoknot.  In the grammar under discussion, this ambiguity is
@@ -301,7 +281,7 @@ proper helix and arbitrary pseudoknots made from Watson/Crick duplexes.  The
 other  proper helices are the parallel duplex, a triplex based on Hoogsteen
 pairs and their analogs with strand order \(ua\(da\(ua and a quadruplex where
 the strand order is \(ua\(da\(ua\(da.  All of these basic motifs, including
-the pseudoknots have two important characteristics.  First, they partition the
+the pseudoknots, have two important characteristics.  First, they partition the
 sequence into three types of subsequences: the exterior, which precedes and
 follows the motif, the sequences involved in the helical strands themselves and
 one, two, three or more interior regions, depending if the motif is a duplex,
@@ -321,15 +301,13 @@ word for that particular element.  Since many of these parameters have values
 of the same type, parameters are identified by keyword rather than position.
 For example, the motif fragment shown below contains three structure elements,
 the first two of which have parameters.
-.(b
-.ft C
+.(l
 	h5( minlen=4, maxlen=10, mispair=2 ) ss( seq="^gnra$" ) h3
-.ft R
-.)b
+.)l
 These three elements describe a GNRA-loop with a stem length of 4-10, using
-the default pairing rule for Watson/Crick duplexes, but allowing upto 2 
-mispairs.  The grouping of these structure elements into a Watson/Crick
-duplex, one of \fCrnamotif\fR's building blocks is done after the entire
+the default pairing rule for Watson/Crick duplexes, but allowing up to two 
+mispairs.  The grouping of these structure elements into
+\fCrnamotif\fR's building blocks is done after the entire
 source has been parsed.  This process is discussed in the next section.
 .sh 3 "Motif Discovery and Analysis."
 .pp
@@ -337,16 +315,16 @@ If no errors are encountered during the parsing stage, the structure elements
 and associated data are translated into a search program.  This process
 involves several steps.  First, the structure elements are linked into helices.
 Then the parameters for each helix, which may be distributed among the
-parameter lists of the helix's individual strands must be collected and
-checked for consistancy.  Next, improper helices are dectected and grouped
+parameter lists of the helix's individual strands, must be collected and
+checked for consistency.  Next, improper helices are dectected and grouped
 into pseudoknots.  At this point, all of the structure elements have been
 assembled into \fCrnamotif\fR's fundamental motifs and their hierarchical
 nesting is determined.  This hierarchy is used to propagate length limits
-upward allowing for a more efficient search.  The motif hierarchy is
+upward, allowing for a more efficient search.  The motif hierarchy is
 linearized to form a search list that is use to drive the actual search.  
 .pp
-As was shown above, the context free grammar that defines \fCrnamotif\fR's
-input language, is not powerful enough to directly generate linking information
+As was shown above, the context-free grammar that defines \fCrnamotif\fR's
+input language is not powerful enough to directly generate linking information
 for arbitrarily complex improperly nested structures.  Instead, the sequence of
 structure symbols is saved in the order they were encountered and then linked
 after the parsing is complete.  Improperly nested helices (ie parts of
@@ -359,15 +337,15 @@ using the rule that an unpaired \fCh3\fR element is paired with the closest
 this process, the descriptor is incorrect and the search is aborted.
 .pp
 Next the parameters (if any) for the structure elements are collected and
-checked for consistancy.  In the case of helices these parameters may be
+checked for consistency.  In the case of helices these parameters may be
 distributed among parameter lists attached to any of the structure elements
 that define the strands of the helix.  All structure elements may have length,
 sequence and mismatch constraints; helices may also include parameters that
 specify the pairing rule, mispair limits (both absolute number of mispairs
 and/or fraction that must be paired) and whether or not a helix can begin
-and/or end with mispair.  All explicit length constraints (\fCminlen\fR,
+and/or end with a mispair.  All explicit length constraints (\fCminlen\fR,
 \fCmaxlen\fR, \fClen\fR) must agree.  Implicit length constraints derived from
-sequence constraints must be consistant with any explicit length constraints.
+sequence constraints must be consistent with any explicit length constraints.
 As sequence constraints are specified as simple regular expressions without
 alternation, this means that fully anchored regular expressions with a fixed
 length (eg \fC^gnra$\fR) must agree exactly with any explicit length
@@ -376,10 +354,10 @@ sequence whose minimum length does not exceed the explicit maximum length (if
 set) of this helix (or single stranded region).  If two or more helical
 strands have regular expressions with variable but differing lengths, the
 implied minimum length of this helix is set to the longest minimum length of
-these regular expressions.  If any errors have been detected in this phase the
+these regular expressions.  If any errors have been detected in this phase, the
 search is aborted.
 .pp
-After parameter processing any improperly nested helices are grouped into
+After parameter processing, any improperly nested helices are grouped into
 pseudoknots.  As was discussed above, \fCrnamotif\fR considers pseudoknots
 to be a basic motif, albeit one with a variable number of helical strands.
 \fCrnamotif\fR flattens the set of helices that compose the pseudoknot into
@@ -390,7 +368,7 @@ All \fCrnamotif\fR pseudoknots must be composed of only Watson/Crick duplexes.
 .pp
 The last step in the motif discovery and analysis phase is to convert the
 set of fully linked and parameterized fundamental motifs that define the target
-secondary structure into a search list.  The motifs in this set form a tree
+secondary structure into a search list.  The motifs in this set form a tree,
 and a preorder traversal of this tree is used to form the search list.  A 
 postorder traversal of this tree is used to propagate length limits defined
 for sub-motifs upward to the motif that contains them in order to improve the
@@ -403,7 +381,7 @@ structure is its leftmost motif.  The preorder traversal of this tree is then:
 begin with the root and visit it, then visit each of its interior subtrees in
 left to right order and then visit the subtree that follows it.  The postorder
 traversal also begins as the root, but first visits a node's interior subtrees,
-also in left to right order, then its successor subtree and finally visits the
+also in left to right order, then its successor subtree and finally the
 node itself.  The following table shows several secondary structures, their
 associated trees and the search lists that are derived from those trees.
 .TS
@@ -497,11 +475,11 @@ the search list.  If this motif is found, it partitions the string into three
 types of substrings.  These are the substrings that make up the motif, zero or
 more interior substrings between these motif strings (single stranded regions
 have zero interior regions) and a suffix, the part of the search string which
-immediately follows the last base of the last motif string.  At this point the
+immediately follows the last base of the last motif string.  At this point, the
 search function recursively calls itself to search for the next motif on the
-search list using as its search string either an interior substring or the
-suffix substring depending on whether this next motif is nested inside the
-motif just found or follows it.
+search list, using as its search string either an interior substring or the
+suffix substring (depending on whether this next motif is nested inside the
+motif just found or follows it).
 .pp
 The algorithm is not complicated but does involve a lot of bookkeeping.  It is
 implemented as a hierarchy of functions called by a driver.  The driver takes a
@@ -548,7 +526,7 @@ substring to hold at least the shortest instance of the motif that follows the
 first element.  The loop to find the end of the first motif thus runs downward
 from this value to the value that is just long enough to hold the shortest
 instance of the first motif.  At each iteration of the loop, this loop value
-replaces the original stop value in the first search list element and the
+replaces the original stop value in the first search list element, and the
 loop value plus one becomes the start value of the substring that must contain
 the motif that follows the first motif.  The updated search list is passed to
 \fCfind_1_motif()\fR which calls the individual search functions that actually
@@ -569,7 +547,7 @@ find_4plex()	Quadruplex with strand directions \(ua\(da\(ua\(da.
 find_pknot()	Arbitrary pseudoknot formed from Watson/Crick duplexes.
 .TE
 .pp
-These six functions while aimed at different motifs, have a similar structure.
+These six functions, while aimed at different motifs, have a similar structure.
 They all take a single argument, a search list.  They all attempt to find the
 first motif on this list and by the time they are called, both the start and
 stop position of the substring that may contain the motif have been fixed and
@@ -605,11 +583,9 @@ the minimum and maximum lengths of the bulge; an optional bulge is created by
 a single stranded stretch with a minimum length of zero.  The descriptor
 fragment shown below illustrates two helices interrupted by a optional one base
 bulge on their 5'-sides.
-.(b
-.ft C
+.(l
 h5 ss(minlen=0,maxlen=1) h5 ... h3 h3
-.ft R
-.)b
+.)l
 .pp
 The rationale behind the exclusion of bulges from helices is simple:  Helices
 with bulges, especially optional bulges are complicated; helices without them
@@ -618,8 +594,8 @@ In the descriptor section, it is needed to specify the positions and lengths of
 the bulges.  In the score section, bulges, especially optional ones, complicate
 the addressing of the individual bases in the substrings that matched the
 structure elements of those bulged helices.  In helices without bulges, all
-strands have the same length.  If a helix has length \fIL\fR, and its strands
-are antiparallel the paired bases are numbered 1:\fIL\fR, 2:\fIL\fR\-1, ...,
+strands have the same length.  If a helix has length \fIL\fR and its strands
+are antiparallel, the paired bases are numbered 1:\fIL\fR, 2:\fIL\fR\-1, ...,
 \fIL\fR:1; if the strands are parallel, the paired bases are numbered 1:1,
 2:2, ..., \fIL\fR:\fIL\fR.  In bulged helices, however, the individual strands
 have different lengths and the numbering of the paired bases depends on the
@@ -627,8 +603,8 @@ locations of the bulges.
 .pp
 In contrast to bulges, mispairs are simple.  Every type of helix supported by
 \fCrnamotif\fR has a default pairing rule which may be overriden for any
-individual helix.  A pairing rule is a set of pairs, triples or quads that
-when found at corresponding positions in the strands of a helix count as a pair
+individual helix.  A pairing rule is a set of pairs, triples or quads that,
+when found at corresponding positions in the strands of a helix, count as a pair
 (or triple, etc.)  Any other combination of bases at these positions is a 
 mispair.  Mispair limits other than zero are specified either as a maximum
 number of mispairs allowed or as the fraction of the helix that must be paired.
@@ -649,7 +625,7 @@ For example, in the regular expression \fCA*\fR, the \fC*\fR indicates that
 this regular expression matches any number (including zero) of \fCA\fR's.
 The effect of this restriction is that only sequence constraints that have a
 fixed length can have mismatches.  The mismatch limit is specified as the
-maximum number of mismatches allowed with zero as the default.  Like mispairs,
+maximum number of mismatches allowed, with zero as the default.  Like mispairs,
 mismatches are optional, but the score section can be used to accept only
 those candidates with the required number of mismatches.
 .sh 2 "The Sites List."
@@ -665,12 +641,12 @@ sites provide a way to incorporate longer range \*(lqtertiary\*(rq constraints
 into the search.
 .pp
 A site consists of an ordered list of two to four positions and a set of
-\*(lqpairs\*(rq, \*(lqtriples\*(rq or \*(lqquads\*(rq that the represent the
+\*(lqpairs\*(rq, \*(lqtriples\*(rq or \*(lqquads\*(rq that represent the
 allowed bases as these positions.  The quotes are used here to indicate that
 while these bases are specified using \fCrnamotif\fR's syntax for true
-hydrogen bonded pairs, etc, no such hydrogen bonding pairing relationship is
+hydrogen bonded pairs, no such hydrogen bonding pairing relationship is
 implied among the positions specified in the site.  For example, the site shown
-below involves a position from one strand each from three different helices
+below involves a position from each of three different helices,
 and requires either a \fCg:a:a\fR or \fCg:g:a\fR at these positions.
 .sp .5v 
 .ce
@@ -679,14 +655,14 @@ and requires either a \fCg:a:a\fR or \fCg:g:a\fR at these positions.
 .pp
 Each time a candidate sequence matches the pattern based descriptor, the actual
 bases corresponding to the site's positions are extracted and checked to insure
-that they are among the \*(lqpairs\*(rq, etc allowed at those positions.  If
+that they are among the \*(lqpairs\*(rq, allowed at those positions.  If
 they are not, the candidate is rejected.  If the site is composed of acceptable
 bases, the candidate is provisionally accepted and the next site is checked.
 This process continues until a site rejects the candidate or all sites have
-been matched in which case the candidate is then scored or in the absense
-of a score section, the candidate is accepted.  Because sites are all or
-nothing \(em a candidate either matches or fails \(em they lack nuance and
-because of this site style constraints along with threshhold values are
+been matched, in which case the candidate is then scored or (in the absense
+of a score section) is accepted.  Because sites are all or
+nothing \(em a candidate either matches or fails \(em they lack nuance, and
+because of this, site style constraints along with threshhold values are
 generally converted into scoring rules.
 .sh 2 "Scoring."
 .pp
@@ -699,13 +675,13 @@ below some cutoff.  The score section solves both these problems.
 .pp
 The score section was modelled after \fCawk\fR.  It consists of one or more
 rules, where a rule is composed of an optional condition and an action.  If
-the condition is present it is evaluated and if true the action is executed.  
+the condition is present, it is evaluated; if true, the action is executed.  
 If the condition is absent, the action is always executed.  Like \fCawk\fR
 the rules are executed from top to bottom until 1) an \fCACCEPT\fR statement is
 executed in which case the candidate is accepted; 2) a \fCREJECT\fR statement
 is executed in which case the candidate is rejected, or 3) all scoring rules
 have been executed in which case the candidate is accepted.  The scoring
-program communicates its results to the output file via the builtin variable
+program communicates its results to the output file via the built-in variable
 \fCSCORE\fR.  The details of this process are discussed in a separate section
 below.
 .sh 3 "The Score Interpreter."
@@ -717,7 +693,7 @@ are used for control flow \(em testing values, branching, looping and accepting
 or rejecting the candidate.  The instructions themselves are untyped, with the
 actual operation being chosen at runtime based on the types of the operands.
 Expressions are evaluated on a stack whose entries contain both the type and
-value of the operands.  Variables are stored in the symbol table.  However to
+value of the operands.  Variables are stored in the symbol table.  However, to
 speed up execution, the parser replaces references to variables in the score
 program with pointers to those variables' entries in the symbol table, allowing
 their values to be fetched or stored without a lookup.
@@ -728,29 +704,27 @@ All variables have one of these types: \fCundefined\fR, \fCinteger\fR,
 type of that value.  The only type conversions supported are between
 \fCinteger\fR and \fCreal\fR.  Variables defined in the parameter section may
 not be changed in the score section in order to insure that the descriptor is
-not changed during a search.  This applies to the builtin variables as well,
-except for the special builtin variable \fCSCORE\fR which is used to
+not changed during a search.  This applies to the built-in variables as well,
+except for the special built-in variable \fCSCORE\fR, which is used to
 communicate the results of the score program to the output.  Variables defined
 in the score section are read/write, but once such a variable has been assigned
 a value and a type, it will be reinitialized to the default value of that type
-immediately before the score section is executed insuring that each invocation
+immediately before the score section is executed ensuring that each invocation
 of the score program is identical.
 .pp
 All variables are scalars, with one exception.  This is the special readonly
 variable \fCse\fR which represents the array of structure elements that define
 the target motif.  This array is indexed from 1 to \fCNSE\fR, which is the
-builtin variable that holds the number of structure elements in the descriptor.
-This array makes it easy to perform things like global counts.  For example,
+built-in variable that holds the number of structure elements in the descriptor.
+This array makes it easy to perform tasks such as global counts.  For example,
 the score fragment below determines the total number of mispairs in the current
 candidate.
-.(b
-.ft C
+.(l
 .ta .5i
 nmp = 0;
 for( i = 1; i <= NSE; i++ )
 	nmp += mispairs( se[ i ] ); 
-.ft R
-.)b
+.)l
 .pp
 The primary input to every score program is the set of sequences that matched
 the structure elements that define the target motif.  The score interpreter
@@ -767,36 +741,32 @@ structure element.  This element is the 5'- strand of a Watson/Crick helix,
 whose name is \fChlx-A\fR. It is also the fourth element in the descriptor.
 Strings begin at position 1, and the substring below is 2 bases long and begins
 at position 3.
-.(b
-.ft C
+.(l
 h5(tag='hlx-a',pos=3,len=2)
 h5(index=4',pos=3,len=2)
 h5['hlx-a',3,2]
 h5[4,3,2]
-.ft R
-.)b
+.)l
 .pp
 In addition to having a sequence, these structure element variables also have
 attributes.  These are the total number of mispairs in the current match, the
 total number of mismatches to a sequence constraint, and for any element of
-type other than single stranded, whether or not, two (or more) bases are paired
+type other than single stranded, whether or not two (or more) bases are paired
 (form a triple, etc).  Attributes are accessed by applying a builtin function
 to the specified structure variable.  The number of mispairs to a single strand
 stretch is defined to be zero as is the number of mismatches if no sequence
-constraint was specified.  The builtin function \fCpaired()\fR is a generic
+constraint was specified.  The built-in function \fCpaired()\fR is a generic
 pairing relationship and works on all helical elements.  The elements of
 \fCpaired()\fR must all be from the same helical element, but need not be
 corresponding bases.  In the example below, the call to \fCpaired()\fR extracts
 the bases at positions \fCi\fR, \fCj\fR and \fCk\fR from the triplex named
-\fCTr1\fR and tests if they are valid triple using the rule in force for this
+\fCTr1\fR and tests if they are valid triples using the rule in force for this
 triplex.
-.(b
-.ft C
+.(l
 mismatches( ss['A-Codon'] )
 mispairs( h5['D-Loop'] )
 paired( t1['Tr1',i,1], t2['Tr1',j,1], t3['Tr1',k,1] )
-.ft R
-.)b
+.)l
 .sh 3 "Turner Energy."
 .pp
 One of the more useful capabilities of the score interpreter is its ability to
