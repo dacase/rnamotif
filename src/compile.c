@@ -79,6 +79,7 @@ static	int	loadidval();
 static	void	storeexprval();
 static	PAIRSET_T	*pairop();
 static	void	*mk_bmatp();
+static	void	*mk_rbmatp();
 static	POS_T	*posop();
 
 static	int	seqlen();
@@ -329,7 +330,8 @@ NODE_T	*PR_close()
 			errormsg( 0, "PR_close: pair-string has 2-4 bases." );
 		}
 	}
-	ps->ps_mat[ 0 ] = NULL; ps->ps_mat[ 1 ] = NULL; ps->ps_mat[ 1 ] = NULL;
+	ps->ps_mat[ 0 ] = NULL;
+	ps->ps_mat[ 1 ] = NULL;
 	ps = pairop( "check", ps, NULL );
 
 	np = ( NODE_T * )malloc( sizeof( NODE_T ) );
@@ -1676,7 +1678,13 @@ PAIRSET_T	*ps2;
 			}
 		}
 		ps1->ps_n_pairs = j;
-		ps1->ps_mat[ 0 ] = mk_bmatp( ps1 );
+		pp = ps1->ps_pairs;
+		if( pp->p_n_bases == 2 )
+			ps1->ps_mat[ 0 ] = mk_bmatp( ps1 );
+		else{
+			ps1->ps_mat[ 1 ] = mk_bmatp( ps1 );
+			ps1->ps_mat[ 0 ] = mk_rbmatp( ps1 );
+		}
 		return( ps1 );
 	}else if( !strcmp( op, "copy" ) ){
 		if( ps1 == NULL )
@@ -1693,7 +1701,13 @@ PAIRSET_T	*ps2;
 		n_ps->ps_pairs = n_pp;
 		for( i = 0; i < n_ps->ps_n_pairs; i++ )
 			n_ps->ps_pairs[ i ] = ps1->ps_pairs[ i ];
-		n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
+		pp = n_ps->ps_pairs;
+		if( pp->p_n_bases == 2 )
+			n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
+		else{
+			n_ps->ps_mat[ 1 ] = mk_bmatp( n_ps );
+			n_ps->ps_mat[ 0 ] = mk_rbmatp( n_ps );
+		}
 		return( n_ps );
 	}else if( !strcmp( op, "add" ) ){
 		ppi = ps1->ps_pairs;
@@ -1733,7 +1747,13 @@ PAIRSET_T	*ps2;
 			}
 			ADDED : ;
 		}
-		n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
+		pp = n_ps->ps_pairs;
+		if( pp->p_n_bases == 2 )
+			n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
+		else{
+			n_ps->ps_mat[ 1 ] = mk_bmatp( n_ps );
+			n_ps->ps_mat[ 0 ] = mk_rbmatp( n_ps );
+		}
 		return( n_ps );
 	}else if( !strcmp( op, "sub" ) ){
 		ppi = ps1->ps_pairs;
@@ -1778,7 +1798,13 @@ PAIRSET_T	*ps2;
 			}
 		}
 		n_ps->ps_n_pairs = j;
-		n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
+		pp = n_ps->ps_pairs;
+		if( pp->p_n_bases == 2 )
+			n_ps->ps_mat[ 0 ] = mk_bmatp( n_ps );
+		else{
+			n_ps->ps_mat[ 1 ] = mk_bmatp( n_ps );
+			n_ps->ps_mat[ 0 ] = mk_rbmatp( n_ps );
+		}
 		return( n_ps );
 	}else if( !strcmp( op, "equal" ) ){
 		if( ps1->ps_n_pairs != ps2->ps_n_pairs )
@@ -1826,7 +1852,7 @@ PAIRSET_T	*ps;
 	if( nb == 2 ){
 		bmatp = bpmatp = ( BP_MAT_T * )malloc( sizeof( BP_MAT_T ) );
 		if( bpmatp == NULL )
-			errormsg( 1, "pairop: check: can't alloc bpmatp." );
+			errormsg( 1, "mk_bmatp: can't alloc bpmatp." );
 		memset( bmatp, 0, sizeof( BP_MAT_T ) );
 		for( i = 0; i < ps->ps_n_pairs; i++ ){
 			pp = &ps->ps_pairs[ i ];
@@ -1837,7 +1863,7 @@ PAIRSET_T	*ps;
 	}else if( nb == 3 ){
 		bmatp = btmatp = ( BT_MAT_T * )malloc( sizeof( BT_MAT_T ) );
 		if( btmatp == NULL )
-			errormsg( 1, "pairop: check: can't alloc btmatp." );
+			errormsg( 1, "mk_bmatp: can't alloc btmatp." );
 		memset( bmatp, 0, sizeof( BT_MAT_T ) );
 		for( i = 0; i < ps->ps_n_pairs; i++ ){
 			pp = &ps->ps_pairs[ i ];
@@ -1849,7 +1875,7 @@ PAIRSET_T	*ps;
 	}else if( nb == 4 ){
 		bmatp = bqmatp = ( BQ_MAT_T * )malloc( sizeof( BQ_MAT_T ) );
 		if( bqmatp == NULL )
-			errormsg( 1, "pairop: check: can't alloc bqmatp." );
+			errormsg( 1, "mk_bmatp: can't alloc bqmatp." );
 		memset( bmatp, 0, sizeof( BQ_MAT_T ) );
 		for( i = 0; i < ps->ps_n_pairs; i++ ){
 			pp = &ps->ps_pairs[ i ];
@@ -1858,6 +1884,50 @@ PAIRSET_T	*ps;
 			bi3 = rm_b2bc[ pp->p_bases[ 2 ] ];
 			bi4 = rm_b2bc[ pp->p_bases[ 3 ] ];
 			(*bqmatp)[bi1][bi2][bi3][bi4] = 1;
+		}
+	}
+	return( bmatp );
+}
+
+static	void*	mk_rbmatp( ps )
+PAIRSET_T	*ps;
+{
+	PAIR_T	*pp;
+	int	i, nb;
+	int	bi1, bi2, bi3, bi4;
+	void	*bmatp;
+	BP_MAT_T	*bpmatp;
+	BT_MAT_T	*btmatp;
+	BQ_MAT_T	*bqmatp;
+
+	pp = &ps->ps_pairs[ 0 ];
+	nb = pp->p_n_bases;
+	bmatp = bpmatp = ( BP_MAT_T * )malloc( sizeof( BP_MAT_T ) );
+	if( bpmatp == NULL )
+		errormsg( 1, "pairop: mk_rbmatp: can't alloc bpmatp." );
+	memset( bmatp, 0, sizeof( BP_MAT_T ) );
+
+	if( nb == 3 ){
+		btmatp = ( BT_MAT_T * )ps->ps_mat[ 1 ];
+		for( bi1 = 0; bi1 < N_BCODES; bi1++ ){
+			for( bi2 = 0; bi2 < N_BCODES; bi2++ ){
+				for( bi3 = 0; bi3 < N_BCODES; bi3++ ){
+					if( (*btmatp)[bi1][bi2][bi3] )
+						*bpmatp[bi1][bi3] = 1;
+				}
+			}
+		}
+	}else if( nb == 4 ){
+		bqmatp = ( BQ_MAT_T * )ps->ps_mat[ 1 ];
+		for( bi1 = 0; bi1 < N_BCODES; bi1++ ){
+			for( bi2 = 0; bi2 < N_BCODES; bi2++ ){
+				for( bi3 = 0; bi3 < N_BCODES; bi3++ ){
+					for( bi4 = 0; bi4 < N_BCODES; bi4++ ){
+					    if((*bqmatp)[bi1][bi2][bi3][bi4])
+						*bpmatp[bi1][bi4] = 1;
+					}
+				}
+			}
 		}
 	}
 	return( bmatp );
