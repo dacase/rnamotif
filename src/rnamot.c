@@ -35,7 +35,7 @@ char	*argv[];
 	RM_init();
 
 	if( yyparse() ){
-		fprintf( stderr, "syntax error.\n" );
+		errormsg( 1, "syntax error." );
 	}
 	if( !rm_error ){
 		if( SE_link( rm_n_descr, rm_descr ) )
