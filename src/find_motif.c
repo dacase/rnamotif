@@ -1,17 +1,23 @@
 #include <stdio.h>
 #include <string.h>
-
 #include "rnamot.h"
 #include "y.tab.h"
-
 #define	RM_R2L(st)	\
 	((st)==SYM_P3||(st)==SYM_H3||(st)==SYM_T2||(st)==SYM_Q2||(st)==SYM_Q4)
+
 static	int	strel_name();
 static	int	find_start();
 static	int	find_start2();
 static	int	find_stop();
+static	int	find_stop2();
 static	void	find_plen();	
 static	int	find_nlen();	
+static	int	find_start3();
+static	int	contains_unbnd();
+static	int	min_prefixlen();
+static	int	max_prefixlen();
+static	int	min_suffixlen();
+static	int	max_suffixlen();
 
 int	find_motif( n_descr, descr, sites, locus, slen, sbuf )
 int	n_descr;
@@ -122,18 +128,17 @@ STREL_T	descr[];
 	bp += strlen( bp );
 
 /*
-	start = find_start( slen, stp, n_descr, descr, &l2r );
-	sprintf( tstr, "%s%d", !l2r ? "$-" : "", start );
-	sprintf( bp, " %5s", tstr );
-	bp += strlen( bp );
-*/
-
 	start = find_start2( stp, descr, &l2r );
+*/
+	start = find_start3( stp, descr, &l2r );
 	sprintf( tstr, "%s%d", !l2r ? "$-" : "", start );
 	sprintf( bp, " %5s", tstr );
 	bp += strlen( bp );
 
+/*
 	stop = find_stop( slen, stp, n_descr, descr, &l2r );
+*/
+	stop = find_stop2( slen, stp, n_descr, descr, &l2r );
 	sprintf( tstr, "%s%d", !l2r ? "$-" : "", stop );
 	sprintf( bp, " %5s", tstr );
 	bp += strlen( bp );
@@ -283,6 +288,29 @@ int	*l2r;
 	}
 }
 
+static	int	find_stop2( slen, stp, n_descr, descr, l2r )
+int	slen;
+STREL_T	*stp;
+int	n_descr;
+STREL_T	descr[];
+int	*l2r;
+{
+	int	i, unbnd;
+	int	stop;
+	STREL_T	*stp1;
+
+	if( RM_R2L( stp->s_type ) ){
+		*l2r = 1;
+		stop = stp->s_minlen + min_prefixlen( stp, descr ) - 1;
+	}else{
+		*l2r = 0;
+		stop = stp->s_minlen + min_suffixlen( stp, descr );
+		if( stop > 0 )
+			stop--;
+	}
+	return( stop );
+}
+
 ext_prefix( stp, prefix, prefix1 )
 STREL_T	*stp;
 char	prefix[];
@@ -293,9 +321,6 @@ char	prefix1[];
 	STREL_T	*stp0;
 	int	inner, next, first;
 
-/*
-fprintf( stderr, "%3d: prefix  = '%s'\n", stp->s_index, prefix );
-*/
 	strcpy( prefix1, prefix );
 	plen = strlen( prefix1 );
 	pp = &prefix1[ plen - 1 ];
@@ -306,9 +331,6 @@ fprintf( stderr, "%3d: prefix  = '%s'\n", stp->s_index, prefix );
 	else
 		first = 0;
 	next = stp->s_next != NULL;
-/*
-	*pp = next ? '|' : ' ';
-*/
 	if( next )
 		*pp = '|';
 	else if( *pp != '|' )
@@ -316,11 +338,6 @@ fprintf( stderr, "%3d: prefix  = '%s'\n", stp->s_index, prefix );
 	if( first )
 		strcat( prefix1, "  |" );
 	strcat( prefix1, "  +" );
-/*
-fprintf( stderr, "index = %d, inner = %d next = %d first = %d\n",
-	stp->s_index, inner, next, first );
-fprintf( stderr, "%3d: prefix1 = '%s'\n", stp->s_index, prefix1 );
-*/
 }
 
 int	find_start2( stp, descr, l2r )
@@ -407,4 +424,148 @@ int	*plen;
 			}
 		}
 	}
+}
+
+find_start3( stp, descr, l2r )
+STREL_T	*stp;
+STREL_T	descr[];
+int	*l2r;
+{
+	char	name[ 20 ];
+	int	start;
+
+	strel_name( stp, name );
+	if( stp->s_scope == UNDEF ){	/* ss	*/
+		*l2r = 1; 
+		start = 0;
+	}else if( stp->s_scope == 0 ){	/* start a group	*/
+		*l2r = 1; 
+		start = 0;
+	}else{
+		if( RM_R2L( stp->s_type ) ){
+			if( contains_unbnd( stp, descr ) ){
+				start = min_suffixlen( stp, descr );
+				*l2r = 0;
+			}else{
+				start = max_prefixlen( stp, descr );
+				start += stp->s_maxlen - 1;
+				*l2r = 1;
+			}
+		}else{
+			start = min_prefixlen( stp, descr );
+			*l2r = 1;
+		}
+	}
+
+	return( start );
+}
+
+static	int	contains_unbnd( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+
+	if( stp->s_maxlen == UNBOUNDED )
+		return( 1 );
+	if( max_prefixlen( stp, descr ) == UNBOUNDED )
+		return( 1 );
+	return( 0 );
+}
+
+static	int	min_prefixlen( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	STREL_T	*stp0, *stp1;
+	int	s, plen;
+
+	if( stp->s_scope == UNDEF )
+		return( 0 );
+	stp0 = stp->s_scopes[ 0 ];
+	for( plen = 0, s = stp->s_index - 1; s >= stp0->s_index; s-- ){
+		stp1 = &descr[ s ];
+		plen += stp1->s_minlen;
+	}
+	return( plen );
+}
+
+static	int	max_prefixlen( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	STREL_T	*stp0, *stp1;
+	int	s, plen;
+
+	if( stp->s_scope == UNDEF )
+		return( 0 );
+	stp0 = stp->s_scopes[ 0 ];
+	for( plen = 0, s = stp->s_index - 1; s >= stp0->s_index; s-- ){
+		stp1 = &descr[ s ];
+		if( stp1->s_maxlen == UNBOUNDED )
+			return( UNBOUNDED );
+		else
+			plen += stp1->s_maxlen;
+	}
+	return( plen );
+}
+
+static	int	min_suffixlen( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	STREL_T	*stp0, *stp1, *stpn;
+	int	s, slen;
+
+	slen = 0;
+	if( stp->s_scope == UNDEF ){
+		for( stp1 = stp->s_next; stp1; stp1 = stp1->s_next )
+			if( stp1->s_scope == 0 )
+				slen += stp1->s_minglen;
+			else
+				slen += stp1->s_minlen;
+		return( slen );
+	}
+
+	slen = 0;
+	stpn = stp->s_scopes[ stp->s_n_scopes - 1 ];
+	for( s = stp->s_index + 1; s <= stpn->s_index; s++ ){
+		stp1 = &descr[ s ];
+		slen += stp1->s_minlen;
+	}
+	stp0 = stp->s_scopes[ 0 ];
+	for( stp1 = stp0->s_next; stp1; stp1 = stp1->s_next )
+		slen += stp1->s_minlen;
+	return( slen );
+}
+
+static	int	max_suffixlen( stp, descr )
+STREL_T	*stp;
+STREL_T	descr[];
+{
+	STREL_T	*stp0, *stp1, *stpn;
+	int	s, slen;
+
+	if( stp->s_scope == UNDEF || stp->s_scope == 0 ){
+		for( stp1 = stp->s_next; stp1; stp1 = stp1->s_next ){
+			if( stp1->s_maxlen == UNBOUNDED )
+				return( UNBOUNDED );
+			slen += stp1->s_maxlen;
+		}
+		return( slen );
+	}
+
+	slen = 0;
+	stpn = stp->s_scopes[ stp->s_n_scopes - 1 ];
+	for( s = stp->s_index + 1; s <= stpn->s_index; s++ ){
+		stp1 = &descr[ s ];
+		if( stp1->s_maxlen == UNBOUNDED )
+			return( UNBOUNDED );
+		slen += stp1->s_maxlen;
+	}
+	stp0 = stp->s_scopes[ 0 ];
+	for( stp1 = stp0->s_next; stp1; stp1 = stp1->s_next )
+		if( stp1->s_maxlen == UNBOUNDED )
+			return( UNBOUNDED );
+		slen += stp1->s_maxlen;
+	return( slen );
 }
