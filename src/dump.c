@@ -58,7 +58,7 @@ int	d_hierarchy;
 
 	if( d_hierarchy ){
 		fprintf( fp,
-	"descr minl  maxl  mngl  mxgl  mnil  mxil start  stop  descr\n" );
+	"desc# minl  maxl  mngl  mxgl  mnil  mxil start  stop  descr\n" );
 		strcpy( prefix, "+" );
 		print_hierarchy( fp, 0, prefix, 0, rm_descr );
 		print_searches( fp, rm_n_searches, rm_searches );
@@ -258,6 +258,13 @@ STREL_T	*stp;
 	fprintf( fp, "\n" );
 
 	fprintf( fp, "\tlineno   = %d\n", stp->s_lineno );
+
+	fprintf( fp, "\tsearchno = " );
+	if( stp->s_searchno == UNDEF )
+		fprintf( fp, "UNDEF" );
+	else
+		fprintf( fp, "%d", stp->s_searchno );
+	fprintf( fp, "\n" );
 
 	fprintf( fp, "\ttag      = '%s'\n",
 		stp->s_tag ? stp->s_tag : "(No tag)" );
@@ -676,20 +683,21 @@ SEARCH_T	*searches[];
 	char	name[ 20 ];
 
 	fprintf( fp, "total search depth: %3d\n", n_searches );
+	fprintf( fp, "srch# desc# type  forward  backup\n" );
 	for( s = 0; s < n_searches; s++ ){
 		stp = searches[ s ]->s_descr;
 		mk_strel_name( stp, name );
-		fprintf( fp, "%3d: type = %s", stp->s_index, name );
-		stp1 = searches[ s ]->s_next;
+		fprintf( fp, "%4d %5d %5s", s, stp->s_index, name );
+		stp1 = searches[ s ]->s_forward;
 		if( stp1 != NULL )
-			fprintf( fp, ", next = %6d", stp1->s_index );
+			fprintf( fp, " %8d", stp1->s_index );
 		else
-			fprintf( fp, ", next = (None)" );
+			fprintf( fp, "   (None)" );
 		stp1 = searches[ s ]->s_backup;
 		if( stp1 != NULL )
-			fprintf( fp, ", backup = %6d", stp1->s_index );
+			fprintf( fp, " %7d", stp1->s_index );
 		else
-			fprintf( fp, ", backup = (None)" );
+			fprintf( fp, "  (None)" );
 		fprintf( fp, "\n" );
 	}
 }
