@@ -308,7 +308,7 @@ char	name[];
 static	void	eval( expr )
 NODE_T	*expr;
 {
-	char	*sp;
+	char	*sp, *l_sp, *r_sp;
 	IDENT_T	*ip, *ip1;
 	int	l_type, r_type;
 
@@ -363,6 +363,18 @@ NODE_T	*expr;
 				valstk[ n_valstk - 2 ].v_value.v_ival +=
 					valstk[ n_valstk - 1 ].v_value.v_ival;
 			}else if( l_type == T_STRING ){
+				l_sp = valstk[ n_valstk - 2 ].v_value.v_pval;
+				r_sp = valstk[ n_valstk - 1 ].v_value.v_pval;
+				sp = ( char * )malloc( strlen( l_sp ) +
+					strlen( r_sp ) + 1 );
+				if( sp == NULL ){
+					fprintf( stderr,
+				"eval: FATAL: can't alloc sp for str +.\n" );
+					exit( 1 );
+				}
+				strcpy( sp, l_sp );
+				strcat( sp, r_sp );
+				valstk[ n_valstk - 2 ].v_value.v_pval = sp;
 			}else if( l_type == T_PAIR ){
 			}
 			n_valstk--;
@@ -383,6 +395,9 @@ NODE_T	*expr;
 				valstk[ n_valstk - 2 ].v_value.v_ival -=
 					valstk[ n_valstk - 1 ].v_value.v_ival;
 			}else if( l_type == T_STRING ){
+				fprintf( stderr,
+			"eval: FATAL: op '-' not defined for strings.\n" );
+				exit( 1 );
 			}else if( l_type == T_PAIR ){
 			}
 			n_valstk--;
@@ -392,7 +407,7 @@ NODE_T	*expr;
 			l_type = ip->i_type;
 			r_type = valstk[ n_valstk - 1 ].v_type;
 			if( r_type == T_IDENT )
-				r_type = loadidval( &valstk[ n_valstk ] );
+				r_type = loadidval( &valstk[ n_valstk - 1 ] );
 			if( l_type != r_type ){
 				fprintf( stderr,
 					"eval: FATAL: type mismatch '='\n" );
@@ -402,9 +417,58 @@ NODE_T	*expr;
 			n_valstk -= 2;
 			break;
 		case SYM_PLUS_ASSIGN :
+			ip = valstk[ n_valstk - 2 ].v_value.v_pval;
+			l_type = loadidval( &valstk[ n_valstk - 2 ] );
+			r_type = valstk[ n_valstk - 1 ].v_type;
+			if( r_type == T_IDENT )
+				r_type = loadidval( &valstk[ n_valstk - 1 ] );
+			if( l_type != r_type ){
+				fprintf( stderr,
+					"eval: FATAL: type mismatch '+='\n" );
+				exit( 1 );
+			}
+			if( l_type == T_INT ){
+				valstk[ n_valstk - 2 ].v_value.v_ival +=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+			}else if( l_type == T_STRING ){
+				l_sp = valstk[ n_valstk - 2 ].v_value.v_pval;
+				r_sp = valstk[ n_valstk - 1 ].v_value.v_pval;
+				sp = ( char * )malloc( strlen( l_sp ) +
+					strlen( r_sp ) + 1 );
+				if( sp == NULL ){
+					fprintf( stderr,
+				"eval: FATAL: can't alloc sp for str +.\n" );
+					exit( 1 );
+				}
+				strcpy( sp, l_sp );
+				strcat( sp, r_sp );
+				valstk[ n_valstk - 2 ].v_value.v_pval = sp;
+			}else if( l_type == T_PAIR ){
+			}
+			storeexprval( ip, &valstk[ n_valstk - 2 ] );
 			n_valstk -= 2;
 			break;
 		case SYM_MINUS_ASSIGN :
+			ip = valstk[ n_valstk - 2 ].v_value.v_pval;
+			l_type = loadidval( &valstk[ n_valstk - 2 ] );
+			r_type = valstk[ n_valstk - 1 ].v_type;
+			if( r_type == T_IDENT )
+				r_type = loadidval( &valstk[ n_valstk - 1 ] );
+			if( l_type != r_type ){
+				fprintf( stderr,
+					"eval: FATAL: type mismatch '-='\n" );
+				exit( 1 );
+			}
+			if( l_type == T_INT ){
+				valstk[ n_valstk - 2 ].v_value.v_ival -=
+					valstk[ n_valstk - 1 ].v_value.v_ival;
+			}else if( l_type == T_STRING ){
+				fprintf( stderr,
+			"eval: FATAL: op '-' not defined for strings.\n" );
+				exit( 1 );
+			}else if( l_type == T_PAIR ){
+			}
+			storeexprval( ip, &valstk[ n_valstk - 2 ] );
 			n_valstk -= 2;
 			break;
 		}
