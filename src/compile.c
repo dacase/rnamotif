@@ -758,7 +758,6 @@ STREL_T	descr[];
 	t_scope_stk = 0;
 	scope_stk[ t_scope_stk ] = NULL;
 	set_scopes( 0, n_descr - 1, descr );
-
 	return( rm_error );
 }
 
@@ -2372,6 +2371,9 @@ STREL_T	descr[];
 	int	fd1, ld1;
 	STREL_T	*stp, *stp1, *stp2;
 
+	if( fd > ld )
+		return( NULL );
+
 	for( d = fd; d <= ld; d = nd ){
 		stp = &descr[ d ];
 		stp->s_outer = scope_stk[ t_scope_stk ];
@@ -2441,6 +2443,9 @@ int	*tmaxlen;
 					else
 						gmaxlen += maxlen3;
 				}
+			}else{
+				stp1->s_minilen = 0;
+				stp1->s_maxilen = 0;
 			}
 			gminlen += stp2->s_minlen;
 			if( gmaxlen != UNBOUNDED ){
@@ -2479,7 +2484,8 @@ STREL_T	descr[];
 		for( s = 1; s < stp->s_n_scopes; s++ ){
 			stp1 = stp->s_scopes[ s - 1 ];
 			stp2 = stp->s_scopes[ s ];
-			find_limits( stp1->s_index+1, descr );
+			if( stp1->s_index + 1 < stp2->s_index )
+				find_limits( stp1->s_index+1, descr );
 			find_1_limit( stp2, descr );
 		}
 		stp1 = stp->s_next;
