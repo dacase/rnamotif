@@ -1,3 +1,9 @@
+2.3.2	2002-nov-24
+	Increase line buffer size in mrnamotif.c:rn_run() so as to not split any long
+	results.
+
+	Fixed off by 1 error in the job count logic in mrnamotif.c
+
 2.3.1	2002-oct-07
 	Simplified mrnamotif.  Use MPI_Bcast() instead of MPI_Send() to
 	set up the searches.  Mapping of search db into actual files is now
