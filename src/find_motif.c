@@ -409,6 +409,8 @@ int	*hlen;
 			}
 		}
 	}
+	if( bpcnt < stp->s_minlen || bpcnt > stp->s_maxlen )
+		return( 0 );
 
 	if( stp->s_seq != NULL ){
 		strncpy( fm_chk_seq,  &fm_sbuf[ s5 ], *hlen );
