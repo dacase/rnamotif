@@ -241,43 +241,43 @@ char	*argv[];
 	curpair[3] = "u:a";
 	n_curpair = 4;
 	np = PR_close();
-	RM_enter_id( "wc", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+	RM_enter_id( "wc", T_PAIR, C_VAR, S_GLOBAL, 0, &np->n_val );
 
 	curpair[0] = "g:u";
 	curpair[1] = "u:g";
 	n_curpair = 2;
 	np = PR_close();
-	RM_enter_id( "gu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+	RM_enter_id( "gu", T_PAIR, C_VAR, S_GLOBAL, 0, &np->n_val );
 
 	curpair[0] = "a:u:u";
 	n_curpair = 1;
 	np = PR_close();
-	RM_enter_id( "tr", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+	RM_enter_id( "tr", T_PAIR, C_VAR, S_GLOBAL, 0, &np->n_val );
 
 	curpair[0] = "g:g:g:g";
 	n_curpair = 1;
 	np = PR_close();
-	RM_enter_id( "qu", T_PAIR, C_VAR, S_GLOBAL, &np->n_val );
+	RM_enter_id( "qu", T_PAIR, C_VAR, S_GLOBAL, 0, &np->n_val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 1;
-	RM_enter_id( "chk_both_strs", T_INT, C_VAR, S_GLOBAL, &val );
+	RM_enter_id( "chk_both_strs", T_INT, C_VAR, S_GLOBAL, 0, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 1;
-	RM_enter_id( "iupac", T_INT, C_VAR, S_GLOBAL, &val );
+	RM_enter_id( "iupac", T_INT, C_VAR, S_GLOBAL, 0, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 3;
-	RM_enter_id( "wc_minlen", T_INT, C_VAR, S_GLOBAL, &val );
+	RM_enter_id( "wc_minlen", T_INT, C_VAR, S_GLOBAL, 0, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 30;
-	RM_enter_id( "wc_maxlen", T_INT, C_VAR, S_GLOBAL, &val );
+	RM_enter_id( "wc_maxlen", T_INT, C_VAR, S_GLOBAL, 0, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = 6000;
-	RM_enter_id( "windowsize", T_INT, C_VAR, S_GLOBAL, &val );
+	RM_enter_id( "windowsize", T_INT, C_VAR, S_GLOBAL, 0, &val );
 
 	rm_lineno = 1;
 
@@ -433,32 +433,32 @@ int	stype;
 	n_local_ids = 0;
 	val.v_type = T_STRING;
 	val.v_value.v_pval = NULL;
-	ip = RM_enter_id( "tag", T_STRING, C_VAR, S_STREL, &val );
+	ip = RM_enter_id( "tag", T_STRING, C_VAR, S_STREL, 0, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = UNDEF;
-	ip = RM_enter_id( "minlen", T_INT, C_VAR, S_STREL, &val );
+	ip = RM_enter_id( "minlen", T_INT, C_VAR, S_STREL, 0, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = UNDEF;
-	ip = RM_enter_id( "maxlen", T_INT, C_VAR, S_STREL, &val );
+	ip = RM_enter_id( "maxlen", T_INT, C_VAR, S_STREL, 0, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = UNDEF;
-	ip = RM_enter_id( "len", T_INT, C_VAR, S_STREL, &val );
+	ip = RM_enter_id( "len", T_INT, C_VAR, S_STREL, 0, &val );
 
 	val.v_type = T_STRING;
 	val.v_value.v_pval = NULL;
-	ip = RM_enter_id( "seq", T_STRING, C_VAR, S_STREL, &val );
+	ip = RM_enter_id( "seq", T_STRING, C_VAR, S_STREL, 0, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = UNDEF;
-	ip = RM_enter_id( "mismatch", T_INT, C_VAR, S_STREL, &val );
+	ip = RM_enter_id( "mismatch", T_INT, C_VAR, S_STREL, 0, &val );
 
 	if( stype != SYM_SS ){ 
 		val.v_type = T_INT;
 		val.v_value.v_ival = UNDEF;
-		ip = RM_enter_id( "mispair", T_INT, C_VAR, S_STREL, &val );
+		ip = RM_enter_id( "mispair", T_INT, C_VAR, S_STREL, 0, &val );
 
 		switch( stype ){
 		case SYM_SS :
@@ -487,7 +487,7 @@ int	stype;
 		}
 		val.v_type = T_PAIR;
 		val.v_value.v_pval = NULL;
-		ip = RM_enter_id( "pair", T_PAIR, C_VAR, S_STREL, &val );
+		ip = RM_enter_id( "pair", T_PAIR, C_VAR, S_STREL, 0, &val );
 	}
 }
 
@@ -1316,10 +1316,11 @@ STREL_T	*egroup[];
 	return( err );
 }
 
-IDENT_T	*RM_enter_id( name, type, class, scope, vp )
+IDENT_T	*RM_enter_id( name, type, class, scope, reinit, vp )
 char	name[];
 int	type;
 int	class;
+int	reinit;
 VALUE_T	*vp;
 {
 	IDENT_T	*ip;
@@ -1353,6 +1354,7 @@ VALUE_T	*vp;
 	ip->i_type = type;
 	ip->i_class = class;
 	ip->i_scope = scope;
+	ip->i_reinit = reinit;
 	ip->i_val.v_type = type;
 	ip->i_val.v_value.v_pval = NULL;
 	if( vp != NULL ){
@@ -1447,8 +1449,10 @@ int	d_ok;
 			ip = RM_find_id( expr->n_val.v_value.v_pval );
 			if( ip == NULL ){
 				if( d_ok ){
-					ip=RM_enter_id(expr->n_val.v_value.v_pval,
-						T_UNDEF, C_VAR, S_GLOBAL, NULL);
+					ip=RM_enter_id(
+						expr->n_val.v_value.v_pval,
+						T_UNDEF, C_VAR, S_GLOBAL, 0,
+						NULL);
 				}else{
 					sprintf( emsg, "eval: unknown id '%s'.",
 						expr->n_val.v_value.v_pval );
@@ -2235,11 +2239,11 @@ int	ptype;
 	n_local_ids = 0;
 	val.v_type = T_STRING;
 	val.v_value.v_pval = NULL;
-	ip = RM_enter_id( "tag", T_STRING, C_VAR, S_SITE, &val );
+	ip = RM_enter_id( "tag", T_STRING, C_VAR, S_SITE, 0, &val );
 
 	val.v_type = T_POS;
 	val.v_value.v_pval = NULL;
-	ip = RM_enter_id( "pos", T_POS, C_VAR, S_SITE, &val );
+	ip = RM_enter_id( "pos", T_POS, C_VAR, S_SITE, 0, &val );
 }
 
 void	POS_addval( expr )
