@@ -232,7 +232,7 @@ int	stype;
 	stp->s_index = rm_n_descr - 1;
 	stp->s_lineno = rm_lineno;
 	stp->s_tag = NULL;
-	stp->s_in = NULL;
+	stp->s_inner = NULL;
 	stp->s_next = NULL;
 	stp->s_mates = NULL;
 	stp->s_n_mates = 0;
@@ -539,6 +539,8 @@ STREL_T	descr[];
 		if( stp->s_type == SYM_H5 )
 			find_pknots( stp, n_descr, descr );
 	}
+	if( rm_error )
+		return( rm_error );
 
 	return( rm_error );
 }
@@ -780,7 +782,6 @@ STREL_T	descr[];
 		pknot[i]->s_n_scopes = 4;
 		pknot[i]->s_scope = i;
 	}
-
 }
 
 static	int	chk_strel_parms( n_descr, descr )
