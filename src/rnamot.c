@@ -64,7 +64,7 @@ char	*argv[];
 			exit( 1 );
 		fprintf( stderr, "%s: complete descr length: min/max = %d/",
 			rm_dfname, rm_dminlen );
-		SC_link();
+		SC_lgo();
 		if( rm_dmaxlen == UNBOUNDED )
 			fprintf( stderr, "UNBND\n" );
 		else
