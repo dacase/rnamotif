@@ -204,6 +204,101 @@ int	PIR_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 
 	return( sp - sbuf );
 }
+int	GB_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
+	int	s_sbuf, char sbuf[] )
+{
+	int	cnt;
+	char	line[ 256 ], locus[ 20 ], acc[ 20 ], gid[ 20 ];
+	char	*lp, *dp, *sp;
+
+	*sid = '\0';
+	*sdef = '\0';
+	*sbuf = '\0';
+
+	for( *locus = '\0'; fgets( line, sizeof( line ), fp ); ){
+		if( !strncmp( line, "LOCUS", 5 ) ){
+			sscanf( line, "LOCUS %s", locus );
+			break;
+		}
+	}
+	if( *locus == '\0' )
+		return( EOF );
+
+	while( fgets( line, sizeof( line ), fp ) ){
+		if( !strncmp( line, "DEFINITION", 10 ) ){
+			for( dp = sdef, cnt = 0, lp = line; *lp; lp++ ){
+				cnt++;
+				if( cnt < s_sdef )
+					*dp++ = *lp == '\n' ? ' ' : *lp;
+			}
+			*dp = '\0';
+		}else if( !strncmp( line, "ACCESSION", 9 ) ){
+			dp[ -1 ] = '\0';
+			break;
+		}else{
+			for( lp = line; *lp; lp++ ){
+				cnt++;
+				if( cnt < s_sdef )
+					*dp++ = *lp == '\n' ? ' ' : *lp;
+			}
+			*dp = '\0';
+		}
+	}
+	if( *sdef == '\0' ){
+		fprintf( stderr, "GB_fgetseq: missing DEFINITION line.\n" );
+		return( EOF );
+	}
+	if( cnt >= s_sdef ){
+		fprintf( stderr,
+		"GB_fgetseq: entry: '%s': def len: %d, truncated to %d.\n",
+			sid, cnt, s_sdef - 1 );
+	}
+
+	for( *acc = *gid = '\0'; fgets( line, sizeof( line ), fp ); ){
+		if( !strncmp( line, "VERSION", 7 ) ){
+			sscanf( line, "VERSION %s GI:%s", acc, gid );
+			break;
+		}
+	}
+	if( *acc == '\0' ){
+		fprintf( stderr, "GB_fgetseq: missing VERSION line.\n" );
+		return( EOF );
+	}
+	if( dp = strchr( acc, '.' ) )
+		*dp = '\0';
+	sprintf( sid, "gi|%s|gb|%s|%s", gid, acc, locus );
+
+	while( fgets( line, sizeof( line ), fp ) ){
+		if( !strncmp( line, "ORIGIN", 6 ) ){
+			break;
+		}
+	}
+	if( strncmp( line, "ORIGIN", 6 ) ){
+		fprintf( stderr, "GB_fgetseq: missing ORIGIN line.\n" );
+		return( EOF );
+	}
+
+	for( sp = sbuf, cnt = 0; fgets( line, sizeof( line ), fp ); ){
+		if( !strncmp( line, "//", 2 ) )
+			break;
+		for( lp = line; *lp; lp++ ){
+			if( isalpha( *lp ) ){
+				cnt++;
+				if( cnt < s_sbuf ){
+					*sp++ = isupper( *lp ) ?
+						tolower( *lp ) : *lp;
+				}
+			}
+		}
+		*sp = '\0';
+	}
+	if( strncmp( line, "//", 2 ) ){
+		fprintf( stderr, "GB_fgetseq: missing // line.\n" );
+		return( EOF );
+	}
+
+	return( sp - sbuf );
+}
 
 static	int	skipbl2nl( FILE *fp )
 {

@@ -1,9 +1,14 @@
-head	1.65;
+head	1.66;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.66
+date	2002.05.11.17.47.18;	author macke;	state Exp;
+branches;
+next	1.65;
 
 1.65
 date	2001.11.14.17.33.13;	author macke;	state Exp;
@@ -336,9 +341,9 @@ desc
 @
 
 
-1.65
+1.66
 log
-@removed commented out code that handled the old FN_file handlers.
+@added ability to read GB flat files.
 @
 text
 @#include <stdio.h>
@@ -389,6 +394,7 @@ char	*RM_preprocessor( void );
 FILE	*DB_fnext( FILE *, int *, int, char *[] );
 int	FN_fgetseq( FILE *, char *, int, char *, int, char * );
 int	PIR_fgetseq( FILE *, char *, int, char *, int, char * );
+int	GB_fgetseq( FILE *, char *, int, char *, int, char * );
 
 static	void	mk_rcmp( int, char [], char [] );
 
@@ -476,6 +482,8 @@ main( int argc, char *argv[] )
 		fgetseq = FN_fgetseq;
 	else if( rm_dbfmt == DT_PIR )
 		fgetseq = PIR_fgetseq;
+	else if( rm_dbfmt == DT_GENBANK )
+		fgetseq = GB_fgetseq;
 	else{
 		fprintf( stderr, "%s: unknown data format %d.\n",
 			argv[ 0 ], rm_dbfmt );
@@ -537,6 +545,16 @@ static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
 	for( sp = sbuf, cp = &csbuf[ slen - 1 ], i = 0; i < slen; i++ )
 		*cp-- = wc_cmp[ *sp++ ];
 }
+@
+
+
+1.65
+log
+@removed commented out code that handled the old FN_file handlers.
+@
+text
+@d49 1
+d137 2
 @
 
 

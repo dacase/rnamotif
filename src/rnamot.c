@@ -46,6 +46,7 @@ char	*RM_preprocessor( void );
 FILE	*DB_fnext( FILE *, int *, int, char *[] );
 int	FN_fgetseq( FILE *, char *, int, char *, int, char * );
 int	PIR_fgetseq( FILE *, char *, int, char *, int, char * );
+int	GB_fgetseq( FILE *, char *, int, char *, int, char * );
 
 static	void	mk_rcmp( int, char [], char [] );
 
@@ -133,6 +134,8 @@ main( int argc, char *argv[] )
 		fgetseq = FN_fgetseq;
 	else if( rm_dbfmt == DT_PIR )
 		fgetseq = PIR_fgetseq;
+	else if( rm_dbfmt == DT_GENBANK )
+		fgetseq = GB_fgetseq;
 	else{
 		fprintf( stderr, "%s: unknown data format %d.\n",
 			argv[ 0 ], rm_dbfmt );

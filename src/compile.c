@@ -293,6 +293,8 @@ int	RM_init( int argc, char *argv[] )
 				rm_dbfmt = DT_FASTN;
 			else if( !strcmp( argv[ ac ], "pir" ) )
 				rm_dbfmt = DT_PIR;
+			else if( !strcmp( argv[ ac ], "gb" ) )
+				rm_dbfmt = DT_GENBANK;
 			else{
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
 				err = 1;
@@ -319,6 +321,7 @@ int	RM_init( int argc, char *argv[] )
 	}
 
 	if( cldsize > 0 ){
+		cldsize++;	/* add space for '\0'	*/
 		rm_cldefs = ( char * )malloc( cldsize * sizeof( char ) );
 		if( rm_cldefs == NULL ){
 			fprintf( stderr,

@@ -1,7 +1,7 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.1.3 2002-apr-11"
+#define	VERSION	"v2.1.4 2002-may-12"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
@@ -27,7 +27,8 @@ descr:\tUse one:\n\
 \n\
 fmt:\t(Optional) Use one:\n\
 \t-fmt fastn\t\tfastn (default)\n\
-\t-fmt pir\t\tpir\n"
+\t-fmt pir\t\tpir\n\
+\t-fmt gb\t\t\tGB flatfile\n"
 
 #define	UNDEF	(-1)
 #define	UNBOUNDED	0x7fffffff

@@ -1,9 +1,15 @@
-head	1.131;
+head	1.132;
 access;
 symbols;
-locks; strict;
+locks
+	macke:1.132; strict;
 comment	@ * @;
 
+
+1.132
+date	2002.05.11.17.48.01;	author macke;	state Exp;
+branches;
+next	1.131;
 
 1.131
 date	2002.03.09.02.59.01;	author macke;	state Exp;
@@ -666,9 +672,9 @@ desc
 @
 
 
-1.131
+1.132
 log
-@fixed bug in strict2attr() that used the same attr for both 3 & 5 strictness.
+@added "gb" to -fmt X cracker, indicating input is in GB flat file fmt.
 @
 text
 @#include <stdio.h>
@@ -966,6 +972,8 @@ int	RM_init( int argc, char *argv[] )
 				rm_dbfmt = DT_FASTN;
 			else if( !strcmp( argv[ ac ], "pir" ) )
 				rm_dbfmt = DT_PIR;
+			else if( !strcmp( argv[ ac ], "gb" ) )
+				rm_dbfmt = DT_GENBANK;
 			else{
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
 				err = 1;
@@ -4300,6 +4308,15 @@ static	void	dump_bestpat( FILE *fp, STREL_T *stp )
 		fprintf( fp, "%d", o_rmax );
 	fprintf( fp, "\n" );
 }
+@
+
+
+1.131
+log
+@fixed bug in strict2attr() that used the same attr for both 3 & 5 strictness.
+@
+text
+@d296 2
 @
 
 
