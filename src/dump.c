@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 
+#include "rmdefs.h"
 #include "rnamot.h"
 #include "y.tab.h"
 
@@ -812,7 +813,7 @@ static	void	mk_prefix( STREL_T *stp, char prefix[], char prefix1[] )
 	if( inner )
 		first = stp->s_scope == 0;
 	else
-		first = 0;
+		first = FALSE;
 	next = stp->s_next != NULL;
 	if( next )
 		*pp = '|';

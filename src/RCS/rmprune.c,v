@@ -1,9 +1,19 @@
-head	1.6;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.05.15.19.03.59;	author macke;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2002.05.14.19.03.14;	author macke;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2001.07.30.20.00.20;	author macke;	state Exp;
@@ -43,9 +53,9 @@ solution at the same location.
 @
 
 
-1.6
+1.8
 log
-@added new desciptor type DT_CTX for context (ctx)
+@unified B_UNDEF and UNDEF (same value, but now via def).
 @
 text
 @#include <stdio.h>
@@ -54,7 +64,7 @@ text
 
 #define	U_MSG_S	"usage: %s [ rnamotif-out-file ]\n"
 
-#define	UNDEF	(-1)
+#include "rmdefs.h"
 
 #define	MAXFIELDS	200	
 static	char	*fields[ MAXFIELDS ];
@@ -127,7 +137,7 @@ typedef	struct	block_t {
 	int	*b_basepair;
 } BLOCK_T;
 
-#define	B_UNDEF		(-1)
+#define	B_UNDEF		UNDEF
 #define	B_SAME		0
 #define	B_LEFT		1	
 #define	B_DOWN		2
@@ -865,6 +875,28 @@ static int	enter_block( FILE *fp, char line[],
 	n_block++;
 	return( n_block );
 }
+@
+
+
+1.7
+log
+@replaced local def of UNDEF with include of rmdefs.h
+@
+text
+@d80 1
+a80 1
+#define	B_UNDEF		(-1)
+@
+
+
+1.6
+log
+@added new desciptor type DT_CTX for context (ctx)
+@
+text
+@d7 1
+a7 1
+#define	UNDEF	(-1)
 @
 
 

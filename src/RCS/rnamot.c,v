@@ -1,9 +1,14 @@
-head	1.66;
+head	1.67;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.67
+date	2002.05.23.02.15.40;	author macke;	state Exp;
+branches;
+next	1.66;
 
 1.66
 date	2002.05.11.17.47.18;	author macke;	state Exp;
@@ -341,13 +346,14 @@ desc
 @
 
 
-1.66
+1.67
 log
-@added ability to read GB flat files.
+@add include of rmdefs.h which now contains the defs for the file types.
 @
 text
 @#include <stdio.h>
 
+#include "rmdefs.h"
 #include "rnamot.h"
 
 extern	FILE	*yyin;
@@ -545,6 +551,15 @@ static	void	mk_rcmp( int slen, char sbuf[], char csbuf[] )
 	for( sp = sbuf, cp = &csbuf[ slen - 1 ], i = 0; i < slen; i++ )
 		*cp-- = wc_cmp[ *sp++ ];
 }
+@
+
+
+1.66
+log
+@added ability to read GB flat files.
+@
+text
+@d3 1
 @
 
 

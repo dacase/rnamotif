@@ -17,6 +17,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "rmdefs.h"
 #include "rnamot.h"
 
 double	atof();
@@ -155,17 +156,20 @@ int	RM_allocefnds( int size )
 		return( 0 );
 	rm_hstnum = ( int * )malloc( size * sizeof( int ) );
 	if( rm_hstnum == NULL ){
-		RM_errormsg( 0, "RM_allocefnds: can't allocate rm_hstnum\n" );
+		RM_errormsg( FALSE,
+			"RM_allocefnds: can't allocate rm_hstnum\n" );
 		return( 1 );
 	}
 	rm_bcseq = ( int * )malloc( size * sizeof( int ) );
 	if( rm_bcseq == NULL ){
-		RM_errormsg( 0, "RM_allocefnds: can't allocate rm_bcseq\n" );
+		RM_errormsg( FALSE,
+			"RM_allocefnds: can't allocate rm_bcseq\n" );
 		return( 1 );
 	}
 	rm_basepr = ( int * )malloc( size * sizeof( int ) );
 	if( rm_basepr == NULL ){
-		RM_errormsg( 0, "RM_allocefnds: can't allocate rm_basepr\n" );
+		RM_errormsg( FALSE,
+			"RM_allocefnds: can't allocate rm_basepr\n" );
 		return( 1 );
 	}
 	rm_efnds_allocated = 1;
@@ -178,7 +182,7 @@ int	RM_getefndata( void )
 	int	rval = 1;
 
 	if( *rm_efndatadir == '\0' ){
-		RM_errormsg( 0, "RM_getefndata: No efn data directory." );
+		RM_errormsg( FALSE, "RM_getefndata: No efn data directory." );
 		return( 0 );
 	}
 
@@ -240,7 +244,7 @@ static	int	gettloops( char fname[] )
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "gettloops: can't read tloops file '%s'.",
 			pname );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		return( 0 );
 	}
 	rval = 1;
@@ -261,7 +265,7 @@ static	int	gettloops( char fname[] )
 		sprintf( emsg,
 "gettloops: # of tloops (%d) exceeds MAXTLOOPS (%d), last %d tloops ignored.",
 			t, MAXTLOOPS, t - MAXTLOOPS );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		efdp->e_ntloops = MAXTLOOPS;
 	}else
 		efdp->e_ntloops = t;
@@ -282,7 +286,7 @@ static	int	gettriloops( char fname[] )
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "gettriloops: can't read triloops file '%s'.",
 			pname );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		return( 0 );
 	}
 	rval = 1;
@@ -302,7 +306,7 @@ static	int	gettriloops( char fname[] )
 		sprintf( emsg,
 "gettloops: # of triloops (%d) exceeds MAXTRILOOPS (%d), last %d triloops ignored.",
 			t, MAXTRILOOPS, t - MAXTRILOOPS );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		efdp->e_ntriloops = MAXTRILOOPS;
 	}else
 		efdp->e_ntriloops = t;
@@ -322,7 +326,7 @@ static	int	getmiscloop( char fname[] )
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "getmiscloop: can't read miscloop file '%s'.",
 			pname );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		return( 0 );
 	}
 
@@ -332,7 +336,7 @@ static	int	getmiscloop( char fname[] )
 		sscanf( line, "%f", &efdp->e_prelog );
 		efdp->e_prelog *= 10.0;
 	}else{
-		RM_errormsg( 0, "getmiscloop: no prelog." );
+		RM_errormsg( FALSE, "getmiscloop: no prelog." );
 		rval = 0;
 		goto CLEAN_UP;
 	}
@@ -342,7 +346,7 @@ static	int	getmiscloop( char fname[] )
 		sscanf( line, "%f", &fv1 );
 		efdp->e_maxpen = NINT( 100.0*fv1 );
 	}else{
-		RM_errormsg( 0, "getmiscloop: no maxpen." );
+		RM_errormsg( FALSE, "getmiscloop: no maxpen." );
 		rval = 0;
 		goto CLEAN_UP;
 	}
@@ -356,7 +360,7 @@ static	int	getmiscloop( char fname[] )
 		efdp->e_poppen[ 3 ] = NINT( 100.0*fv3 );
 		efdp->e_poppen[ 4 ] = NINT( 100.0*fv4 );
 	}else{
-		RM_errormsg( 0, "getmiscloop: no poppen values." );
+		RM_errormsg( FALSE, "getmiscloop: no poppen values." );
 		rval = 0;
 		goto CLEAN_UP;
 	}
@@ -375,7 +379,8 @@ static	int	getmiscloop( char fname[] )
 		efdp->e_eparam[ 5 ] = NINT( 100.0*fv2 );
 		efdp->e_eparam[ 8 ] = NINT( 100.0*fv3 );
 	}else{
-		RM_errormsg( 0, "getmiscloop: no multibranched loop values." );
+		RM_errormsg( FALSE,
+			"getmiscloop: no multibranched loop values." );
 		rval = 0;
 		goto CLEAN_UP;
 	}
@@ -400,7 +405,7 @@ static	int	getmiscloop( char fname[] )
 */
 			efdp->e_auend = NINT( 100.0*fv1 );
 		}else{
-			RM_errormsg( 0,
+			RM_errormsg( FALSE,
 				"getmiscloop: no terminal AU penalty." );
 			rval = 0;
 			goto CLEAN_UP;
@@ -414,7 +419,8 @@ static	int	getmiscloop( char fname[] )
 */
 			efdp->e_gubonus = NINT( 100.0*fv1 );
 		}else{
-			RM_errormsg( 0, "getmiscloop: no GGG hairpin term." );
+			RM_errormsg( FALSE,
+				"getmiscloop: no GGG hairpin term." );
 			rval = 0;
 			goto CLEAN_UP;
 		}
@@ -427,7 +433,8 @@ static	int	getmiscloop( char fname[] )
 */
 			efdp->e_cslope = NINT( 100.0*fv1 );
 		}else{
-			RM_errormsg( 0, "getmiscloop: no c hairpin slope." );
+			RM_errormsg( FALSE,
+				"getmiscloop: no c hairpin slope." );
 			rval = 0;
 			goto CLEAN_UP;
 		}
@@ -440,7 +447,7 @@ static	int	getmiscloop( char fname[] )
 */
 			efdp->e_cint = NINT( 100.0*fv1 );
 		}else{
-			RM_errormsg( 0,
+			RM_errormsg( FALSE,
 				"getmiscloop: no c hairpin intercept." );
 			rval = 0;
 			goto CLEAN_UP;
@@ -454,7 +461,7 @@ static	int	getmiscloop( char fname[] )
 */
 			efdp->e_c3 = NINT( 100.0*fv1 );
 		}else{
-			RM_errormsg( 0,
+			RM_errormsg( FALSE,
 				"getmiscloop: no c hairpin of 3 term." );
 			rval = 0;
 			goto CLEAN_UP;
@@ -468,7 +475,7 @@ static	int	getmiscloop( char fname[] )
 */
 			efdp->e_init = NINT( 100.0*fv1 );
 		}else{
-			RM_errormsg( 0,
+			RM_errormsg( FALSE,
 			"getmiscloop: no Intermol init free energy." );
 			rval = 0;
 			goto CLEAN_UP;
@@ -481,7 +488,7 @@ static	int	getmiscloop( char fname[] )
 */
 			sscanf( line, "%d", &efdp->e_gail );
 		}else{
-			RM_errormsg( 0, "getmiscloop: no GAIL Rule term." );
+			RM_errormsg( FALSE, "getmiscloop: no GAIL Rule term." );
 			rval = 0;
 			goto CLEAN_UP;
 		}
@@ -507,7 +514,7 @@ static	int	getdangle( char fname[] )
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "getdangle: can't read dangle file '%s'.",
 			pname );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		return( 0 );
 	}
 	rval = 1;
@@ -522,7 +529,7 @@ static	int	getdangle( char fname[] )
 				sprintf( emsg,
 			"getdangle: premature end of dangle file '%s'\n", 
 					fname );
-				RM_errormsg( 0, emsg );
+				RM_errormsg( FALSE, emsg );
 				rval = 0;
 				goto CLEAN_UP;
 			}
@@ -562,7 +569,7 @@ static	int	getibhloop( char fname[] )
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "getibhloop: can't read ibhloop file '%s'.",
 			pname );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		return( 0 );
 	}
 	rval = 1;
@@ -570,7 +577,7 @@ static	int	getibhloop( char fname[] )
 	if( !skipto( fp, "---", sizeof( line ), line ) ){
 		sprintf( emsg, "getibhloop: error in ibhloop file '%s'.",
 			fname );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		rval = 0;
 		goto CLEAN_UP;
 	}
@@ -618,7 +625,7 @@ static	int	getstack( char sfname[], int stack[5][5][5][5], int defval )
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "getstack: can't read stack file '%s'.",
 			pname );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		return( 0 );
 	}
 	rval = 1;
@@ -637,7 +644,7 @@ static	int	getstack( char sfname[], int stack[5][5][5][5], int defval )
 			sprintf( emsg,
 				"getstack: premature end of stack file '%s'.",
 				pname );
-			RM_errormsg( 0, emsg );
+			RM_errormsg( FALSE, emsg );
 			rval = 0;
 			goto CLEAN_UP;
 		}
@@ -678,7 +685,7 @@ static	int	stacktest( char sname[], int stack[5][5][5][5] )
 			"stacktest: stack '%s' symmetry error at %d,%d,%d,%d",
 							sname,
 							v1, v2, v3, v4 );
-						RM_errormsg( 0, emsg );
+						RM_errormsg( FALSE, emsg );
 						rval = 0;
 					}
 				}
@@ -703,7 +710,7 @@ static	int	getsymint( char s2fname[], char s4fname[] )
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "getsymint: can't read sym-2 loop file '%s'.",
 			pname );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		return( 0 );
 	}
 	rval = 1;
@@ -712,7 +719,7 @@ static	int	getsymint( char s2fname[], char s4fname[] )
 	if( !skipto( fp, "<--", sizeof( line ), line ) ){
 		sprintf( emsg, "getsymint: error in sym-2 loop file '%s'.",
 			pname );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		rval = 0;
 		goto CLEAN_UP;
 	}
@@ -722,7 +729,7 @@ static	int	getsymint( char s2fname[], char s4fname[] )
 			sprintf( emsg,
 			"getsymint: premature end of sym-2 loop file '%s'.",
 				pname );
-			RM_errormsg( 0, emsg );
+			RM_errormsg( FALSE, emsg );
 			rval = 0;
 			goto CLEAN_UP;
 		}
@@ -758,7 +765,7 @@ static	int	getsymint( char s2fname[], char s4fname[] )
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
 		sprintf( emsg, "getsymint: can't read sym-4 loop file '%s'.",
 			pname );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		return( 0 );
 	}
 
@@ -766,7 +773,7 @@ static	int	getsymint( char s2fname[], char s4fname[] )
 	if( !skipto( fp, "<--", sizeof( line ), line ) ){
 		sprintf( emsg, "getsymint: error in sym-4 loop file '%s'.",
 			pname );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		rval = 0;
 		goto CLEAN_UP;
 	}
@@ -777,7 +784,7 @@ static	int	getsymint( char s2fname[], char s4fname[] )
 		    sprintf( emsg,
 			"getsymint: premature end of sym-2 loop file '%s'.",
 			pname );
-		    RM_errormsg( 0, emsg );
+		    RM_errormsg( FALSE, emsg );
 		    rval = 0;
 		    goto CLEAN_UP;
 		}
@@ -847,7 +854,7 @@ static	int	symtest( void )
 "symtest: sint2 failure: sint2[%d][%d][%d][%d] (%d) != sint2[%d][%d][%d][%d] (%d)",
 				v1,v2,v3,v4,efdp->e_sint2[v1][v2][v3][v4],
 				v2a,v1a,v4,v3,efdp->e_sint2[v2a][v1a][v4][v3] );
-			    RM_errormsg( 0, emsg );
+			    RM_errormsg( FALSE, emsg );
 			}
 		    }
 		}
@@ -872,7 +879,7 @@ static	int	symtest( void )
 					efdp->e_sint4[v1][v2][v3][v4][v5][v6],
 					v2a, v1a, v6, v5, v4, v3,
 				    efdp->e_sint4[v2a][v1a][v6][v5][v4][v3] );
-				    RM_errormsg( 0, emsg );
+				    RM_errormsg( FALSE, emsg );
 				}
 			    }
 			}
@@ -899,7 +906,7 @@ static	int	getasymint( char fname[] )
 		sprintf( emsg,
 			"getasymint: can't read asym-1x2 loop file '%s'.",
 			pname );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		return( 0 );
 	}
 	rval = 1;
@@ -908,7 +915,7 @@ static	int	getasymint( char fname[] )
 	if( !skipto( fp, "<--", sizeof( line ), line ) ){
 		sprintf( emsg, "getasymint: error in asym-1x2 loop file '%s'.",
 			fname );
-		RM_errormsg( 0, emsg );
+		RM_errormsg( FALSE, emsg );
 		rval = 0;
 		goto CLEAN_UP;
 	}
@@ -930,7 +937,7 @@ static	int	getasymint( char fname[] )
 			sprintf( emsg,
 		"getasymint: premature end of asym-1x2 loop file '%s'.",
 				fname );
-			RM_errormsg( 0, emsg );
+			RM_errormsg( FALSE, emsg );
 			rval = 0;
 			goto CLEAN_UP;
 		}
@@ -983,7 +990,7 @@ static	int	packloop( char loop[] )
 		default :
 			sprintf( emsg,
 				"packloop: illegal char %c (%d)", *lp, *lp );
-			RM_errormsg( 1, emsg );
+			RM_errormsg( TRUE, emsg );
 			exit( 1 );
 		}
 	}
@@ -1177,7 +1184,7 @@ int	RM_knotted( void )
 				sprintf( emsg,
 					"Base pair %5d.%5d is not reflexive\n",
 					rm_hstnum[ip], rm_hstnum[j] );
-				RM_errormsg( 0, emsg );
+				RM_errormsg( FALSE, emsg );
 			}
 			for( k = ip+1; k <= j-1; k++ ){
 				if( rm_basepr[ k ] != UNDEF ){
@@ -1188,7 +1195,7 @@ int	RM_knotted( void )
 	"RM_knotted: Base pairs %5d.%5d and %5d.%5d are improperly nested.\n",
 						rm_hstnum[ip], rm_hstnum[j],
 						rm_hstnum[k], rm_hstnum[l] );
-						RM_errormsg( 0, emsg );
+						RM_errormsg( FALSE, emsg );
 					}
 				}
 			}
@@ -1206,7 +1213,7 @@ int	RM_efn( int i, int j, int open )
 
 	e = 0;
 	if( rm_basepr[i] == UNDEF || rm_basepr[j] == UNDEF ){
-		if( open == 0 ){
+		if( !open ){
 			while( rm_basepr[i]==UNDEF && rm_basepr[i+1]==UNDEF ){
 				i++;
 				e += efdp->e_eparam[5];
@@ -1264,7 +1271,7 @@ int	RM_efn( int i, int j, int open )
 			sprintf( emsg, "RM_efn: knot: (%5d.%5d) (%5d.%5d)\n",
 				rm_hstnum[i], rm_hstnum[k],
 				rm_hstnum[kp], rm_hstnum[j] );
-			RM_errormsg( 0, emsg );
+			RM_errormsg( FALSE, emsg );
 			return( EFN_INFINITY );
 		}
 		if( rm_basepr[k+1] != UNDEF ){
@@ -1288,7 +1295,7 @@ int	RM_efn( int i, int j, int open )
 			e += efdp->e_eparam[8];
 		e += ef_aupen( i, j );
 
-		for( open = 0; ; ){
+		for( open = FALSE; ; ){
 			if( rm_basepr[i+1] == j-1 ){
 				e += ef_stack( i, j );
 				i++;
@@ -1305,7 +1312,7 @@ int	RM_efn( int i, int j, int open )
 					if( k > j ){
 						sprintf( emsg,
 						"RM_efn: ERROR: %d\n", 51 );
-						RM_errormsg( 0, emsg );
+						RM_errormsg( FALSE, emsg );
 						return( EFN_INFINITY );
 					}
 				}else if( rm_basepr[k] == UNDEF )
@@ -1656,7 +1663,7 @@ static	void	push( int a, int b, int c )
 
 	stkp++;
 	if( stkp >= STKSIZE ){
-		RM_errormsg( 1, "push: stack overflow." );
+		RM_errormsg( TRUE, "push: stack overflow." );
 		exit( 1 );
 	}
 	stk[stkp][0] = a;

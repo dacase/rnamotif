@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 
+#include "rmdefs.h"
 #include "rnamot.h"
 
 extern	int	rm_error;
@@ -97,20 +98,20 @@ static	FILE	*pushfile( char fname[] )
 	if( IS_FSTK_FULL() ){
 		sprintf( emsg, "pushfile: fstk overflow: '%s'.", fname );
 		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( 1, emsg );
+		RM_errormsg( TRUE, emsg );
 	}
 	sp = ( char * )malloc( strlen( fname ) + 1 );
 	if( sp == NULL ){
 		sprintf( emsg, "RM_pushfile: can't allocate fname for: '%s'.",
 			fname );
 		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( 1, emsg );
+		RM_errormsg( TRUE, emsg );
 	}
 	strcpy( sp, fname );
 	if( ( fp = fopen( fname, "r" ) ) == NULL ){
 		sprintf( emsg, "RM_pushfile: can't read '%s'.", fname );
 		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( 1, emsg );
+		RM_errormsg( TRUE, emsg );
 	}
 	if( !IS_FSTK_EMPTY() )
 		fstk[ fstkp ].f_lineno = rm_lineno;
@@ -159,7 +160,7 @@ static	FILE	*include( char str[] )
 	for( ; *sp && !isspace( *sp ); sp++ )
 		;
 	if( *sp == '\0' ){
-		RM_errormsg( 1, "RM_include: no filename." );
+		RM_errormsg( TRUE, "RM_include: no filename." );
 	}
 	for( ; isspace( *sp ); sp++ )
 		;
@@ -172,13 +173,13 @@ static	FILE	*include( char str[] )
 	else{
 		sprintf( emsg, "RM_include: bad include filename '%s'.", sp );
 		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( 1, emsg );
+		RM_errormsg( TRUE, emsg );
 	}
 	sp++;
 	if( ( sp1 = strchr( sp, c ) ) == NULL ){
 		sprintf( emsg, "RM_include: bad include filename '%s'.", sp );
 		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( 1, emsg );
+		RM_errormsg( TRUE, emsg );
 	}
 	strncpy( work, sp, sp1 - sp );
 	work[ sp1 - sp ] = '\0';
@@ -201,7 +202,7 @@ static	FILE	*include( char str[] )
 		sprintf( emsg,
 			"RM_include: can't find include file '%s'.", fname );
 		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( 1, emsg );
+		RM_errormsg( TRUE, emsg );
 	}
 	
 	return( fp );
@@ -253,9 +254,9 @@ static	char	*isdescr( char line[] )
 		return( NULL );
 	if( ( qp = strchr( line, '\'' ) ) != NULL ){
 		if( qp < dp ){
-			for( instr = 1, qp1 = qp + 1; qp1 < dp; qp1++ ){
+			for( instr = TRUE, qp1 = qp + 1; qp1 < dp; qp1++ ){
 				if( *qp1 == '\'' )
-					instr ^= 1;
+					instr ^= TRUE;
 				else if( *qp1 == '\\' )
 					qp1++;
 			}
@@ -264,9 +265,9 @@ static	char	*isdescr( char line[] )
 	}
 	if( ( qp = strchr( line, '"' ) ) != NULL ){
 		if( qp < dp ){
-			for( instr = 1, qp1 = qp + 1; qp1 < dp; qp1++ ){
+			for( instr = TRUE, qp1 = qp + 1; qp1 < dp; qp1++ ){
 				if( *qp1 == '"' )
-					instr ^= 1;
+					instr ^= TRUE;
 				else if( *qp1 == '\\' )
 					qp1++;
 			}

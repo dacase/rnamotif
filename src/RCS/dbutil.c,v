@@ -1,9 +1,24 @@
-head	1.5;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.06.12.19.01.33;	author macke;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2002.05.23.02.16.26;	author macke;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2002.05.14.18.42.08;	author macke;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.05.12.19.47.48;	author macke;	state Exp;
@@ -37,17 +52,17 @@ format with genbank ff on the way.
 @
 
 
-1.5
+1.8
 log
-@removed message that announce no LOCUS line as it was being called for
-normal EOF.
+@fixed bug that inadvertantly ate the next (seq) line if a fastn
+def line was > id (space) -- ie no def, but trailing spaces after the id.
 @
 text
 @#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 
-#include "rnamot.h"
+#include "rmdefs.h"
 
 static	int	skipbl2nl( FILE * );
 
@@ -122,6 +137,8 @@ int	FN_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	if( c != '\n' ){
 		if( ( c = skipbl2nl( fp ) ) == EOF )
 			return( 0 );
+	}
+	if( c != '\n' ){
 		dp = sdef;
 		for( cnt = 1, *dp++ = c; c = getc( fp ); ){
 			if( c == '\n' || c == EOF )
@@ -354,6 +371,36 @@ static	int	skipbl2nl( FILE *fp )
 			break;
 	return( c );
 }
+@
+
+
+1.7
+log
+@removed include of rnamot.h as it was no longer needed as the file type
+defs are in rmdefs.h
+@
+text
+@d80 2
+@
+
+
+1.6
+log
+@moved UNDEF from rnamot.h to rmdefs.h
+@
+text
+@a5 1
+#include "rnamot.h"
+@
+
+
+1.5
+log
+@removed message that announce no LOCUS line as it was being called for
+normal EOF.
+@
+text
+@d5 1
 @
 
 

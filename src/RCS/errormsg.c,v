@@ -1,9 +1,14 @@
-head	1.10;
+head	1.11;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.11
+date	2002.05.15.17.54.40;	author macke;	state Exp;
+branches;
+next	1.10;
 
 1.10
 date	2000.12.17.23.46.43;	author macke;	state Exp;
@@ -61,12 +66,14 @@ desc
 @
 
 
-1.10
+1.11
 log
-@returned rm_wdfname to * from [].
+@replace boolean 1 with TRUE, as defined by rmdefs.h
 @
 text
 @#include <stdio.h>
+
+#include "rmdefs.h"
 
 extern	int	rm_error;
 extern	char	*rm_wdfname;
@@ -75,11 +82,23 @@ extern	int	rm_emsg_lineno;
 void	RM_errormsg( int fatal, char msg[] )
 {
 
-	rm_error = 1;
+	rm_error = TRUE;
 	fprintf( stderr, "%s:%d %s\n", rm_wdfname, rm_emsg_lineno, msg );
 	if( fatal )
 		exit( 1 );
 }
+@
+
+
+1.10
+log
+@returned rm_wdfname to * from [].
+@
+text
+@d3 2
+d12 1
+a12 1
+	rm_error = 1;
 @
 
 

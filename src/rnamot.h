@@ -1,7 +1,7 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.1.4 2002-may-12"
+#define	VERSION	"v2.2.0 2002-jun-12"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
@@ -30,18 +30,10 @@ fmt:\t(Optional) Use one:\n\
 \t-fmt pir\t\tpir\n\
 \t-fmt gb\t\t\tGB flatfile\n"
 
-#define	UNDEF	(-1)
 #define	UNBOUNDED	0x7fffffff
 #define	EFN_INFINITY	16000	/* ? */
 
 #define	RE_BPC		20
-
-#define	MIN(a,b)	((a)<(b)?(a):(b))
-#define	MAX(a,b)	((a)>(b)?(a):(b))
-
-#define	DT_FASTN	0
-#define	DT_PIR		1
-#define	DT_GENBANK	2
 
 #define	T_UNDEF		0
 #define	T_INT		1

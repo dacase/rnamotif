@@ -4,7 +4,7 @@
 
 #define	U_MSG_S	"usage: %s [ rnamotif-out-file ]\n"
 
-#define	UNDEF	(-1)
+#include "rmdefs.h"
 
 #define	MAXFIELDS	200	
 static	char	*fields[ MAXFIELDS ];
@@ -77,7 +77,7 @@ typedef	struct	block_t {
 	int	*b_basepair;
 } BLOCK_T;
 
-#define	B_UNDEF		(-1)
+#define	B_UNDEF		UNDEF
 #define	B_SAME		0
 #define	B_LEFT		1	
 #define	B_DOWN		2

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.05.14.19.14.08;	author macke;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2001.10.29.20.08.10;	author macke;	state Exp;
@@ -16,14 +21,15 @@ desc
 @
 
 
-1.1
+1.2
 log
-@Initial revision
+@added new include file rmdefs.h; defines UNDEF, FALSE, TRUE; only UNDEF used.
 @
 text
 @#include <stdio.h>
 #include <string.h>
 
+#include "rmdefs.h"
 #include "rnamot.h"
 
 #define	SIZE	6000
@@ -210,4 +216,13 @@ static	int	CT_b2i( int b )
 		break;
 	}
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d4 1
 @

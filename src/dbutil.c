@@ -2,7 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "rnamot.h"
+#include "rmdefs.h"
 
 static	int	skipbl2nl( FILE * );
 
@@ -77,6 +77,8 @@ int	FN_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	if( c != '\n' ){
 		if( ( c = skipbl2nl( fp ) ) == EOF )
 			return( 0 );
+	}
+	if( c != '\n' ){
 		dp = sdef;
 		for( cnt = 1, *dp++ = c; c = getc( fp ); ){
 			if( c == '\n' || c == EOF )

@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "rmdefs.h"
 #include "rnamot.h"
 #include "mm_regexp.h"
 

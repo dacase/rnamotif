@@ -1,3 +1,12 @@
+2.2.0	2002-jun-12
+	Moved the most basic defs (TRUE, FALSE, UNDEF, input file types) to
+	rmdefs.h to facilitate sharing dbutil.c with other rnamotif processing
+	programs
+
+	Fixed bug in FN_fgetseq() that caused it read the 1st seq line as 
+	the seq def if the def line was > id (spaces), ie, id with no def
+	and trailing spaces.
+
 2.1.4	2002-may-12
 	Added ability to read GB flat files.
 

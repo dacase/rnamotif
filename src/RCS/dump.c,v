@@ -1,9 +1,19 @@
-head	1.47;
+head	1.49;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.49
+date	2002.05.15.04.17.50;	author macke;	state Exp;
+branches;
+next	1.48;
+
+1.48
+date	2002.05.14.18.56.37;	author macke;	state Exp;
+branches;
+next	1.47;
 
 1.47
 date	2002.02.15.22.41.26;	author macke;	state Exp;
@@ -246,15 +256,16 @@ desc
 @
 
 
-1.47
+1.49
 log
-@changed to reflect the change from bit to byte attributes.
+@replaced boolean '0' with FALSE
 @
 text
 @#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 
+#include "rmdefs.h"
 #include "rnamot.h"
 #include "y.tab.h"
 
@@ -1065,7 +1076,7 @@ static	void	mk_prefix( STREL_T *stp, char prefix[], char prefix1[] )
 	if( inner )
 		first = stp->s_scope == 0;
 	else
-		first = 0;
+		first = FALSE;
 	next = stp->s_next != NULL;
 	if( next )
 		*pp = '|';
@@ -1101,6 +1112,27 @@ static	void	print_searches( FILE *fp, int n_searches, SEARCH_T *searches[] )
 		fprintf( fp, "\n" );
 	}
 }
+@
+
+
+1.48
+log
+@add new include rmdefs.h which holds UNDEF, FALSE, TRUE.  Only UNDEF used
+right now.
+@
+text
+@d816 1
+a816 1
+		first = 0;
+@
+
+
+1.47
+log
+@changed to reflect the change from bit to byte attributes.
+@
+text
+@d5 1
 @
 
 

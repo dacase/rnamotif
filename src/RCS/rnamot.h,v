@@ -1,9 +1,29 @@
-head	1.98;
+head	1.102;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.102
+date	2002.06.12.19.03.14;	author macke;	state Exp;
+branches;
+next	1.101;
+
+1.101
+date	2002.05.23.02.17.15;	author macke;	state Exp;
+branches;
+next	1.100;
+
+1.100
+date	2002.05.20.00.26.15;	author macke;	state Exp;
+branches;
+next	1.99;
+
+1.99
+date	2002.05.14.18.25.10;	author macke;	state Exp;
+branches;
+next	1.98;
 
 1.98
 date	2002.05.12.19.50.00;	author macke;	state Exp;
@@ -501,15 +521,15 @@ desc
 @
 
 
-1.98
+1.102
 log
-@changed date on version to reflect actual release date.
+@updated date to reflect release of 2.2.0
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.1.4 2002-may-12"
+#define	VERSION	"v2.2.0 2002-jun-12"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ seq-file ... ]\n\n\
@@ -538,18 +558,10 @@ fmt:\t(Optional) Use one:\n\
 \t-fmt pir\t\tpir\n\
 \t-fmt gb\t\t\tGB flatfile\n"
 
-#define	UNDEF	(-1)
 #define	UNBOUNDED	0x7fffffff
 #define	EFN_INFINITY	16000	/* ? */
 
 #define	RE_BPC		20
-
-#define	MIN(a,b)	((a)<(b)?(a):(b))
-#define	MAX(a,b)	((a)>(b)?(a):(b))
-
-#define	DT_FASTN	0
-#define	DT_PIR		1
-#define	DT_GENBANK	2
 
 #define	T_UNDEF		0
 #define	T_INT		1
@@ -742,6 +754,58 @@ typedef	struct	incdir_t	{
 } INCDIR_T;
 
 #endif
+@
+
+
+1.101
+log
+@moved defines for seq files types to rmdefs.h.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.2.0 2002-may-14"
+@
+
+
+1.100
+log
+@moved UNDEF, TRUE, FALSE, MIN(), MAX() to rmdefs.h
+@
+text
+@a37 4
+#define	DT_FASTN	0
+#define	DT_PIR		1
+#define	DT_GENBANK	2
+
+@
+
+
+1.99
+log
+@new middle version: share some code with the new postprocessing codes
+rmasm & rmX (no name yet)
+
+move UNDEF to rmdefs.h
+@
+text
+@a37 3
+#define	MIN(a,b)	((a)<(b)?(a):(b))
+#define	MAX(a,b)	((a)>(b)?(a):(b))
+
+@
+
+
+1.98
+log
+@changed date on version to reflect actual release date.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.1.4 2002-may-12"
+a32 1
+#define	UNDEF	(-1)
 @
 
 

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "rmdefs.h"
 #include "rnamot.h"
 
 #define	SIZE	6000

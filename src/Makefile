@@ -20,31 +20,39 @@ RNAMOTOBJS=	\
 all:	rnamotif	\
 	rmprune		\
 	rm2ct		\
-	rmfmt
+	rmfmt		\
+	efn_drv		\
+	efn2_drv
 
 rnamotif:	$(RNAMOTOBJS)
 	$(CC)	$(CFLAGS) -o rnamotif $(RNAMOTOBJS) $(GBLIB) -lm
 
-rnamot.o:	rnamot.h y.tab.h
+rnamot.o:	rmdefs.h rnamot.h y.tab.h
 
-compile.o:	rnamot.h mm_regexp.h y.tab.h
+compile.o:	rmdefs.h rnamot.h mm_regexp.h y.tab.h
 
-dbutil.o:	rnamot.h
+dbutil.o:	rmdefs.h rnamot.h
 
-dump.o:		rnamot.h y.tab.h
+dump.o:		rmdefs.h rnamot.h y.tab.h
 
 dumpnode.h:	y.tab.h mk_dumpnode.h
 		./mk_dumpnode.h y.tab.h > dumpnode.h
 
-efn.o:		rnamot.h
+efn.o:		rmdefs.h rnamot.h
 
-efn2.o:		rnamot.h
+efn2.o:		rmdefs.h rnamot.h
 
-find_motif.o:	rnamot.h y.tab.h
+errormsg.o:	rmdefs.h
+
+find_motif.o:	rmdefs.h rnamot.h y.tab.h
+
+mm_regexp.o:	rmdefs.h rnamot.h mm_regexp.h
 
 node.o:		dumpnode.h rnamot.h y.tab.h
 
 preprocessor.o:	rnamot.h
+
+score.o:	rmdefs.h rnamot.h
 
 y.tab.o:	rnamot.h y.tab.c
 
@@ -59,6 +67,8 @@ lex.yy.c:	rmlex.l
 rmprune:	rmprune.o split.o
 	$(CC)	$(CFLAGS) -o rmprune rmprune.o split.o
 
+rmprune.o:	rmdefs.h
+
 rmfmt:		rmfmt.o split.o
 	$(CC)	$(CFLAGS) -o rmfmt rmfmt.o split.o
 
@@ -68,8 +78,12 @@ rm2ct:		rm2ct.o split.o
 efn_drv:	efn_drv.o efn.o errormsg.o split.o
 	$(CC)	$(CFLAGS) -o efn_drv efn_drv.o efn.o errormsg.o split.o -lm
 
+efn_drv.o:	rmdefs.h rnamot.h
+
 efn2_drv:	efn2_drv.o efn2.o errormsg.o split.o
 	$(CC)	$(CFLAGS) -o efn2_drv efn2_drv.o efn2.o errormsg.o split.o -lm
+
+efn2_drv.o:	rmdefs.h rnamot.h
 
 clean:
 	-rm -f 	 *.o		\

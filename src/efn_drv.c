@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "rmdefs.h"
 #include "rnamot.h"
 
 int	rm_error;
@@ -57,7 +58,7 @@ char	*argv[];
 	}else{
 		strcpy( rm_efndatadir, ep );
 		if( ( rm_efndataok = RM_getefndata() ) == 0 ){
-			rm_efndataok = 0; 
+			rm_efndataok = FALSE; 
 			rval = 1;
 			goto CLEAN_UP;
 		}
@@ -91,7 +92,7 @@ char	*argv[];
 	}
 
 	RM_initst();
-	e = RM_efn( 0, rm_l_base, 1 );
+	e = RM_efn( 0, rm_l_base, TRUE );
 	printf( "energy = %8.3f\n", 0.01 * e );
 
 CLEAN_UP : ;

@@ -1,0 +1,53 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	2002.05.23.02.17.29;	author macke;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2002.05.20.00.25.52;	author macke;	state Exp;
+branches;
+next	;
+
+
+desc
+@file containing the basic defs used by all the RNAmotif programs.
+@
+
+
+1.2
+log
+@moved file types defines to here from rnamot.h
+@
+text
+@#ifndef	__RMDEFS__
+#define	__RMDEFS__
+
+#define	FALSE	0
+#define	TRUE	1
+#define	UNDEF	(-1)
+
+#define	MIN(a,b)	((a)<(b)?(a):(b))
+#define	MAX(a,b)	((a)>(b)?(a):(b))
+
+#define	DT_FASTN	0
+#define	DT_PIR		1
+#define	DT_GENBANK	2
+
+#endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d11 4
+@
