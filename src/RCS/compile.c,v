@@ -1,9 +1,14 @@
-head	1.130;
+head	1.131;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.131
+date	2002.03.09.02.59.01;	author macke;	state Exp;
+branches;
+next	1.130;
 
 1.130
 date	2002.02.15.22.42.22;	author macke;	state Exp;
@@ -661,11 +666,9 @@ desc
 @
 
 
-1.130
+1.131
 log
-@updated to deal with strict helices on a helix by helix basis.
-Fixed other attrs so as to be able to be set in any se of a group
-rather than just the first.
+@fixed bug in strict2attr() that used the same attr for both 3 & 5 strictness.
 @
 text
 @#include <stdio.h>
@@ -797,7 +800,7 @@ char	*RM_str2seq( char [] );
 
 static	void	SE_init( STREL_T *, int );
 static	int	ends2attr( char [] );
-static	int	stricts2attr( int );
+static	int	strict2attr( int );
 static	void	eval( NODE_T *, int );
 static	int	loadidval( VALUE_T *vp );
 static	void	storeexprval( IDENT_T *, VALUE_T * );
@@ -2753,7 +2756,7 @@ static	int	strict2attr( int sval )
 	else if( sval == 3 )
 		return( SA_3STRICT );
 	else if( sval == 5 )
-		return( SA_3STRICT );
+		return( SA_5STRICT );
 	else if( sval == 35 || sval == 53 )
 		return( SA_5STRICT | SA_3STRICT );
 	else{
@@ -4297,6 +4300,22 @@ static	void	dump_bestpat( FILE *fp, STREL_T *stp )
 		fprintf( fp, "%d", o_rmax );
 	fprintf( fp, "\n" );
 }
+@
+
+
+1.130
+log
+@updated to deal with strict helices on a helix by helix basis.
+Fixed other attrs so as to be able to be set in any se of a group
+rather than just the first.
+@
+text
+@d130 1
+a130 1
+static	int	stricts2attr( int );
+d2086 1
+a2086 1
+		return( SA_3STRICT );
 @
 
 

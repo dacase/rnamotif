@@ -127,7 +127,7 @@ char	*RM_str2seq( char [] );
 
 static	void	SE_init( STREL_T *, int );
 static	int	ends2attr( char [] );
-static	int	stricts2attr( int );
+static	int	strict2attr( int );
 static	void	eval( NODE_T *, int );
 static	int	loadidval( VALUE_T *vp );
 static	void	storeexprval( IDENT_T *, VALUE_T * );
@@ -2083,7 +2083,7 @@ static	int	strict2attr( int sval )
 	else if( sval == 3 )
 		return( SA_3STRICT );
 	else if( sval == 5 )
-		return( SA_3STRICT );
+		return( SA_5STRICT );
 	else if( sval == 35 || sval == 53 )
 		return( SA_5STRICT | SA_3STRICT );
 	else{
