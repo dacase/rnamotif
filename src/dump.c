@@ -13,12 +13,15 @@ extern	int	rm_n_descr;
 
 extern	SITE_T	*rm_sites;
 
+extern	char	rm_bc2b[];
+
 extern	SEARCH_T	**rm_searches;
 extern	int	rm_n_searches;
 
 void	RM_dump_id();
 void	RM_dump_pairset();
 void	RM_dump_pair();
+void	RM_dump_pairmat();
 void	RM_dump_descr();
 void	RM_dump_sites();
 
@@ -27,6 +30,7 @@ static	void	print_1_element();
 static	void	mk_prefix();
 static	void	mk_strel_name();
 static	void	print_searches();
+static	void	print_mat();
 
 void	RM_dump( fp, d_parms, d_descr, d_sites, d_hierarchy )
 FILE	*fp;
@@ -200,6 +204,76 @@ PAIR_T	*pp;
 			fprintf( stderr, ":" );
 	}
 	fprintf( fp, "\"" );
+}
+
+void	RM_dump_pairmat( fp, ps )
+FILE	*fp;
+PAIRSET_T	*ps;
+{
+	PAIR_T	*pp;
+	int	nb, np;
+	int	i1, i2, i3, i4;
+	int	b1, b2, b3, b4;
+	BP_MAT_T	*bpmatp;
+	BT_MAT_T	*btmatp;
+	BQ_MAT_T	*bqmatp;
+
+	pp = ps->ps_pairs;
+	nb = pp->p_n_bases;
+	fprintf( fp, "{ " );
+	if( nb == 2 ){
+		bpmatp = ps->ps_mat;
+		for( np = 0, i1 = 0; i1 < N_BCODES; i1++ ){
+		    for( i2 = 0; i2 < N_BCODES; i2++ ){
+			if( (*bpmatp)[i1][i2] ){
+			    b1 = rm_bc2b[ i1 ];
+			    b2 = rm_bc2b[ i2 ];
+			    if( np > 0 )
+				fprintf( fp, ", " );
+			    fprintf( fp, "%c:%c", b1, b2 );
+			    np++;
+			}
+		    }
+		}
+	}else if( nb == 3 ){
+		btmatp = ps->ps_mat;
+		for( np = 0, i1 = 0; i1 < N_BCODES; i1++ ){
+		    for( i2 = 0; i2 < N_BCODES; i2++ ){
+			for( i3 = 0; i3 < N_BCODES; i3++ ){
+			    if( (*btmatp)[i1][i2][i3] ){
+				b1 = rm_bc2b[ i1 ];
+				b2 = rm_bc2b[ i2 ];
+				b3 = rm_bc2b[ i3 ];
+				if( np > 0 )
+				    fprintf( fp, ", " );
+				fprintf( fp, "%c:%c:%c", b1, b2, b3 );
+				np++;
+			    }
+			}
+		    }
+		}
+	}else if( nb == 4 ){
+		bqmatp = ps->ps_mat;
+		for( np = 0, i1 = 0; i1 < N_BCODES; i1++ ){
+		    for( i2 = 0; i2 < N_BCODES; i2++ ){
+			for( i3 = 0; i3 < N_BCODES; i3++ ){
+			    for( i4 = 0; i4 < N_BCODES; i4++ ){
+				if( (*bqmatp)[i1][i2][i3][i4] ){
+				    b1 = rm_bc2b[ i1 ];
+				    b2 = rm_bc2b[ i2 ];
+				    b3 = rm_bc2b[ i3 ];
+				    b4 = rm_bc2b[ i4 ];
+				    if( np > 0 )
+					fprintf( fp, ", " );
+				    fprintf( fp, "%c:%c:%c:%c", b1, b2, b3, b4);
+				    np++;
+				}
+			    }
+			}
+		    }
+		}
+	}
+	fprintf( fp, " }\n" );
 }
 
 void	RM_dump_descr( fp, stp )
