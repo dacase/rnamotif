@@ -63,7 +63,7 @@ char	sbuf[];
 			"find_motif_driver: can't allocate fm_chk_seq." );
 	}
 
-fprintf( stderr, "fmd: locus = %s, slen = %d\n", locus, slen );
+fprintf( stderr, "fmd   : locus = %s, slen = %d\n", locus, slen );
 
 	fm_locus = locus;
 	fm_slen = slen;
@@ -102,10 +102,8 @@ int	sdollar;
 	srp = searches[ slev ];
 	stp = srp->s_descr;
 
-/*
-fprintf( stderr, "fm: slev = %d, str = 0, %4d:%4d, %4d\n",
+fprintf( stderr, "fm    : slev = %d, str = 0, %4d:%4d, %4d\n",
 	slev, szero, sdollar, fm_slen - 1 );
-*/
 
 	switch( stp->s_type ){
 	case SYM_SS :
@@ -172,6 +170,9 @@ int	sdollar;
 	int	i_minl;
 	int	h3, hlen;
 
+fprintf( stderr, "fwchlx: slev = %d, str = 0, %4d:%4d, %4d\n",
+	slev, szero, sdollar, fm_slen - 1 );
+
 	srp = searches[ slev ];
 	stp = srp->s_descr;
 	slen = sdollar - szero + 1;
@@ -185,9 +186,12 @@ int	sdollar;
 	for( s = sdollar; s >= s3lim; s-- ){
 		if( match_helix( stp, szero, s, s3lim, &h3, &hlen ) ){
 
-fprintf( stderr, "fwch: %4d %.*s %4d %.*s\n",
+fprintf( stderr, "fwchlx: %4d %.*s %4d %.*s\n",
 	szero+1, hlen, &fm_sbuf[ szero ],
 	h3 - hlen + 2, hlen, &fm_sbuf[ h3 - hlen + 1 ] ); 
+
+fprintf( stderr, "fwchlx: inner = %4d %4d; next = %4d, %4d\n",
+	szero + hlen + 1, h3 - hlen + 1, h3 + 1, sdollar );
 
 		}
 	}
