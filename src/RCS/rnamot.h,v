@@ -1,10 +1,14 @@
-head	1.120;
+head	1.121;
 access;
 symbols;
-locks
-	macke:1.120; strict;
+locks; strict;
 comment	@ * @;
 
+
+1.121
+date	2003.02.26.00.07.26;	author macke;	state Exp;
+branches;
+next	1.120;
 
 1.120
 date	2003.02.25.22.32.56;	author macke;	state Exp;
@@ -612,15 +616,16 @@ desc
 @
 
 
-1.120
+1.121
 log
-@forgot to add \ to the end of the 2 new lines in the help msg.
+@all prototypes for all visible functions in the rnamotif source are
+now here.
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v2.4.0 2003-feb-23"
+#define	VERSION	"v2.4.0 2003-feb-25"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ data ]\n\n\
@@ -953,6 +958,17 @@ void	RM_dumpscore( FILE * );
 int	RM_score( int, int, char [] );
 
 #endif
+@
+
+
+1.120
+log
+@forgot to add \ to the end of the 2 new lines in the help msg.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v2.4.0 2003-feb-23"
 @
 
 
