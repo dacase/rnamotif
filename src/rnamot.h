@@ -1,12 +1,15 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
+#define	VERSION	"v1.0.0 1999-aug-03"
+
 #define	U_MSG_S	\
 "usage: %s [ options ] -descr descr-file [ -dtype dtype ] [ seq-file ]\n\n\
 options:\n\
 \t-c\n\
 \t-d\n\
 \t-h\n\
+\t-v\n\
 \t-help\n\
 \n\
 -descr descr-file\n\
