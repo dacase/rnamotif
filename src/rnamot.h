@@ -97,4 +97,10 @@ typedef	struct	strel_t	{
 	PAIRSET_T	*s_pairset;
 } STREL_T;
 
+typedef	struct	dbase_t	{
+	int	d_first;
+	int	d_last;
+	int	d_current;
+} DBASE_T;
+
 #endif
