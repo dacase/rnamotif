@@ -104,8 +104,10 @@ char	*argv[];
 		chk_both_strs = ip->i_val.v_value.v_ival;
 
 #ifdef	USE_GENBANK
-	if( ( dbp = GB_opendb( rm_dbfp ) ) == NULL )
-		exit( 1 );
+	if( rm_dtype == DT_GENBANK ){
+		if( ( dbp = GB_opendb( rm_dbfp ) ) == NULL )
+			exit( 1 );
+	}
 #endif
 
 	for( ; ; ){
