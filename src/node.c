@@ -34,6 +34,10 @@ NODE_T	*right;
 		np->n_class = C_LIT;
 		np->n_val.v_type = T_INT;
 		np->n_val.v_value.v_ival = vp->v_value.v_ival;
+	}else if( sym == SYM_FLOAT ){
+		np->n_class = C_LIT;
+		np->n_val.v_type = T_FLOAT;
+		np->n_val.v_value.v_fval = vp->v_value.v_fval;
 	}else if( sym == SYM_STRING ){
 		np->n_class = C_LIT;
 		np->n_val.v_type = T_STRING;
@@ -132,6 +136,9 @@ int	indent;
 		break;
 	case SYM_INT :
 		fprintf( fp, "SYM_INT = %d\n", np->n_val.v_value.v_ival );
+		break;
+	case SYM_FLOAT :
+		fprintf( fp, "SYM_FLOAT = %e\n", np->n_val.v_value.v_fval );
 		break;
 	case SYM_STRING :
 		fprintf( fp, "SYM_STRING = '%s'\n", np->n_val.v_value.v_pval );
