@@ -292,6 +292,38 @@ STREL_T	*stp;
 		fprintf( fp, "%d", stp->s_maxlen );
 	fprintf( fp, "\n" );
 
+	fprintf( fp, "\tglen     = " );
+	if( stp->s_minglen == UNDEF )
+		fprintf( fp, "UNDEF" );
+	else if( stp->s_minglen == UNBOUNDED )
+		fprintf( fp, "UNBOUNDED" );
+	else
+		fprintf( fp, "%d", stp->s_minglen );
+	fprintf( fp, ":" );
+	if( stp->s_maxglen == UNDEF )
+		fprintf( fp, "UNDEF" );
+	else if( stp->s_maxglen == UNBOUNDED )
+		fprintf( fp, "UNBOUNDED" );
+	else
+		fprintf( fp, "%d", stp->s_maxglen );
+	fprintf( fp, "\n" );
+
+	fprintf( fp, "\tilen     = " );
+	if( stp->s_minilen == UNDEF )
+		fprintf( fp, "UNDEF" );
+	else if( stp->s_minilen == UNBOUNDED )
+		fprintf( fp, "UNBOUNDED" );
+	else
+		fprintf( fp, "%d", stp->s_minglen );
+	fprintf( fp, ":" );
+	if( stp->s_maxilen == UNDEF )
+		fprintf( fp, "UNDEF" );
+	else if( stp->s_maxilen == UNBOUNDED )
+		fprintf( fp, "UNBOUNDED" );
+	else
+		fprintf( fp, "%d", stp->s_maxilen );
+	fprintf( fp, "\n" );
+
 	fprintf( fp, "\tseq      = '%s'\n",
 		stp->s_seq ? stp->s_seq : "(No seq)" );
 
