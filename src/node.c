@@ -26,10 +26,13 @@ NODE_T	*right;
 	np->n_right = right;
 	if( sym == SYM_IDENT ){
 		np->n_val.v_type = T_STRING;
-		np->n_val.v_value.v_cval = vp->v_value.v_cval;
+		np->n_val.v_value.v_pval = vp->v_value.v_pval;
 	}else if( sym == SYM_INT ){
 		np->n_val.v_type = T_INT;
 		np->n_val.v_value.v_ival = vp->v_value.v_ival;
+	}else if( sym == SYM_STRING ){
+		np->n_val.v_type = T_STRING;
+		np->n_val.v_value.v_pval = vp->v_value.v_pval;
 	}
 	return( np );
 }
@@ -100,22 +103,22 @@ int	indent;
 		fprintf( fp, "SYM_Q4\n" );
 		break;
 	case SYM_IDENT :
-		fprintf( fp, "SYM_IDENT = '%s'\n", np->n_val.v_value.v_cval );
+		fprintf( fp, "SYM_IDENT = '%s'\n", np->n_val.v_value.v_pval );
 		break;
 	case SYM_INT :
 		fprintf( fp, "SYM_INT = %d\n", np->n_val.v_value.v_ival );
 		break;
 	case SYM_STRING :
-		fprintf( fp, "SYM_STRING = %'d'\n", np->n_val.v_value.v_cval );
+		fprintf( fp, "SYM_STRING = '%s'\n", np->n_val.v_value.v_pval );
 		break;
-	case SYM_EQUAL :
-		fprintf( fp, "SYM_EQUAL\n" );
+	case SYM_ASSIGN :
+		fprintf( fp, "SYM_ASSIGN\n" );
 		break;
-	case SYM_PLUS_EQUAL :
-		fprintf( fp, "SYM_PLUS_EQUAL\n" );
+	case SYM_PLUS_ASSIGN :
+		fprintf( fp, "SYM_PLUS_ASSIGN\n" );
 		break;
-	case SYM_MINUS_EQUAL :
-		fprintf( fp, "SYM_MINUS_EQUAL\n" );
+	case SYM_MINUS_ASSIGN :
+		fprintf( fp, "SYM_MINUS_ASSIGN\n" );
 		break;
 	case SYM_PLUS :
 		fprintf( fp, "SYM_PLUS\n" );
