@@ -60,6 +60,9 @@ static	POS_T	*posp;
 
 extern	SITE_T	*rm_sites;
 
+extern	SEARCH_T	**rm_searches;
+extern	int	rm_n_searches;
+
 NODE_T	*PR_close();
 
 static	IDENT_T	*enter_id();
@@ -85,6 +88,7 @@ static	STREL_T	*set_scopes();
 static	void	find_gi_len();
 static	void	find_limits();
 static	void	find_search_order();
+static	void	set_search_order_links();
 
 static	void	find_limits();
 static	void	find_1_limit();
@@ -449,7 +453,14 @@ STREL_T	descr[];
 
 	find_limits( 0, descr );
 
+	rm_searches = ( SEARCH_T ** )malloc( rm_n_descr*sizeof( SEARCH_T * ) );
+	if( rm_searches == NULL ){
+		sprintf( emsg, "SE_link: can't allocate rm_searches." );
+		errormsg( 1, emsg );
+	}
+	rm_n_searches = 0;
 	find_search_order( 0, descr );
+	set_search_order_links( rm_n_searches, rm_searches );
 
 	return( err );
 }
@@ -2277,29 +2288,71 @@ STREL_T	descr[];
 {
 	int	d, nd;
 	STREL_T	*stp, *stp1, *stp2;
+	SEARCH_T	*srp;
 
 	for( d = fd; ; d = nd ){
 		stp = &descr[ d ];
 		switch( stp->s_type ){
 		case SYM_SS :
-fprintf( stderr, "%3d: ss\n", stp->s_index );
+			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
+			if( srp == NULL ){
+				sprintf( emsg,
+			"find_search_order: can't allocate srp for ss." );
+				errormsg( 1, emsg );
+			}
+			srp->s_descr = stp;
+			srp->s_next = NULL;
+			srp->s_backup = NULL;
+			rm_searches[ rm_n_searches ] = srp;
+			rm_n_searches++;
 			break;
 
 		case SYM_H5 :
 			if( stp->s_proper ){
-fprintf( stderr, "%3d: h5\n", stp->s_index );
+				srp = ( SEARCH_T * )malloc(sizeof( SEARCH_T ));
+				if( srp == NULL ){
+					sprintf( emsg,
+			"find_search_order: can't allocate srp for hlx h5." );
+					errormsg( 1, emsg );
+				}
+				srp->s_descr = stp;
+				srp->s_next = NULL;
+				srp->s_backup = NULL;
+				rm_searches[ rm_n_searches ] = srp;
+				rm_n_searches++;
 				stp1 = stp->s_inner;
 				if( stp1 != NULL )
 					find_search_order( stp1->s_index,
 						descr );
 			}else{	/* pseudoknot */
-fprintf( stderr, "%3d: h5\n", stp->s_index );
+				srp = ( SEARCH_T * )malloc(sizeof( SEARCH_T ));
+				if( srp == NULL ){
+					sprintf( emsg,
+			"find_search_order: can't allocate srp for pk.1 h5." );
+					errormsg( 1, emsg );
+				}
+				srp->s_descr = stp;
+				srp->s_next = NULL;
+				srp->s_backup = NULL;
+				rm_searches[ rm_n_searches ] = srp;
+				rm_n_searches++;
 				stp1 = stp->s_inner;
 				if( stp1 != NULL )
 					find_search_order( stp1->s_index,
 						descr );
 				stp1 = stp->s_scopes[ 1 ];
-fprintf( stderr, "%3d: h5\n", stp1->s_index );
+				srp = ( SEARCH_T * )malloc(sizeof( SEARCH_T ));
+				if( srp == NULL ){
+					sprintf( emsg,
+			"find_search_order: can't allocate srp for pk.2 h5." );
+					errormsg( 1, emsg );
+				}
+				srp->s_descr = stp1;
+				srp->s_next = NULL;
+				srp->s_backup = NULL;
+				rm_searches[ rm_n_searches ] = srp;
+				rm_n_searches++;
+
 				stp2 = stp1->s_inner;
 				if( stp2 != NULL )
 					find_search_order( stp2->s_index,
@@ -2349,5 +2402,23 @@ fprintf( stderr, "%3d: h5\n", stp1->s_index );
 			return;
 		else
 			nd = stp1->s_index;
+	}
+}
+
+static	void	set_search_order_links( n_searches, searches )
+int	n_searches;
+SEARCH_T	*searches[];
+{
+	int	s;
+	STREL_T	*stp;
+
+	for( s = 0; s < n_searches - 1; s++ )
+		searches[ s ]->s_next = searches[ s + 1 ]->s_descr;
+	for( s = 1; s < n_searches; s++ ){
+		stp = searches[ s ]->s_descr;
+		if( stp->s_prev != NULL )
+			searches[ s ]->s_backup = stp->s_prev;
+		else 
+			searches[ s ]->s_backup = stp->s_outer;
 	}
 }
