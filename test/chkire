@@ -1,5 +1,0 @@
-#
-/home/macke/gensearch/read_db -db pri |\
-	/home/macke/rnamot3/rnamot -descr ire.descr -dtype genbank |\
-	/home/macke/rnamot3/rmfmt > ire.test
-diff ire.test ire.chk

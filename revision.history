@@ -1,3 +1,14 @@
+1.4.3	2001-mar-28
+	Fixed bug (used =, instead ==) in a loop that blitzed the bp array
+	during an eval of efn().  Apparantly only occuring rarely as it was
+	caught by the pknot test code that checks to see if a substructure
+	is improperly nested.  Hurrah for defensive programming!
+
+	Added new filter program rmprune that removes some redundant hits
+	from the output.  Redundant hits are those that have variable
+	length stem and the hits differ only the stem being shorter.  Only
+	the longest such hit is kept.
+
 1.4.2	2001-feb-07
 	Reactivated the heartbeat: -Dshow_progress=N, N > 0, will write
 	a line containing the entry count and entry sid for ecnt % N == 0.
