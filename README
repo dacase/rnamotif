@@ -6,10 +6,10 @@ various scoring functions.  See doc/rnamot.pdf for documentation.
 ==============================================================================
 
 
-   This source code is copyright (C) 1998, 1999, 2001,  by Isis Pharmaceuticals
+   This source code is copyright (C) 1998, 1999, 2001, by Isis Pharmaceuticals.
 
    It was written by Tom Macke and David A. Case, Department Molecular Biology,
-   The Scripps Research Institute.
+   The Scripps Research Institute, La Jolla, CA 92037.
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -19,11 +19,11 @@ various scoring functions.  See doc/rnamot.pdf for documentation.
    Place, Suite 330, Boston, MA  02111-1307  USA
 
    This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-   Public License for more details.
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+   or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License 
+   for more details.
 
-   We thank Dave Ecker and Ranga Sampath for encouragement, and ISIS
+   We thank Dave Ecker and Ranga Sampath for encouragement, and Isis
    Pharmaceuticals for financial support; Robin Gutell and Daniel Gautheret for
    suggestions; Vickie Tsui for serving as a beta tester, and for many helpful
    comments and suggestions.
