@@ -57,7 +57,7 @@ char	*argv[];
 	}
 
 	if( yyparse() ){
-		errormsg( 1, "syntax error." );
+		RM_errormsg( 1, "syntax error." );
 	}
 	if( !rm_error ){
 		if( SE_link( rm_n_descr, rm_descr ) )

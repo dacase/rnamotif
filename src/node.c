@@ -19,7 +19,7 @@ NODE_T	*right;
 	np = ( NODE_T * )malloc( sizeof( NODE_T ) );
 	if( np == NULL ){
 		sprintf( emsg, "node: can't allocate np for sym %d.", sym );
-		errormsg( 1, emsg );
+		RM_errormsg( 1, emsg );
 	}
 	np->n_sym = sym;
 	np->n_type = T_UNDEF;
