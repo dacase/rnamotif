@@ -6,6 +6,7 @@
 extern	int	rm_emsg_lineno;
 extern	int	rm_dminlen;
 extern	int	rm_dmaxlen;
+extern	int	rm_b2bc[];
 
 static	char	fm_emsg[ 256 ];
 static	char	*fm_locus;
@@ -18,6 +19,7 @@ static	int	find_motif();
 static	int	find_ss();
 static	int	find_wchlx();
 static	int	find_pknot();
+static	int	paired();
 
 IDENT_T	*find_id();
 
@@ -29,8 +31,9 @@ char	locus[];
 int	slen;
 char	sbuf[];
 {
-	int	i, w_winsize, szero, sdollar;
+	int	i, w_winsize, slev, szero, sdollar;
 	IDENT_T	*ip;
+	SEARCH_T	*srp;
 	
 	if( fm_window == NULL ){
 		ip = find_id( "windowsize" );
@@ -57,25 +60,30 @@ fprintf( stderr, "fmd: locus = %s, slen = %d\n", locus, slen );
 
 	w_winsize = rm_dmaxlen < fm_windowsize ? rm_dmaxlen : fm_windowsize;
 
+	slev = 0;
+	srp = searches[ slev ];
 	for( szero = 0; szero < slen - w_winsize; szero++ ){
 		sdollar = szero + w_winsize - 1;
-		find_motif( 0, n_searches, searches, szero, sdollar, slen );
+		srp->s_zero = szero;
+		srp->s_dollar = sdollar;
+		find_motif( slev, n_searches, searches, szero, sdollar );
 	}
 
 	sdollar = slen - 1;
 	for( ; szero <= slen - rm_dminlen; szero++ ){
-		find_motif( 0, n_searches, searches, szero, sdollar, slen );
+		srp->s_zero = szero;
+		srp->s_dollar = sdollar;
+		find_motif( 0, n_searches, searches, szero, sdollar );
 	}
 
 	return( 0 );
 }
 
-static	int	find_motif( slev, n_searches, searches, szero, sdollar, slen )
+static	int	find_motif( slev, n_searches, searches, szero, sdollar )
 int	szero;
 int	n_searches;
 SEARCH_T	*searches[];
 int	sdollar;
-int	slen;
 {
 	SEARCH_T	*srp;
 	STREL_T	*stp;
@@ -84,21 +92,21 @@ int	slen;
 	stp = srp->s_descr;
 
 fprintf( stderr, "fm: slev = %d, str = 0, %4d:%4d, %4d\n",
-	slev, szero, sdollar, slen - 1 );
+	slev, szero, sdollar, fm_slen - 1 );
 
 	return(1);
 
 	switch( stp->s_type ){
 	case SYM_SS :
-		find_ss( slev, n_searches, searches, szero, sdollar, slen );
+		find_ss( slev, n_searches, searches, szero, sdollar );
 		break;
 	case SYM_H5 :
 		if( stp->s_proper ){
 			find_wchlx( slev, n_searches, searches,
-				szero, sdollar, slen );
+				szero, sdollar );
 		}else{
 			find_pknot(  slev, n_searches, searches,
-				szero, sdollar, slen );
+				szero, sdollar );
 		}
 		break;
 	case SYM_P5 :
@@ -129,35 +137,62 @@ fprintf( stderr, "fm: slev = %d, str = 0, %4d:%4d, %4d\n",
 	}
 }
 
-static	int	find_ss( slev, n_searches, searches, szero, sdollar, slen )
+static	int	find_ss( slev, n_searches, searches, szero, sdollar )
 int	slev;
 int	n_searches;
 SEARCH_T	*searches[];
 int	szero;
 int	sdollar;
-int	slen;
 {
 
 }
 
-static	int	find_wchlx( slev, n_searches, searches, szero, sdollar, slen )
+static	int	find_wchlx( slev, n_searches, searches, szero, sdollar )
 int	slev;
 int	n_searches;
 SEARCH_T	*searches[];
 int	szero;
 int	sdollar;
-int	slen;
+{
+	int	s, s3lim;
+	int	b5, b3;
+	SEARCH_T	*srp;
+	STREL_T	*stp;
+
+	srp = searches[ slev ];
+	stp = srp->s_descr;
+
+	b5 = fm_sbuf[ szero ];
+	for( s = sdollar; s >= s3lim; s-- ){
+		b3 = fm_sbuf[ s ];
+		if( paired( stp, b5, b3 ) ){
+		}
+	}
+}
+
+static	int	find_pknot(  slev, n_searches, searches, szero, sdollar )
+int	slev;
+int	n_searches;
+SEARCH_T	*searches[];
+int	szero;
+int	sdollar;
 {
 
 }
 
-static	int	find_pknot(  slev, n_searches, searches, szero, sdollar, slen )
-int	slev;
-int	n_searches;
-SEARCH_T	*searches[];
-int	szero;
-int	sdollar;
-int	slen;
+static	int	paired( stp, b5, b3 )
+STREL_T	*stp;
+int	b5;
+int	b3;
 {
-
+	BP_MAT_T	*bpmatp;
+	int	b5i, b3i;
+	int	rv;
+	
+	bpmatp = stp->s_pairset->ps_mat;
+	b5i = rm_b2bc[ b5 ];
+	b3i = rm_b2bc[ b3 ];
+	rv = (*bpmatp)[b5i][b3i];
+fprintf( stderr, "paired: b5 = %c, b3 = %c, %d\n", b5, b3, rv );
+	return( rv );
 }
