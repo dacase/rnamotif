@@ -64,13 +64,17 @@ typedef	struct	node_t	{
 	struct	node_t	*n_right;
 } NODE_T;
 
+typedef	struct	addr_t	{
+	int	a_l2r;
+	int	a_offset;
+} ADDR_T;
+
 typedef	struct	pos_t	{
 	int	p_type;
 	int	p_lineno;
 	char	*p_tag;
 	int	p_dindex;
-	int	p_l2r;
-	int	p_offset;
+	ADDR_T	p_addr;
 } POS_T;
 
 typedef	struct	site_t	{
@@ -102,6 +106,8 @@ typedef	struct	strel_t	{
 	int	s_maxglen;
 	int	s_minilen;
 	int	s_maxilen;
+	ADDR_T	s_start;
+	ADDR_T	s_stop;
 	char	*s_seq;
 	int	s_mismatch;
 	int	s_mispair;
