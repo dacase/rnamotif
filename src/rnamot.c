@@ -20,7 +20,7 @@ extern	SITE_T	*rm_sites;
 extern	SEARCH_T	**rm_searches;
 extern	int		rm_n_searches;
 
-#define	SBUF_SIZE	2000000
+#define	SBUF_SIZE	5000000
 static	char	sbuf[ SBUF_SIZE ];
 static	int	slen;
 static	char	csbuf[ SBUF_SIZE ];
