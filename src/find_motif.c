@@ -245,7 +245,7 @@ SEARCH_T	*srp;
 				rm_n_descr, rm_descr );
 	}
 
-		return( 1 );
+	return( 1 );
 }
 
 static	int	find_wchlx( srp )
