@@ -1,3 +1,9 @@
+1.3.2	2000-oct-29
+	Fixed bug that caused core dump when using empty sequence "".  
+	Problem didn't affect strings ('').
+
+	Implemented string concatentation (+, +=).
+
 1.3.1	2000-oct-11
 	Fixed memory leak that lost the memory holding the tag in a 
 	tagged stref (eg h5['h1'])

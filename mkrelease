@@ -17,7 +17,7 @@ endif
 make clean
 set tarfile = rnamotif-$1.tar
 echo making $tarfile
-tar cvf $tarfile \
+tar cvXf rnamotif/excludes $tarfile \
 	rnamotif/README \
 	rnamotif/COPYING.GNU \
 	rnamotif/revision.history \
@@ -27,6 +27,5 @@ tar cvf $tarfile \
 	rnamotif/doc \
 	rnamotif/src \
 	rnamotif/efndata \
-	rnamotif/test \
-	rnamotif/descr
+	rnamotif/test
 gzip -v $tarfile

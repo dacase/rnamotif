@@ -1986,6 +1986,8 @@ static	void	do_add( INST_T *ip )
 {
 	VALUE_T	*v_tm1, *v_top;
 	int	t_tm1, t_top;
+	char	*s_tm1, *s_top;
+	char	*cp;
 
 	v_top = &mem[ sp ];
 	t_top = v_top->v_type;
@@ -2005,6 +2007,21 @@ static	void	do_add( INST_T *ip )
 		break;
 	case T_IJ( T_FLOAT, T_FLOAT ) :
 		v_tm1->v_value.v_dval += v_top->v_value.v_dval;
+		break;
+	case T_IJ( T_STRING, T_STRING ) :
+		s_tm1 = v_tm1->v_value.v_pval;
+		s_top = v_top->v_value.v_pval;
+		cp = ( char * )tm_malloc(
+			strlen( s_tm1 ) + strlen( s_top ) + 1, "do_add" );
+		if( cp == NULL ){
+			rm_emsg_lineno = UNDEF;
+			RM_errormsg( 1, "do_add: can't allocate new string." );
+		}
+		strcpy( cp, s_tm1 );
+		strcat( cp, s_top );
+		v_tm1->v_value.v_pval = cp;
+		tm_free( s_top );
+		tm_free( s_tm1 );
 		break;
 	default :
 		rm_emsg_lineno = ip->i_lineno;
@@ -2469,6 +2486,7 @@ static	void	addnode( int lval, NODE_T *np, int l_andor )
 	case SYM_Q2 :
 	case SYM_Q3 :
 	case SYM_Q4 :
+	case SYM_SE :
 		break;
 
 	case SYM_ELSE :
@@ -2822,7 +2840,9 @@ static	char	*tm_malloc( int size, char id[] )
 
 static	void	tm_free( void *ptr )
 {
+#ifdef	MEMDEBUG
 	int	i;
+#endif
 
 	free( ptr );
 #ifdef	MEMDEBUG

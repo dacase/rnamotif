@@ -1,9 +1,14 @@
-head	1.106;
+head	1.107;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.107
+date	2000.10.29.20.53.58;	author macke;	state Exp;
+branches;
+next	1.106;
 
 1.106
 date	2000.10.07.04.46.43;	author macke;	state Exp;
@@ -541,9 +546,10 @@ desc
 @
 
 
-1.106
+1.107
 log
-@convert headers from K&R to ANSI.
+@fixed RM_str2seq() to allocate a "" string if the input is either ""
+or NULL. (Required to initialize "" strings in the score section.)
 @
 text
 @#include <stdio.h>
@@ -3134,8 +3140,14 @@ char	*RM_str2seq( char str[] )
 	IDENT_T	*ip;
 	char	seq[ 1024 ];
 
-	if( str == NULL || *str == '\0' )
-		return( NULL );
+	if( str == NULL || *str == '\0' ){
+		sp = ( char * )malloc( 1 * sizeof( char ) );
+		if( sp == NULL ){
+			RM_errormsg( 1, "RM_str2seq: can't alloc sp." );
+		}
+		*sp = '\0';
+		return( sp );
+	}
 	ip = RM_find_id( "iupac" );
 	if( ip )
 		iupac = ip->i_val.v_value.v_ival;
@@ -3894,6 +3906,18 @@ static	int	pk_cmp( STREL_T **d1, STREL_T **d2 )
 
 	return( ( *d1 )->s_index - ( *d2 )->s_index );
 }
+@
+
+
+1.106
+log
+@convert headers from K&R to ANSI.
+@
+text
+@d2589 8
+a2596 2
+	if( str == NULL || *str == '\0' )
+		return( NULL );
 @
 
 

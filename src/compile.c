@@ -2586,8 +2586,14 @@ char	*RM_str2seq( char str[] )
 	IDENT_T	*ip;
 	char	seq[ 1024 ];
 
-	if( str == NULL || *str == '\0' )
-		return( NULL );
+	if( str == NULL || *str == '\0' ){
+		sp = ( char * )malloc( 1 * sizeof( char ) );
+		if( sp == NULL ){
+			RM_errormsg( 1, "RM_str2seq: can't alloc sp." );
+		}
+		*sp = '\0';
+		return( sp );
+	}
 	ip = RM_find_id( "iupac" );
 	if( ip )
 		iupac = ip->i_val.v_value.v_ival;
