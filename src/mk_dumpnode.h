@@ -19,6 +19,6 @@ awk '{	printf( "\tcase %s :\n", $2 )\
 	printf( " );\n" ) \
        	printf( "\t\tbreak;\n" )  } \
  END {  printf( "\tdefault :\n" ) \
-	printf( "\t\tfprintf( fp, \"dumpnode: Unknown symbol %%d\\n\"" ) \
+	printf( "\t\tfprintf( fp, \"RM_dumpnode: Unknown symbol %%d\\n\"" ) \
 	printf( ", np->n_sym );\n" ) \
 	printf( "\t\tbreak;\n" ) } '
