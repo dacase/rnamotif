@@ -210,11 +210,8 @@ SEARCH_T	*srp;
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
 	slen = sdollar - szero + 1;
-	n_stp = srp->s_forward;
-	if( n_stp == NULL ){
-		if( slen > stp->s_maxlen )
-			return( 0 );
-	}
+	if( slen < stp->s_minlen || slen > stp->s_maxlen )
+		return( 0 );
 
 	if( stp->s_seq != NULL ){
 		strncpy( fm_chk_seq, &fm_sbuf[ szero ], slen );
