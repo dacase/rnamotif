@@ -21,6 +21,8 @@ static	POS_T	*posp;
 parms		return( SYM_PARMS );
 descr		return( SYM_DESCR );
 sites		return( SYM_SITES );
+score		return( SYM_SCORE );
+
 ss		return( SYM_SS );
 h5		return( SYM_H5 );
 h3		return( SYM_H3 );
@@ -33,6 +35,14 @@ q1		return( SYM_Q1 );
 q2		return( SYM_Q2 );
 q3		return( SYM_Q3 );
 q4		return( SYM_Q4 );
+
+ACCEPT		return( SYM_ACCEPT );
+REJECT		return( SYM_REJECT );
+else		return( SYM_ELSE );
+for		return( SYM_FOR );
+if		return( SYM_IF );
+in		return( SYM_IN );
+while		return( SYM_WHILE );
 
 [a-zA-Z][_a-zA-Z0-9]*	{
 		  sp = ( char * )malloc(( yyleng + 1 ) *sizeof( char ));
@@ -72,11 +82,8 @@ q4		return( SYM_Q4 );
 		  }
 		}
 
+&&		return( SYM_AND );
 =		return( SYM_ASSIGN );
-\+=		return( SYM_PLUS_ASSIGN );
-\-=		return( SYM_MINUS_ASSIGN );
-\+		return( SYM_PLUS );
-\-		return( SYM_MINUS );
 \$		{ posp = ( POS_T * )malloc( sizeof( POS_T ) );
 		  if( posp == NULL ){
 			errormsg( 1,
@@ -91,12 +98,36 @@ q4		return( SYM_Q4 );
 		  rm_tokval.v_value.v_pval = posp;
 		  return( SYM_DOLLAR );
 		}
+!~		return( SYM_DONT_MATCH );
+==		return( SYM_EQUAL );
+\>		return( SYM_GREATER );
+\>=		return( SYM_GREATER_EQUAL );
+\<		return( SYM_LESS );
+\<=		return( SYM_LESS_EQUAL );
+=~		return( SYM_MATCH );
+\-		return( SYM_MINUS );
+\-=		return( SYM_MINUS_ASSIGN );
+\-\-		return( SYM_MINUS_MINUS );
+!		return( SYM_NOT );
+!=		return( SYM_NOT_EQUAL );
+\|\|		return( SYM_OR );
+%		return( SYM_PERCENT );
+%=		return( SYM_PERCENT_ASSIGN );
+\+		return( SYM_PLUS );
+\+=		return( SYM_PLUS_ASSIGN );
+\+\+		return( SYM_PLUS_PLUS );
+\*		return( SYM_STAR );
+\*=		return( SYM_STAR_ASSIGN );
+\/		return( SYM_SLASH );
+\/=		return( SYM_SLASH_ASSIGN );
+
 \(		return( SYM_LPAREN );
 \)		return( SYM_RPAREN );
 \{		return( SYM_LCURLY );
 \}		return( SYM_RCURLY );
 \,		return( SYM_COMMA );
 :		return( SYM_COLON );
+;		return( SYM_SEMICOLON );
 
 .		return( SYM_ERROR );
 
