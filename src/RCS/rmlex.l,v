@@ -1,9 +1,14 @@
-head	1.36;
+head	1.37;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.37
+date	2003.11.10.21.35.49;	author macke;	state Exp;
+branches;
+next	1.36;
 
 1.36
 date	2003.07.21.20.43.10;	author macke;	state Exp;
@@ -191,10 +196,9 @@ desc
 @
 
 
-1.36
+1.37
 log
-@4 new symbols: BEGIN, END, HOLD, RELEASE for use with carry around
-score sections.
+@add rule that treats \r as white space.  May may it on Mac O/S X.
 @
 text
 @%{
@@ -234,6 +238,7 @@ static	FNAME_T	*enter_fname( FNAME_T **, char [] );
 #.*		;
 
 \n		;
+\r		;
 
 [\ \t\f]+	;
 
@@ -455,6 +460,16 @@ static	FNAME_T	*enter_fname( FNAME_T **root, char fname[] )
 		fnp = *root;
 	return( fnp );
 }
+@
+
+
+1.36
+log
+@4 new symbols: BEGIN, END, HOLD, RELEASE for use with carry around
+score sections.
+@
+text
+@d38 1
 @
 
 

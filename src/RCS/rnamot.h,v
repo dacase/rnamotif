@@ -1,9 +1,24 @@
-head	1.124;
+head	1.127;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.127
+date	2003.11.10.21.34.53;	author macke;	state Exp;
+branches;
+next	1.126;
+
+1.126
+date	2003.10.29.20.05.52;	author macke;	state Exp;
+branches;
+next	1.125;
+
+1.125
+date	2003.10.22.18.25.06;	author macke;	state Exp;
+branches;
+next	1.124;
 
 1.124
 date	2003.07.27.22.37.08;	author macke;	state Exp;
@@ -631,15 +646,16 @@ desc
 @
 
 
-1.124
+1.127
 log
-@updated version.
+@updated version to 3.0.1.  Treat \r as white space.  May make it work
+on Mac OS/X?
 @
 text
 @#ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v3.0.0 2003-jul-27"
+#define	VERSION	"v3.0.1 2003-nov-10"
 
 #define	U_MSG_S	\
 "usage: %s [ options ] descr [ fmt ] [ data ]\n\n\
@@ -994,6 +1010,45 @@ void	RM_setprog( int );
 int	RM_score( int, int, char [], IDENT_T ** );
 
 #endif
+@
+
+
+1.126
+log
+@update version to 3.0.0b.  2d step on the way to a better mrnamotif,
+one that does a better job of error recovery.  Will also make some
+improvements to the file map stuff, to support symbolic ($XX) paths
+as well host group names, check to see that the host's assigned to the
+job can actually do it and keep track of any jobs that fail, retrying
+them on differents hosts (ambitious) or just indicating that files X,Y,Z
+were not searched.  Easier.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v3.0.0b 2003-oct-29"
+@
+
+
+1.125
+log
+@updated version to 3.0.0a
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v3.0.0a 2003-oct-22"
+@
+
+
+1.124
+log
+@updated version.
+@
+text
+@d4 1
+a4 1
+#define	VERSION	"v3.0.0 2003-jul-27"
 @
 
 

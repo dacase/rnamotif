@@ -35,6 +35,7 @@ static	FNAME_T	*enter_fname( FNAME_T **, char [] );
 #.*		;
 
 \n		;
+\r		;
 
 [\ \t\f]+	;
 

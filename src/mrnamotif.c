@@ -42,6 +42,7 @@ static	int	s_rncmd;
 static	char	*xdescr;
 static	int	s_xdescr;
 static	char	xdfname[ 256 ];	/* used only by r1..rnp-1	*/
+static	char	rn_efname[ 256 ];	/* rnamotif errors from r1..rnp-1*/
 
 static	FMAP_T	*fmap;
 
@@ -179,6 +180,10 @@ CLEAN_UP : ;
 			}
 		}
 	}
+	if( *xdfname )
+		unlink( xdfname );
+	if( *rn_efname )
+		unlink( rn_efname );
 
 	MPI_Finalize();
 
@@ -242,7 +247,6 @@ static	int	r0_init( int argc, char *argv[] )
 {
 	ARGS_T	*args;
 	char	r0cmd[ CMD_SIZE ];
-	char	xdfname[ 256 ];
 	int	xdfd;
 	char	r0efname[ 256 ];
 	int	r0efd;
@@ -284,8 +288,6 @@ static	int	r0_init( int argc, char *argv[] )
 
 CLEAN_UP : ;
 
-	if( *xdfname )
-		unlink( xdfname );
 	if( *r0efname )
 		unlink( r0efname );
 
@@ -438,7 +440,10 @@ static	int	mk_commands( ARGS_T *args, char r0cmd[], char rncmd[],
 		strcpy( cpn, " -sh" );
 		cpn += strlen( cpn );
 	}
+/*
 	strcpy( cpn, " -xdescr %s 2> /dev/null" );
+*/
+	strcpy( cpn, " -xdescr %s 2> %s" );
 	cpn += strlen( cpn );
 	strcpy( cpn, " -fmt" );
 	cpn += strlen( cpn );
@@ -687,8 +692,9 @@ static	int	r0_handle_msg( MPI_Status *pstatus, int *done )
 	case MT_READY :
 		rcnt++;
 
-fprintf( stderr, "%s: READY: %s_%d: rcnt = %d\n",
-	xhostname, hosts[ pstatus->MPI_SOURCE ], pstatus->MPI_SOURCE, rcnt );
+fprintf( stderr, "%s: mt=READY : %s_%d ready to search: rdy cnt = %2d/%2d\n",
+	xhostname, hosts[ pstatus->MPI_SOURCE ], pstatus->MPI_SOURCE,
+	rcnt, n_wproc + n_jobs );
 
 		MPI_Recv( &ibuf, 1, MPI_INT, pstatus->MPI_SOURCE,
 			MT_READY, MPI_COMM_WORLD, &rstatus );
@@ -713,7 +719,7 @@ fprintf( stderr, "%s: READY: %s_%d: rcnt = %d\n",
 			jobs[ j ] = JS_RUNNING;
 			actjobs[ s ] = j;
 
-fprintf( stderr, "%s: RUN: search '%s' on %s_%d\n", xhostname, sbuf,
+fprintf( stderr, "%s: mt=RUN   : search file '%s' on %s_%d\n", xhostname, sbuf,
 	hosts[ pstatus->MPI_SOURCE ], pstatus->MPI_SOURCE );
 
 			MPI_Send( sbuf, strlen( sbuf ) + 1, MPI_CHAR,
@@ -721,11 +727,27 @@ fprintf( stderr, "%s: RUN: search '%s' on %s_%d\n", xhostname, sbuf,
 			scnt++;
 		}
 		break;
+
 	case MT_RESULT :
 		MPI_Recv( work, sizeof( work ), MPI_CHAR,
 			pstatus->MPI_SOURCE,
 			MT_RESULT, MPI_COMM_WORLD, &rstatus );
+
+fprintf( stderr, "%s: mt=RESULT: got %d bytes from %s_%d\n", xhostname,
+	strlen( work ),
+	hosts[ pstatus->MPI_SOURCE ], pstatus->MPI_SOURCE );
+
 		fputs( work, stdout );
+		break;
+
+	case MT_ERROR :
+		MPI_Recv( work, sizeof( work ), MPI_CHAR,
+			pstatus->MPI_SOURCE,
+			MT_ERROR, MPI_COMM_WORLD, &rstatus );
+
+fprintf( stderr, "%s: mt=ERROR : %s\n", xhostname, work );
+
+		rval = 1;
 		break;
 
 	default :
@@ -768,15 +790,15 @@ static	int	rn_handle_msg( MPI_Status *pstatus, int *done )
 		break;
 
 	case MT_QUIT :
-		if( *xdfname )
-			unlink( xdfname );
 		*done = TRUE;
 		break;
 
 	default :
-		fprintf( stderr,
-			"%s: rn_handle_msg: unexpected mesg tag %d\n",
+		sprintf( emsg,
+			"%s: rn_handle_msg: unexpected mesg tag %d",
 			pstatus->MPI_TAG );
+		MPI_Send( emsg, strlen( emsg ) + 1, MPI_CHAR, 0,
+			 MT_ERROR, MPI_COMM_WORLD );
 		rval = 1;
 		break;
 	}
@@ -790,19 +812,30 @@ static	int	rn_setup( char *rbuf )
 	int	s_rncmd, s_xdescr;
 	int	xdfd;
 	FILE	*xdfp = NULL;
+	int	rnefd;
 	int	ibuf;
 	int	rval = 0;
+
+	/* rbuf contains 2 C strings:				*/
+	/*	1. is the cmd template to run the searchs	*/
+	/*	   something like rnamoitf -descr %s opts -%s	*/
+	/*	   where the 2 %s get the descr file, and the	*/
+	/*	   data file					*/
+	/*	2. is the contents of the descriptor file	*/
+	/*	   This will be written to the temp filea	*/
+	/*	   xdfname					*/
 
 	for( rp = rbuf; *rp; rp++ )
 		;
 	s_rncmd = rp - rbuf + 1;
 	strcpy( rncmd, rbuf );
-
 	for( rp1 = ++rp; *rp1; rp1++ )
 		;
 	s_xdescr = rp1 - rp + 1;
 	xdescr = ( char * )malloc( s_xdescr * sizeof( char ) );
 	if( xdescr == NULL ){
+		sprintf( emsg, "%s: rn_setup: can't allocate xdescr",
+			xhostname );
 		rval = 1;
 		goto CLEAN_UP;
 	}
@@ -811,6 +844,8 @@ static	int	rn_setup( char *rbuf )
 	strcpy( xdfname, "/tmp/rmxdf_XXXXXX" );
 	xdfd = mkstemp( xdfname );
 	if( ( xdfp = fdopen( xdfd, "w" ) ) == NULL ){
+		sprintf( emsg, "%s: rn_setup: can't fdopen xdescr-file %s",
+			xhostname, xdfname );
 		rval = 1;
 		goto CLEAN_UP;
 	}
@@ -818,18 +853,28 @@ static	int	rn_setup( char *rbuf )
 	fclose( xdfp );
 	xdfp = NULL;
 
-	ibuf = 0;
-	MPI_Send( &ibuf, 1, MPI_INT, 0, MT_READY, MPI_COMM_WORLD );
+	strcpy( rn_efname, "/tmp/rm_rne_XXXXXX" );
+	rnefd = mkstemp( rn_efname );
+	if( rnefd < 0 ){
+		sprintf( emsg, "%s: rn_setup: can't create rn_err-file %s",
+			xhostname, rn_efname );
+		rval = 1;
+		goto CLEAN_UP;
+	}
 
 CLEAN_UP : ;
+
+	if( rval == 0 ){
+		ibuf = 0;
+		MPI_Send( &ibuf, 1, MPI_INT, 0, MT_READY, MPI_COMM_WORLD );
+	}else{
+		MPI_Send( emsg, strlen( emsg ) + 1, MPI_CHAR,
+			0, MT_ERROR, MPI_COMM_WORLD );
+	}
 
 	if( xdfp != NULL ){
 		fclose( xdfp );
 		xdfp = NULL;
-	}
-	if( rval == 1 ){
-		if( *xdfname )
-			unlink( xdfname );
 	}
 
 	return( rval );
@@ -841,13 +886,16 @@ static	int	rn_run( char *fname )
 	char	*wp, *cp, cmd[ 1024 ];
 	FILE	*fp = NULL;
 	char	line[ 10240 ];
+	struct stat	sbuf;
+	FILE	*efp = NULL;
+	char	*emp, *e_emp;
+	int	llen;
 	int	ibuf;
 	int	rval = 0;
 
-	sprintf( cmd, rncmd, xdfname, fname );
-
+	sprintf( cmd, rncmd, xdfname, rn_efname, fname );
 	if( ( fp = popen( cmd, "r" ) ) == NULL ){
-		fprintf( stderr, "%s: popen failed\n", xhostname );
+		sprintf( emsg, "%s: rn_run: popen '%s' failed", xhostname );
 		rval = 1;
 		goto CLEAN_UP;
 	}
@@ -863,6 +911,7 @@ static	int	rn_run( char *fname )
 			wp = work;
 		}
 	}
+	*wp++ = '\0';
 	if( wp > work ){
 		MPI_Send( work, strlen( work ) + 1, MPI_CHAR,
 			0, MT_RESULT, MPI_COMM_WORLD );
@@ -871,10 +920,42 @@ static	int	rn_run( char *fname )
 	pclose( fp );
 	fp = NULL;
 
-	ibuf = 0;
-	MPI_Send( &ibuf, 1, MPI_INT, 0, MT_READY, MPI_COMM_WORLD );
+	if( stat( rn_efname, &sbuf ) ){
+		sprintf( emsg, "%s: rn_run: can't stat %s",
+			xhostname, rn_efname );
+		rval = 1;
+		goto CLEAN_UP;
+	}
+	if( sbuf.st_size > 0 ){
+		if( ( efp = fopen( rn_efname, "r" ) ) == NULL ){
+			sprintf( emsg, "%s: rn_run: can't read %s",
+				xhostname, rn_efname );
+			rval = 1;
+			goto CLEAN_UP;
+		}
+		sprintf( emsg, "%s: rn_run: ERROR: ", xhostname );
+		emp = emsg + strlen( emsg );
+		e_emp = &emsg[ sizeof( emsg ) ] - 1;
+		while( fgets( line, sizeof( line ), efp ) ){
+			llen = strlen( line );
+			if( emp + llen < e_emp - 1 ){
+				strcpy( emp, line );
+				emp += llen;
+			}
+		}
+		*emp = '\0';
+		fclose( efp );
+		rval = 1;
+	}
 
 CLEAN_UP : ;
+
+	if( rval == 0 ){
+		ibuf = 0;
+		MPI_Send( &ibuf, 1, MPI_INT, 0, MT_READY, MPI_COMM_WORLD );
+	}else
+		MPI_Send( emsg, strlen( emsg ) + 1, MPI_CHAR,
+			0, MT_ERROR, MPI_COMM_WORLD );
 
 	if( fp != NULL ){
 		pclose( fp );
