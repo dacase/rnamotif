@@ -14,11 +14,8 @@ static	char	*sp;
 
 [\ \t\f\n]+	;
 
-pair		return( SYM_PAIR );
 parm		return( SYM_PARM );
 descr		return( SYM_DESCR );
-mismatch	return( SYM_MISMATCH );
-mispair		return( SYM_MISPAIR );
 site		return( SYM_SITE );
 ss		return( SYM_SS );
 h5		return( SYM_H5 );
