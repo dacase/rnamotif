@@ -775,7 +775,7 @@ int	*hlen;
 */
 	}
 	if( stp3->s_seq != NULL ){
-		if( !chk_seq( stp3, &fm_sbuf[ s3 ], *hlen ) )
+		if( !chk_seq( stp3, &fm_sbuf[ s3 - *hlen + 1 ], *hlen ) )
 			return( 0 );
 /*
 		strncpy( fm_chk_seq,  &fm_sbuf[ s3 - *hlen + 1 ], *hlen );
