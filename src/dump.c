@@ -180,6 +180,8 @@ void	RM_dump_descr( fp, stp )
 FILE	*fp;
 STREL_T	*stp;
 {
+	int	i;
+	STREL_T	*stp1;
 
 	fprintf( fp, "descr[%3d] = {\n", stp->s_index + 1 );
 	fprintf( fp, "\ttype     = " );
@@ -230,6 +232,17 @@ STREL_T	*stp;
 
 	fprintf( fp, "\ttag      = '%s'\n",
 		stp->s_tag ? stp->s_tag : "(No tag)" );
+
+	if( stp->s_type != SYM_SS ){
+		fprintf( fp, "\tmates    = [ " );
+		for( i = 0; i < stp->s_n_mates; i++ ){
+			stp1 = stp->s_mates[ i ];
+			fprintf( fp, "%d", stp1->s_index + 1 );
+			if( i < stp->s_n_mates - 1 )
+				fprintf( fp, ", " );
+		}
+		fprintf( fp, " ]\n" );
+	}
 
 	fprintf( fp, "\tlen      = " );
 	if( stp->s_minlen == LASTVAL )
