@@ -617,8 +617,11 @@ void	SE_close()
 		}else if( !strcmp( ip->i_name, "pair" ) ){
 			stp->s_pairset = ip->i_val.v_value.v_pval;
 		}else if( !strcmp( ip->i_name, "ends" ) ){
-			if( ip->i_val.v_value.v_pval != NULL )
-				stp->s_attr |= ends2attr( ip->i_val.v_value.v_pval );
+			if( ip->i_val.v_value.v_pval != NULL ){
+				stp->s_attr &= ~( SA_5PAIRED | SA_3PAIRED );
+				stp->s_attr |=
+					ends2attr( ip->i_val.v_value.v_pval );
+			}
 		}
 	}
 	def_pairset = NULL;
