@@ -262,6 +262,14 @@ STREL_T	*stp;
 		fprintf( fp, "(None)" );
 	fprintf( fp, "\n" );
 
+	fprintf( fp, "\touter    = " );
+	if( stp->s_outer ){
+		stp1 = stp->s_outer;
+		fprintf( fp, "%d", stp1->s_index );
+	}else
+		fprintf( fp, "(None)" );
+	fprintf( fp, "\n" );
+
 	fprintf( fp, "\tmates    = [ " );
 	for( i = 0; i < stp->s_n_mates; i++ ){
 		stp1 = stp->s_mates[ i ];
