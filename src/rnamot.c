@@ -74,10 +74,10 @@ char	*argv[];
 
 	for( dbp = DB_open( dbnp ); dbp; ){
 		if( slen = DB_getseq( dbp, SBUFSIZE, sbuf ) ){
-			find_rnamot( rm_n_descr, rm_descr, rm_sites,
+			find_motif( rm_n_descr, rm_descr, rm_sites,
 				slen, sbuf );
-		}else
-			dbp = DB_next();
+		}
+		dbp = DB_next( dbp );
 	}
 
 	exit( 0 );
