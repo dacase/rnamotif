@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 
 #include "rnamot.h"
@@ -30,6 +31,12 @@ static	int	n_global_ids = 6;
 static	IDENT_T	*local_ids[ LOCAL_IDS_SIZE ];
 static	int	n_local_ids;
 
+#define	ISBASE(b)	((b)=='a'||(b)=='c'||(b)=='g'||(b)=='t'||(b)=='u'|| \
+			 (b)=='A'||(b)=='C'||(b)=='G'||(b)=='T'||(b)=='U')
+#define	CURPAIR_SIZE	20
+static	char	*curpair[ CURPAIR_SIZE ];
+int	n_curpair;
+
 #define	DESCRSIZE 100
 static	STREL_T	descr[ DESCRSIZE ];
 static	int	n_descr;
@@ -50,19 +57,80 @@ void	PR_open()
 {
 
 	fprintf( stderr, "Open Pair:\n");
+	n_curpair = 0;
 }
 
 void	PR_add( np )
 NODE_T	*np;
 {
 
-	fprintf( stderr, "Add '%s' to pair.\n", np->n_val.v_value.v_pval ); 
+	if( n_curpair >= CURPAIR_SIZE )
+		errormsg( 1, "PR_add: current pair too large.\n" );
+	curpair[ n_curpair ] = np->n_val.v_value.v_pval;
+	n_curpair++;
 }
 
 NODE_T	*PR_close()
 {
+	int	i, b, needbase;
+	PAIR_T	*pp;
+	PAIRLIST_T	*pl;
+	char	*bp;
+	NODE_T	*np;
 
-	fprintf( stderr, "Close Pair.\n");
+	pl = ( PAIRLIST_T * )malloc( sizeof( PAIRLIST_T ) );
+	if( pl == NULL )
+		errormsg( 1, "PR_close: can't allocate pairlist.\n" );
+	pp = ( PAIR_T * )malloc( n_curpair * sizeof( PAIR_T ) );
+	if( pp == NULL )
+		errormsg( 1, "PR_close: can't allocate pair.\n" );
+	pl->pl_n_pairs = n_curpair;
+	pl->pl_pairs = pp;
+	for( pp = pl->pl_pairs, i = 0; i < pl->pl_n_pairs; i++, pp++ ){
+		for( needbase = 1, b = 0, bp = curpair[ i ]; *bp; bp++ ){
+			if( ISBASE( *bp ) ){
+				if( needbase ){
+					if( b >= 4 ){
+						errormsg( 0,
+			"PR_close: At most 4 bases in a pair-string.\n" );
+						break;
+					}else{
+						pp->p_n_bases = b + 1;
+						pp->p_bases[ b ]= *bp;
+						b++;
+						needbase = 0;
+					}
+				}else{
+					errormsg( 0,
+		"PR_close: pair-string is base-letter : base-letter : ...\n" );
+					break;
+				}
+			}else if( *bp == ':' ){
+				if( needbase ){
+					errormsg( 0,
+		"PR_close: pair-string is base-letter : base-letter : ...\n" );
+					break;
+				}
+				needbase = 1;
+			}else{
+				errormsg( 0,
+		"PR_close: pair-string is base-letter : base-letter : ...\n" );
+				break;
+			}
+		}
+	}
+
+	fprintf( stderr, "Close Pair: %d elements.\n", n_curpair );
+	for( pp = pl->pl_pairs, i = 0; i < n_curpair; i++, pp++ ){
+		fprintf( stderr, "%3d: ", i + 1 );
+		for( b = 0; b < pp->p_n_bases; b++ ){
+			fprintf( stderr, "%c", pp->p_bases[ b ] );
+			if( b < pp->p_n_bases - 1 )
+				fprintf( stderr, ":" );
+		}
+		fprintf( stderr, "\n" );
+	}
+
 	return( NULL );
 }
 
@@ -73,6 +141,7 @@ int	stype;
 
 	n_valstk = 0;
 	if( n_descr == DESCRSIZE ){
+		rmemsglineno = rmlineno;
 		sprintf( emsg, "SE_new: : descr array size(%d) exceeded.\n",
 			DESCRSIZE );
 		errormsg( 1, emsg );
