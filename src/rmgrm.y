@@ -17,6 +17,7 @@ static	int	context = CTX_START;
 %token	SYM_PARMS
 %token	SYM_DESCR
 %token	SYM_SITES
+%token	SYM_SCORE
 
 %token	SYM_SS
 %token	SYM_H5
@@ -31,24 +32,57 @@ static	int	context = CTX_START;
 %token	SYM_Q3
 %token	SYM_Q4
 
+%token	SYM_ACCEPT
+%token	SYM_REJECT
+%token	SYM_ELSE
+%token	SYM_FOR
+%token	SYM_IF
+%token	SYM_IN
+%token	SYM_WHILE
+
 %token	SYM_IDENT
 %token	SYM_INT
 %token	SYM_FLOAT
 %token	SYM_STRING
 
+%token	SYM_AND
 %token	SYM_ASSIGN
-%token	SYM_PLUS_ASSIGN
-%token	SYM_MINUS_ASSIGN
-%token	SYM_PLUS
-%token	SYM_MINUS
 %token	SYM_DOLLAR
+%token	SYM_DONT_MATCH
+%token	SYM_EQUAL
+%token	SYM_GREATER
+%token	SYM_GREATER_EQUAL
+%token	SYM_LESS
+%token	SYM_LESS_EQUAL
+%token	SYM_MATCH
+%token	SYM_MINUS
+%token	SYM_MINUS_ASSIGN
+%token	SYM_MINUS_MINUS
+%token	SYM_NOT
+%token	SYM_NOT_EQUAL
+%token	SYM_OR
+%token	SYM_PERCENT
+%token	SYM_PERCENT_ASSIGN
+%token	SYM_PLUS
+%token	SYM_PLUS_ASSIGN
+%token	SYM_PLUS_PLUS
+%token	SYM_STAR
+%token	SYM_STAR_ASSIGN
+%token	SYM_SLASH
+%token	SYM_SLASH_ASSIGN
+
 %token	SYM_LPAREN
 %token	SYM_RPAREN
 %token	SYM_LCURLY
 %token	SYM_RCURLY
-%token	SYM_PERIOD
-%token	SYM_COMMA
 %token	SYM_COLON
+%token	SYM_COMMA
+%token	SYM_SEMICOLON
+
+%token	SYM_CALL
+%token	SYM_LIST
+%token	SYM_STREF
+
 %token	SYM_ERROR
 
 %%
