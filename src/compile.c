@@ -63,6 +63,7 @@ static	int	link_tags();
 static	void	chk_tagorder();
 static	void	mk_links();
 static	void	duptags_error();
+static	int	chk_proper_nesting();
 static	int	chk_strel_parms();
 static	int	chk_1_strel_parms();
 static	int	chk_len_seq();
@@ -226,9 +227,11 @@ int	stype;
 	rm_n_descr++;
 	stp->s_checked = 0;
 	stp->s_type = stype;
+	stp->s_proper = 0;
 	stp->s_index = rm_n_descr - 1;
 	stp->s_lineno = rm_lineno;
 	stp->s_tag = NULL;
+	stp->s_in = NULL;
 	stp->s_next = NULL;
 	stp->s_mates = NULL;
 	stp->s_n_mates = 0;
@@ -383,7 +386,7 @@ int	n_descr;
 STREL_T	descr[];
 {
 	int	i, j;
-	STREL_T	*stp, *stp1;
+	STREL_T	*stp, *stp1, *stp2, *stp3;
 	STREL_T	*tags[ 4 ];
 	int	n_tags;
 	STREL_T	*tstk[ 50 ];
@@ -467,6 +470,45 @@ STREL_T	descr[];
 				"%s element has no matching %s element.",
 				stp->s_type == SYM_H5 ? "h5" : "h3",
 				stp->s_type == SYM_H5 ? "p5" : "p3" );
+		}
+	}
+	if( rm_error )
+		return( rm_error );
+
+	for( i = 0; i < n_descr; i++ ){
+		stp = &descr[ i ];
+		if( stp->s_type == SYM_SS )
+			stp->s_proper = 1;
+		else if( stp->s_type == SYM_H5 || stp->s_type == SYM_P5 ){
+			stp1 = stp->s_mates[ 0 ];
+			if( chk_proper_nesting( stp, stp1, descr ) ){
+				stp->s_proper = 1;
+				stp->s_mates[ 0 ]->s_proper = 1;
+			}
+		}else if( stp->s_type == SYM_T1 ){
+			stp1 = stp->s_mates[ 0 ];
+			if( !chk_proper_nesting( stp, stp1, descr ) )
+				continue;
+			stp2 = stp->s_mates[ 1 ];
+			if( chk_proper_nesting( stp1, stp2, descr ) ){
+				stp->s_proper = 1;
+				stp->s_mates[ 0 ]->s_proper = 1;
+				stp->s_mates[ 1 ]->s_proper = 1;
+			}
+		}else if( stp->s_type == SYM_Q1 ){
+			stp1 = stp->s_mates[ 0 ];
+			if( !chk_proper_nesting( stp, stp1, descr ) )
+				continue;
+			stp2 = stp->s_mates[ 1 ];
+			if( !chk_proper_nesting( stp1, stp2, descr ) )
+				continue;
+			stp3 = stp->s_mates[ 2 ];
+			if( chk_proper_nesting( stp2, stp3, descr ) ){
+				stp->s_proper = 1;
+				stp->s_mates[ 0 ]->s_proper = 1;
+				stp->s_mates[ 1 ]->s_proper = 1;
+				stp->s_mates[ 2 ]->s_proper = 1;
+			}
 		}
 	}
 	return( rm_error );
@@ -596,6 +638,27 @@ STREL_T	*tags[];
 		rm_emsg_lineno = tags[ i ]->s_lineno;
 		errormsg( 0, emsg );
 	}
+}
+
+static	int	chk_proper_nesting( stp0, stp1, descr )
+STREL_T	*stp0;
+STREL_T	*stp1;
+STREL_T	descr[];
+{
+	int	i, i0, i1, j;
+	STREL_T	*stp, *stpj;
+
+	i0 = stp0->s_index;
+	i1 = stp1->s_index;
+	for( i = i0 + 1; i < i1; i++ ){
+		stp = &descr[ i ];
+		for( j = 0; j < stp->s_n_mates; j++ ){
+			stpj = stp->s_mates[ j ];
+			if( stpj->s_index < i0 || stpj->s_index > i1 )
+				return( 0 );
+		}
+	}
+	return( 1 );
 }
 
 static	int	chk_strel_parms( n_descr, descr )
