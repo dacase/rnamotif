@@ -778,16 +778,20 @@ int	strel;
 			stp = rm_descr;
 			for( d = 0; d < rm_n_descr; d++, stp++ ){
 				if( stp->s_type == strel ){
-					if( !strcmp( stp->s_tag, v_tag ) ){
+					if( stp->s_tag == NULL )
+						continue;
+					else if( !strcmp( stp->s_tag, v_tag ) ){
 						d_tag = d;
 						break;
 					}
 				}
 			}
-			rm_emsg_lineno = n_tag->n_lineno;
-			sprintf( emsg,
+			if( d_tag == UNDEF ){
+				rm_emsg_lineno = n_tag->n_lineno;
+				sprintf( emsg,
 				"mk_call_strid: no such tag: '%s'.", v_tag );
-			RM_errormsg( 1, emsg );
+				RM_errormsg( 1, emsg );
+			}
 		}
 		if( v_index != UNDEF ){
 			rm_emsg_lineno = n_index->n_lineno;
@@ -1185,6 +1189,8 @@ INST_T	*ip;
 	if( pos < 1 ){
 		rm_emsg_lineno = UNDEF;
 		RM_errormsg( 1, "do_strf: pos must be > 0." );
+	}else if( stp->s_matchlen == 0 ){
+		pos = 1;	
 	}else if( pos > stp->s_matchlen ){
 		rm_emsg_lineno = UNDEF;
 		sprintf( emsg, "do_strf: pos must be <= %d.\n",
