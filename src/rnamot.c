@@ -7,6 +7,7 @@ extern	char	rm_dfname[];
 extern	int	rm_copt;
 extern	int	rm_dopt;
 extern	int	rm_hopt;
+extern	int	rm_popt;
 extern	int	rm_vopt;
 extern	FILE	*rm_dbfp;
 extern	int	rm_dtype;
@@ -71,6 +72,9 @@ char	*argv[];
 
 	if( rm_dopt || rm_hopt )
 		RM_dump( stderr, rm_dopt, rm_dopt, rm_dopt, rm_hopt );
+
+	if( rm_dopt || rm_popt )
+		SC_dump( stderr );
 
 	if( rm_error )
 		exit( 1 );
