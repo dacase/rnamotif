@@ -23,7 +23,7 @@ static	IDENT_T	global_ids[ GLOBAL_IDS_SIZE ] = {
 	{ "tr", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
 	{ "qu", T_PAIR, C_VAR, S_GLOBAL, { T_PAIR, NULL } },
 	{ "overlap", T_INT, C_VAR, S_GLOBAL, { T_INT, 0 } },
-	{ "db", T_STRING, C_VAR, S_GLOBAL, { T_STRING, NULL } }
+	{ "database", T_STRING, C_VAR, S_GLOBAL, { T_STRING, NULL } }
 };
 static	int	n_global_ids = 6;
 
@@ -44,8 +44,9 @@ static	STREL_T	descr[ DESCRSIZE ];
 static	int	n_descr;
 static	STREL_T	*stp;
 
-void	SE_dump();
-void	SE_dump_descr();
+void	RM_dump();
+void	RM_dump_id();
+void	RM_dump_descr();
 
 NODE_T	*PR_close();
 
@@ -169,17 +170,6 @@ NODE_T	*PR_close()
 		}
 	}
 
-	fprintf( stderr, "Close Pair: %d elements.\n", n_curpair );
-	for( pp = ps->ps_pairs, i = 0; i < n_curpair; i++, pp++ ){
-		fprintf( stderr, "%3d: ", i + 1 );
-		for( b = 0; b < pp->p_n_bases; b++ ){
-			fprintf( stderr, "%c", pp->p_bases[ b ] );
-			if( b < pp->p_n_bases - 1 )
-				fprintf( stderr, ":" );
-		}
-		fprintf( stderr, "\n" );
-	}
-
 	np = ( NODE_T * )malloc( sizeof( NODE_T ) );
 	if( np == NULL ){
 		errormsg( 1, "PR_close: can't allocate np.\n" );
@@ -188,6 +178,7 @@ NODE_T	*PR_close()
 	np->n_type = T_PAIR;
 	np->n_class = C_LIT;
 	np->n_lineno = rmlineno;
+	np->n_val.v_type = T_PAIR;
 	np->n_val.v_value.v_pval = ps;
 	np->n_left = NULL;
 	np->n_right = NULL;
@@ -308,29 +299,149 @@ void	SE_close()
 	}
 }
 
-void	SE_dump( fp, d_pair, d_parm, d_descr, d_site )
+void	RM_dump( fp, d_parms, d_descr, d_sites )
 FILE	*fp;
-int	d_pair;
-int	d_parm;
+int	d_parms;
 int	d_descr;
-int	d_site;
+int	d_sites;
 {
-	STREL_T	*stp;
 	int	i;
+	IDENT_T	*ip;
+	STREL_T	*stp;
+
+	if( d_parms ){
+		fprintf( fp, "PARMS: %3d global symbols.\n", n_global_ids );
+		for( ip = global_ids, i = 0; i < n_global_ids; i++, ip++ )
+			RM_dump_id( fp, ip );
+	}
 
 	if( d_descr ){
 		fprintf( fp, "DESCR: %3d structure elements.\n", n_descr );
 		for( stp = descr, i = 0; i < n_descr; i++, stp++ )
-			SE_dump_descr( fp, stp );
+			RM_dump_descr( fp, stp );
 	}
 }
-void	SE_dump_descr( fp, stp )
+
+void	RM_dump_id( fp, ip )
+FILE	*fp;
+IDENT_T	*ip;
+{
+	PAIR_T	*pp;
+	PAIRSET_T	*ps;
+	int	i, b;
+
+	fprintf( fp, "%s = {\n", ip->i_name );
+
+	fprintf( fp, "\ttype  = " );
+	switch( ip->i_type ){
+	case T_UNDEF :
+		fprintf( fp, "UNDEF\n" );
+		break;
+	case T_INT :
+		fprintf( fp, "INT\n" );
+		break;
+	case T_FLOAT :
+		fprintf( fp, "FLOAT\n" );
+		break;
+	case T_STRING :
+		fprintf( fp, "STRING\n" );
+		break;
+	case T_PAIR :
+		fprintf( fp, "PAIR\n" );
+		break;
+	case T_IDENT :
+		fprintf( fp, "IDENT\n" );
+		break;
+	default :
+		fprintf( fp, "-- BAD type %d\n", ip->i_type );
+		break;
+	}
+
+	fprintf( fp, "\tclass = " );
+	switch( ip->i_class ){
+	case C_UNDEF :
+		fprintf( fp, "UNDEF\n" );
+		break;
+	case C_LIT :
+		fprintf( fp, "LIT\n" );
+		break;
+	case C_VAR :
+		fprintf( fp, "VAR\n" );
+		break;
+	case C_EXPR :
+		fprintf( fp, "EXPR\n" );
+		break;
+	default :
+		fprintf( fp, "-- BAD class %d\n", ip->i_class );
+		break;
+	}
+		
+	fprintf( fp, "\tscope = " );
+	switch( ip->i_scope ){
+	case S_UNDEF :
+		fprintf( fp, "UNDEF\n" );
+		break;
+	case S_GLOBAL :
+		fprintf( fp, "GLOBAL\n" );
+		break;
+	case S_STREL :
+		fprintf( fp, "STREL\n" );
+		break;
+	case S_SITE :
+		fprintf( fp, "SITE\n" );
+		break;
+	default :
+		fprintf( fp, "-- BAD scope %d\n", ip->i_scope );
+		break;
+	}
+
+	fprintf( fp, "\tvalue = " );
+	switch( ip->i_val.v_type ){
+	case T_UNDEF :
+		fprintf( fp, "UNDEF\n" );
+		break;
+	case T_INT :
+		fprintf( fp, "%d\n", ip->i_val.v_value.v_ival );
+		break;
+	case T_FLOAT :
+		fprintf( fp, "%f\n", ip->i_val.v_value.v_fval );
+		break;
+	case T_STRING :
+		fprintf( fp, "%s\n", ip->i_val.v_value.v_pval ?
+					ip->i_val.v_value.v_pval : "NULL" );
+		break;
+	case T_PAIR :
+		fprintf( fp, "{ " );
+		ps = ip->i_val.v_value.v_pval;
+		for( pp = ps->ps_pairs, i = 0; i < ps->ps_n_pairs; i++, pp++ ){
+			for( b = 0; b < pp->p_n_bases; b++ ){
+				fprintf( stderr, "%c", pp->p_bases[ b ] );
+				if( b < pp->p_n_bases - 1 )
+					fprintf( stderr, ":" );
+			}
+			if( i < ps->ps_n_pairs - 1 )
+				fprintf( fp, ", " );
+		}
+		fprintf( fp, " }\n" );
+		break;
+	case T_IDENT :
+		fprintf( fp, "IDENT?\n" );
+		break;
+	default :
+		fprintf( fp, "-- BAD type %d\n", ip->i_val.v_type );
+		break;
+	}
+		
+	fprintf( fp, "}\n" );
+}
+
+void	RM_dump_descr( fp, stp )
 FILE	*fp;
 STREL_T	*stp;
 {
 
 	fprintf( fp, "descr[%3d] = {\n", stp->s_index + 1 );
-	fprintf( fp, "\ttype = " );
+	fprintf( fp, "\ttype     = " );
 	switch( stp->s_type ){
 	case SYM_SS :
 		fprintf( fp, "ss" );
@@ -374,12 +485,12 @@ STREL_T	*stp;
 	}
 	fprintf( fp, "\n" );
 
-	fprintf( fp, "\tlineno = %d\n", stp->s_lineno );
+	fprintf( fp, "\tlineno   = %d\n", stp->s_lineno );
 
-	fprintf( fp, "\ttag  = '%s'\n",
+	fprintf( fp, "\ttag      = '%s'\n",
 		stp->s_tag ? stp->s_tag : "(No tag)" );
 
-	fprintf( fp, "\tlen  = " );
+	fprintf( fp, "\tlen      = " );
 	if( stp->s_minlen == LASTVAL )
 		fprintf( fp, "LASTVAL" );
 	else
@@ -391,12 +502,12 @@ STREL_T	*stp;
 		fprintf( fp, "%d", stp->s_maxlen );
 	fprintf( fp, "\n" );
 
-	fprintf( fp, "\tseq  = '%s'\n",
+	fprintf( fp, "\tseq      = '%s'\n",
 		stp->s_seq ? stp->s_seq : "(No seq)" );
 
 	fprintf( fp, "\tmismatch = %d\n", stp->s_mismatch );
 
-	fprintf( fp, "\tmispair = %d\n", stp->s_mispair );
+	fprintf( fp, "\tmispair  = %d\n", stp->s_mispair );
 
 	fprintf( fp, "}\n" );
 }
@@ -489,7 +600,6 @@ int	d_ok;
 	VALUE_T	*vp;
 
 	if( expr ){
-dumpexpr( stderr, expr, 0 );
 		eval( expr->n_left, d_ok );
 		eval( expr->n_right, d_ok );
 		rmemsglineno = expr->n_lineno;
@@ -590,7 +700,9 @@ dumpexpr( stderr, expr, 0 );
 			r_type = valstk[ n_valstk - 1 ].v_type;
 			if( r_type == T_IDENT )
 				r_type = loadidval( &valstk[ n_valstk - 1 ] );
-			if( l_type != r_type ){
+			if( l_type == T_UNDEF )
+				ip->i_type = r_type;
+			else if( l_type != r_type ){
 				errormsg( 1, "eval: type mismatch '='\n" );
 				exit( 1 );
 			}
@@ -698,6 +810,7 @@ VALUE_T	*vp;
 	type = vp->v_type;
 	if( type == T_INT ){
 		ip->i_type = T_INT;
+		ip->i_val.v_type = T_INT;
 		ip->i_val.v_value.v_ival = vp->v_value.v_ival;
 	}else if( type == T_STRING ){
 		ip->i_type = T_STRING;
@@ -706,9 +819,12 @@ VALUE_T	*vp;
 			errormsg( 1, "storeexprval: can't allocate sp.\n" );
 		}
 		strcpy( sp, vp->v_value.v_pval ); 
+		ip->i_val.v_type = T_STRING;
 		ip->i_val.v_value.v_pval = sp;
 	}else if( type == T_PAIR ){
 		ip->i_type = T_PAIR;
+		ip->i_val.v_type = T_PAIR;
+		ip->i_val.v_value.v_pval = vp->v_value.v_pval;
 	}
 }
 
