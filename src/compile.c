@@ -1913,7 +1913,7 @@ PAIRSET_T	*ps;
 			for( bi2 = 0; bi2 < N_BCODES; bi2++ ){
 				for( bi3 = 0; bi3 < N_BCODES; bi3++ ){
 					if( (*btmatp)[bi1][bi2][bi3] )
-						*bpmatp[bi1][bi3] = 1;
+						(*bpmatp)[bi1][bi3] = 1;
 				}
 			}
 		}
@@ -1924,7 +1924,7 @@ PAIRSET_T	*ps;
 				for( bi3 = 0; bi3 < N_BCODES; bi3++ ){
 					for( bi4 = 0; bi4 < N_BCODES; bi4++ ){
 					    if((*bqmatp)[bi1][bi2][bi3][bi4])
-						*bpmatp[bi1][bi4] = 1;
+						(*bpmatp)[bi1][bi4] = 1;
 					}
 				}
 			}
