@@ -1,3 +1,9 @@
+2.3.4	2003-jan-20
+	Added code to allow the user to set the size of the maximum input
+	sequence length via the -N size option.  Still defaults to 30000000.
+	Also (finally) added code to create the rev. comp in situ when the
+	user asks to search both strands
+
 2.3.3	2002-nov-29
 	added new score builtin substr() which operates on strings.
 	replaced all calls to tempnan() with mkstemp().
