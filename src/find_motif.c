@@ -262,6 +262,7 @@ SEARCH_T	*srp;
 	int	i_minl, i_maxl, i_len;
 	int	h, h3, hlen;
 	SEARCH_T	*i_srp, *n_srp;
+	int	rv;
 
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
@@ -295,19 +296,7 @@ SEARCH_T	*srp;
 		i_srp->s_zero = szero + hlen;
 		i_srp->s_dollar = h3 - hlen;
 
-/*
-		if( find_motif( i_srp ) ){
-			return( 1 );
-		}else{
-			unmark_duplex( stp, szero, stp3, h3, hlen );
-			return( 0 );
-		}
-*/
-		if( find_motif( i_srp ) ){
-			return( 1 );
-		}else{
-			return( 0 );
-		}
+		rv = find_motif( i_srp );
 		unmark_duplex( stp, szero, stp3, h3, hlen );
 	}else
 		return( 0 );
@@ -426,6 +415,7 @@ SEARCH_T	*srp;
 	int	i_minl, i_maxl, i_len;
 	int	h, hlen;
 	SEARCH_T	*i_srp;
+	int	rv;
 
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
@@ -449,6 +439,7 @@ SEARCH_T	*srp;
 	s5lo = MIN( s5lo / 2, h_maxl );
 	s5lo = szero + s5lo - 1;
 
+	rv = 0;
 	if( match_phlx( stp, stp3, szero, sdollar, s5hi, s5lo, &hlen ) ){
 
 		i_len = sdollar - szero - 2 * hlen + 1;
@@ -462,14 +453,10 @@ SEARCH_T	*srp;
 		i_srp->s_zero = szero + hlen;
 		i_srp->s_dollar = sdollar - hlen;
 
-		if( find_motif( i_srp ) ){
-			return( 1 );
-		}else{
-			unmark_duplex( stp, szero, stp3, sdollar, hlen );
-			return( 0 );
-		}
-	}else
-		return( 0 );
+		rv = find_motif( i_srp );
+		unmark_duplex( stp, szero, stp3, sdollar, hlen );
+	}
+	return( rv );
 }
 
 static	int	find_triplex( srp )
@@ -562,6 +549,7 @@ SEARCH_T	*srp;
 	int	i1_minl, i2_minl, i3_minl;
 	int	i1_maxl, i2_maxl, i3_maxl;
 	int	h, h3, hlen;
+	int	rv;
 
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
@@ -587,13 +575,13 @@ SEARCH_T	*srp;
 	s3lim = MIN( s3lim, h_maxl );
 	s3lim = sdollar - s3lim + 1;
 
+	rv = 0;
 	if( match_wchlx( stp, stp3, szero, sdollar, s3lim, &h3, &hlen ) ){
-		if( find_4plex_inner( srp, h3, hlen ) )
-			return( 1 );
-		else
-			return( 0 );
-	}else
-		return( 0 );
+		mark_duplex( stp, szero, stp3, h3, hlen );
+		rv = find_4plex_inner( srp, h3, hlen );
+		unmark_duplex( stp, szero, stp3, h3, hlen );
+	}
+	return( rv );
 }
 
 static	int	find_4plex_inner( srp, s3, hlen )
@@ -611,6 +599,7 @@ int	hlen;
 	int	i1_maxl, i2_maxl, i3_maxl;
 	int	i1_len, i2_len, i3_len;
 	SEARCH_T	*i1_srp, *i2_srp, *i3_srp;
+	int	rv;
 
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
@@ -637,6 +626,7 @@ int	hlen;
 	i3_stp = stp2->s_inner;
 	i3_srp = rm_searches[ i3_stp->s_searchno ]; 
 
+	rv = 0;
 	s1lim = s3 - 3 * hlen - i3_minl - i2_minl;
 	for( s1 = szero + hlen + i1_minl; s1 <= s1lim; s1++ ){
 		s2lim = s1 + 2 * hlen + i2_minl;
@@ -646,15 +636,14 @@ int	hlen;
 
 				i1_len = s1 - szero - hlen + 1;
 				if( i1_len > i1_maxl )
-					return( 0 );
+					continue;
 				i2_len = s2 - s1 - 2 * hlen + 1;
 				if( i2_len > i2_maxl )
-					return( 0 );
+					continue;
 				i3_len = s3 - s2 - hlen + 1;
 				if( i3_len > i3_maxl )
-					return( 0 );
+					continue;
 
-				mark_duplex( stp, szero, stp3, s3, hlen );
 				mark_duplex( stp1, s1, stp2, s2, hlen );
 
 				i1_srp->s_zero = szero + hlen;
@@ -664,18 +653,12 @@ int	hlen;
 				i3_srp->s_zero = s2 + 1;
 				i3_srp->s_dollar = s3 - hlen;
 
-				if( find_motif( i1_srp ) )
-					return( 1 );
-				else{
-					unmark_duplex( stp, szero,
-						stp3, s3, hlen );
-					unmark_duplex( stp1, s1,
-						stp2, s2, hlen );
-				}
+				rv |= find_motif( i1_srp );
+				unmark_duplex( stp1, s1, stp2, s2, hlen );
 			}
 		}
 	}
-	return( 0 );
+	return( rv );
 }
 
 static	int	match_wchlx( stp, stp3, s5, s3, s3lim, h3, hlen )
