@@ -231,7 +231,7 @@ SEARCH_T	*srp;
 			return( 0 );
 		}
 	}else{
-		print_match( stderr, fm_locus, fm_comp,
+		print_match( stdout, fm_locus, fm_comp,
 			rm_n_descr, rm_descr );
 	}
 
