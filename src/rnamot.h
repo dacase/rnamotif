@@ -62,6 +62,7 @@ typedef	struct	ident_t	{
 	int	i_type;
 	int	i_class;
 	int	i_scope;
+	int	i_reinit;
 	VALUE_T	i_val;
 } IDENT_T;
 
