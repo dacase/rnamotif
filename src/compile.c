@@ -4,35 +4,125 @@
 #include "rnamot.h"
 #include "y.tab.h"
 
+	/* These are the "contexts" that the parser operates under	*/
+	/* required, as several items have the same shape, ie descr's	*/
+	/* but are descr's in the descr section, but sites in the	*/
+	/* site section.						*/
+
+#define	CTX_START	0
+#define	CTX_PAIR	1
+#define	CTX_PARM	2
+#define	CTX_DESCR	3
+#define	CTX_SITE	4
+#define	CTX_ERROR	5
+
+static	int	rmc_context = CTX_START;
+
 #define	VALSTKSIZE	20
 static	VALUE_T	valstk[ VALSTKSIZE ];
 static	int	n_valstk;
 
-static	STREL_T	*stp = NULL;
+#define	DESCRSIZE 100
+static	STREL_T	descr[ DESCRSIZE ];
+static	int	n_descr;
+static	STREL_T	*stp;
 
 void	SE_dump();
+void	SE_dump_descr();
 
+void	RMC_context( sym )
+int	sym;
+{
+
+	switch( sym ){
+	case SYM_PAIR :
+		if( rmc_context < CTX_PAIR )
+			rmc_context = CTX_PAIR;
+		else if( rmc_context == CTX_PAIR ){
+			fprintf( stderr,
+		"RMC_context: FATAL: At most 1 `pair' section permitted.\n" );
+			exit( 1 );
+		}else if( rmc_context > CTX_PAIR ){
+			fprintf( stderr,
+	"RMC_context: FATAL: section order is `pair', parm, descr, site.\n" );
+			exit( 1 );
+		}
+		break;
+	case SYM_PARM :
+		if( rmc_context < CTX_PARM )
+			rmc_context = CTX_PARM;
+		else if( rmc_context == CTX_PARM ){
+			fprintf( stderr,
+		"RMC_context: FATAL: At most 1 `parm' section permitted.\n" );
+			exit( 1 );
+		}else if( rmc_context > CTX_PARM ){
+			fprintf( stderr,
+	"RMC_context: FATAL: section order is pair, `parm', descr, site.\n" );
+			exit( 1 );
+		}
+		break;
+	case SYM_DESCR :
+		n_descr = 0;
+		if( rmc_context < CTX_DESCR )
+			rmc_context = CTX_DESCR;
+		else if( rmc_context == CTX_DESCR ){
+			fprintf( stderr,
+		"RMC_context: FATAL: At most 1 `descr' section permitted.\n" );
+			exit( 1 );
+		}else if( rmc_context > CTX_DESCR ){
+			fprintf( stderr,
+	"RMC_context: FATAL: section order is pair, parm, `descr', site.\n" );
+			exit( 1 );
+		}
+		break;
+	case SYM_SITE :
+		if( rmc_context == CTX_DESCR )
+			rmc_context = CTX_SITE;
+		else if( rmc_context == CTX_SITE ){
+			fprintf( stderr,
+		"RMC_context: FATAL: At most 1 `site' section permitted.\n" );
+			exit( 1 );
+		}else if( rmc_context < CTX_DESCR ){
+			fprintf( stderr,
+	"RMC_context: FATAL: section order is pair, parm, descr, `site'.\n" );
+			exit( 1 );
+		}
+		break;
+	default :
+		fprintf( stderr,
+			"RMC_context: FATAL: unexpected symbol: %d.\n", sym );
+		exit( 1 );
+		break;
+	}
+}
+
 void	SE_new( stype )
 int	stype;
 {
 
 	n_valstk = 0;
-	stp = ( STREL_T * )malloc( sizeof( STREL_T ) );
-	if( stp == NULL ){
-		fprintf( stderr, "SE_new: FATAL: can't alloc stp.\n" );
-		exit( 1 );
+	if( rmc_context == CTX_DESCR ){
+		if( n_descr == DESCRSIZE ){
+			fprintf( stderr,
+			"SE_new: FATAL: descr array size(%d) exceeded.\n",
+				DESCRSIZE );
+			exit( 1 );
+		}
+		stp = &descr[ n_descr ];
+		n_descr++;
+		stp->s_type = stype;
+		stp->s_index = n_descr - 1;
+		stp->s_tag = NULL;
+		stp->s_next = NULL;
+		stp->s_pairs = NULL;
+		stp->s_minlen = UNDEF;
+		stp->s_maxlen = UNDEF;
+		stp->s_seq = NULL;
+		stp->s_mismatch = 0;
+		stp->s_mispair = 0;
+		stp->s_pairdata = NULL;
+		stp->s_sites = NULL;
 	}
-	stp->s_type = stype;
-	stp->s_tag = NULL;
-	stp->s_next = NULL;
-	stp->s_pairs = NULL;
-	stp->s_minlen = 0;
-	stp->s_maxlen = 0;
-	stp->s_seq = NULL;
-	stp->s_mismatch = 0;
-	stp->s_mispair = 0;
-	stp->s_pairdata = NULL;
-	stp->s_sites = NULL;
 }
 
 void	SE_saveval( vp )
@@ -76,40 +166,90 @@ VALUE_T	*vp;
 {
 	char	*sp;
 
-	if( vp->v_sym == SYM_IDENT )
-		stp->s_tag = vp->v_value.v_cval;
-	else{
-		fprintf( stderr, "SE_addtag: Unknown value symbol %d.\n",
-			vp->v_sym );
-		exit( 1 );
+	if( rmc_context == CTX_DESCR ){
+		if( vp->v_sym == SYM_IDENT )
+			stp->s_tag = vp->v_value.v_cval;
+		else{
+			fprintf( stderr,
+				"SE_addtag: Unknown value symbol %d.\n",
+				vp->v_sym );
+			exit( 1 );
+		}
 	}
 }
 
 void	SE_addlen()
 {
+	VALUE_T	*vp1, *vp2;
 
-	n_valstk = 0;
+	if( rmc_context == CTX_DESCR ){
+		if( n_valstk == 1 ){
+			vp1 = &valstk[ n_valstk - 1 ];
+			if( vp1->v_sym == SYM_INT ){
+				stp->s_minlen = vp1->v_value.v_ival;
+				stp->s_maxlen = vp1->v_value.v_ival;
+			}else{
+				stp->s_minlen = LONGEST;
+				stp->s_maxlen = LONGEST;
+			}
+		}else{
+			vp2 = &valstk[ n_valstk - 2 ];
+			vp1 = &valstk[ n_valstk - 1 ];
+			if( vp2->v_sym == SYM_INT ){	/* N-$ */
+				stp->s_minlen = vp2->v_value.v_ival;
+				if( vp1->v_sym == SYM_INT )
+					stp->s_maxlen = vp1->v_value.v_ival;
+				else
+					stp->s_maxlen = LONGEST;
+			}else if( vp1->v_sym == SYM_DOLLAR ){	/* $-$ */
+				stp->s_minlen = LONGEST;
+				stp->s_maxlen = LONGEST;
+			}else{
+				fprintf( stderr, 
+			"SE_addlen: $-N: first length > second length.\n" );
+					exit( 1 );
+			}
+		}
+		n_valstk = 0;
+	}
 }
 
 void	SE_addseq()
 {
 
-	stp->s_seq = valstk[ n_valstk - 1 ].v_value.v_cval;
-	n_valstk = 0;
+	if( rmc_context == CTX_DESCR ){
+		stp->s_seq = valstk[ n_valstk - 1 ].v_value.v_cval;
+		n_valstk = 0;
+	}else{
+		fprintf( stderr,
+			"SE_addseq: seq parm not allowed in site defs.\n" );
+		exit( 1 );
+	}
 }
 
-void	SE_close()
+void	SE_dump( fp, d_pair, d_parm, d_descr, d_site )
+FILE	*fp;
+int	d_pair;
+int	d_parm;
+int	d_descr;
+int	d_site;
 {
+	STREL_T	*stp;
+	int	i;
 
-	SE_dump( stderr, stp );
+	if( d_descr ){
+		fprintf( stderr, "DESCR: %3d structure elements.\n", n_descr );
+		for( stp = descr, i = 0; i < n_descr; i++, stp++ )
+			SE_dump_descr( fp, stp );
+	}
 }
-
-void	SE_dump( fp, stp )
+void	SE_dump_descr( fp, stp )
 FILE	*fp;
 STREL_T	*stp;
 {
 
-	fprintf( fp, "stp->s_type = " );
+	fprintf( fp, "descr[%3d] = {\n", stp->s_index + 1 );
+	fprintf( fp, "\ttype = " );
 	switch( stp->s_type ){
 	case SYM_SS :
 		fprintf( fp, "ss" );
@@ -153,9 +293,22 @@ STREL_T	*stp;
 	}
 	fprintf( fp, "\n" );
 
-	fprintf( fp, "stp->s_tag  = %s\n",
+	fprintf( fp, "\tlen  = " );
+	if( stp->s_minlen == LONGEST )
+		fprintf( fp, "LONGEST" );
+	else
+		fprintf( fp, "%d", stp->s_minlen );
+	fprintf( fp, ":" );
+	if( stp->s_maxlen == LONGEST )
+		fprintf( fp, "LONGEST" );
+	else
+		fprintf( fp, "%d", stp->s_maxlen );
+	fprintf( fp, "\n" );
+
+	fprintf( fp, "\ttag  = %s\n",
 		stp->s_tag ? stp->s_tag : "(No tag)" );
 
-	fprintf( fp, "stp->s_seq  = %s\n",
+	fprintf( fp, "\tseq  = %s\n",
 		stp->s_seq ? stp->s_seq : "(No seq)" );
+	fprintf( fp, "}\n" );
 }
