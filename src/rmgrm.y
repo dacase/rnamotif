@@ -7,11 +7,8 @@ extern	VALUE_T	rmval;
 
 %}
 
-%token	SYM_PAIR
 %token	SYM_PARM
 %token	SYM_DESCR
-%token	SYM_MISMATCH
-%token	SYM_MISPAIR
 %token	SYM_SITE
 
 %token	SYM_SS
@@ -47,43 +44,40 @@ extern	VALUE_T	rmval;
 %token	SYM_ERROR
 
 %%
-program		: pair_part parm_part descr_part site_part ;
+program		: parm_part descr_part site_part ;
 
-pair_part	: SYM_PAIR { RMC_context( SYM_PAIR ); } pairdef_list
+parm_part	: SYM_PARM { RMC_context( SYM_PARM ); } assign_list
 		| ;
-pairdef_list	: pairdef
-		| pairdef pairdef_list ;
-pairdef		: SYM_IDENT SYM_EQUAL pairval ;
+assign_list	: assign
+		| assign assign_list ;
+assign		: ident assign_op expr ;
+assign_op	: SYM_EQUAL
+		| SYM_PLUS_EQUAL
+		| SYM_MINUS_EQUAL ;
+expr		: val 
+		| val add_op expr ;
+add_op		: SYM_PLUS
+		| SYM_MINUS ;
+val		: ident
+		| intval
+		| lastval
+		| strval
+		| pairval ;
+
+ident		: SYM_IDENT 	{ SE_saveval( &rmval ); } ;
+intval		: SYM_INT	{ SE_saveval( &rmval ); } ;
+lastval		: SYM_DOLLAR 	{ rmval.v_sym = SYM_DOLLAR;
+				  SE_saveval( &rmval ); } ;
+strval		: SYM_STRING 	{ SE_saveval( &rmval ); } ;
 pairval		: SYM_LCURLY pair_list SYM_RCURLY ;
 pair_list	: pair
 		| pair SYM_COMMA pair_list ;
 pair		: SYM_STRING ;
 
-parm_part	: SYM_PARM { RMC_context( SYM_PARM ); } keyval_list 
-		| ;
-keyval_list	: keyval 
-		| keyval keyval_list ;
-keyval		: SYM_IDENT SYM_EQUAL val ;
-val		: ident
-		| intval
-		| lastval
-		| strval
-		| rngval
-		| pairval ;
-
-intval		: SYM_INT	{ SE_saveval( &rmval ); } ;
-lastval		: SYM_DOLLAR 	{ rmval.v_sym = SYM_DOLLAR;
-				  SE_saveval( &rmval ); } ;
-strval		: SYM_STRING 	{ SE_saveval( &rmval ); } ;
-ident		: SYM_IDENT 	{ SE_saveval( &rmval ); } ;
-rngval		: intval SYM_MINUS intval
-		| lastval SYM_MINUS intval 
-		| intval SYM_MINUS lastval ;
-
 descr_part	: SYM_DESCR { RMC_context( SYM_DESCR ); } strel_list ;
 strel_list	: strel
 		| strel strel_list ;
-strel		: strtype strtag SYM_LPAREN strparm_list SYM_RPAREN ;
+strel		: strtype SYM_LPAREN strparm_list SYM_RPAREN ;
 strtype		: SYM_SS	{ SE_new( SYM_SS ); }
 		| SYM_H5	{ SE_new( SYM_H5 ); }
 		| SYM_H3	{ SE_new( SYM_H3 ); }
@@ -96,22 +90,8 @@ strtype		: SYM_SS	{ SE_new( SYM_SS ); }
 		| SYM_Q2	{ SE_new( SYM_Q2 ); }
 		| SYM_Q3	{ SE_new( SYM_Q3 ); }
 		| SYM_Q4	{ SE_new( SYM_Q4 ); } ;
-strtag		: SYM_PERIOD SYM_IDENT
-				{ SE_addtag( &rmval ); }
-		| ;
-strparm_list	: strparm
-		| strparm SYM_COMMA strparm_list ;
-strparm		: strivparm	{ SE_addlen(); }
-		| strsvparm	{ SE_addseq(); }
-		| strkvparm ;
-strsvparm	: strval ;
-strivparm	: intval
-		| lastval
-		| rngval ;
-strkvparm	: SYM_MISPAIR SYM_EQUAL intval
-		| SYM_MISMATCH SYM_EQUAL intval
-		| SYM_PAIR SYM_EQUAL ident
-		| SYM_PAIR SYM_EQUAL pairval ;
+strparm_list	: assign
+		| assign SYM_COMMA strparm_list ;
 
 site_part	: SYM_SITE { RMC_context( SYM_SITE ); } site_list
 		| ;
