@@ -5,9 +5,7 @@
 #   Run this from the directory above this one, e.g.:
 #
 #       cd ..
-#       ln -s rnamotif rnamotif-<version number>
 #       rnamotif/mkrelease <version number>
-#       rm rnamotif-<version number>
 #
 #   Requires an argument for the version number
 #   The "make clean" ensures that files like y.tab.c,
@@ -17,6 +15,7 @@ if( $#argv != 1 )then
 	echo usage: $0 version
 	exit 1
 endif
+ln -s rnamotif rnamotif-$1
 (cd rnamotif; make clean)
 set tarfile = rnamotif-$1.tar
 echo making $tarfile
@@ -32,3 +31,4 @@ tar cvXf rnamotif/excludes $tarfile \
 	rnamotif-$1/efndata \
 	rnamotif-$1/test
 gzip -v $tarfile
+rm rnamotif-$1
