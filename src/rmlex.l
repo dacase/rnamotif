@@ -14,9 +14,9 @@ static	char	*sp;
 
 [\ \t\f\n]+	;
 
-parm		return( SYM_PARM );
+parms		return( SYM_PARMS );
 descr		return( SYM_DESCR );
-site		return( SYM_SITE );
+sites		return( SYM_SITES );
 ss		return( SYM_SS );
 h5		return( SYM_H5 );
 h3		return( SYM_H3 );
