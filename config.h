@@ -2,6 +2,7 @@
 
 CC= cc
 CFLAGS= -O2
+#CFLAGS= -g
 YACC = yacc
 LEX = lex
 

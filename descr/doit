@@ -1,1 +1,11 @@
-../rnamot -descr $1 -dtype genbank $GBHOME/gbrna.iref -p
+#! /bin/csh
+../src/rnamotif	\
+	-descr $1.descr	\
+	../test/gbrna.111.0.fastn	|\
+	../src/rmfmt -l > junk.out
+../src/rnamotif	\
+	-descr $1.descr	\
+	-sh		\
+	../test/gbrna.111.0.fastn	|\
+	../src/rmfmt -l > junk.strict.out
+

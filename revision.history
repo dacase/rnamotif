@@ -1,3 +1,9 @@
+2.1.4	2002-may-12
+	Added ability to read GB flat files.
+
+	Fixed bug that sometimes generated a 'syntax' error from cmdline
+	defs, ie -DN=V entries.
+
 2.1.3	2002-apr-11
 	Added new score builtin: loc() which takes a single str-element
 	paramter and returns the actual position (5' = 1) of the 1st
