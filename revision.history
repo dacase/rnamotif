@@ -1,3 +1,22 @@
+1.4.2	2001-feb-07
+	Reactivated the heartbeat: -Dshow_progress=N, N > 0, will write
+	a line containing the entry count and entry sid for ecnt % N == 0.
+
+	Made some small changes to rmfmt for use on a farm.  Added options to
+	allow user to set the temp dir for the temp files as well as set an
+	upper bound on the size of the file that will be sorted for -l.
+
+	Modified command line processing to permit use of multiple DB's for
+	rnamotif:
+
+		rnamotif -descr X.descr nt.fastn est.fastn ...
+
+1.4.1	2001-jan-18
+	Added code to facilitate use on a farm.  In particular allow the
+	user to specify the expanded (ie included and cmd-line defs) output
+	file which will be recompiled on the farms boxes.  Use -xdescr 
+	instead of -descr to indicate no preprocessing.
+
 1.4.0	2000-dec-17
 	Added include capabilities to permit file sharing.  Includes 
 	are indicated with #include 'xxx' lines in the source and may

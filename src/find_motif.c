@@ -25,7 +25,6 @@ extern	int	circf;	/* reg. exp. ^ kludge	*/
 
 static	char	fm_emsg[ 256 ];
 static	char	*fm_sid;
-static	int	fm_dtype;
 static	char	*fm_sdef;
 static	int	fm_comp;
 static	int	fm_slen;
@@ -80,7 +79,7 @@ static	void	mk_cstr( char [], char [] );
 
 int	find_motif_driver( int n_searches, SEARCH_T *searches[],
 	SITE_T *sites,
-	char sid[], int dtype, char sdef[], int comp, int slen, char sbuf[] )
+	char sid[], char sdef[], int comp, int slen, char sbuf[] )
 {
 	int	w_winsize;
 	int	l_szero;
@@ -111,7 +110,6 @@ int	find_motif_driver( int n_searches, SEARCH_T *searches[],
 	}
 
 	fm_sid = sid;
-	fm_dtype = dtype;
 	fm_sdef = sdef;
 	fm_comp = comp;
 	fm_slen = slen;
@@ -1595,8 +1593,7 @@ static	void	print_match( FILE *fp, char sid[], int comp,
 	}else
 		offset = stp->s_matchoff + 1;
 
-	if( fm_dtype == DT_FASTN )
-		fprintf( fp, ">%s %s\n", sid, fm_sdef );
+	fprintf( fp, ">%s %s\n", sid, fm_sdef );
 	fprintf( fp, "%-12s", sid );
 	switch( rm_sval->v_type ){
 	case T_INT :

@@ -7,6 +7,8 @@ extern	FILE	*yyin;
 extern	int	rm_error;
 extern	char	*rm_dfname;
 extern	char	*rm_xdfname;
+extern	int	rm_preprocess;
+extern	int	rm_unlink_xdf;
 extern	int	rm_copt;
 extern	int	rm_dopt;
 extern	int	rm_hopt;
@@ -14,7 +16,9 @@ extern	int	rm_popt;
 extern	int	rm_sopt;
 extern	int	rm_vopt;
 extern	FILE	*rm_dbfp;
-extern	int	rm_dtype;
+extern	char	**rm_dbfname;
+extern	int	rm_n_dbfname;
+extern	int	rm_c_dbfname;
 
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
@@ -37,12 +41,8 @@ static	char	csbuf[ SBUF_SIZE ];
 
 IDENT_T	*RM_find_id();
 
-#ifdef	USE_GENBANK
-typedef	void	DBASE_T;
-DBASE_T	*dbp, *GB_opendb();
-#endif
-
-char	*RM_preprocess( void );
+char	*RM_preprocessor( void );
+FILE	*FN_fnext( FILE *, int *, int, char *[] );
 
 static	void	mk_rcmp( int, char [], char [] );
 
@@ -52,6 +52,7 @@ main( int argc, char *argv[] )
 	int	done = 0;
 	int	chk_both_strs;
 	int	show_progress;
+	int	ecnt;
 
 	if( RM_init( argc, argv ) )
 		exit( 1 );
@@ -67,8 +68,10 @@ main( int argc, char *argv[] )
 	if( done )
 		exit( 0 );
 
-	if( ( rm_xdfname = RM_preprocess() ) == NULL )
-		exit( 1 );
+	if( rm_preprocess ){
+		if( ( rm_xdfname = RM_preprocessor() ) == NULL )
+			exit( 1 );
+	}
 
 	if( ( yyin = fopen( rm_xdfname, "r" ) ) == NULL ){
 		fprintf( stderr, "%s: can't read xd-file %s.\n",
@@ -80,18 +83,22 @@ main( int argc, char *argv[] )
 		RM_errormsg( 0, "syntax error." );
 	}
 
-	unlink( rm_xdfname );
+	if( rm_unlink_xdf )
+		unlink( rm_xdfname );
 
 	if( !rm_error ){
 		if( SE_link( rm_n_descr, rm_descr ) )
 			exit( 1 );
-		fprintf( stderr, "%s: complete descr length: min/max = %d/",
-			rm_dfname, rm_dminlen );
 		RM_linkscore();
-		if( rm_dmaxlen == UNBOUNDED )
-			fprintf( stderr, "UNBND\n" );
-		else
-			fprintf( stderr, "%d\n", rm_dmaxlen );
+		if( rm_dfname != NULL ){
+			fprintf( stderr,
+				"%s: complete descr length: min/max = %d/",
+				rm_dfname, rm_dminlen );
+			if( rm_dmaxlen == UNBOUNDED )
+				fprintf( stderr, "UNBND\n" );
+			else
+				fprintf( stderr, "%d\n", rm_dmaxlen );
+		}
 	}
 
 	if( rm_dopt || rm_hopt )
@@ -118,33 +125,34 @@ main( int argc, char *argv[] )
 	else
 		show_progress = ip->i_val.v_value.v_ival;
 
-#ifdef	USE_GENBANK
-	if( rm_dtype == DT_GENBANK ){
-		if( ( dbp = GB_opendb( rm_dbfp ) ) == NULL )
-			exit( 1 );
-	}
-#endif
+	rm_dbfp = FN_fnext( rm_dbfp, &rm_c_dbfname, rm_n_dbfname, rm_dbfname );
+	if( rm_dbfp == NULL )
+		exit( 1 );
 
-	for( ; ; ){
-		if( rm_dtype == DT_FASTN )
-			slen = FN_fgetseq( rm_dbfp, sid,
-				SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
-#ifdef	USE_GENBANK
-		else
-			slen = GB_fgetseq( dbp, sid, SBUF_SIZE, sbuf );
-#endif
-		if( slen == 0 )
-			break;
+	for( ecnt = 0; ; ){
+		slen = FN_fgetseq( rm_dbfp, sid,
+			SDEF_SIZE, sdef, SBUF_SIZE, sbuf );
+		if( slen == 0 ){
+			rm_dbfp = FN_fnext( rm_dbfp,
+				&rm_c_dbfname, rm_n_dbfname, rm_dbfname );
+			if( rm_dbfp == NULL )
+				break;
+		}
 
-		if( show_progress )
-			fprintf( stderr, "%s\n", sid );
+		ecnt++;
+
+		if( show_progress ){
+			if( ecnt % show_progress == 0 )
+				fprintf( stderr, "%s: %7d: %s\n",
+					argv[ 0 ], ecnt, sid );
+		}
 
 		find_motif_driver( rm_n_searches, rm_searches, rm_sites,
-			sid, rm_dtype, sdef, 0, slen, sbuf );
+			sid, sdef, 0, slen, sbuf );
 		if( chk_both_strs ){
 			mk_rcmp( slen, sbuf, csbuf );
 			find_motif_driver( rm_n_searches, rm_searches, rm_sites,
-				sid, rm_dtype, sdef, 1, slen, csbuf );
+				sid, sdef, 1, slen, csbuf );
 		}
 	}
 

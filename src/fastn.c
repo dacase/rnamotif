@@ -2,8 +2,37 @@
 #include <ctype.h>
 #include <string.h>
 
+#include "rnamot.h"
+
 static	int	skipbl2nl( FILE * );
 
+FILE	*FN_fnext( FILE *fp, int *c_fname, int n_fname, char *fname[] )
+{
+
+	if( fp != NULL && fp != stdin )
+		fclose( fp );
+
+	if( n_fname == 0 )
+		return( stdin );
+	else if( *c_fname == UNDEF ){
+		*c_fname = 0;
+		if( ( fp = fopen( fname[ *c_fname ], "r" ) ) == NULL ){
+			fprintf( stderr,
+				"FN_fnext: can't read fastn file '%s'.\n",
+				fname[ *c_fname ] );
+		}
+	}else if( *c_fname < n_fname - 1 ){
+		( *c_fname )++;
+		if( ( fp = fopen( fname[ *c_fname ], "r" ) ) == NULL ){
+			fprintf( stderr,
+				"FN_fnext: can't read fastn file '%s'.\n",
+				fname[ *c_fname ] );
+		}
+	}else
+		fp = NULL;
+	return( fp );
+}
+
 int	FN_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	int s_sbuf, char sbuf[] )
 {

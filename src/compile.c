@@ -10,6 +10,8 @@ VALUE_T	rm_tokval;
 char	*rm_dfname;
 char	rm_wdfname[ 256 ];
 char	*rm_xdfname;
+int	rm_preprocess = 1;
+int	rm_unlink_xdf = 1;
 int	rm_lineno;
 int	rm_error;
 int	rm_emsg_lineno;
@@ -24,8 +26,10 @@ int	rm_hopt = 0;
 int	rm_popt = 0;
 int	rm_sopt = 0;
 int	rm_vopt = 0;
-FILE	*rm_dbfp;
-int	rm_dtype = DT_FASTN;
+FILE	*rm_dbfp = NULL;
+char	**rm_dbfname;
+int	rm_n_dbfname;
+int	rm_c_dbfname;
 
 #define	VALSTKSIZE	20
 static	VALUE_T	valstk[ VALSTKSIZE ];
@@ -148,12 +152,20 @@ int	RM_init( int argc, char *argv[] )
 {
 	int	ac, i, err, len, cldsize;
 	NODE_T	*np;
-	char	*dbfnp, *sp;
+	char	*sp;
 	VALUE_T	val;
 	IDENT_T	*ip;
 	INCDIR_T	*id1, *idt;
 
-	dbfnp = NULL;		/* database file name	*/
+	rm_dbfname = ( char ** )malloc( argc * sizeof( char * ) );
+	if( rm_dbfname == NULL ){
+		fprintf( stderr, "%s: can't allocate rm_dbfname.\n",
+			argv[ 0 ] );
+		return( 1 );
+	}
+	rm_n_dbfname = 0;
+	rm_c_dbfname = UNDEF;
+
 	id1 = idt = NULL;	/* list of include dirs */
 	for( err = 0, cldsize = 0, ac = 1; ac < argc; ac++ ){
 		if( !strcmp( argv[ ac ], "-c" ) )
@@ -181,22 +193,20 @@ int	RM_init( int argc, char *argv[] )
 				ac++;
 				rm_dfname = argv[ ac ];
 			}
-		}else if( !strcmp( argv[ ac ], "-dtype" ) ){
+		}else if( !strcmp( argv[ ac ], "-xdescr" ) ){
+			rm_preprocess = 0;
+			rm_unlink_xdf = 0;
 			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
+			}else if( rm_xdfname != NULL ){
 				fprintf( stderr, U_MSG_S, argv[ 0 ] );
 				err = 1;
 				break;
 			}else{
 				ac++;
-				if( !strcmp( argv[ ac ], "genbank" ) )
-					rm_dtype = DT_GENBANK;
-				else if( !strcmp( argv[ ac ], "fastn" ) )
-					rm_dtype = DT_FASTN;
-				else{
-					fprintf( stderr, U_MSG_S, argv[ 0 ] );
-					err = 1;
-					break;
-				}
+				rm_xdfname = argv[ ac ];
 			}
 		}else if( !strncmp( argv[ ac ], "-D", 2 ) ){
 			cldsize += strlen( &argv[ ac ][ 2 ] ) + 2;
@@ -226,22 +236,34 @@ int	RM_init( int argc, char *argv[] )
 			else
 				idt->i_next = id1;
 			idt = id1;
+		}else if( !strcmp( argv[ ac ], "-xdfname" ) ){
+			rm_unlink_xdf = 0;
+			if( ac == argc - 1 ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
+			}else if( rm_xdfname != NULL ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				err = 1;
+				break;
+			}else{
+				ac++;
+				rm_xdfname = argv[ ac ];
+			}
 		}else if( *argv[ ac ] == '-' ){
 			fprintf( stderr, U_MSG_S, argv[ 0 ] );
 			err = 1;
 			break;
-		}else if( dbfnp != NULL ){
-			fprintf( stderr, U_MSG_S, argv[ 0 ] );
-			err = 1;
-			break;
-		}else
-			dbfnp = argv[ ac ];
+		}else{
+			rm_dbfname[ rm_n_dbfname ] = argv[ ac ];
+			rm_n_dbfname++;
+		}
 	}
 	if( err )
 		return( 1 );
-	if( rm_vopt )
+	if( rm_vopt && !rm_sopt )
 		return( 0 );
-	if( rm_dfname == NULL ){
+	if( rm_dfname == NULL && rm_xdfname == NULL ){
 		if( !rm_sopt ){
 			fprintf( stderr, U_MSG_S, argv[ 0 ] );
 			return( 1 );
@@ -267,16 +289,6 @@ int	RM_init( int argc, char *argv[] )
 		sp[-1] = '\n';
 		*sp = '\0';
 	}
-
-	if( dbfnp != NULL ){
-		if( ( rm_dbfp = fopen( dbfnp, "r" ) ) == NULL ){
-			fprintf( stderr,
-				"%s: can't read database-file '%s'.\n",
-				argv[ 0 ], dbfnp ); 
-			return( 1 );
-		}
-	}else
-		rm_dbfp = stdin;
 
 	for( i = 0; i < rm_s_b2bc; i++ )
 		rm_b2bc[ i ] = BCODE_N;
@@ -340,6 +352,10 @@ int	RM_init( int argc, char *argv[] )
 	RM_enter_id( "iupac", T_INT, C_VAR, S_GLOBAL, 0, &val );
 
 	val.v_type = T_INT;
+	val.v_value.v_ival = 0;
+	RM_enter_id( "show_progress", T_INT, C_VAR, S_GLOBAL, 0, &val );
+
+	val.v_type = T_INT;
 	val.v_value.v_ival = 3;
 	RM_enter_id( "wc_minlen", T_INT, C_VAR, S_GLOBAL, 0, &val );
 
@@ -392,6 +408,9 @@ int	RM_init( int argc, char *argv[] )
 	rm_sval = &ip->i_val;
 
 	rm_lineno = 0;
+
+	if( rm_sopt )
+		rm_vopt = 1;
 
 	return( 0 );
 }

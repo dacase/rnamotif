@@ -1,12 +1,16 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
-#define	U_MSG_S	"usage: %s [ -a ] [ -l ] [ rm-output-file ]\n"
+#define	U_MSG_S	\
+	"usage: %s [ -a ] [ -l ] [ -smax N ] [ -td dir ] [ rm-output-file ]\n"
 
 #define	MIN(a,b)	((a)<(b)?(a):(b))
 #define	MAX(a,b)	((a)>(b)?(a):(b))
 
+#define	SMAX		30000000	/* largest file to sort */
 #define	MAXFIELDS	200
 #define	OFIELD1		1
 #define	DFIELD1		4
@@ -37,22 +41,43 @@ static	void	align( FILE *, int, char [], char [] );
 
 main( int argc, char *argv[] )
 {
-	char	*ifname;
+	char	*ifname, *tfdir;
 	FILE	*ifp, *tfp1, *tfp2;
 	char	*tfnp1, *tfnp2;
 	char	cmd[ 256 ];
-	char	*sp, *vbp;
+	char	*sp, *vbp, *l_vbp;
 	int	ac, f, fw, fs, of1, df1;
 	int	aopt, lopt, scored, sort;
+	int	smax;
+	struct	stat	sbuf;
 
 	ifname = NULL;
+	tfdir = NULL;
 	aopt = 0;	/* 1 = make fastn alignment		*/ 
 	lopt = 0;	/* 1 = print only entry's locus name	*/
+	smax = SMAX;	/* Don't sort files larger than SMAX	*/
 	for( ac = 1; ac < argc; ac++ ){
 		if( !strcmp( argv[ ac ], "-a" ) )
 			aopt = 1;
-		else if( !strcmp( argv[ ac ], "-l" ) ){
+		else if( !strcmp( argv[ ac ], "-l" ) )
 			lopt = 1;
+		else if( !strcmp( argv[ ac ], "-smax" ) ){
+			ac++;
+			if( ac >= argc ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				exit( 1 );
+			}
+			smax = atoi( argv[ ac ] );
+		}else if( !strcmp( argv[ ac ], "-td" ) ){
+			ac++;
+			if( ac >= argc ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				exit( 1 );
+			}else if( tfdir != NULL ){
+				fprintf( stderr, U_MSG_S, argv[ 0 ] );
+				exit( 1 );
+			}else
+				tfdir = argv[ ac ];
 		}else if( *argv[ ac ] == '-' ){
 			fprintf( stderr, U_MSG_S, argv[ 0 ] );
 			exit( 1 );
@@ -70,7 +95,7 @@ main( int argc, char *argv[] )
 		exit( 1 );
 	}
 
-	tfnp1 = tempnam( NULL, "raw" );
+	tfnp1 = tempnam( tfdir, "raw" );
 	if( ( tfp1 = fopen( tfnp1, "w+" ) ) == NULL ){
 		fprintf( stderr, "%s: can't open temp-file '%s'\n",
 			argv[ 0 ], tfnp1 );
@@ -145,12 +170,26 @@ main( int argc, char *argv[] )
 			scored = isnumber( sfields[ 0 ] );
 
 		if( lopt ){
-			for( vbp = NULL, sp = ofields[ 0 ]; *sp; sp++ ){
-				if( *sp == '|' )
+			for( l_vbp = vbp = NULL, sp = ofields[ 0 ]; *sp; sp++ ){
+				if( *sp == '|' ){
+					l_vbp = vbp;
 					vbp = sp;
+				}
 			}
-			if( vbp != NULL )
-				strcpy( ofields[ 0 ], &vbp[ 1 ] );
+			if( vbp != NULL ){
+				vbp++;
+				if( *vbp != '\0' )
+					strcpy( ofields[ 0 ], vbp );
+				else if( l_vbp != NULL ){
+					l_vbp++;
+					vbp--;
+					strncpy( ofields[0], l_vbp, vbp-l_vbp );
+					ofields[0][vbp-l_vbp] = '\0';
+				}else{
+					vbp--;
+					*vbp = '\0';
+				}
+			}
 		}
 		fw = strlen( ofields[ 0 ] );
 		if( fw > omaxw[ 0 ] )
@@ -188,7 +227,16 @@ main( int argc, char *argv[] )
 	if( !aopt ){
 		fclose( tfp1 );
 
-		tfnp2 = tempnam( NULL, "srt" );
+		if( stat( tfnp1, &sbuf ) ){
+			fprintf( stderr,
+				"%s: can't stat raw temp-file '%s'\n",
+				argv[ 0 ], tfnp1 );
+			exit( 1 );
+		}
+		if( sbuf.st_size > smax )
+			scored = sort = 0;
+
+		tfnp2 = tempnam( tfdir, "srt" );
 		if( scored ){
 			sprintf( cmd,
 			"sort +1rn -2 +0 -1 +2n -3 +3n -4 +4n -5 %s > %s\n",

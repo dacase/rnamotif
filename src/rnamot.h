@@ -1,23 +1,24 @@
 #ifndef	__RNAMOT__
 #define	__RNAMOT__
 
-#define	VERSION	"v1.4.0 2000-dec-17"
+#define	VERSION	"v1.4.2 2001-feb-07"
 
 #define	U_MSG_S	\
-"usage: %s [ options ] -descr descr-file [ -dtype dtype ] [ seq-file ]\n\n\
+"usage: %s [ options ] descr [ seq-file ... ]\n\n\
 options:\n\
-\t-c\n\
-\t-d\n\
-\t-h\n\
-\t-s\n\
-\t-v\n\
-\t-Did=expr\n\
-\t-Idir\n\
-\t-help\n\
+\t-c\t\t\tCompile only, no search\n\
+\t-d\t\t\tDump internal data structures\n\
+\t-h\t\t\tDump the strucure hierarchy\n\
+\t-s\t\t\tShow builtin variables\n\
+\t-v\t\t\tPrint Version Infomation\n\
+\t-Dvar=expr\t\tSet the value of var to expr\n\
+\t-Idir\t\t\tAdd include source directory, dir\n\
+\t-xdfname file-name\tPreprocessor output file\n\
+\t-help\t\t\tPrint this message\n\
 \n\
--descr descr-file\n\
-\n\
--dtype { genbank | fastn }\n"
+descr:\tUse one:\n\
+\t-descr descr-file\tMay have includes; use cmd-line defs\n\
+\t-xdescr xdescr-file\tMay not have includes; ignore cmd-line defs\n"
 
 #define	UNDEF	(-1)
 #define	UNBOUNDED	0x7fffffff
@@ -25,9 +26,6 @@ options:\n\
 
 #define	MIN(a,b)	((a)<(b)?(a):(b))
 #define	MAX(a,b)	((a)>(b)?(a):(b))
-
-#define	DT_FASTN	0
-#define	DT_GENBANK	1
 
 #define	T_UNDEF		0
 #define	T_INT		1
