@@ -69,7 +69,7 @@ assign_op	: SYM_ASSIGN	{ $$ = node( SYM_ASSIGN, 0, 0, 0 ); }
 		| SYM_MINUS_ASSIGN
 				{ $$ = node( SYM_MINUS_ASSIGN, 0, 0, 0 ); } ;
 expr		: val 		{ $$ = $1; }
-		| val add_op expr
+		| expr add_op val
 				{ $$ = node( $2, 0, $1, $3 ); } ;
 add_op		: SYM_PLUS	{ $$ = SYM_PLUS; }
 		| SYM_MINUS 	{ $$ = SYM_MINUS; } ;
