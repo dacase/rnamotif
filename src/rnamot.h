@@ -38,6 +38,16 @@ typedef	struct	ident_t	{
 	VALUE_T	i_val;
 } IDENT_T;
 
+typedef	struct	pair_t	{
+	int	p_n_bases;
+	char	p_bases[ 4 ];
+} PAIR_T;
+
+typedef	struct	pairlist_t	{
+	int	pl_n_pairs;
+	PAIR_T	*pl_pairs;
+} PAIRLIST_T;
+
 typedef	struct	node_t	{
 	int	n_sym;
 	int	n_type;
