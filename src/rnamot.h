@@ -133,6 +133,8 @@ typedef	struct	strel_t	{
 	int	s_searchno;	/* index into searches[]	*/
 	int	s_matchoff;	/* matched string starts here	*/
 	int	s_matchlen;	/* matched string is this long	*/
+	int	s_n_mismatches;	/* number of mismatches		*/
+	int	s_n_mispairs;	/* number of mismatches		*/
 	char	*s_tag;
 	struct	strel_t	*s_next;
 	struct	strel_t	*s_prev;
