@@ -4,6 +4,8 @@
 #include "y.tab.h"
 
 static	int	strel_name();
+static	int	find_start();
+static	int	find_stop();
 
 int	find_motif( n_descr, descr, sites, locus, slen, sbuf )
 int	n_descr;
@@ -16,28 +18,55 @@ char	sbuf[];
 	int	d;
 	STREL_T	*stp;
 	char	name[ 20 ];
+	int	start, stop;
+	int	minl, maxl;
+	int	l2r;
+	char	tstr[ 20 ];
 	
 	fprintf( stderr, "locus = %s, slen = %d\n", locus, slen );
 
 	fprintf( stderr, "descr =" );
 	for( stp = descr, d = 0; d < n_descr; d++, stp++ ){
 		strel_name( stp, name );
-		fprintf( stderr, "\t%s", name );
+		fprintf( stderr, "\t%5s", name );
 	}
 	fprintf( stderr, "\n" );
 
 	fprintf( stderr, "minl  =" );
+	for( minl = 0, stp = descr, d = 0; d < n_descr; d++, stp++ ){
+		fprintf( stderr, "\t%5d", stp->s_minlen );
+		minl += stp->s_minlen;
+	}
+	fprintf( stderr, "\t%5d\n", minl );
+
+	fprintf( stderr, "maxl  =" );
+	for( maxl = 0, stp = descr, d = 0; d < n_descr; d++, stp++ ){
+		if( stp->s_maxlen == UNBOUNDED ){
+			fprintf( stderr, "\tUNBND" );
+			maxl = UNBOUNDED;
+		}else{
+			if( maxl != UNBOUNDED )
+				maxl += stp->s_maxlen;
+			fprintf( stderr, "\t%5d", stp->s_maxlen );
+		}
+	}
+	if( maxl == UNBOUNDED )
+		fprintf( stderr, "\tUNBND\n" );
+	else
+		fprintf( stderr, "\t%5d\n", maxl );
+
+	fprintf( stderr, "start =" );
 	for( stp = descr, d = 0; d < n_descr; d++, stp++ ){
-		fprintf( stderr, "\t%d", stp->s_minlen );
+		start = find_start( slen, stp, n_descr, descr, &l2r );
+		sprintf( tstr, "\%s%d", !l2r ? "$-" : "", start );
+		fprintf( stderr, "\t%5s", tstr );
 	}
 	fprintf( stderr, "\n" );
 
-	fprintf( stderr, "maxl  =" );
+	fprintf( stderr, "stop  =" );
 	for( stp = descr, d = 0; d < n_descr; d++, stp++ ){
-		if( stp->s_maxlen == UNBOUNDED )
-			fprintf( stderr, "\tUNBND", stp->s_maxlen );
-		else
-			fprintf( stderr, "\t%d", stp->s_maxlen );
+		stop = find_stop( slen, stp, n_descr, descr );
+		fprintf( stderr, "\t%5d", stop );
 	}
 	fprintf( stderr, "\n" );
 
@@ -91,4 +120,77 @@ char	name[];
 		strcpy( name, "q4" );
 		break;
 	}
+}
+
+static	int	find_start( slen, stp, n_descr, descr, l2r )
+int	slen;
+STREL_T	*stp;
+int	n_descr;
+STREL_T	descr[];
+int	*l2r;
+{
+	int	i, unbnd;
+	int	start;
+	STREL_T	*stp1;
+
+	if(    	stp->s_type == SYM_SS ||
+		stp->s_type == SYM_H5 ||
+		stp->s_type == SYM_P5 ||
+		stp->s_type == SYM_T1 || 
+		stp->s_type == SYM_Q1 )
+	{
+		*l2r = 1;
+		start = 0;
+		for( stp1 = descr, i = 0; i < stp->s_index; i++, stp1++ )
+			start += stp1->s_minlen;
+		return( start + 1 );
+	}else if( stp->s_maxlen != UNBOUNDED ){
+		start = stp->s_maxlen;
+		unbnd = 0;
+		for( i = stp->s_index - 1; i >= 0; i-- ){
+			stp1 = &descr[ i ];
+			if( stp1->s_maxlen == UNBOUNDED ){
+				unbnd = 1;
+				break;
+			}
+			start += stp1->s_maxlen;
+		}
+		if( !unbnd )
+			return( start );
+		*l2r = 0;
+		start = 0;
+		for( i = stp->s_index + 1; i < n_descr; i++ ){
+			stp1 = &descr[ i ];
+			start += stp1->s_minlen;
+		}
+		return( start );
+	}else{
+		*l2r = 0;
+		start = 0;
+		for( i = stp->s_index + 1; i < n_descr; i++ ){
+			stp1 = &descr[ i ];
+			start += stp1->s_minlen;
+		}
+		return( start );
+	}
+}
+
+static	int	find_stop( slen, stp, n_descr, descr )
+int	slen;
+STREL_T	*stp;
+int	n_descr;
+STREL_T	descr[];
+{
+	int	i;
+	int	stop;
+	STREL_T	*stp1;
+
+	for( stop = 0, i = stp->s_index; i < n_descr; i++, stp1++ ){
+		stp1 = &descr[ i ];
+		stop += stp1->s_minlen;
+	}
+	if( stp->s_type == SYM_H3 ){
+		return(  slen - stop + stp->s_minlen );
+	}else
+		return(  slen - stop + 1 );
 }
