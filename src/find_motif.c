@@ -38,7 +38,9 @@ static	int	find_triplex();
 static	int	find_4plex();
 static	int	match_wchlx();
 static	int	match_phlx();
+static	int	match_triplex();
 static	int	paired();
+static	int	triple();
 static	void	mark_duplex();
 static	void	unmark_duplex();
 static	int	chk_wchlx0();
@@ -266,6 +268,7 @@ SEARCH_T	*srp;
 	sdollar = srp->s_dollar;
 	slen = sdollar - szero + 1;
 	stp = srp->s_descr;
+	stp3 = stp->s_mates[ 0 ];
 
 	h_minl = stp->s_minlen;
 	h_maxl = stp->s_maxlen;
@@ -277,7 +280,7 @@ SEARCH_T	*srp;
 	s3lim = MIN( s3lim, h_maxl );
 	s3lim = sdollar - s3lim + 1;
 
-	if( match_wchlx( stp, szero, sdollar, s3lim, &h3, &hlen ) ){
+	if( match_wchlx( stp, stp3, szero, sdollar, s3lim, &h3, &hlen ) ){
 
 		if( !chk_wchlx0( srp, szero, h3 ) )
 			return( 0 );
@@ -286,7 +289,6 @@ SEARCH_T	*srp;
 		if( i_len > i_maxl )
 			return( 0 );
 
-		stp3 = stp->s_mates[ 0 ];
 		mark_duplex( stp, szero, stp3, h3, hlen );
 
 		i_stp = stp->s_inner;
@@ -357,7 +359,7 @@ SEARCH_T	*srp;
 	s13_lim = MIN( s13_lim, h1_maxl );
 	s13_lim = s1_dollar - s13_lim + 1;
 
-	if( match_wchlx( stp, szero, s1_dollar, s13_lim, &h13, &h1len ) ){
+	if( match_wchlx( stp, stp2, szero, s1_dollar, s13_lim, &h13, &h1len ) ){
 
 		mark_duplex( stp, szero, stp2, h13, h1len );
 
@@ -366,7 +368,8 @@ SEARCH_T	*srp;
 		s23_lim = s1_dollar + stp2->s_minilen + 1;
 
 		for( s2 = s2_zero; s2 <= s20_lim; s2++ ){
-			if(match_wchlx(stp1,s2,sdollar,s23_lim,&h23,&h2len)){
+			if(match_wchlx(stp1,stp3,
+				s2,sdollar,s23_lim,&h23,&h2len)){
 
 				i1_len = s2 - szero - h1len;
 				if( i1_len > i1_maxl ){
@@ -421,6 +424,7 @@ SEARCH_T	*srp;
 	sdollar = srp->s_dollar;
 	slen = sdollar - szero + 1;
 	stp = srp->s_descr;
+	stp3 = stp->s_mates[ 0 ];
 
 	h_minl = stp->s_minlen;
 	h_maxl = stp->s_maxlen;
@@ -438,13 +442,12 @@ SEARCH_T	*srp;
 	s5lo = MIN( s5lo / 2, h_maxl );
 	s5lo = szero + s5lo - 1;
 
-	if( match_phlx( stp, szero, sdollar, s5hi, s5lo, &hlen ) ){
+	if( match_phlx( stp, stp3, szero, sdollar, s5hi, s5lo, &hlen ) ){
 
 		i_len = sdollar - szero - 2 * hlen + 1;
 		if( i_len > i_maxl  )
 			return( 0 );
 
-		stp3 = stp->s_mates[ 0 ];
 		mark_duplex( stp, szero, stp3, sdollar, hlen );
 
 		i_stp = stp->s_inner;
@@ -465,62 +468,86 @@ SEARCH_T	*srp;
 static	int	find_triplex( srp )
 SEARCH_T	*srp;
 {
-	STREL_T	*stp, *stp3, *i_stp;
-	int	ilen, slen, szero, sdollar;
-	int	s, s3lim, s5hi, s5lo;
+	STREL_T	*stp, *stp1, *stp2;
+	STREL_T	*i1_stp, *i2_stp;
+	int	slen, szero, sdollar;
+	int	s, s1, s3lim, s5hi, s5lo;
 	int	h_minl, h_maxl;
-	int	i_minl, i_maxl, i_len;
+	int	i_len, i_minl, i_maxl;
+	int	i1_len, i2_len;
+	int	i1_minl, i1_maxl, i2_minl, i2_maxl;
 	int	h, hlen;
-	SEARCH_T	*i_srp;
+	SEARCH_T	*i1_srp, *i2_srp;
 
 	szero = srp->s_zero;
 	sdollar = srp->s_dollar;
 	slen = sdollar - szero + 1;
 	stp = srp->s_descr;
+	stp1 = stp->s_scopes[ 1 ];
+	stp2 = stp->s_scopes[ 2 ];
 
 	h_minl = stp->s_minlen;
 	h_maxl = stp->s_maxlen;
-	i_minl = stp->s_minilen;
-	i_maxl = stp->s_maxilen;
+	i1_minl = stp->s_minilen;
+	i1_maxl = stp->s_maxilen;
+	i1_stp = stp->s_inner;
+	i1_srp = rm_searches[ i1_stp->s_searchno ];
+	i2_minl = stp1->s_minilen;
+	i2_maxl = stp1->s_maxilen;
+	i2_stp = stp1->s_inner;
+	i2_srp = rm_searches[ i2_stp->s_searchno ];
 
-	s5hi = MIN( ( slen - i_minl ) / 2, h_maxl );
+	s5hi = MIN( ( slen - i1_minl - i2_minl ) / 2, h_maxl );
 	s5hi = szero + s5hi - 1;
 
-	ilen = slen - 2 * h_minl;
-	ilen = MIN( ilen, i_maxl );
-	s5lo = slen - ilen;
+	i_len = slen - 2 * h_minl;
+	i_len = MIN( i_len, i1_maxl + h_minl + i2_maxl );
+	s5lo = slen - i_len;
 	if( ODD( s5lo ) )
 		s5lo++;
 	s5lo = MIN( s5lo / 2, h_maxl );
 	s5lo = szero + s5lo - 1;
 
-	if( match_phlx( stp, szero, sdollar, s5hi, s5lo, &hlen ) ){
+	if( match_phlx( stp, stp2, szero, sdollar, s5hi, s5lo, &hlen ) ){
 
-fprintf( stderr, "ft: %-12s %4d %4d, %4d: %.*s %.*s\n",
-	fm_locus, szero, sdollar - hlen + 1, hlen,
-	hlen, &fm_sbuf[ szero ], hlen, &fm_sbuf[ sdollar - hlen + 1 ] );
-
-/*
 		i_len = sdollar - szero - 2 * hlen + 1;
-		if( i_len > i_maxl  )
+		if( i_len > i1_maxl + i2_maxl + hlen )
 			return( 0 );
 
-		stp3 = stp->s_mates[ 0 ];
-		mark_duplex( stp, szero, stp3, sdollar, hlen );
+		for( s=sdollar-i2_minl-hlen; s>=szero+2*hlen+i1_minl-1; s-- ){
+			if(match_triplex( stp, stp1, szero, s, sdollar, hlen )){
 
-		i_stp = stp->s_inner;
-		i_srp = rm_searches[ i_stp->s_searchno ];
-		i_srp->s_zero = szero + hlen;
-		i_srp->s_dollar = sdollar - hlen;
+				i1_len = s - 2 * hlen - szero + 1;
+				if( i1_len > i1_maxl )
+					return( 0 );
+				i2_len = sdollar - hlen - s + 1;
+				if( i2_len > i2_maxl )
+					return( 0 );
 
-		if( find_motif( i_srp ) ){
-			return( 1 );
-		}else{
-			unmark_duplex( stp, szero, stp3, sdollar, hlen );
-			return( 0 );
+				mark_duplex( stp, szero, stp2, sdollar, hlen );
+				stp1->s_matchoff = s - hlen + 1;
+				stp1->s_matchlen = hlen;
+				for( s1 = 0; s1 < hlen; s1++ )
+					fm_window[s-s1-fm_szero]=stp1->s_index;
+
+				i1_srp->s_zero = szero + hlen;
+				i1_srp->s_dollar = s - hlen;
+				i2_srp->s_zero = s + 1;
+				i2_srp->s_dollar = sdollar - hlen;
+
+				if( find_motif( i1_srp ) ){
+					return( 1 );
+				}else{
+					unmark_duplex( stp, szero,
+						stp2, sdollar, hlen);
+					stp1->s_matchoff = UNDEF;
+					stp1->s_matchlen = 0;
+					for( s1 = 0; s1 < hlen; s1++ )
+						fm_window[s-s1-fm_szero]=UNDEF;
+				}
+
+			}
 		}
-*/
-
 	}else
 		return( 0 );
 }
@@ -531,20 +558,19 @@ SEARCH_T	*srp;
 
 }
 
-static	int	match_wchlx( stp, s5, s3, s3lim, h3, hlen )
+static	int	match_wchlx( stp, stp3, s5, s3, s3lim, h3, hlen )
 STREL_T	*stp;
+STREL_T	*stp3;
 int	s5;
 int	s3;
 int	s3lim;
 int	*h3;
 int	*hlen;
 {
-	STREL_T	*stp3;
 	int	s, s3_5plim;
 	int	b5, b3;
 	int	bpcnt, mpr;
 
-	stp3 = stp->s_scopes[ 1 ];
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
 
@@ -579,7 +605,8 @@ int	*hlen;
 		fm_chk_seq[ *hlen ] = '\0';
 		if( !step( fm_chk_seq, stp->s_expbuf ) )
 			return( 0 );
-	}else if( stp3->s_seq != NULL ){
+	}
+	if( stp3->s_seq != NULL ){
 		strncpy( fm_chk_seq,  &fm_sbuf[ s3 - *hlen + 1 ], *hlen );
 		fm_chk_seq[ *hlen ] = '\0';
 		if( !step( fm_chk_seq, stp3->s_expbuf ) )
@@ -589,23 +616,23 @@ int	*hlen;
 	return( 1 );
 }
 
-static	int	match_phlx( stp, s5, s3, s5hi, s5lo, hlen )
+static	int	match_phlx( stp, stp3, s5, s3, s5hi, s5lo, hlen )
 STREL_T	*stp;
+STREL_T	*stp3;
 int	s5;
 int	s3;
 int	s5hi;
 int	s5lo;
 int	*hlen;
 {
-	STREL_T	*stp3;
-	int	prd, s, s1;
+	int	s, s1;
 	int	b50, b5, b3;
 	int	bpcnt, mpr;
 
 	b50 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
 
-	for( prd = 0, s = s5hi; s >= s5lo; s-- ){
+	for( s = s5hi; s >= s5lo; s-- ){
 		b5 = fm_sbuf[ s ];
 		if( !paired( stp, b5, b3 ) )
 			continue;
@@ -623,9 +650,66 @@ int	*hlen;
 					return( 0 );
 			}
 		}
+		if( bpcnt < stp->s_minlen || bpcnt > stp->s_maxlen )
+			return( 0 );
+
+		if( stp->s_seq != NULL ){
+			strncpy( fm_chk_seq, &fm_sbuf[ s5 ], *hlen );
+			fm_chk_seq[ *hlen ] = '\0'; 
+			if( !step( fm_chk_seq, stp->s_expbuf ) )
+				return( 0 );
+		}
+		if( stp3->s_seq != NULL ){
+			strncpy( fm_chk_seq, &fm_sbuf[ s3-*hlen+1 ], *hlen );
+			fm_chk_seq[ *hlen ] = '\0'; 
+			if( !step( fm_chk_seq, stp3->s_expbuf ) )
+				return( 0 );
+		}
 		return( 1 );
 	}
 	return( 0 );
+}
+
+static	int	match_triplex( stp, stp1, s1, s2, s3, tlen )
+STREL_T	*stp;
+STREL_T	*stp1;
+int	s1;
+int	s2;
+int	s3;
+int	tlen;
+{
+	int	t;
+	int	b1, b2, b3;
+	int	bpcnt, mpr;
+
+	b1 = fm_sbuf[ s1 ];
+	b2 = fm_sbuf[ s2 ];
+	b3 = fm_sbuf[ s3 - tlen + 1 ];
+
+	if( !triple( stp, b1, b2, b3 ) )
+		return( 0 );
+
+	bpcnt = 1;
+	mpr = 0;
+	for( t = 1; t < tlen; t++ ){
+		b1 = fm_sbuf[ s1 + t ];
+		b2 = fm_sbuf[ s2 - t ];
+		b3 = fm_sbuf[ s3 - tlen + 1 + t ];
+		if( !triple( stp, b1, b2, b3 ) ){
+			mpr++;
+			if( mpr > stp->s_mispair )
+				return( 0 );
+		}
+	}
+
+	if( stp1->s_seq != NULL ){
+		strncpy( fm_chk_seq, &fm_sbuf[ s2 - tlen + 1 ], tlen );
+		fm_chk_seq[ tlen ] = '\0';
+		if( !step( fm_chk_seq, stp1->s_expbuf ) )
+			return( 0 );
+	}
+
+	return( 1 );
 }
 
 static	int	paired( stp, b5, b3 )
@@ -641,6 +725,24 @@ int	b3;
 	b5i = rm_b2bc[ b5 ];
 	b3i = rm_b2bc[ b3 ];
 	rv = (*bpmatp)[b5i][b3i];
+	return( rv );
+}
+
+static	int	triple( stp, b1, b2, b3 )
+STREL_T	*stp;
+int	b1;
+int	b2;
+int	b3;
+{
+	BT_MAT_T	*btmatp;
+	int	b1i, b2i, b3i;
+	int	rv;
+	
+	btmatp = stp->s_pairset->ps_mat[ 1 ];
+	b1i = rm_b2bc[ b1 ];
+	b2i = rm_b2bc[ b2 ];
+	b3i = rm_b2bc[ b3 ];
+	rv = (*btmatp)[b1i][b2i][b3i];
 	return( rv );
 }
 
