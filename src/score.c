@@ -158,7 +158,8 @@ static	char	*opnames[ N_OP ] = {
 #define	SC_MISPAIRS	9
 #define	SC_PAIRED	10
 #define	SC_SPRINTF	11
-#define	N_SC		12
+#define	SC_SUBSTR	12
+#define	N_SC		13
 
 static	char	*scnames[ N_SC ] = {
 	"STRID",
@@ -172,7 +173,8 @@ static	char	*scnames[ N_SC ] = {
 	"mismatches",
 	"mispairs",
 	"paired",
-	"sprintf"
+	"sprintf",
+	"substr"
 };
 
 typedef	struct	inst_t	{
@@ -927,6 +929,7 @@ static	void	fix_call( NODE_T *np )
 {
 	int	sc, pcnt;
 	NODE_T	*np1, *np2, *np3;
+	VALUE_T	v_expr;
 
 	sc = is_syscall( np );
 
@@ -1049,6 +1052,26 @@ static	void	fix_call( NODE_T *np )
 		break;
 	case SC_SPRINTF :
 		break;
+	case SC_SUBSTR :
+		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
+			pcnt++;
+		if( pcnt == 2 ){
+			for( np1=np->n_right; np1->n_right; np1=np1->n_right )
+				;
+			v_expr.v_type = T_INT;
+			v_expr.v_value.v_ival = UNDEF;
+			np3 = RM_node( SYM_INT, &v_expr, 0, 0 );
+			np2 = RM_node( SYM_LIST, 0, np3, NULL );
+			np1->n_right = np2;
+		}else if( pcnt != 3 ){
+			rm_wdfname = np->n_filename;
+			rm_emsg_lineno = np->n_lineno;
+			sprintf( emsg,
+			"fix_call: function '%s' has 2 or 3 parameters.",
+				 scnames[ sc ] );
+			RM_errormsg( TRUE, emsg );
+		}
+		break;
 	default :
 		rm_wdfname = np->n_filename;
 		rm_emsg_lineno = np->n_lineno;
@@ -1067,9 +1090,9 @@ static	void	do_fcl( INST_T *ip )
 
 static	void	do_scl( INST_T *ip )
 {
-	char	*cp, *pp;
+	char	*cp, *pp, *ssp;
 	VALUE_T	*v_id;
-	int	i, stype, idx, pos, len, size;
+	int	i, stype, idx, pos, len, size, c_len;
 	static	int	eb_size = 0;
 	static	char	*expbuf = NULL;
 	char	*e_expbuf;
@@ -1278,6 +1301,40 @@ static	void	do_scl( INST_T *ip )
 		mp = mem[ mp ].v_value.v_ival;
 		mem[ sp ].v_type = T_STRING;
 		mem[ sp ].v_value.v_pval = cp;
+		break;
+
+	case SC_SUBSTR :
+		cp = mem[ sp - 2 ].v_value.v_pval;
+		c_len = strlen( cp );
+		pos = mem[ sp - 1 ].v_value.v_ival;
+		len = mem[ sp ].v_value.v_ival;
+		if( pos < 1 || pos > c_len ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			sprintf( emsg,
+		"do_scl: substr: bad position %d: limits 1..%d.", pos, c_len );
+			RM_errormsg( TRUE, emsg );
+		}
+		if( len < 1 ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( TRUE, "do_scl: substr: len must >= 1" );
+		}
+		len = MIN( c_len - pos + 1, len ); 
+		ssp = ( char * )tm_malloc( len + 1, "do_scl:substr" );
+		if( ssp == NULL ){
+			rm_wdfname = ip->i_filename;
+			rm_emsg_lineno = ip->i_lineno;
+			RM_errormsg( TRUE,
+				"do_scl: substr: can't allocate ssp." );
+		}
+		strncpy( ssp, &cp[ pos - 1 ], len );
+		ssp[ len ] = '\0';
+		tm_free( cp );
+		sp = mp;
+		mp = mem[ mp ].v_value.v_ival;
+		mem[ sp ].v_type = T_STRING;
+		mem[ sp ].v_value.v_pval = ssp;
 		break;
 
 	default :
