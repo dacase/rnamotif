@@ -21,15 +21,15 @@ static	int	find_pknot();
 
 IDENT_T	*find_id();
 
-int	find_motif_driver( n_descr, descr, sites, locus, slen, sbuf )
-int	n_descr;
-STREL_T descr[];
+int	find_motif_driver( n_searches, searches, sites, locus, slen, sbuf )
+int	n_searches;
+SEARCH_T	*searches[];
 SITE_T	*sites;
 char	locus[];
 int	slen;
 char	sbuf[];
 {
-	int	i, w_winsize, s_zero, s_dollar;
+	int	i, w_winsize, s_caret, s_dollar;
 	IDENT_T	*ip;
 	
 	if( fm_window == NULL ){
@@ -57,43 +57,50 @@ fprintf( stderr, "fmd: locus = %s, slen = %d\n", locus, slen );
 
 	w_winsize = rm_dmaxlen < fm_windowsize ? rm_dmaxlen : fm_windowsize;
 
-	for( s_zero = 0; s_zero < slen - w_winsize; s_zero++ ){
-		s_dollar = s_zero + w_winsize - 1;
-fprintf( stderr, "srch.1: 0, %4d:%4d, %4d\n", s_zero, s_dollar, slen - 1 );
-/*
-		find_motif( 0, descr, i, i + rm_dmaxlen - 1 );
-*/
+	for( s_caret = 0; s_caret < slen - w_winsize; s_caret++ ){
+		s_dollar = s_caret + w_winsize - 1;
+		find_motif( 0, n_searches, searches, s_caret, s_dollar, slen );
 	}
 
 	s_dollar = slen - 1;
-	for( ; s_zero <= slen - rm_dminlen; s_zero++ ){
-fprintf( stderr, "srch.2: 0, %4d:%4d, %4d\n", s_zero, s_dollar, slen - 1);
-/*
-		find_motif( 0, descr, i, i + rm_dmaxlen - 1 );
-*/
+	for( ; s_caret <= slen - rm_dminlen; s_caret++ ){
+		find_motif( 0, n_searches, searches, s_caret, s_dollar, slen );
 	}
 
 	return( 0 );
 }
 
-static	int	find_motif( d, descr, s_zero, s_dollar )
-int	d;
-STREL_T	descr[];
-int	s_zero;
+static	int	find_motif( slev, n_searches, searches,
+	s_caret, s_dollar, slen )
+int	s_caret;
+int	n_searches;
+SEARCH_T	*searches[];
 int	s_dollar;
+int	slen;
 {
+	SEARCH_T	*srp;
 	STREL_T	*stp;
 
-	stp = &descr[ d ];
+	srp = searches[ slev ];
+	stp = srp->s_descr;
+
+fprintf( stderr, "fm: slev = %d, str = 0, %4d:%4d, %4d\n",
+	slev, s_caret, s_dollar, slen - 1 );
+
+	return(1);
+
 	switch( stp->s_type ){
 	case SYM_SS :
-		find_ss( d, descr, s_zero, s_dollar );
+		find_ss( slev, n_searches, searches, s_caret, s_dollar, slen );
 		break;
 	case SYM_H5 :
-		if( stp->s_proper )
-			find_wchlx( d, descr, s_zero, s_dollar );
-		else
-			find_pknot( d, descr, s_zero, s_dollar );
+		if( stp->s_proper ){
+			find_wchlx( slev, n_searches, searches,
+				s_caret, s_dollar, slen );
+		}else{
+			find_pknot(  slev, n_searches, searches,
+				s_caret, s_dollar, slen );
+		}
 		break;
 	case SYM_P5 :
 		rm_emsg_lineno = stp->s_lineno;
@@ -123,29 +130,37 @@ int	s_dollar;
 	}
 }
 
-static	int	find_ss( d, descr, s_zero, s_dollar )
-int	d;
-STREL_T	descr[];
-int	s_zero;
+static	int	find_ss( slev, n_searches, searches, s_caret, s_dollar, slen )
+int	slev;
+int	n_searches;
+SEARCH_T	*searches[];
+int	s_caret;
 int	s_dollar;
+int	slen;
 {
 
 }
 
-static	int	find_wchlx( d, descr, s_zero, s_dollar )
-int	d;
-STREL_T	descr[];
-int	s_zero;
+static	int	find_wchlx( slev, n_searches, searches,
+	s_caret, s_dollar, slen )
+int	slev;
+int	n_searches;
+SEARCH_T	*searches[];
+int	s_caret;
 int	s_dollar;
+int	slen;
 {
 
 }
 
-static	int	find_pknot( d, descr, s_zero, s_dollar )
-int	d;
-STREL_T	descr[];
-int	s_zero;
+static	int	find_pknot(  slev, n_searches, searches,
+	s_caret, s_dollar, slen )
+int	slev;
+int	n_searches;
+SEARCH_T	*searches[];
+int	s_caret;
 int	s_dollar;
+int	slen;
 {
 
 }
