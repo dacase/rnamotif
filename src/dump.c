@@ -142,6 +142,8 @@ IDENT_T	*ip;
 		break;
 	}
 
+	fprintf( fp, "\treinit= %d\n", ip->i_reinit);
+
 	fprintf( fp, "\tvalue = " );
 	switch( ip->i_val.v_type ){
 	case T_UNDEF :
