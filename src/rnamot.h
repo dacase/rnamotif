@@ -30,6 +30,7 @@ options:\n\
 #define	T_POS		5
 #define	T_IDENT		6
 #define	N_TYPE		7
+#define	T_IJ(i,j)	((i)*N_TYPE+(j))
 
 #define	C_UNDEF		0
 #define	C_LIT		1
@@ -154,7 +155,9 @@ typedef	struct	strel_t	{
 	char	*s_expbuf;
 	char	*s_e_expbuf;
 	int	s_mismatch;
+	float	s_matchfrac;
 	int	s_mispair;
+	float	s_pairfrac;
 	PAIRSET_T	*s_pairset;
 } STREL_T;
 
