@@ -631,8 +631,9 @@ STREL_T	descr[];
 		for( s = 1; s < stp->s_n_scopes; s++ ){
 			stp1 = stp->s_scopes[ s - 1 ];
 			stp2 = stp->s_scopes[ s ];
-			print_hierarchy( fp, lev+2, prefix1, 
-				stp1->s_index+1, descr );
+			if( stp1->s_index + 1 < stp2->s_index )
+				print_hierarchy( fp, lev+2, prefix1, 
+					stp1->s_index+1, descr );
 			mk_prefix( stp2, prefix, prefix2 ); 
 			print_1_element( fp, prefix2, stp2 );
 		}
