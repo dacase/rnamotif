@@ -253,11 +253,15 @@ STREL_T	*stp;
 	fprintf( fp, "\tlen      = " );
 	if( stp->s_minlen == UNDEF )
 		fprintf( fp, "UNDEF" );
+	else if( stp->s_minlen == UNBOUNDED )
+		fprintf( fp, "UNBOUNDED" );
 	else
 		fprintf( fp, "%d", stp->s_minlen );
 	fprintf( fp, ":" );
 	if( stp->s_maxlen == UNDEF )
 		fprintf( fp, "UNDEF" );
+	else if( stp->s_maxlen == UNBOUNDED )
+		fprintf( fp, "UNBOUNDED" );
 	else
 		fprintf( fp, "%d", stp->s_maxlen );
 	fprintf( fp, "\n" );
