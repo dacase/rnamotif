@@ -1288,6 +1288,11 @@ SITE_T	*sip;
 	char	*sp;
 	STREL_T	*stp;
 
+	if( sip->s_n_pos != sip->s_pairset->ps_pairs[ 0 ].p_n_bases ){
+		rm_emsg_lineno = sip->s_pos[ 0 ].p_lineno;
+		errormsg( 0,
+	"chk_site: Number of positions in site must agree with pairset." );
+	}
 	for( posp = sip->s_pos, i = 0; i < sip->s_n_pos; i++, posp++ ){
 		if( ( sp = posp->p_tag ) == NULL ){
 			rm_emsg_lineno = posp->p_lineno;
