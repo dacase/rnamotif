@@ -1,5 +1,17 @@
 test:	test.slack test.strict
-test.slack: nanlin pk1 qu+tr score.1 score.2 trna mp.ends efn sprintf bulge
+test.slack: 	\
+	nanlin		\
+	pk1		\
+	qu+tr		\
+	score.1		\
+	score.2		\
+	trna		\
+	mp.ends		\
+	efn		\
+	sprintf		\
+	bulge		\
+	getbest
+
 test.strict:	\
 	nanlin.strict	\
 	pk1.strict	\
@@ -10,7 +22,8 @@ test.strict:	\
 	mp.ends.strict	\
 	efn.strict	\
 	sprintf.strict	\
-	bulge.strict
+	bulge.strict	\
+	getbest.strict
 
 nanlin:
 	@echo =====================================================
@@ -102,6 +115,15 @@ bulge:
 		|| echo "   FAILED (possibly; see if diffs above look OK)"
 	@-rm -f $@.test
 
+getbest:
+	@echo =====================================================
+	@echo   "Running $@ test:"
+	@echo
+	@../src/rnamotif -descr $@.descr gbrna.111.0.fastn | ../src/rmfmt -l > $@.test
+	@-diff $@.chk $@.test && echo "  PASSED" \
+		|| echo "   FAILED (possibly; see if diffs above look OK)"
+	@-rm -f $@.test
+
 
 nanlin.strict:
 	@echo =====================================================
@@ -185,6 +207,15 @@ sprintf.strict:
 	@-rm -f $@.test
 
 bulge.strict:
+	@echo =====================================================
+	@echo   "Running $@ test:"
+	@echo
+	@../src/rnamotif -sh -context -Dctx_maxlen=5 -descr $@.descr gbrna.111.0.fastn | ../src/rmfmt -l > $@.test
+	@-diff $@.chk $@.test && echo "  PASSED" \
+		|| echo "   FAILED (possibly; see if diffs above look OK)"
+	@-rm -f $@.test
+
+getbest.strict:
 	@echo =====================================================
 	@echo   "Running $@ test:"
 	@echo
