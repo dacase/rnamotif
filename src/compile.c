@@ -8,6 +8,7 @@
 extern	FILE	*yyin;
 
 int	rm_error;
+int	rm_context = CTX_START;
 VALUE_T	rm_tokval;
 int	rm_lineno;
 int	rm_emsg_lineno;
