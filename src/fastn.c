@@ -22,11 +22,7 @@ char	sbuf[];
 	if( fgets( line, sizeof( line ), fp ) == NULL )
 		return( 0 ); 
 
-	/* Ctl-A separates entries on the ID line of a fastn file	*/
-	/* So this may be wrong in that it returns only the first	*/
-	/* such def if there are more than 1				*/
-
-	elp = strpbrk( line, "\001\r\n" );
+	elp = strpbrk( line, "\r\n" );
 	if( elp == NULL ){
 		fprintf( stderr, "FN_fgetseq: bad fastn entry: '%s'.\n", line );
 		skip( fp );
