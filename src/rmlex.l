@@ -38,6 +38,8 @@ q4		return( SYM_Q4 );
 
 ACCEPT		return( SYM_ACCEPT );
 REJECT		return( SYM_REJECT );
+break		return( SYM_BREAK );
+continue	return( SYM_CONTINUE );
 else		return( SYM_ELSE );
 for		return( SYM_FOR );
 if		return( SYM_IF );
