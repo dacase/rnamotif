@@ -115,7 +115,7 @@ strhdr		: strtype	{ if( rm_context == CTX_DESCR )
 				  else if( rm_context == CTX_SITES )
 					POS_open( $1 );
 				  else
-					$$ = node( $1, 0, 0, 0 );
+					$$ = RM_node( $1, 0, 0, 0 );
 				} ;
 strtype		: SYM_SS	{ $$ = SYM_SS; }
 		| SYM_H5	{ $$ = SYM_H5; }
@@ -205,7 +205,7 @@ for_incr	: asgn		{ $$ = $1; }
 		| empty		{ $$ = $1; } ;
 
 asgn		: lval asgn_op asgn
-				{ $$ = node( $2, 0, $1, $3 );
+				{ $$ = RM_node( $2, 0, $1, $3 );
 				  if( rm_context == CTX_PARMS )
 					PARM_add( $$ );
 				  else if( rm_context == CTX_DESCR ||
@@ -213,7 +213,7 @@ asgn		: lval asgn_op asgn
 					SE_addval( $$ );
 				}
 		| lval asgn_op expr
-				{ $$ = node( $2, 0, $1, $3 );
+				{ $$ = RM_node( $2, 0, $1, $3 );
 				  if( rm_context == CTX_PARMS )
 					PARM_add( $$ );
 				  else if( rm_context == CTX_DESCR ||
@@ -233,13 +233,13 @@ asgn_op		: SYM_ASSIGN	{ $$ = SYM_ASSIGN; }
 				{ $$ = SYM_STAR_ASSIGN; } ;
 expr		: conj		{ $$ = $1; }
 		| expr SYM_OR conj
-				{ $$ = node( SYM_OR, 0, $1, $3 ); } ;
+				{ $$ = RM_node( SYM_OR, 0, $1, $3 ); } ;
 conj		: compare	{ $$ = $1; }
 		| compare SYM_AND conj
-				{ $$ = node( SYM_AND, 0, $1, $3 ); } ;
+				{ $$ = RM_node( SYM_AND, 0, $1, $3 ); } ;
 compare		: a_expr	{ $$ = $1; }
 		| a_expr comp_op a_expr
-				{ $$ = node( $2, 0, $1, $3 ); } ;
+				{ $$ = RM_node( $2, 0, $1, $3 ); } ;
 comp_op		: SYM_DONT_MATCH
 				{ $$ = SYM_DONT_MATCH; }
 		| SYM_EQUAL	{ $$ = SYM_EQUAL; }
@@ -254,27 +254,27 @@ comp_op		: SYM_DONT_MATCH
 		| SYM_NOT_EQUAL	{ $$ = SYM_NOT_EQUAL; } ;
 a_expr		: term		{ $$ = $1; }
 		| a_expr add_op term
-				{ $$ = node( $2, 0, $1, $3 ); } ;
+				{ $$ = RM_node( $2, 0, $1, $3 ); } ;
 add_op		: SYM_PLUS	{ $$ = SYM_PLUS; }
 		| SYM_MINUS 	{ $$ = SYM_MINUS; } ;
 term		: factor	{ $$ = $1; }
 		| term mul_op factor
-				{ $$ = node( $2, 0, $1, $3 ); } ;
+				{ $$ = RM_node( $2, 0, $1, $3 ); } ;
 mul_op		: SYM_PERCENT	{ $$ = SYM_PERCENT; }
 		| SYM_SLASH	{ $$ = SYM_SLASH; }
 		| SYM_STAR	{ $$ = SYM_STAR; } ;
 factor		: primary	{ $$ = $1; }
 		| SYM_MINUS primary
-				{ $$ = node( SYM_NEGATE, 0, 0, $2 ); }
+				{ $$ = RM_node( SYM_NEGATE, 0, 0, $2 ); }
 		| SYM_NOT primary
-				{ $$ = node( SYM_NOT, 0, 0, $2 ); }
+				{ $$ = RM_node( SYM_NOT, 0, 0, $2 ); }
 		| pairing	{ $$ = $1; } ;
 pairing 	: stref		{ if( rm_context == CTX_SCORE )
 					$$ = $1;
 				}
 		| stref SYM_COLON pairing
 				{ if( rm_context == CTX_SCORE )
-					$$ = node( SYM_COLON, 0, $1, $3 );
+					$$ = RM_node( SYM_COLON, 0, $1, $3 );
 				} ;
 primary		: lval		{ $$ = $1; }
 		| literal	{ $$ = $1; }
@@ -282,45 +282,48 @@ primary		: lval		{ $$ = $1; }
 		| SYM_LPAREN expr SYM_RPAREN
 				{ $$ = $2; } ;
 fcall		: ident SYM_LPAREN e_list SYM_RPAREN
-				{ $$ = node( SYM_CALL, 0, $1, $3 ); } ;
+				{ $$ = RM_node( SYM_CALL, 0, $1, $3 ); } ;
 stref		: strhdr SYM_LPAREN a_list SYM_RPAREN
 				{ if( rm_context == CTX_DESCR )
 					SE_close();
 				  else if( rm_context == CTX_SITES )
 					POS_close();
 				  else if( rm_context == CTX_SCORE )
-					$$ = node( SYM_STREF, 0, $1, $3 );
+					$$ = RM_node( SYM_STREF, 0, $1, $3 );
 				} ;
 lval		: ident		{ $$ = $1; }
 		| auto_lval	{ $$ = $1; } ;
-auto_lval	: incr_op ident	{ $$ = node( $1, 0, 0, $2 ); }
-		| ident incr_op	{ $$ = node( $2, 0, $1, 0 ); } ;
-literal		: SYM_INT	{ $$ = node( SYM_INT, &rm_tokval, 0, 0 ); }
-		| SYM_FLOAT	{ $$ = node( SYM_FLOAT, &rm_tokval, 0, 0 ); }
-		| SYM_STRING	{ $$ = node( SYM_STRING, &rm_tokval, 0, 0 ); } 
-		| SYM_DOLLAR	{ $$ = node( SYM_DOLLAR, &rm_tokval, 0, 0 ); }
+auto_lval	: incr_op ident	{ $$ = RM_node( $1, 0, 0, $2 ); }
+		| ident incr_op	{ $$ = RM_node( $2, 0, $1, 0 ); } ;
+literal		: SYM_INT	{ $$ = RM_node( SYM_INT, &rm_tokval, 0, 0 ); }
+		| SYM_FLOAT	{ $$ = RM_node( SYM_FLOAT, &rm_tokval, 0, 0 ); }
+		| SYM_STRING	{ $$ = RM_node( SYM_STRING,
+					&rm_tokval, 0, 0 ); } 
+		| SYM_DOLLAR	{ $$ = RM_node( SYM_DOLLAR,
+					&rm_tokval, 0, 0 ); }
 		| pairset	{ $$ = $1; } ;
-ident		: SYM_IDENT 	{ $$ = node( SYM_IDENT, &rm_tokval, 0, 0 ); } ;
+ident		: SYM_IDENT 	{ $$ = RM_node( SYM_IDENT,
+					&rm_tokval, 0, 0 ); } ;
 incr_op		: SYM_MINUS_MINUS
 				{ $$ = SYM_MINUS_MINUS; }
 		| SYM_PLUS_PLUS	{ $$ = SYM_PLUS_PLUS; } ;
 e_list		: expr		{ if( rm_context != CTX_SCORE )
 					PR_add( $1 );
 				  else
-					$$ = node( SYM_LIST, 0, $1, 0 );
+					$$ = RM_node( SYM_LIST, 0, $1, 0 );
 				}
 		| expr SYM_COMMA e_list
 				{ if( rm_context != CTX_SCORE )
 					PR_add( $1 );
 				  else
-					$$ = node( SYM_LIST, 0, $1, $3 );
+					$$ = RM_node( SYM_LIST, 0, $1, $3 );
 				} ;
 a_list		: asgn		{ if( rm_context == CTX_SCORE )
-					$$ = node( SYM_LIST, 0, $1, 0 );
+					$$ = RM_node( SYM_LIST, 0, $1, 0 );
 				}
 		| asgn SYM_COMMA a_list
 				{ if( rm_context == CTX_SCORE )
-					$$ = node( SYM_LIST, 0, $1, $3 );
+					$$ = RM_node( SYM_LIST, 0, $1, $3 );
 				} ;
 pairset		: SYM_LCURLY 	{ if( rm_context != CTX_SCORE )
 					PR_open();
@@ -328,7 +331,7 @@ pairset		: SYM_LCURLY 	{ if( rm_context != CTX_SCORE )
 				{ if( rm_context != CTX_SCORE )
 					$$ = PR_close();
 				  else
-					$$ = node( SYM_LCURLY, 0, 0, $2 );
+					$$ = RM_node( SYM_LCURLY, 0, 0, $2 );
 				} ;
 empty		: 		{ $$ = (  int )NULL; } ;
 %%
