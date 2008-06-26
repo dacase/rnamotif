@@ -148,7 +148,8 @@ static	int	min_suffixlen( STREL_T *, STREL_T [] );
 static	void	find_search_order( int, STREL_T [] );
 static	void	set_search_order_links( int, SEARCH_T *[]);
 static	void	optimize_query( void );
-static	int	pk_cmp( STREL_T **, STREL_T ** );
+//static	int	pk_cmp( STREL_T **, STREL_T ** );
+static	int		pk_cmp(const void *, const void *);
 static	void	dump_bestpat();
 
 int	RM_init( int argc, char *argv[] )
@@ -3461,10 +3462,17 @@ static	void	optimize_query( void )
 	}
 }
 
+/*
 static	int	pk_cmp( STREL_T **d1, STREL_T **d2 )
 {
 
 	return( ( *d1 )->s_index - ( *d2 )->s_index );
+}
+*/
+static	int	pk_cmp( const void *d1, const void *d2 )
+{
+
+	return (*((STREL_T **)d1))->s_index - (*((STREL_T **)d2))->s_index;
 }
 
 static	void	dump_bestpat( FILE *fp, STREL_T *stp )
