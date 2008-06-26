@@ -15,7 +15,7 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <math.h>
 
 #include "rmdefs.h"
@@ -116,8 +116,6 @@ static	int	tstki[ 5 ][ 5 ][ 5 ][ 5 ];
 #define	STKSIZE	500
 static	int	stk[ STKSIZE ][ 3 ];
 static	int	stkp;
-
-char	*getenv( char * );
 
 static	int	gettloops( char [] );
 static	int	gettriloops( char [] );

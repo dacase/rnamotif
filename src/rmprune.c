@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #define	U_MSG_S	"usage: %s [ rnamotif-out-file ]\n"
 
