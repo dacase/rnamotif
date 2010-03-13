@@ -37,7 +37,7 @@ static	char	dline[ LINE_SIZE ];
 
 #define	FMT_LEFT	0
 #define	FMT_RIGHT	1
-static	int	getline( char [], FILE * );
+static	int	tmgetline( char [], FILE * );
 static	void	ungetline( char [] );
 static	int	*getfmt( int, int, char *[], int * );
 static	int	is_a_number( char [] );
@@ -114,7 +114,7 @@ main( int argc, char *argv[] )
 		exit( 1 );
 	}
 
-	while( getline( line, ifp ) ){
+	while( tmgetline( line, ifp ) ){
 		if( *line == '>' ){
 			ungetline( line );
 			break;
@@ -149,7 +149,7 @@ main( int argc, char *argv[] )
 		omaxw[ f ] = 0;
 
 	m_sfields = 0;
-	for( n_sfields1 = 0, scored = 1, sort = 1; getline( line, ifp ); ){
+	for( n_sfields1 = 0, scored = 1, sort = 1; tmgetline( line, ifp ); ){
 		if( *line == '#' )
 			continue;	/* allow cat of rnamotif runs */
 		if( *line == '>' ){
@@ -372,7 +372,7 @@ main( int argc, char *argv[] )
 	exit( 0 );
 }
 
-static	int	getline( char line[], FILE *fp )
+static	int	tmgetline( char line[], FILE *fp )
 {
 	int	i, c;
 	char	*lp;

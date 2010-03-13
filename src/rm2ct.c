@@ -78,7 +78,7 @@ static	DESCR_T	*descr;
 static	int	n_descr;
 #define	DFIELD1	2	
 
-static	int	getline( char [], FILE * );
+static	int	tmgetline( char [], FILE * );
 static	void	ungetline( char [] );
 static	DESCR_T	*getdescr();
 static	int	getdtype();
@@ -142,7 +142,7 @@ main( int argc, char *argv[] )
 		goto CLEAN_UP;
 	}
 
-	while( getline( line, fp ) ){
+	while( tmgetline( line, fp ) ){
 		if( *line == '>' ){
 			ungetline( line );
 			break;
@@ -182,15 +182,15 @@ main( int argc, char *argv[] )
 		}
 	}
 
-	while( getline( line, fp ) ){
+	while( tmgetline( line, fp ) ){
 		if( *line == '#' )
 			continue;
 		if( *line == '>' )
-			getline( line, fp );
+			tmgetline( line, fp );
 		if(!getsinfo( line, n_descr, descr,
 			sname, &energy, &comp, &off, &len, &seqp ))
 		{
-			getline( line, fp );
+			tmgetline( line, fp );
 			continue;
 		}
 		wr_ctfile( stdout, o_type, descr,
@@ -205,7 +205,7 @@ CLEAN_UP : ;
 	exit( rval );
 }
 
-static	int	getline( char line[], FILE *fp )
+static	int	tmgetline( char line[], FILE *fp )
 {
 	int	i, c;
 	char	*lp;
