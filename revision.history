@@ -1,3 +1,6 @@
+3.0.6   2010-mar-13
+    A~oid a name collision with the getline() routine in some stdio.h headers
+
 3.0.4   2005-jan-24
     Minor fixup to config.h to tell people to get an up-to-date version
     of bison; plus a corresponding fix to the grammar.
