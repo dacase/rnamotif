@@ -2,7 +2,7 @@
 #  values given here should work on GNU/Linux systems.
 
 CC= gcc
-CFLAGS= -O2
+CFLAGS= -O2 -Wall
 #CFLAGS= -g
 
 #  The yacc compiler is typically "yacc" (for the *real* yacc), "byacc"
