@@ -90,7 +90,7 @@ static	int	n_block;
 
 static	int	wc_only;
 
-static	int	tmgetline( char [], FILE * );
+static	int	MY_getline( char [], FILE * );
 static	void	ungetline( char [] );
 static	DESCR_T	*getdescr();
 static	int	getname( char [], char [] );
@@ -133,7 +133,7 @@ main( int argc, char *argv[] )
 		goto CLEAN_UP;
 	}
 
-	while( tmgetline( line, fp ) ){
+	while( MY_getline( line, fp ) ){
 		if( *line == '>' ){
 			ungetline( line );
 			break;
@@ -159,12 +159,12 @@ main( int argc, char *argv[] )
 	}
 
 	*l_bname = '\0';
-	for( n_block = 0; tmgetline( line, fp ); ){
+	for( n_block = 0; MY_getline( line, fp ); ){
 		if( *line == '#' )
 			continue;
 		if( *line == '>' ){
 			if( !getname( line, bname ) ){
-				tmgetline( line, fp );
+				MY_getline( line, fp );
 				continue;
 			}
 			if( strcmp( l_bname, bname ) ){
@@ -194,7 +194,7 @@ CLEAN_UP : ;
 	exit( rval );
 }
 
-static	int	tmgetline( char line[], FILE *fp )
+static	int	MY_getline( char line[], FILE *fp )
 {
 	int	i, c;
 	char	*lp;
@@ -770,7 +770,7 @@ static int	enter_block( FILE *fp, char line[],
 		exit( 1 );
 	}
 	strcpy( sp, line );
-	tmgetline( line, fp );
+	MY_getline( line, fp );
 	len = strlen( line );
 	sp1 = ( char * )malloc( ( len + 1 ) * sizeof( char ) );
 	if( sp1 == NULL ){

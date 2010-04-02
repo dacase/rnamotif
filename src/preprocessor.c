@@ -34,7 +34,7 @@ static	FILE	*pushfile( char [] );
 static	FILE	*popfile();
 static	FILE	*include();
 static	void	dumpfstk( FILE *, char [] );
-static	FILE	*tmgetline( char [], int, FILE * );
+static	FILE	*RM_getline( char [], int, FILE * );
 static	void	putline( FILE *, char [], int, char [] );
 static	char	*isdescr( char [] );
 
@@ -67,7 +67,7 @@ char	*RM_preprocessor( void )
 		return( NULL );
 	}
 
-	for( ; dfp = tmgetline( line, sizeof( line ), dfp ); ){
+	for( ; dfp = RM_getline( line, sizeof( line ), dfp ); ){
 		rm_lineno++;
 		if( *line == '#' ){
 			for( lp = &line[1]; isspace( *lp ); lp++ )
@@ -232,7 +232,7 @@ static	void	dumpfstk( FILE *fp, char msg[] )
 	} 
 }
 
-static	FILE	*tmgetline( char line[], int l_size, FILE *fp )
+static	FILE	*RM_getline( char line[], int l_size, FILE *fp )
 {
 
 	do{

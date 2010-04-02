@@ -8,13 +8,19 @@ extern	int	rm_context;
 
 static	NODE_T	*np;
 
+/*
 typedef	union	{
 	int	ival;
 	NODE_T	*npval;
 } YYSTYPE;
-#define YYSTYPE_IS_DECLARED 1
+*/
 
 %}
+
+%union	{
+	int	ival;
+	NODE_T	*npval;
+}
 
 %token	<ival>	SYM_PARMS
 %token	<ival>	SYM_DESCR
@@ -336,7 +342,7 @@ release_stmt	: SYM_RELEASE ident SYM_SEMICOLON
 			{ RM_release( $2 ); }
 		;
 while_stmt	: SYM_WHILE SYM_LPAREN expr
-				{ RM_while( $3 ); $$ = NULL; }
+				{ RM_while( $3 ); $<npval>$ = NULL; }
 			SYM_RPAREN stmt
 				{ RM_endwhile(); $$ = NULL; }
 		;
