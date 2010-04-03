@@ -1,3 +1,6 @@
+3.0.7   2010-apr-03
+    Update grammar to work with bison 2.4.1; fixed some -Wall warnings
+
 3.0.6   2010-mar-13
     Avoid a name collision with the getline() routine in some stdio.h headers
 
