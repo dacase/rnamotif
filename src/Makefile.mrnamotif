@@ -8,6 +8,6 @@ mrnamotif:	$(MRM_OBJS)
 
 clean:
 	rm -f *.o		\
-		mrmrnamotif	\
+		mrnamotif	\
 		core		\
 		junk*
