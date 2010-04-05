@@ -30,7 +30,7 @@ rnamotif:	$(RNAMOTOBJS)
 
 rnamot.o:	rmdefs.h rnamot.h dbutil.h
 
-compile.o:	rmdefs.h rnamot.h regexp.h mm_regexp.h y.tab.h
+compile.o:	rmdefs.h rnamot.h mm_regexp.h y.tab.h
 
 dbutil.o:	rmdefs.h dbutil.h
 
@@ -39,13 +39,13 @@ dump.o:		rmdefs.h rnamot.h y.tab.h
 dumpnode.h:	y.tab.h mk_dumpnode.h.sh
 		./mk_dumpnode.h.sh y.tab.h > dumpnode.h
 
-efn.o:		rmdefs.h rnamot.h split.h
+efn.o:		rmdefs.h rnamot.h 
 
-efn2.o:		rmdefs.h rnamot.h split.h
+efn2.o:		rmdefs.h rnamot.h
 
 errormsg.o:	rmdefs.h
 
-find_motif.o:	rmdefs.h rnamot.h regexp.h mm_regexp.h y.tab.h
+find_motif.o:	rmdefs.h rnamot.h mm_regexp.h y.tab.h
 
 getargs.o:	rmdefs.h rnamot.h
 
@@ -55,7 +55,7 @@ node.o:		dumpnode.h rnamot.h y.tab.h
 
 preprocessor.o:	rnamot.h
 
-score.o:	rmdefs.h rnamot.h regexp.h mm_regexp.h y.tab.h
+score.o:	rmdefs.h rnamot.h mm_regexp.h y.tab.h
 
 y.tab.o:	rnamot.h y.tab.c
 
@@ -70,17 +70,13 @@ lex.yy.c:	rmlex.l
 rmprune:	rmprune.o split.o
 	$(CC)	$(CFLAGS) -o rmprune rmprune.o split.o
 
-rmprune.o:	rmdefs.h split.h
+rmprune.o:	rmdefs.h
 
 rmfmt:		rmfmt.o split.o
 	$(CC)	$(CFLAGS) -o rmfmt rmfmt.o split.o
 
-rmfmt.o:	split.h
-
 rm2ct:		rm2ct.o split.o
 	$(CC)	$(CFLAGS) -o rm2ct rm2ct.o split.o
-
-rm2ct.o:	split.h
 
 efn_drv:	efn_drv.o efn.o errormsg.o split.o
 	$(CC)	$(CFLAGS) -o efn_drv efn_drv.o efn.o errormsg.o split.o -lm
