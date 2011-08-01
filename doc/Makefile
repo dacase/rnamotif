@@ -7,7 +7,7 @@
 #
 
 SHELL = /bin/sh
-.SUFFIXES: .me .doc .ps .html
+.SUFFIXES: .me .doc .ps .html .pdf
 #
 #  set site-specific ROFF stuff
 #
@@ -24,6 +24,9 @@ GROPS  = grops
 SRC = 	intro.me tutorial.me algorithms.me summary.me
 
 DOC = 	intro.doc tutorial.doc algorithms.doc summary.doc
+
+pdf:	rnamotif.pdf 
+		/bin/rm -f rnamotif.me
 
 doc:		$(DOC)
 
@@ -60,6 +63,12 @@ rnamotif.html:    $(SRC)
 .me.ps:		$<
 		cat rnamotif.mac $< | $(REFER) | $(PIC) | $(TBL) | $(EQN) -Tps | \
 			$(TROFF) -me -Tps 2> $@.errs | $(GROPS) | fix_bookmarks > $@ 
+		/bin/rm $@.errs
+
+.me.pdf:		$<
+		cat rnamotif.mac $< | $(REFER) | $(PIC) | $(TBL) | $(EQN) -Tps | \
+			$(TROFF) -me -Tps 2> $@.errs | $(GROPS) | fix_bookmarks \
+			| ps2pdf - - > $@ 
 		/bin/rm $@.errs
 
 clean::

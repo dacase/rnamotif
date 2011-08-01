@@ -160,6 +160,39 @@ databases, it translates any \fCu\fR's in sequence constraints, as well as in
 the databases that are being searched to \fCt\fR's.  Second, any upper case
 literal sequences and database sequences are converted to their lower case
 equivalents as well.
+.pp
+By default rnamotif searches both the sequences you enter and their w/c
+complements.  We did this because if you're searching genomic DNA the motifs
+can be on either strand.  Of course, if you wish to search only the
+sequences you've entered you can turn this feature off by adding the
+line
+.(l
+	chk_both_strs = 0;
+.)l
+to the parms section.
+.pp
+So far so good.  But there can be confusion
+as to how to number the hits on the complementary strand.   Hits
+on the input (sense?) strand are numbered from the 5'-most base.  So we
+decided that we should number hits on the complemenary strand also from
+their 5'-most base, and indicate the this hit is on the compliementary
+strand by putting a 1 in the third column:
+.pp
+Thus (for a different example):
+.(l
+	gi|94681052|ref|NM_017623.4|    0.000 0      41   35 c tg c
+ggcgggt cggttaggctggtt gttcgcc g cg
+.)l
+with the 0 in column 3 is on the input (sense) strand while
+.(l
+	gi|94681052|ref|NM_017623.4|    0.000 1    4634   39 t gg g
+gagggag atccttgtggggatggga cttcttt a tc
+.)l
+with the 1 in column 3 is on the (implied) complementary strand; in
+the original sequence the motif begins at postion 4634 and
+moves \fIright to left\fR.
+(When we were designing rnamotif we looked hard at this double stranded
+numbering problem and decided that this was the least worst case.)
 .sh 3 "Sequences and Regular Expressions."
 .pp
 Based on our discussion of the UUCG-loop, we suspect that we could convert the
