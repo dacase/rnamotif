@@ -56,7 +56,7 @@ Quick-start guide to installation and testing of rnamotif:
 
         setenv EFNDATA /usr/local/rnamotif-3.0.5/efndata/
 
-Please send comments and questions to Tom Macke <macke@scripps.edu>.
+Please send comments and questions to Tom Macke <macke_tom@yahoo.com>.
 
 ==============================================================================
 
@@ -64,12 +64,9 @@ More detailed instructions:
 
 I. Installing rnamotif.
 
-1. rnamotif is distributed as a zipped tar file available by anonymous ftp
-   at
+1. rnamotif is distributed as a zipped tar file available here:
 
-	ftp://ftp.scripps.edu/case/macke/rnamotif-Version.tar.gz
-
-   where Version is 3 numbers, eg 3.0.5.  
+	http://casegroup.rutgers.edu/rnamotif-3.0.7.tar.gz
 
 2. This file contains a single top level directory, rnamotif, which contains
    several subdirectories which in turn contain the sources to rnamotif, three
