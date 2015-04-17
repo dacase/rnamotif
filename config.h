@@ -10,8 +10,8 @@ CFLAGS= -O2 -Wall
 #  from bison).  Note that /bin/yacc is sometimes a symlink to bison; on
 #  such systems you need the -y flag.
 
-#  Note that version of bison (like 1.35 that is packaged with a number of
-#  Linux distributions) will not work; you need to get version 1.875 or later.
+#  Note that you need to get version 1.875 or later of bison.  Since this 
+#  was released in 2003, that should not be much of a problem....
 #  Go to http://www.gnu.org/software/bison/bison.html for more information.
 
 YACC = bison -y
