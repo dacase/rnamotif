@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "log.h"
+#include "split.h"
+
 #define	U_MSG_S	"usage: %s [ rnamotif-out-file ]\n"
 
 #include "rmdefs.h"
@@ -95,8 +98,10 @@ static	void	ungetline( char [] );
 static	DESCR_T	*getdescr();
 static	int	getname( char [], char [] );
 static	void	prune_block( FILE *, int, BLOCK_T [] );
+#if 0
 static	int	find_0_bulge( int, BLOCK_T [] );
 static	void	rm_0_bulge( int, BLOCK_T [] );
+#endif
 static	void	rezip_group( FILE *, int, int, int, BLOCK_T [] );
 static	void	getdetails( BLOCK_T * );
 static	int	chkrel( BLOCK_T *, BLOCK_T * );
@@ -104,6 +109,7 @@ static	int	wchlxrel( int, DETAIL_T *, DETAIL_T *, DETAIL_T *, DETAIL_T * );
 static	int	otherhlxrel( DESCR_T *, int, BLOCK_T *, BLOCK_T * );
 static	int	enter_block( FILE *, char [], int, BLOCK_T [] );
 
+int
 main( int argc, char *argv[] )
 {
 	int	ac;
@@ -127,8 +133,7 @@ main( int argc, char *argv[] )
 	if( fname == NULL )
 		fp = stdin;
 	else if( ( fp = fopen( fname, "r" ) ) == NULL ){
-		fprintf( stderr, "%s: can't read rnamotif-out-file %s.\n",
-			argv[ 0 ], fname );
+		LOG_ERROR("can't read rnamotif-out-file %s.", fname );
 		rval = 1;
 		goto CLEAN_UP;
 	}
@@ -177,8 +182,7 @@ main( int argc, char *argv[] )
 			}
 			n_block = enter_block( fp, line, n_block, block );
 		}else{
-			fprintf( stderr, "%s: unexpected input: '%s'\n",
-				argv[ 0 ], line );
+			LOG_ERROR("unexpected input: '%s'", line );
 			rval = 1;
 			goto CLEAN_UP;
 		}
@@ -232,12 +236,12 @@ static	DESCR_T	*getdescr( int n_fields, int dfield1, char *fields[],
 	*n_descr = n_fields - dfield1;
 	descr = ( DESCR_T * )malloc( *n_descr * sizeof( DESCR_T ) );
 	if( descr == NULL ){
-		fprintf( stderr, "getdescr: can't allocate descr.\n" );
+		LOG_ERROR("can't allocate descr.");
 		return( NULL );
 	}
 	stk = ( int * )malloc( *n_descr * sizeof( int ) );
 	if( stk == NULL ){
-		fprintf( stderr, "getdescr: can't allocate stk.\n" );
+		LOG_ERROR("can't allocate stk.");
 		return( NULL );
 	}
 	stkp = 0;
@@ -254,12 +258,12 @@ static	DESCR_T	*getdescr( int n_fields, int dfield1, char *fields[],
 	for( dp = descr, d = 0; d < *n_descr; d++, dp++ ){
 		if( dp->d_type == DT_SS )
 			continue;
-		if( tp = strchr( fields[ d + dfield1 ], '(' ) ){
+		if((tp = strchr( fields[ d + dfield1 ], '(' ))){
 			if( dp->d_els[ 0 ] != UNDEF )
 				continue;
 			dp->d_els[ 0 ] = d;
 			for( n_els = 1, d1 = d + 1; d1 < *n_descr; d1++ ){
-				if( tp1=strchr( fields[ d1 + dfield1 ], '(' ) ){
+				if((tp1=strchr( fields[ d1 + dfield1 ], '(' ))){
 					if( !strcmp( tp, tp1 ) ){
 						dp->d_els[ n_els ] = d1;
 						n_els++;
@@ -382,10 +386,10 @@ static void	prune_block( FILE *fp, int n_block, BLOCK_T block[] )
 	}
 	n_block = bk;
 
-/*
+#if 0
 	if( n_block > 1 )
 		n_block = find_0_bulge( n_block, block );
-*/
+#endif
 
 	for( bp = block, b = 0; b < n_block; b++, bp++ ){
 		fputs( bp->b_def, fp );
@@ -438,6 +442,7 @@ NEXT_b : ;
 	}
 }
 
+#if 0
 static	int	find_0_bulge( int n_block, BLOCK_T block[] )
 {
 	BLOCK_T	*bp;
@@ -514,13 +519,12 @@ static	void	rm_0_bulge( int n_block, BLOCK_T block[] )
 }
 	}
 
-fprintf( stderr, "rm0: nbp = %d\n", nbp );
+LOG_DEBUG("nbp = %d", nbp );
 
 	for( b = 0; b < n_block; b++, bp++ ){
 		bp->b_basepair = ( int * )malloc( nbp * sizeof( int ) );
 		if( bp->b_basepair == NULL ){
-			fprintf( stderr,
-				"rm_0_bulge: can't allocate b_basepair.\n" );
+			LOG_ERROR("can't allocate b_basepair.");
 			exit( 1 );
 		}
 		for( b0 = 0; b0 < nbp; b0++ )
@@ -534,7 +538,7 @@ fprintf( stderr, "rm0: nbp = %d\n", nbp );
 	}else
 		b0 = bp->b_details[ 0 ].d_start;
 
-fprintf( stderr, "rm0: b0 = %d\n", b0 );
+LOG_DEBUG("b0 = %d", b0 );
 
 	for( bp = block, b = 0; b < n_block; b++, bp++ ){
 		for( d = 0; d < n_descr; d++ ){
@@ -550,14 +554,14 @@ fprintf( stderr, "rm0: b0 = %d\n", b0 );
 					for(b5=de->d_start;b5<=de->d_stop;b5++){
 						b3 = ( de3->d_stop - b0 ) - 
 							( b5 - de->d_start );
-fprintf( stderr, "h5s: b5 = %d, b3 = %d\n", b5, b3 );
+LOG_DEBUG("b5 = %d, b3 = %d", b5, b3 );
 						bp->b_basepair[ b5 - b0 ] = b3;
 					}
 				}else{
 					for(b5=de->d_start;b5>=de->d_stop;b5--){
 						b3 = ( de3->d_stop - b0 ) + 
 							( b5 - de->d_start );
-fprintf( stderr, "h5c: b5 = %d, b3 = %d\n", b5, b3 );
+LOG_DEBUG("b5 = %d, b3 = %d", b5, b3 );
 						bp->b_basepair[ b5 - b0 ] = b3;
 					}
 				}
@@ -570,22 +574,20 @@ fprintf( stderr, "h5c: b5 = %d, b3 = %d\n", b5, b3 );
 					for(b3=de->d_stop;b3>=de->d_start;b3--){
 						b5 = ( de5->d_start - b0 ) + 
 							( de->d_stop - b3 );
-fprintf( stderr, "h3s: b3 = %d, b5 = %d\n", b3, b5 );
+LOG_DEBUG("b3 = %d, b5 = %d", b3, b5 );
 						bp->b_basepair[ b3 - b0 ] = b5;
 					}
 				}else{
 					for(b3=de->d_stop;b3<=de->d_start;b3++){
 						b5 = ( de5->d_start - b0 ) - 
 							( b3 - de->d_stop );
-fprintf( stderr, "h3c: b3 = %d, b5 = %d\n", b3, b5 );
+LOG_DEBUG("b3 = %d, b5 = %d", b3, b5 );
 						bp->b_basepair[ b3 - b0 ] = b5;
 					}
 				}
 				break;
 			default :
-				fprintf( stderr,
-					"rm_0_bulge: dtype %d not supported.\n",
-					 dt );
+				LOG_ERROR("dtype %d not supported.", dt );
 				exit( 1 );
 				break;
 			}
@@ -596,7 +598,7 @@ fprintf( stderr, "h3c: b3 = %d, b5 = %d\n", b3, b5 );
 		for( bp1 = bp + 1, b1 = b + 1; b1 < n_block; b1++, bp1++ ){
 			for( same = 1, p = 0; p < nbp; p++ ){
 				if( bp->b_basepair[p] != bp1->b_basepair[p] ){
-fprintf( stderr, "rm0: b = %d, b1 = %d, p = %3d, diff:\n", b, b1, p );
+LOG_DEBUG("b = %d, b1 = %d, p = %3d, diff:", b, b1, p );
 					same = 0;
 					break;
 				}
@@ -612,6 +614,7 @@ fprintf( stderr, "rm0: b = %d, b1 = %d, p = %3d, diff:\n", b, b1, p );
 		free( bp->b_basepair );
 
 }
+#endif
 
 static void	getdetails( BLOCK_T *bp )
 {
@@ -765,8 +768,7 @@ static int	enter_block( FILE *fp, char line[],
 
 	sp = ( char * )malloc( strlen( line ) + 1 );
 	if( sp == NULL ){
-		fprintf( stderr,
-			"enter_block: can't allocate space for def line.\n" );
+		LOG_ERROR("can't allocate space for def line.");
 		exit( 1 );
 	}
 	strcpy( sp, line );
@@ -774,15 +776,13 @@ static int	enter_block( FILE *fp, char line[],
 	len = strlen( line );
 	sp1 = ( char * )malloc( ( len + 1 ) * sizeof( char ) );
 	if( sp1 == NULL ){
-		fprintf( stderr,
-			"enter_block: can't allocate space for hit line.\n" );
+		LOG_ERROR("can't allocate space for hit line.");
 		exit( 1 );
 	}
 	strcpy( sp1, line );
 	dp = ( DETAIL_T * )malloc( n_descr * sizeof( DETAIL_T ) );
 	if( dp == NULL ){
-		fprintf( stderr,
-			"enter_block: can't allocate space for details.\n" );
+		LOG_ERROR("can't allocate space for details.");
 		exit( 1 );
 	}
 	bp = &block[ n_block ];

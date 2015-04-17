@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "log.h"
 #include "rmdefs.h"
 #include "rnamot.h"
 
@@ -43,6 +44,7 @@ int	RM_getefndata( void );
 int	RM_knotted( void );
 int	RM_efn( int, int, int );
 
+int
 main( argc, argv )
 int	argc;
 char	*argv[];
@@ -54,7 +56,7 @@ char	*argv[];
 	int	rval = 0;
 
 	if( ( ep = getenv( "EFNDATA" ) ) == NULL ){
-		fprintf( stderr, "%s: EFNDATA not defined.\n", argv[ 0 ] );
+		LOG_ERROR( "EFNDATA not defined.");
 		rval = 1;
 		goto CLEAN_UP;
 	}else{
@@ -74,8 +76,7 @@ char	*argv[];
 		rval = 1;
 		goto CLEAN_UP;
 	}else if( ( cfp = fopen( argv[ 1 ], "r" ) ) == NULL ){
-		fprintf( stderr, "%s: can't read ct-file %s\n",
-			argv[ 0 ], argv[ 1 ] );
+		LOG_ERROR("can't read ct-file %s", argv[ 1 ] );
 		rval = 1;
 		goto CLEAN_UP;
 	}else

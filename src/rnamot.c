@@ -1,6 +1,9 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
+#include "log.h"
 #include "rmdefs.h"
 #include "rnamot.h"
 #include "dbutil.h"
@@ -32,6 +35,7 @@ static	int	slen;
 
 static	void	mk_rcmp( int, char [] );
 
+int
 main( int argc, char *argv[] )
 {
 	IDENT_T	*ip;
@@ -61,8 +65,7 @@ main( int argc, char *argv[] )
 	}
 
 	if( ( yyin = fopen( rm_args->a_xdfname, "r" ) ) == NULL ){
-		fprintf( stderr, "%s: can't read xd-file %s.\n",
-			argv[ 0 ], rm_args->a_xdfname );
+		LOG_ERROR("can't read xd-file %s.", rm_args->a_xdfname );
 		exit( 1 );
 	}
 
@@ -122,8 +125,7 @@ main( int argc, char *argv[] )
 	else if( !strcmp( rm_args->a_dbfmt, DT_GENBANK ) )
 		fgetseq = GB_fgetseq;
 	else{
-		fprintf( stderr, "%s: unknown data format %d.\n",
-			argv[ 0 ], rm_args->a_dbfmt );
+		LOG_ERROR("unknown data format %s.", rm_args->a_dbfmt );
 		exit( 1 );
 	}
 	rm_dbfp = DB_fnext( rm_dbfp, &rm_args->a_c_dbfname,
@@ -134,8 +136,7 @@ main( int argc, char *argv[] )
 	s_sbuf = rm_args->a_maxslen;
 	sbuf = ( char * )malloc( s_sbuf * sizeof( char ) );
 	if( sbuf == NULL ){
-		fprintf( stderr, "%s: can't allocate sbuf (s_sbuf=%d)\n",
-			argv[ 0 ], s_sbuf );
+		LOG_ERROR("can't allocate sbuf (s_sbuf=%d)", s_sbuf );
 		exit( 1 );
 	}
 	
@@ -200,8 +201,8 @@ static	void	mk_rcmp( int slen, char sbuf[] )
 	}
 
 	for( sp = sbuf, cp = &sbuf[ slen - 1 ]; sp <= cp; sp++, cp-- ){
-		c = wc_cmp[ *sp ];
-		*sp = wc_cmp[ *cp ];
+		c = wc_cmp[ (int)*sp ];
+		*sp = wc_cmp[ (int)*cp ];
 		*cp = c;
 	}
 }

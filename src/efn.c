@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "split.h"
 #include "rmdefs.h"
 #include "rnamot.h"
 
@@ -253,8 +254,10 @@ static	int	gettloops( char fname[] )
 					NINT( 100.0 * energy );
 			}
 		}
-	}else
+	}else{
+		t = 0;
 		rval = 0;
+	}
 	fclose( fp );
 
 	if( t > MAXTLOOPS ){
@@ -294,8 +297,10 @@ static	int	gettriloops( char fname[] )
 				efdp->e_triloops[ t ][ 1 ] = NINT( 100.0 * energy );
 			}
 		}
-	}else
+	}else{
+		t = 0;
 		rval = 0;
+	}
 	fclose( fp );
 
 	if( t > MAXTRILOOPS ){

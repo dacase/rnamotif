@@ -27,7 +27,7 @@ int	split( char str[], char *fields[], char *fsep )
 			fp = sp + strspn( sp, fsep );
 			if( !*fp )
 				return( nf );
-			if( efp = strpbrk( fp, fsep ) ){
+			if((efp = strpbrk( fp, fsep ))){
 				if( !( flen = efp - fp ) )
 					return( nf );
 				nfp = (char *)malloc((flen + 1) * sizeof(char));
@@ -47,7 +47,7 @@ int	split( char str[], char *fields[], char *fsep )
 		}
 	}else{
 		for( nf = 0, sp = str; ; ){
-			if( fp = strchr( sp, *fsep ) ){
+			if((fp = strchr( sp, *fsep ))){
 				flen = fp - sp;
 				nfp = (char *)malloc((flen + 1) * sizeof(char));
 				strncpy( nfp, sp, flen );

@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 
+#include "log.h"
 #include "rmdefs.h"
 #include "rnamot.h"
 
@@ -23,9 +25,11 @@ int	efn2_energy;
 
 char	*getenv();
 
+int	CT_read( FILE * );
 void	CT_write( FILE * );
 static	int	CT_b2i( int );
 
+int
 main( int argc, char* argv[] )
 {
 	FILE		*cfp;
@@ -34,7 +38,7 @@ main( int argc, char* argv[] )
 	int		rval = 0;
 
 	if( ( dhp = getenv( "EFNDATA" ) ) == NULL ){
-		fprintf( stderr, "%s: EFNDATA not defined.\n", argv[ 0 ] );
+		LOG_ERROR("EFNDATA not defined.");
 		rval = 1;
 		goto CLEAN_UP;
 	}else
@@ -48,8 +52,7 @@ main( int argc, char* argv[] )
 		rval = 1;
 		goto CLEAN_UP;
 	}else if( ( cfp = fopen( argv[ 1 ], "r" ) ) == NULL ){
-		fprintf( stderr, "%s: can't read ct-file %s\n",
-			argv[ 0 ], argv[ 1 ] );
+		LOG_ERROR("can't read ct-file %s", argv[ 1 ] );
 		rval = 1;
 		goto CLEAN_UP;
 	}else
@@ -142,8 +145,6 @@ int	CT_read( FILE *cfp )
 			rm_basepr[i] = UNDEF;
 		rm_bcseq[i] = CT_b2i( efn2_nucs[i] );
 	}
-
-CLEAN_UP : ;
 
 	return( nbases );
 }

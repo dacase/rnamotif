@@ -10,6 +10,7 @@ RNAMOTOBJS=	\
 	errormsg.o	\
 	find_motif.o	\
 	getargs.o	\
+	log.o		\
 	mm_regexp.o	\
 	node.o		\
 	preprocessor.o	\
@@ -28,7 +29,7 @@ all:	rnamotif	\
 rnamotif:	$(RNAMOTOBJS)
 	$(CC)	$(CFLAGS) -o rnamotif $(RNAMOTOBJS) $(GBLIB) -lm
 
-rnamot.o:	rmdefs.h rnamot.h dbutil.h
+rnamot.o:	rmdefs.h rnamot.h dbutil.h log.h
 
 compile.o:	rmdefs.h rnamot.h mm_regexp.h y.tab.h
 
@@ -39,13 +40,13 @@ dump.o:		rmdefs.h rnamot.h y.tab.h
 dumpnode.h:	y.tab.h mk_dumpnode.h.sh
 		./mk_dumpnode.h.sh y.tab.h > dumpnode.h
 
-efn.o:		rmdefs.h rnamot.h 
+efn.o:		rmdefs.h rnamot.h split.h
 
-efn2.o:		rmdefs.h rnamot.h
+efn2.o:		rmdefs.h rnamot.h split.h
 
 errormsg.o:	rmdefs.h
 
-find_motif.o:	rmdefs.h rnamot.h mm_regexp.h y.tab.h
+find_motif.o:	log.h rmdefs.h rnamot.h mm_regexp.h y.tab.h
 
 getargs.o:	rmdefs.h rnamot.h
 
@@ -67,26 +68,26 @@ y.tab.h:	rmgrm.y lex.yy.c
 lex.yy.c:	rmlex.l
 		$(LEX) rmlex.l
 
-rmprune:	rmprune.o split.o
-	$(CC)	$(CFLAGS) -o rmprune rmprune.o split.o
+rmprune:	rmprune.o split.o log.o
+	$(CC)	$(CFLAGS) -o rmprune rmprune.o split.o log.o
 
 rmprune.o:	rmdefs.h
 
-rmfmt:		rmfmt.o split.o
-	$(CC)	$(CFLAGS) -o rmfmt rmfmt.o split.o
+rmfmt:		rmfmt.o split.o log.o
+	$(CC)	$(CFLAGS) -o rmfmt rmfmt.o split.o log.o
 
-rm2ct:		rm2ct.o split.o
-	$(CC)	$(CFLAGS) -o rm2ct rm2ct.o split.o
+rm2ct:		rm2ct.o split.o log.o
+	$(CC)	$(CFLAGS) -o rm2ct rm2ct.o split.o log.o
 
-efn_drv:	efn_drv.o efn.o errormsg.o split.o
-	$(CC)	$(CFLAGS) -o efn_drv efn_drv.o efn.o errormsg.o split.o -lm
+efn_drv:	efn_drv.o efn.o errormsg.o split.o log.o
+	$(CC)	$(CFLAGS) -o efn_drv efn_drv.o efn.o errormsg.o split.o log.o -lm
 
-efn_drv.o:	rmdefs.h rnamot.h
+efn_drv.o:	rmdefs.h rnamot.h log.h
 
-efn2_drv:	efn2_drv.o efn2.o errormsg.o split.o
-	$(CC)	$(CFLAGS) -o efn2_drv efn2_drv.o efn2.o errormsg.o split.o -lm
+efn2_drv:	efn2_drv.o efn2.o errormsg.o split.o log.o
+	$(CC)	$(CFLAGS) -o efn2_drv efn2_drv.o efn2.o errormsg.o split.o log.o -lm 
 
-efn2_drv.o:	rmdefs.h rnamot.h
+efn2_drv.o:	log.h rmdefs.h rnamot.h
 
 clean:
 	-rm -f 	 *.o		\

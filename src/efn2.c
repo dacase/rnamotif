@@ -5,6 +5,7 @@
 
 double	atof();
 
+#include "split.h"
 #include "rmdefs.h"
 #include "rnamot.h"
 

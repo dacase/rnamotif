@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "log.h"
 #include "rmdefs.h"
 #include "rnamot.h"
 #include "y.tab.h"
@@ -386,6 +387,7 @@ static	int	find_ss( SEARCH_T *srp )
 		}
 	}
 	unmark_ss( stp, szero, slen );
+
 	return( rv );
 }
 
@@ -545,7 +547,6 @@ static	int	find_pknot3( SEARCH_T *srp, int s5 )
 	h_maxl = stp5->s_maxlen;
 
 	i_minl = find_minlen( stp5->s_index + 1, stp3->s_index - 1 );
-
 	g_minl = 2*h_minl + i_minl;
 
 	s_minl = find_minlen( stp3->s_index + 1, stpn->s_index );
@@ -563,8 +564,33 @@ static	int	find_pknot3( SEARCH_T *srp, int s5 )
 		s3lim = MIN( s3lim, h_maxl );
 		s3lim = s3 - s3lim + 1;
 
+//eOG_DEBUG("s5 = %d, s3 = %d, s3lim = %d", s5, s3, s3lim);
+
 		if( n_h3=match_wchlx( stp5,stp3,s5,s3,s3lim,h3,hlen,n_mpr )){
+
+/*
+LOG_DEBUG("s5 = %d, s3 = %d, s3lim = %d, n_h3 = %d", s5, s3, s3lim, n_h3);
+{
+	int	h1;
+	for(h1 = 0; h1 < n_h3; h1++)
+		LOG_DEBUG("h1 = %d, h3[%2d] = %3d, hlen[%2d] = %3d", h1, h1, h3[h1], h1, hlen[h1]);
+}
+*/
+
+			// The bug is here.  Some helices returned by match_wchlx() are too long
+			// and so I need to add code to insure that I exit as soon as I reach the
+			// first helix that no longer has room for what ever matches its internal descriptor
 			for( h = 0; h < n_h3; h++ ){
+
+/*
+LOG_DEBUG("h = %d, hlen[%d] %d, s5 = %d, s3 = %d, i_minl = %d", h, h, hlen[h], s5, s3, i_minl);
+LOG_DEBUG("h = %d, s3 - s5 + 1 = %d", h, s3 - s5 + 1);
+LOG_DEBUG("h = %d, (s3 - s5 + 1) - 2*hlen[%d] = %d", h, h, (s3 - s5 + 1) - 2*hlen[h]);
+*/
+
+				if((s3 - s5 + 1) - 2*hlen[h] < i_minl)
+					break;
+
 				stp5->s_n_mispairs = n_mpr[h];
 				stp3->s_n_mispairs = n_mpr[h];
 				mark_duplex( stp5, s5, stp3, h3[h], hlen[h] );
@@ -920,6 +946,8 @@ static	int	match_wchlx( STREL_T *stp, STREL_T *stp3,
 	int	mplim; 
 	int	pfrac;
 
+//LOG_DEBUG("s5 = %d, s3 = %d, s3lim = %d", s5, s3, s3lim);
+
 	nh = 0;
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
@@ -971,6 +999,8 @@ REAL_HELIX : ;
 		mplim = 0;
 		pfrac = 0;
 	}
+
+//LOG_DEBUG("hi = %d", hl);
 
 	if( hl >= stp->s_minlen ){
 		if( !l_bpr && ( stp->s_attr[ SA_ENDS ] & SA_3PAIRED ) )
@@ -1047,6 +1077,8 @@ SKIP : ;
 			}
 		}
 	}
+
+//LOG_DEBUG("hl = %d, nh = %d", hl, nh);
 
 	return( nh );
 }
@@ -1712,7 +1744,7 @@ static	int	chk_1_site( int n_descr, STREL_T descr[], SITE_T *sip )
 	STREL_T	*stp;
 	int	s[ 4 ];
 	int	b[ 4 ];
-	int	rv;
+	int	rv = FALSE;
 
 	for( pp = sip->s_pos, p = 0; p < sip->s_n_pos; p++, pp++ ){
 /*
@@ -1813,6 +1845,8 @@ static	void	print_match( FILE *fp, char sid[], int comp,
 			sprintf( hbp, " ." );
 		hbp += strlen( hbp );
 	}
+
+
 	for( d = 0; d < n_descr; d++, stp++ ){
 		if( stp->s_matchlen > 0 ){
 			sprintf( hbp, " %.*s",
@@ -1881,6 +1915,17 @@ static	void	print_match( FILE *fp, char sid[], int comp,
 		fputs( fm_sdefbuf, fp );
 		fputs( fm_hitbuf, fp );
 	}
+
+/*DEBUG
+for( stp = descr, d = 0; d < n_descr; d++, stp++ ){
+	if( stp->s_matchlen > 0 ){
+		fprintf(stderr, "d[%2d] =  %4d, %4d\n", d, stp->s_matchoff, stp->s_matchlen);
+	}else
+		fprintf(stderr, "d[%2d] =  %4d, %4d\n", d, -1, stp->s_matchlen);
+}
+fprintf(stderr, "\n");
+*/
+
 }
 
 static	void	mk_cstr( char str[], char cstr[] )

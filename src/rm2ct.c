@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "log.h"
+#include "split.h"
+
 double	atof();
 
 #define	U_MSG_S	\
@@ -88,6 +91,7 @@ static	void	wr_ctfile( FILE *, int, DESCR_T [],
 	char [], float, int, int, int, char * );
 static	int	getpn( DESCR_T *, int, DESCR_T [] );
 
+int
 main( int argc, char *argv[] )
 {
 	int	ac;
@@ -136,8 +140,7 @@ main( int argc, char *argv[] )
 	if( fname == NULL )
 		fp = stdin;
 	else if( ( fp = fopen( fname, "r" ) ) == NULL ){
-		fprintf( stderr, "%s: can't read rnamotif-out-file %s.\n",
-			argv[ 0 ], fname );
+		LOG_ERROR("can't read rnamotif-out-file %s.", fname );
 		rval = 1;
 		goto CLEAN_UP;
 	}
@@ -168,15 +171,11 @@ main( int argc, char *argv[] )
 
 	for( d = 0; d < n_descr; d++ ){
 		if( descr[ d ].d_type == DT_T1 ){
-			fprintf( stderr,
-				"%s: can't make CT file for triple helices.\n",
-				argv[ 0 ] );
+			LOG_ERROR("can't make CT file for triple helices.\n");
 			rval = 1;
 			goto CLEAN_UP;
 		}else if( descr[ d ].d_type == DT_Q1 ){
-			fprintf( stderr,
-				"%s: can't make CT file for quad helices.\n",
-				argv[ 0 ] );
+			LOG_ERROR("can't make CT file for quad helices.");
 			rval = 1;
 			goto CLEAN_UP;
 		}
@@ -243,12 +242,12 @@ static	DESCR_T	*getdescr( int n_fields, int dfield1, char *fields[],
 	*n_descr = n_fields - dfield1;
 	descr = ( DESCR_T * )malloc( *n_descr * sizeof( DESCR_T ) );
 	if( descr == NULL ){
-		fprintf( stderr, "getdescr: can't allocate descr.\n" );
+		LOG_ERROR("can't allocate descr.");
 		return( NULL );
 	}
 	stk = ( int * )malloc( *n_descr * sizeof( int ) );
 	if( stk == NULL ){
-		fprintf( stderr, "getdescr: can't allocate stk.\n" );
+		LOG_ERROR("can't allocate stk.");
 		return( NULL );
 	}
 	stkp = 0;
@@ -263,12 +262,12 @@ static	DESCR_T	*getdescr( int n_fields, int dfield1, char *fields[],
 	for( dp = descr, d = 0; d < *n_descr; d++, dp++ ){
 		if( dp->d_type == DT_SS )
 			continue;
-		if( tp = strchr( fields[ d + dfield1 ], '(' ) ){
+		if((tp = strchr( fields[ d + dfield1 ], '(' ))){
 			if( dp->d_els[ 0 ] != UNDEF )
 				continue;
 			dp->d_els[ 0 ] = d;
 			for( n_els = 1, d1 = d + 1; d1 < *n_descr; d1++ ){
-				if( tp1=strchr( fields[ d1 + dfield1 ], '(' ) ){
+				if((tp1=strchr( fields[ d1 + dfield1 ], '(' ))){
 					if( !strcmp( tp, tp1 ) ){
 						dp->d_els[ n_els ] = d1;
 						n_els++;

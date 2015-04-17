@@ -2,8 +2,12 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#include "log.h"
+#include "split.h"
 
 #define	U_MSG_S	\
 "usage: %s [ -a ] [ -l[a] ] [ -smax N ] [ -td dir ] [ rm-output-file ]\n"
@@ -44,6 +48,7 @@ static	int	is_a_number( char [] );
 static	int	fcmprs( int, char [] );
 static	void	align( FILE *, int, char [], char [] );
 
+int
 main( int argc, char *argv[] )
 {
 	char	*ifname, *tfdir;
@@ -99,8 +104,7 @@ main( int argc, char *argv[] )
 	if( ifname == NULL ){
 		ifp = stdin;
 	}else if( ( ifp = fopen( ifname, "r" ) ) == NULL ){
-		fprintf( stderr, "%s: can't read rm-output-file '%s'\n",
-			argv[ 0 ], ifname );
+		LOG_ERROR("can't read rm-output-file '%s", ifname );
 		exit( 1 );
 	}
 	if( tfdir == NULL )
@@ -109,8 +113,7 @@ main( int argc, char *argv[] )
 	sprintf( tfnp1, "%s/raw_XXXXXX", tfdir );
 	tfd1 = mkstemp( tfnp1 );
 	if( ( tfp1 = fdopen( tfd1, "w+" ) ) == NULL ){
-		fprintf( stderr, "%s: can't open temp-file '%s'\n",
-			argv[ 0 ], tfnp1 );
+		LOG_ERROR("can't open temp-file '%s'", tfnp1 );
 		exit( 1 );
 	}
 
@@ -141,8 +144,7 @@ main( int argc, char *argv[] )
 
 	omaxw = ( int * )malloc( ( n_ofields ) * sizeof( int ) );
 	if( omaxw == NULL ){
-		fprintf( stderr, "%s: can't allocate omaxw.\n",
-			argv[ 0 ] );
+		LOG_ERROR("can't allocate omaxw.");
 		exit( 1 );
 	}
 	for( f = 0; f < n_ofields; f++ )
@@ -248,9 +250,7 @@ main( int argc, char *argv[] )
 		fclose( tfp1 );
 
 		if( stat( tfnp1, &sbuf ) ){
-			fprintf( stderr,
-				"%s: can't stat raw temp-file '%s'\n",
-				argv[ 0 ], tfnp1 );
+			LOG_ERROR("can't stat raw temp-file '%s'", tfnp1 );
 			exit( 1 );
 		}
 		if( sbuf.st_size > smax )
@@ -274,9 +274,7 @@ main( int argc, char *argv[] )
 		system( cmd );
 
 		if( ( tfp2 = fdopen( tfd2, "r" ) ) == NULL ){
-			fprintf( stderr,
-				"%s: can't open sorted temp-file '%s'\n",
-				argv[ 0 ], tfnp2 );
+			LOG_ERROR("can't open sorted temp-file '%s'", tfnp2 );
 			exit( 1 );
 		}
 
@@ -406,7 +404,7 @@ static	int	*getfmt( int n_fields, int df1, char *fields[], int *n_fmt )
 	*n_fmt = n_fields - 2 + df1;
 	fmt = ( int * )malloc( *n_fmt * sizeof( int ) );
 	if( fmt == NULL ){
-		fprintf( stderr, "getfmt: can't allocate fmt.\n" );
+		LOG_ERROR("can't allocate fmt.");
 		return( NULL );
 	}
 	fmt[ 0 ] = FMT_LEFT;
