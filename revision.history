@@ -1,3 +1,6 @@
+3.1.1   2015-may-12
+    Re-do how logging is done
+
 3.1.0	2015-apr-28
     Fixed bug in find_pknot3 that ignored certain bases
 
