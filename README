@@ -50,11 +50,11 @@ Quick-start guide to installation and testing of rnamotif:
      For example: if you installed under /usr/local, and you use sh,
      bash, or zsh:
 
-        export EFNDATA=/usr/local/rnamotif-3.0.5/efndata/
+        export EFNDATA=/usr/local/rnamotif-3.1.1/efndata/
 
      If you use csh or tcsh:
 
-        setenv EFNDATA /usr/local/rnamotif-3.0.5/efndata/
+        setenv EFNDATA /usr/local/rnamotif-3.1.1/efndata/
 
 Please send comments and questions to Tom Macke <macke_tom@yahoo.com>.
 
@@ -66,7 +66,7 @@ I. Installing rnamotif.
 
 1. rnamotif is distributed as a zipped tar file available here:
 
-	http://casegroup.rutgers.edu/rnamotif-3.0.7.tar.gz
+	http://casegroup.rutgers.edu/rnamotif-3.1.1.tar.gz
 
 2. This file contains a single top level directory, rnamotif, which contains
    several subdirectories which in turn contain the sources to rnamotif, three
