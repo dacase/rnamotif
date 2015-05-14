@@ -1,0 +1,35 @@
+#RM scored
+#RM descr h5(tag='psi3') ss h5(tag='H4a') h3(tag='psi3') ss h3(tag='H4a') h5(tag='H4b') ss h5(tag='psi2') ss h3(tag='H4b') ss h5(tag='H5a') ss h5(tag='H5b') ss h3(tag='H5b') ss h3(tag='H5a') h3(tag='psi2')
+#RM dfile pk_j1+2.descr
+MYCRGD3   0.000 0  323 72 gctct c aag  ggggt tt    ttt tgtttt   t       tgg  caa   aaaata ta     aaa   a acc   tgagttttataccaa   ggt t   ttt  ttg
+MYCRGD3   0.000 0  323 72 gctct c aag  ggggt tt    ttt tgtttt   t       tgg  caa   aaaata ta     aaa   a acct  gagttttatacca    aggt t   ttt  ttg
+MYCRGD3   0.000 0  323 72 gctct c aag  ggggt tt    ttt tgtttt   t       tgg  caa   aaaata ta     aaaa  a cct   gagttttatacca     agg t  tttt  ttg
+MYCRGD3   0.000 0  323 72 gctct c aag  ggggt tt    ttt tgtttt   ttgg    caa  .     aaaata ta     aaa   a acc   tgagttttataccaa   ggt t   ttt  ttg
+MYCRGD3   0.000 0  323 72 gctct c aag  ggggt tt    ttt tgtttt   ttgg    caa  .     aaaata ta     aaa   a acct  gagttttatacca    aggt t   ttt  ttg
+MYCRGD3   0.000 0  323 72 gctct c aag  ggggt tt    ttt tgtttt   ttgg    caa  .     aaaata ta     aaaa  a cct   gagttttatacca     agg t  tttt  ttg
+MYCRGD3   0.000 0  323 73 gctct c aag  ggggt tt    ttt tgtttt   ttg     gcaa .     aaaata ta     aaa   a acc   tgagttttataccaa   ggt t   ttt ttgt
+MYCRGD3   0.000 0  323 73 gctct c aag  ggggt tt    ttt tgtttt   ttg     gcaa .     aaaata ta     aaa   a acct  gagttttatacca    aggt t   ttt ttgt
+MYCRGD3   0.000 0  323 73 gctct c aag  ggggt tt    ttt tgtttt   ttg     gcaa .     aaaata ta     aaaa  a cct   gagttttatacca     agg t  tttt ttgt
+MYCRGD3   0.000 0  323 73 gctct c aag  ggggt ttt   ttt gttttt   tg      gca  .     aaaaat at     aaa   a aacc  tgagttttataccaa  ggtt t   ttt  tgt
+MYCRGD3   0.000 0  323 73 gctct c aag  ggggt ttt   ttt gttttt   tg      gca  .     aaaaat at     aaa   a aacct gagttttatacca   aggtt t   ttt  tgt
+MYCRGD3   0.000 0  323 73 gctct c aag  ggggt ttt   ttt gttttt   tg      gca  .     aaaaat at     aaaa  a acc   tgagttttataccaa   ggt t  tttt  tgt
+MYCRGD3   0.000 0  323 73 gctct c aag  ggggt ttt   ttt gttttt   tg      gca  .     aaaaat at     aaaa  a acct  gagttttatacca    aggt t  tttt  tgt
+MYCRGD3   0.000 0  323 73 gctct c aag  ggggt ttt   ttt gttttt   tg      gca  .     aaaaat at     aaaaa a cct   gagttttatacca     agg t ttttt  tgt
+TRBS3RRBN 0.000 0 5566 71 tgtgt c tgt  gtgta at    gtg tatatg   tat     gta  .     tatatg tta    cgc   a ttt   ctcctcgcttctca    agg t   gtg  tgc
+TRBS3RRBN 0.000 0 5566 71 tgtgt c tgt  gtgta at    gtg tatatg   tat     gta  .     tatatg ttacg  cat   t tct   cctcgcttctca      agg t   gtg  tgc
+TRBS3RRBN 0.000 0 5566 71 tgtgt c tgt  gtgta atgt  gta tatgta   t       gta  .     tatatg tta    cgc   a ttt   ctcctcgcttctca    agg t   gtg  tgc
+TRBS3RRBN 0.000 0 5566 71 tgtgt c tgt  gtgta atgt  gta tatgta   t       gta  .     tatatg ttacg  cat   t tct   cctcgcttctca      agg t   gtg  tgc
+TSTRRNA   0.000 0  759 85 tcgac a ggt  gttga ctgt  atc ggtggg   cttgtct tgc  tgg   tctgtt gacatg cttc  t gta   tgcctttaaacggg    tgt c  gggg  gcg
+TSTRRNA   0.000 0  759 85 tcgac a ggt  gttga ctgt  atc ggtggg   cttgtct tgc  tgg   tctgtt gacatg cttc  t gtat  gcctttaaacgg     gtgt c  gggg  gcg
+TSTRRNA   0.000 0  759 85 tcgac a ggt  gttga ctgt  atc ggtgggc  ttgtct  tgc  tg   gtctgtt gacatg cttc  t gta   tgcctttaaacggg    tgt c  gggg  gcg
+TSTRRNA   0.000 0  759 85 tcgac a ggt  gttga ctgt  atc ggtgggc  ttgtct  tgc  tg   gtctgtt gacatg cttc  t gtat  gcctttaaacgg     gtgt c  gggg  gcg
+TSTRRNA   0.000 0  759 85 tcgac a ggt  gttga ctgt  atc ggtgggct tgtct   tgc  t   ggtctgtt gacatg cttc  t gta   tgcctttaaacggg    tgt c  gggg  gcg
+TSTRRNA   0.000 0  759 85 tcgac a ggt  gttga ctgt  atc ggtgggct tgtct   tgc  t   ggtctgtt gacatg cttc  t gtat  gcctttaaacgg     gtgt c  gggg  gcg
+TSTRRNA   0.000 0  759 86 tcgac a ggt  gttga ctgt  atc ggtggg   cttgtc  ttgc tgg   tctgtt gacatg cttc  t gta   tgcctttaaacggg    tgt c  gggg gcgg
+TSTRRNA   0.000 0  759 86 tcgac a ggt  gttga ctgt  atc ggtggg   cttgtc  ttgc tgg   tctgtt gacatg cttc  t gtat  gcctttaaacgg     gtgt c  gggg gcgg
+TSTRRNA   0.000 0  759 86 tcgac a ggt  gttga ctgt  atc ggtgggc  ttgtc   ttgc tg   gtctgtt gacatg cttc  t gta   tgcctttaaacggg    tgt c  gggg gcgg
+TSTRRNA   0.000 0  759 86 tcgac a ggt  gttga ctgt  atc ggtgggc  ttgtc   ttgc tg   gtctgtt gacatg cttc  t gtat  gcctttaaacgg     gtgt c  gggg gcgg
+TSTRRNA   0.000 0  759 86 tcgac a ggt  gttga ctgt  atc ggtgggct tgtc    ttgc t   ggtctgtt gacatg cttc  t gta   tgcctttaaacggg    tgt c  gggg gcgg
+TSTRRNA   0.000 0  759 86 tcgac a ggt  gttga ctgt  atc ggtgggct tgtc    ttgc t   ggtctgtt gacatg cttc  t gtat  gcctttaaacgg     gtgt c  gggg gcgg
+URERRNA   0.000 0  551 73 tccgg a ttta ctggg cg   taaa acgagc   gca     ggc  gg    gtttgt aa     gtt   t ggt   attaaatctagat     gct t   aac  gtc
+URERRNA   0.000 0  551 74 tccgg a ttta ctggg cg   taaa acgagc   gc      aggc gg    gtttgt aa     gtt   t ggt   attaaatctagat     gct t   aac gtct

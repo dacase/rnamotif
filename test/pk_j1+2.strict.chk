@@ -1,0 +1,6 @@
+#RM scored
+#RM descr ctx h5(tag='psi3') ss h5(tag='H4a') h3(tag='psi3') ss h3(tag='H4a') h5(tag='H4b') ss h5(tag='psi2') ss h3(tag='H4b') ss h5(tag='H5a') ss h5(tag='H5b') ss h3(tag='H5b') ss h3(tag='H5a') h3(tag='psi2') ctx
+#RM dfile pk_j1+2.strict.descr
+TRBS3RRBN 0.000 0 5566 71 gtgag tgtgt c tgt gtgta at   gtg tatatg   tat  gta  .   tatatg ttacg  cat  t tct  cctcgcttctca  agg t  gtg  tgc cacct
+TRBS3RRBN 0.000 0 5566 71 gtgag tgtgt c tgt gtgta atgt gta tatgta   t    gta  .   tatatg ttacg  cat  t tct  cctcgcttctca  agg t  gtg  tgc cacct
+TSTRRNA   0.000 0  759 86 ctgtt tcgac a ggt gttga ctgt atc ggtgggct tgtc ttgc t ggtctgtt gacatg cttc t gtat gcctttaaacgg gtgt c gggg gcgg acggc

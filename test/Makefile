@@ -2,6 +2,7 @@ test:	test.slack test.strict
 test.slack: 	\
 	nanlin		\
 	pk1		\
+	pk_j1+2		\
 	qu+tr		\
 	score.1		\
 	score.2		\
@@ -15,6 +16,7 @@ test.slack: 	\
 test.strict:	\
 	nanlin.strict	\
 	pk1.strict	\
+	pk_j1+2.strict	\
 	qu+tr.strict	\
 	score.1.strict	\
 	score.2.strict	\
@@ -35,6 +37,15 @@ nanlin:
 	@-rm -f $@.test
 
 pk1:
+	@echo =====================================================
+	@echo   "Running $@ test:"
+	@echo
+	@../src/rnamotif -descr $@.descr gbrna.111.0.fastn | ../src/rmfmt -l > $@.test
+	@-diff $@.chk $@.test && echo "  PASSED" \
+		|| echo "   FAILED (possibly; see if diffs above look OK)"
+	@-rm -f $@.test
+
+pk_j1+2:
 	@echo =====================================================
 	@echo   "Running $@ test:"
 	@echo
@@ -135,6 +146,15 @@ nanlin.strict:
 	@-rm -f $@.test
 
 pk1.strict:
+	@echo =====================================================
+	@echo   "Running $@ test:"
+	@echo
+	@../src/rnamotif -sh -context -Dctx_maxlen=5 -descr $@.descr gbrna.111.0.fastn | ../src/rmfmt -l > $@.test
+	@-diff $@.chk $@.test && echo "  PASSED" \
+		|| echo "   FAILED (possibly; see if diffs above look OK)"
+	@-rm -f $@.test
+
+pk_j1+2.strict:
 	@echo =====================================================
 	@echo   "Running $@ test:"
 	@echo

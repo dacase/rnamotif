@@ -1,0 +1,29 @@
+parms
+	wc += gu;
+	chk_both_strs = 0;
+
+descr
+	# pk1
+	h5(tag='psi3', minlen=5, maxlen=6)
+		ss(len=1)
+	h5(tag='H4a', minlen=3, maxlen=6)
+	#	ss(len=0)
+	h3(tag='psi3')
+		ss(minlen=2, maxlen=4)
+	h3(tag='H4a')
+
+	# pk2
+	h5(tag='H4b', minlen=6, maxlen=10)
+		ss(minlen=1, maxlen=8)
+	h5(tag='psi2', minlen=3, maxlen=5)
+		ss(minlen=0, maxlen=4)
+	h3(tag='H4b')
+		ss(minlen=2, maxlen=6)
+		h5(tag='H5a', minlen=3, maxlen=6)
+			ss(len=1)
+				h5(tag='H5b', minlen=3, maxlen=6)
+				ss(minlen=12, maxlen=15)
+				h3(tag='H5b')
+			ss(len=1)
+		h3(tag='H5a')
+	h3(tag='psi2')
