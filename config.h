@@ -3,7 +3,9 @@
 
 CC= gcc
 CFLAGS= -O2 -Wall
-#CFLAGS= -g
+
+#  Notes: clang can replace gcc above;
+#         for icc (version 13.0.1) you need to use -O1 in cflags.
 
 #  The yacc compiler is typically "yacc" (for the *real* yacc), "byacc"
 #  (for the Berkeley equivalent) or "bison -y" (to get yacc compatible output 
