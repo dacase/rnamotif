@@ -6,7 +6,8 @@
 extern	VALUE_T	rm_tokval;
 extern	int	rm_context;
 
-static	NODE_T	*np;
+extern	void	RM_hold(NODE_T *);
+extern	void	RM_release(NODE_T *);
 
 /*
 typedef	union	{

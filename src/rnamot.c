@@ -33,6 +33,10 @@ static	int	s_sbuf;
 static	char	*sbuf;
 static	int	slen;
 
+extern	void	RM_dump(FILE *, int, int, int, int);
+
+extern	int	yyparse(void);
+
 static	void	mk_rcmp( int, char [] );
 
 int
@@ -65,12 +69,14 @@ main( int argc, char *argv[] )
 	}
 
 	if( ( yyin = fopen( rm_args->a_xdfname, "r" ) ) == NULL ){
+		rm_error = TRUE;
 		LOG_ERROR("can't read xd-file %s.", rm_args->a_xdfname );
-		exit( 1 );
+		exit(1);
 	}
 
 	if( yyparse() ){
-		RM_errormsg( 0, "syntax error." );
+		rm_error = TRUE;
+		LOG_ERROR("syntax error.");
 	}
 
 	if( rm_unlink_xdf )
@@ -125,8 +131,9 @@ main( int argc, char *argv[] )
 	else if( !strcmp( rm_args->a_dbfmt, DT_GENBANK ) )
 		fgetseq = GB_fgetseq;
 	else{
+		rm_error = TRUE;
 		LOG_ERROR("unknown data format %s.", rm_args->a_dbfmt );
-		exit( 1 );
+		exit(1);
 	}
 	rm_dbfp = DB_fnext( rm_dbfp, &rm_args->a_c_dbfname,
 		rm_args->a_n_dbfname, rm_args->a_dbfname );
@@ -136,8 +143,9 @@ main( int argc, char *argv[] )
 	s_sbuf = rm_args->a_maxslen;
 	sbuf = ( char * )malloc( s_sbuf * sizeof( char ) );
 	if( sbuf == NULL ){
+		rm_error = TRUE;
 		LOG_ERROR("can't allocate sbuf (s_sbuf=%d)", s_sbuf );
-		exit( 1 );
+		exit(1);
 	}
 	
 	if( RM_fm_init() ){

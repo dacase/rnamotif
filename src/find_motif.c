@@ -6,6 +6,7 @@
 #include "log.h"
 #include "rmdefs.h"
 #include "rnamot.h"
+#include "mm_regexp.h"
 #include "y.tab.h"
 
 #define	MIN(a,b)	((a)<(b)?(a):(b))
@@ -15,7 +16,11 @@
 
 extern	ARGS_T	*rm_args;
 
-extern	int	rm_emsg_lineno;
+extern	int	rm_error;
+extern	int	rm_error;
+extern	char	*rm_wdfname;
+//extern	int	rm_emsg_lineno;
+
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
 extern	STREL_T	*rm_o_stp;	/* search for this first	*/
@@ -39,8 +44,8 @@ extern	VALUE_T	*rm_lval;
 
 extern	int	circf;	/* reg. exp. ^ kludge	*/
 extern	char	*loc1, *loc2;
+extern	int	step(register char *, register char *);
 
-static	char	fm_emsg[ 256 ];
 static	char	*fm_sid;
 static	char	*fm_sdef;
 static	int	fm_comp;
@@ -85,7 +90,9 @@ static	void	mark_ss( STREL_T *, int, int );
 static	void	unmark_ss( STREL_T *, int, int );
 static	void	mark_duplex( STREL_T *, int, STREL_T *, int, int );
 static	void	unmark_duplex( STREL_T *, int, STREL_T *, int, int );
+#if 0
 static	int	chk_wchlx0( SEARCH_T *, int, int );
+#endif
 static	int	chk_motif( int, STREL_T [], SITE_T * );
 static	int	chk_wchlx( STREL_T *, int, STREL_T [] );
 static	int	chk_phlx( STREL_T *, int, STREL_T [] );
@@ -106,31 +113,31 @@ int	RM_fm_init( void )
 
 	ip = RM_find_id( "windowsize" );
 	if( ip == NULL ){
-		RM_errormsg( TRUE,
-			"RM_find_motif: windowsize undefined." );
+		rm_error = TRUE;
+		LOG_ERROR("windowsize undefined.");
 		rval = 1;
 		goto CLEAN_UP;
 	}
 
 	if( ip->i_val.v_value.v_ival <= 0 ){
-		RM_errormsg( TRUE,
-			"RM_find_motif: windowsize <= 0." );
+		rm_error = TRUE;
+		LOG_ERROR( "windowsize <= 0.");
 		rval = 1;
 		goto CLEAN_UP;
 	}else
 		fm_windowsize = ip->i_val.v_value.v_ival;
 	fm_winbuf = ( int * )malloc( (fm_windowsize+2) * sizeof(int) );
 	if( fm_winbuf == NULL ){
-		RM_errormsg( TRUE,
-			"RM_find_motif: can't allocate fm_winbuf.");
+		rm_error = TRUE;
+		LOG_ERROR("can't allocate fm_winbuf.");
 		rval = 1;
 		goto CLEAN_UP;
 	}
 	fm_window = &fm_winbuf[ 1 ];
 	fm_chk_seq = ( char * )malloc((fm_windowsize+1) * sizeof(char));
 	if( fm_chk_seq == NULL ){
-		RM_errormsg( TRUE,
-			"RM_find_motif: can't allocate fm_chk_seq." );
+		rm_error = TRUE;
+		LOG_ERROR("can't allocate fm_chk_seq.");
 		rval = 1;
 		goto CLEAN_UP;
 	}	
@@ -143,8 +150,8 @@ int	RM_fm_init( void )
 	fm_hitbufsize += SID_SIZE + SCORE_SIZE + 2 + 13 + 13 + 1 + 2;
 	fm_hitbuf = ( char * )malloc( fm_hitbufsize * sizeof( char ) );
 	if( fm_hitbuf == NULL ){
-		RM_errormsg( TRUE,
-			"RM_find_motif: can't allocate fm_hitbuf." );
+		rm_error = TRUE;
+		LOG_ERROR("can't allocate fm_hitbuf.");
 		rval = 1;
 		goto CLEAN_UP;
 	}
@@ -162,7 +169,7 @@ int	RM_find_motif( int n_searches, SEARCH_T *searches[],
 	int	l_szero;
 	SEARCH_T	*srp;
 	int	rv;
-	
+
 	fm_sid = sid;
 	fm_sdef = sdef;
 	fm_comp = comp;
@@ -313,10 +320,9 @@ static	int	find_1_motif( SEARCH_T *srp )
 	case SYM_Q4 :
 	default :
 		rv = FALSE;
-		rm_emsg_lineno = stp->s_lineno;
-		sprintf( fm_emsg, "find_motif: illegal symbol %d.",
-			stp->s_type );
-		RM_errormsg( TRUE, fm_emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d illegal symbol %d", rm_wdfname, stp->s_lineno, stp->s_type);
+		exit(1);
 		break;
 	}
 
@@ -424,7 +430,7 @@ static	int	find_wchlx( SEARCH_T *srp )
 
 	rv = FALSE;
 
-	if(n_h3=match_wchlx(stp,stp3,szero,sdollar,s3lim,h3,hlen,n_mpr )){
+	if((n_h3=match_wchlx(stp,stp3,szero,sdollar,s3lim,h3,hlen,n_mpr))){
 
 		for( h = 0; h < n_h3; h++ ){
 /*
@@ -514,9 +520,9 @@ static	int	find_pknot5( SEARCH_T *srp )
 
 	f_s5 = szero + p_minl;
 	l_s5 = szero + MIN( p_maxl, slen - r_minl );
-
-	for( rv = FALSE, s5 = f_s5; s5 <= l_s5; s5++ )
+	for( rv = FALSE, s5 = f_s5; s5 <= l_s5; s5++ ){
 		rv |= find_pknot3( srp, s5 );
+	}
 
 	return( rv );
 }
@@ -524,11 +530,14 @@ static	int	find_pknot5( SEARCH_T *srp )
 static	int	find_pknot3( SEARCH_T *srp, int s5 )
 {
 	STREL_T	*stp5, *stp3, *stpn;
+	int	hlx = 0;
 	int	sdollar, slen;
 	int	g_minl;
 	int	h_minl, h_maxl;
 	int	i_minl;
 	int	s_minl, s_maxl;
+	int	iL_minl, iL_maxl, iL_last;
+	int	iR_minl, iR_maxl, iR_last;
 	int	s3, f_s3, l_s3;
 	int	s3lim;
 	int	h3[ 101 ], hlen[ 101 ], n_mpr[ 101 ];
@@ -558,38 +567,64 @@ static	int	find_pknot3( SEARCH_T *srp, int s5 )
 	f_s3 = sdollar - s_minl;
 	l_s3 = sdollar - MIN( slen - g_minl, s_maxl );
 
+	hlx = stp5->s_index == stp5->s_scopes[1]->s_index ? 2 : 1;
+	if(hlx == 2){
+		STREL_T	*stp3_h1;
+		int	s_left, e_left;
+		int	s_right, e_right;
+
+		stp3_h1 = stp5->s_scopes[0]->s_mates[0];
+		iL_last = stp3_h1->s_matchoff - 1;
+		iR_last = stp3_h1->s_matchoff + stp3_h1->s_matchlen;
+
+		s_left = stp5->s_index + 1;
+		e_left = stp5->s_scopes[0]->s_mates[0]->s_index - 1;
+		if(s_left <= e_left){
+			iL_minl = find_minlen(s_left, e_left);
+			iL_maxl = find_maxlen(s_left, e_left);
+		}else
+			iL_minl = iL_maxl = 0;
+
+		s_right = stp5->s_scopes[0]->s_mates[0]->s_index + 1;
+		e_right = stp3->s_index - 1;
+		if(s_right <= e_right){
+			iR_minl = find_minlen(s_right, e_right);
+			iR_maxl = find_maxlen(s_right, e_right);
+		}else
+			iR_minl = iR_maxl = 0;
+	}else{
+		iL_minl = iL_maxl = iL_last = 0;
+		iR_minl = iR_maxl = iR_last = 0;
+	}
+
 	for( rv = FALSE, s3 = f_s3; s3 >= l_s3; s3-- ){
 		s3lim = s3 - s5 + 1;
 		s3lim = ( s3lim - i_minl ) / 2;
 		s3lim = MIN( s3lim, h_maxl );
 		s3lim = s3 - s3lim + 1;
 
-//eOG_DEBUG("s5 = %d, s3 = %d, s3lim = %d", s5, s3, s3lim);
-
-		if( n_h3=match_wchlx( stp5,stp3,s5,s3,s3lim,h3,hlen,n_mpr )){
-
-/*
-LOG_DEBUG("s5 = %d, s3 = %d, s3lim = %d, n_h3 = %d", s5, s3, s3lim, n_h3);
-{
-	int	h1;
-	for(h1 = 0; h1 < n_h3; h1++)
-		LOG_DEBUG("h1 = %d, h3[%2d] = %3d, hlen[%2d] = %3d", h1, h1, h3[h1], h1, hlen[h1]);
-}
-*/
-
-			// The bug is here.  Some helices returned by match_wchlx() are too long
-			// and so I need to add code to insure that I exit as soon as I reach the
-			// first helix that no longer has room for what ever matches its internal descriptor
+		if((n_h3=match_wchlx( stp5,stp3,s5,s3,s3lim,h3,hlen,n_mpr))){
 			for( h = 0; h < n_h3; h++ ){
 
-/*
-LOG_DEBUG("h = %d, hlen[%d] %d, s5 = %d, s3 = %d, i_minl = %d", h, h, hlen[h], s5, s3, i_minl);
-LOG_DEBUG("h = %d, s3 - s5 + 1 = %d", h, s3 - s5 + 1);
-LOG_DEBUG("h = %d, (s3 - s5 + 1) - 2*hlen[%d] = %d", h, h, (s3 - s5 + 1) - 2*hlen[h]);
-*/
-
+				// hlx == 1 stuff
 				if((s3 - s5 + 1) - 2*hlen[h] < i_minl)
 					break;
+
+				// hlx == 2 stuff
+				if(hlx == 2){
+					// chk iLeft
+					if(iL_last - (s5 + hlen[h] - 1) < iL_minl)
+						continue;
+					if(iL_last - (s5 + hlen[h] - 1) > iL_maxl)
+						continue;
+
+
+					// chk iRight
+					if((s3 - hlen[h] + 1) - iR_last < iR_minl)
+						continue;
+					if((s3 - hlen[h] + 1) - iR_last > iR_maxl)
+						continue;
+				}
 
 				stp5->s_n_mispairs = n_mpr[h];
 				stp3->s_n_mispairs = n_mpr[h];
@@ -601,7 +636,6 @@ LOG_DEBUG("h = %d, (s3 - s5 + 1) - 2*hlen[%d] = %d", h, h, (s3 - s5 + 1) - 2*hle
 			}
 		}
 	}
-	
 	return( rv );
 }
 
@@ -855,7 +889,7 @@ static	int	find_4plex( SEARCH_T *srp )
 	s3lim = sdollar - s3lim + 1;
 
 	rv = FALSE;
-	if(n_h3=match_wchlx(stp,stp3,szero,sdollar,s3lim,h3,hlen,n_mpr)){
+	if((n_h3=match_wchlx(stp,stp3,szero,sdollar,s3lim,h3,hlen,n_mpr))){
 		for( h = 0; h < n_h3; h++ ){
 			mark_duplex( stp, szero, stp3, h3[h], hlen[h] );
 			rv |= find_4plex_inner( srp, h3[h], hlen[h] );
@@ -946,8 +980,6 @@ static	int	match_wchlx( STREL_T *stp, STREL_T *stp3,
 	int	mplim; 
 	int	pfrac;
 
-//LOG_DEBUG("s5 = %d, s3 = %d, s3lim = %d", s5, s3, s3lim);
-
 	nh = 0;
 	b5 = fm_sbuf[ s5 ];
 	b3 = fm_sbuf[ s3 ];
@@ -999,8 +1031,6 @@ REAL_HELIX : ;
 		mplim = 0;
 		pfrac = 0;
 	}
-
-//LOG_DEBUG("hi = %d", hl);
 
 	if( hl >= stp->s_minlen ){
 		if( !l_bpr && ( stp->s_attr[ SA_ENDS ] & SA_3PAIRED ) )
@@ -1077,8 +1107,6 @@ SKIP : ;
 			}
 		}
 	}
-
-//LOG_DEBUG("hl = %d, nh = %d", hl, nh);
 
 	return( nh );
 }
@@ -1356,6 +1384,7 @@ static	void	unmark_duplex( STREL_T *stp5, int h5,
 	}
 }
 
+#if 0
 static	int	chk_wchlx0( SEARCH_T *srp, int s5, int s3 )
 {
 	STREL_T	*stp;
@@ -1372,6 +1401,7 @@ static	int	chk_wchlx0( SEARCH_T *srp, int s5, int s3 )
 	stp = srp->s_descr;
 	return( !RM_paired( stp->s_pairset, b5, b3 ) );
 }
+#endif
 
 static	int	chk_motif( int n_descr, STREL_T descr[], SITE_T *sites )
 {
@@ -1826,7 +1856,7 @@ static	void	print_match( FILE *fp, char sid[], int comp,
 		sprintf( hbp, " %8.3lf", rm_sval->v_value.v_dval );
 		break;
 	case T_STRING :
-		sprintf( hbp, " %8s", rm_sval->v_value.v_pval );
+		sprintf( hbp, " %8s", (char *)rm_sval->v_value.v_pval );
 		break;
 	default :
 		sprintf( hbp, " %8.3lf", 0.0 );

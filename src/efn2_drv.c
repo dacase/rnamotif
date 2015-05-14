@@ -9,7 +9,7 @@
 
 int	rm_error;
 char	*rm_wdfname;
-int	rm_emsg_lineno;
+int	rm_lineno;
 
 #define	SIZE	6000
 char	rm_efndatadir[ 256 ] = "";

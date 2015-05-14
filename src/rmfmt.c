@@ -67,6 +67,7 @@ main( int argc, char *argv[] )
 	aopt = 0;	/* 1 = make fastn alignment		*/ 
 	lopt = L_OFF;	/* 1 = print only entry's locus name	*/
 			/* 2 = print only entry's acc#		*/
+	l_vbp = vbp = NULL;
 	smax = SMAX;	/* Don't sort files larger than SMAX	*/
 	for( ac = 1; ac < argc; ac++ ){
 		if( !strcmp( argv[ ac ], "-a" ) )

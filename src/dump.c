@@ -182,7 +182,7 @@ void	RM_dump_id( FILE *fp, IDENT_T *ip, int fmt )
 		break;
 	case T_STRING :
 		fprintf( fp, "'%s'\n", ip->i_val.v_value.v_pval ?
-					ip->i_val.v_value.v_pval : "NULL" );
+					(char *)ip->i_val.v_value.v_pval : "NULL" );
 		break;
 	case T_PAIRSET :
 		ps = ip->i_val.v_value.v_pval;

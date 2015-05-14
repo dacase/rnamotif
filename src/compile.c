@@ -5,6 +5,7 @@
 
 double	atof();
 
+#include "log.h"
 #include "rmdefs.h"
 #include "rnamot.h"
 #include "mm_regexp.h"
@@ -105,8 +106,7 @@ VALUE_T	*rm_pval;
 VALUE_T	*rm_lval;
 
 extern	int	circf;		/* RE ^ kludge	*/
-
-static	char	emsg[ 256 ];
+extern	void	compile(char *, register char *, char *, int);
 
 static	IDENT_T	*enterid( IDENT_T *, IDENT_T * );
 static	IDENT_T	*findid( IDENT_T *, char * );
@@ -127,8 +127,10 @@ static	void	chk_tagorder( int, STREL_T *[] );
 static	void	mk_links( int, STREL_T *[] );
 static	void	duptags_error( int, int, STREL_T *[] );
 static	int	chk_proper_nesting( STREL_T *, STREL_T *, STREL_T [] );
+#if 0
 static	void	find_pknots0( STREL_T *, int, STREL_T [] );
 static	void	find_pknots1( STREL_T *, int, STREL_T [] );
+#endif
 static	void	find_pknots( STREL_T *, int, STREL_T [] );
 static	int	chk_strel_parms( int, STREL_T [] );
 static	int	chk_1_strel_parms( STREL_T * );
@@ -148,9 +150,9 @@ static	int	min_suffixlen( STREL_T *, STREL_T [] );
 static	void	find_search_order( int, STREL_T [] );
 static	void	set_search_order_links( int, SEARCH_T *[]);
 static	void	optimize_query( void );
-//static	int	pk_cmp( STREL_T **, STREL_T ** );
-static	int		pk_cmp(const void *, const void *);
+#if 0
 static	void	dump_bestpat();
+#endif
 
 int	RM_init( int argc, char *argv[] )
 {
@@ -375,8 +377,11 @@ void	PR_open( void )
 void	PR_add( NODE_T *np )
 {
 
-	if( n_curpair >= CURPAIR_SIZE )
-		RM_errormsg( TRUE, "PR_add: current pair too large." );
+	if( n_curpair >= CURPAIR_SIZE ){
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d current pair too large.", rm_wdfname, rm_lineno);
+		exit(1);
+	}
 	curpair[ n_curpair ] = np->n_val.v_value.v_pval;
 	n_curpair++;
 }
@@ -390,11 +395,17 @@ NODE_T	*PR_close( void )
 	NODE_T	*np;
 
 	ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
-	if( ps == NULL )
-		RM_errormsg( TRUE, "PR_close: can't allocate pairlist." );
+	if( ps == NULL ){
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate pairlist.", rm_wdfname, rm_lineno);
+		exit(1);
+	}
 	pp = ( PAIR_T * )malloc( n_curpair * sizeof( PAIR_T ) );
-	if( pp == NULL )
-		RM_errormsg( TRUE, "PR_close: can't allocate pair." );
+	if( pp == NULL ){
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate pair.", rm_wdfname, rm_lineno);
+		exit(1);
+	}
 	ps->ps_n_pairs = n_curpair;
 	ps->ps_pairs = pp;
 	for( pp = ps->ps_pairs, i = 0; i < ps->ps_n_pairs; i++, pp++ ){
@@ -402,8 +413,8 @@ NODE_T	*PR_close( void )
 			if( ISBASE( *bp ) ){
 				if( needbase ){
 					if( b >= 4 ){
-						RM_errormsg( FALSE,
-			"PR_close: At most 4 bases in a pair-string." );
+						rm_error = TRUE;
+						LOG_ERROR("%s:%d At most 4 bases in a pair-string.", rm_wdfname, rm_lineno);
 						break;
 					}else{
 						pp->p_n_bases = b + 1;
@@ -412,26 +423,26 @@ NODE_T	*PR_close( void )
 						needbase = FALSE;
 					}
 				}else{
-					RM_errormsg( FALSE,
-		"PR_close: pair-string is base-letter : base-letter : ..." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d pair-string is bsse-letter : base-letter : ...", rm_wdfname, rm_lineno);
 					break;
 				}
 			}else if( *bp == ':' ){
 				if( needbase ){
-					RM_errormsg( FALSE,
-		"PR_close: pair-string is base-letter : base-letter : ..." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d pair-string is bsse-letter : base-letter : ...", rm_wdfname, rm_lineno);
 					break;
 				}
 				needbase = 1;
 			}else{
-				RM_errormsg( FALSE,
-		"PR_close: pair-string is base-letter : base-letter : ..." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d pair-string is bsse-letter : base-letter : ...", rm_wdfname, rm_lineno);
 				break;
 			}
 		}
 		if( pp->p_n_bases < 2 || pp->p_n_bases > 4 ){
-			RM_errormsg( FALSE,
-				"PR_close: pair-string has 2-4 bases." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d pair-string has 2-4 bases", rm_wdfname, rm_lineno);
 		}
 	}
 	ps->ps_mat[ 0 ] = NULL;
@@ -440,7 +451,9 @@ NODE_T	*PR_close( void )
 
 	np = ( NODE_T * )malloc( sizeof( NODE_T ) );
 	if( np == NULL ){
-		RM_errormsg( TRUE, "PR_close: can't allocate np." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate np.", rm_wdfname, rm_lineno);
+		exit(1);
 	}
 	np->n_sym = SYM_PAIRSET;
 	np->n_type = T_PAIRSET;
@@ -458,22 +471,20 @@ void	SE_open( int stype )
 
 	n_valstk = 0;
 	if( stype == SYM_SE ){
-		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( TRUE,
-			"SE_open: strel 'se' allowed only in score section." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d strel 'se' allowed only in score section.", rm_wdfname, rm_lineno);
+		exit(1);
 	}
 	if( stype != SYM_CTX ){
 		if( rm_rctx != NULL ){
-			rm_emsg_lineno = rm_lineno;
-			RM_errormsg( TRUE,
-			"SE_open: Right ctx element must be last element." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d Right ctx element must be last element.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		if( rm_n_descr == rm_s_descr ){
-			rm_emsg_lineno = rm_lineno;
-			sprintf( emsg,
-				"SE_open: descr array size(%d) exceeded.",
-				rm_s_descr );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d descr array size(%d) exceeded.", rm_wdfname, rm_lineno, rm_s_descr);
+			exit(1);
 		}
 		open_stp = &rm_descr[ rm_n_descr ];
 		rm_n_descr++;
@@ -481,30 +492,30 @@ void	SE_open( int stype )
 		if( rm_lctx == NULL ){
 			open_stp = ( STREL_T * )malloc( sizeof( STREL_T ) );
 			if( open_stp == NULL ){
-				rm_emsg_lineno = rm_lineno;
-				RM_errormsg( TRUE,
-			"SE_open: can't allocate stp for left ctx element." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d can't allocate stp for left ctx element.", rm_wdfname, rm_lineno);
+				exit(1);
 			}
 			rm_lctx = open_stp;
 			rm_lctx_explicit = 1;
 		}else{
-			rm_emsg_lineno = rm_lineno;
-			RM_errormsg( TRUE,
-		"SE_open: ctx elements must contain a real descriptor." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d ctx elements must contain a real descriptor.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 	}else if( rm_rctx == NULL ){
 		open_stp = ( STREL_T * )malloc( sizeof( STREL_T ) );
 		if( open_stp == NULL ){
-			rm_emsg_lineno = rm_lineno;
-			RM_errormsg( TRUE,
-			"SE_open: can't allocate stp for right ctx element." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate stp for right ctx element.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		rm_rctx = open_stp;
 		rm_rctx_explicit = 1;
 	}else{
-		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( TRUE,
-		"SE_open: Descr can contain at most 1 right ctx element." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d Descr can contain at most 1 right ctx element.", rm_wdfname, rm_lineno);
+		exit(1);
 	}
 	SE_init( open_stp, stype );
 }
@@ -654,6 +665,8 @@ void	SE_close( void )
 
 	s_minlen = 0;
 	s_maxlen = 0;
+	s_mispair = 0;
+	s_pairfrac = 0;
 	for( i = 0; i < n_local_ids; i++ ){
 		ip = local_ids[ i ];
 		if( !strcmp( ip->i_name, "tag" ) ){
@@ -668,14 +681,11 @@ void	SE_close( void )
 			s_len = ip->i_val.v_value.v_ival != UNDEF;
 			if( s_len ){
 				if( s_minlen || s_maxlen ){
-					rm_emsg_lineno = open_stp->s_lineno;
-					RM_errormsg( FALSE,
-				"len= can't be used with minlen=/maxlen=." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d len= can't be used with minlen=/maxlen=.", rm_wdfname, rm_lineno); 
 				}else{
-					open_stp->s_minlen=
-						ip->i_val.v_value.v_ival;
-					open_stp->s_maxlen=
-						ip->i_val.v_value.v_ival;
+					open_stp->s_minlen= ip->i_val.v_value.v_ival;
+					open_stp->s_maxlen= ip->i_val.v_value.v_ival;
 				}
 			}
 		}else if( !strcmp( ip->i_name, "seq" ) ){
@@ -683,28 +693,32 @@ void	SE_close( void )
 		}else if( !strcmp( ip->i_name, "mismatch" ) ){
 			open_stp->s_mismatch = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "matchfrac" ) ){
-			if( ip->i_val.v_value.v_dval < 0. ||
-				ip->i_val.v_value.v_dval > 1. ){
-				rm_emsg_lineno = open_stp->s_lineno;
-				RM_errormsg( FALSE,
-				"matchfrac must be >= 0 and <= 1." );
+			if( ip->i_val.v_value.v_dval < 0. || ip->i_val.v_value.v_dval > 1. ){
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d matchfrac must be >= 0 and <= 1.", rm_wdfname, rm_lineno);
 			}else
 				open_stp->s_matchfrac=ip->i_val.v_value.v_dval;
 		}else if( !strcmp( ip->i_name, "mispair" ) ){
 			s_mispair = ip->i_val.v_value.v_ival != UNDEF;
+			if(s_mispair){
+				if(s_pairfrac){
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d mispair= can't be used with pairfrac=.", rm_wdfname, rm_lineno);
+				}else if(ip->i_val.v_value.v_ival < 0){
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d bad mispair value %d, must be >= 0.", rm_wdfname, rm_lineno, ip->i_val.v_value.v_ival);
+				}
+			}
 			open_stp->s_mispair = ip->i_val.v_value.v_ival;
 		}else if( !strcmp( ip->i_name, "pairfrac" ) ){
 			s_pairfrac = ip->i_val.v_value.v_dval != UNDEF;
 			if( s_pairfrac ){
 				if( s_mispair ){
-					rm_emsg_lineno = open_stp->s_lineno;
-					RM_errormsg( FALSE,
-				"pairfrac= can't be used with mispair=." );
-				}else if( ip->i_val.v_value.v_dval < 0. ||
-					ip->i_val.v_value.v_dval > 1. ){
-					rm_emsg_lineno = open_stp->s_lineno;
-					RM_errormsg( FALSE,
-					"pairfrac must be >= 0 and <= 1." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d pairfrac= can't be used with mispair=.", rm_wdfname, rm_lineno);
+				}else if( ip->i_val.v_value.v_dval < 0. || ip->i_val.v_value.v_dval > 1. ){
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d pairfrac must be >= 0 and <= 1.", rm_wdfname, rm_lineno);
 				}
 			}
 			open_stp->s_pairfrac = ip->i_val.v_value.v_dval;
@@ -733,7 +747,8 @@ int	SE_link( int n_descr, STREL_T descr[] )
 	int	err;
 
 	if( n_descr == 0 ){
-		RM_errormsg( FALSE, "SE_link: Descriptor has 0 elements." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d Descriptor has 0 elements.", rm_wdfname, rm_lineno);
 		return( 1 );
 	}
 
@@ -758,8 +773,9 @@ int	SE_link( int n_descr, STREL_T descr[] )
 
 	rm_searches = ( SEARCH_T ** )malloc( rm_n_descr*sizeof( SEARCH_T * ) );
 	if( rm_searches == NULL ){
-		sprintf( emsg, "SE_link: can't allocate rm_searches." );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate rm_searches.", rm_wdfname, rm_lineno);
+		exit(1);
 	}
 	rm_n_searches = 0;
 	find_search_order( 0, descr );
@@ -780,9 +796,9 @@ static	int	chk_context( void )
 	if( rm_lctx == NULL ){
 		rm_lctx = ( STREL_T * )malloc( sizeof( STREL_T ) );
 		if( rm_lctx == NULL ){
-			rm_emsg_lineno = rm_lineno;
-			RM_errormsg( TRUE,
-				"chk_context: can't allocate rm_lctx." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate rm_lctx.", rm_wdfname, rm_lineno);
+			exit(1);
 			return( 1 );
 		}
 		open_stp = rm_lctx;
@@ -793,9 +809,9 @@ static	int	chk_context( void )
 	if( rm_rctx == NULL ){
 		rm_rctx = ( STREL_T * )malloc( sizeof( STREL_T ) );
 		if( rm_rctx == NULL ){
-			rm_emsg_lineno = rm_lineno;
-			RM_errormsg( TRUE,
-				"chk_context: can't allocate rm_rctx." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate rm_rctx.", rm_wdfname, rm_lineno);
+			exit(1);
 			return( 1 );
 		}
 		open_stp = rm_rctx;
@@ -827,9 +843,8 @@ static	int	link_tags( int n_descr, STREL_T descr[] )
 			continue;
 		}
 		if( stp->s_tag == NULL ){
-			rm_emsg_lineno = stp->s_lineno;
-			RM_errormsg( FALSE,
-			"all triple/quad. helix els. must be tagged." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d all triple/quad. helix els. must be tagged.", rm_wdfname, rm_lineno);
 		}
 	}
 
@@ -871,12 +886,9 @@ static	int	link_tags( int n_descr, STREL_T descr[] )
 			n_tstk++;
 		}else if( stp->s_type == SYM_H3 || stp->s_type == SYM_P3 ){
 			if( n_tstk == 0 ){
-				rm_emsg_lineno = stp->s_lineno;
-				sprintf( emsg,
-				"%s element has no matching %s element.",
-					stp->s_type == SYM_H3 ? "h3" : "p3",
-					stp->s_type == SYM_H3 ? "h5" : "p5" );
-				RM_errormsg( FALSE, emsg );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d %s element has no matching %s element.", rm_wdfname, rm_lineno,
+					stp->s_type == SYM_H3 ? "h3" : "p3", stp->s_type == SYM_H3 ? "h5" : "p5" );
 			}else{
 				tags[ 0 ] = tstk[ n_tstk - 1 ];
 				n_tstk--;
@@ -889,11 +901,9 @@ static	int	link_tags( int n_descr, STREL_T descr[] )
 	if( n_tstk > 0 ){
 		for( i = 0; i < n_tstk; i++ ){
 			stp = tstk[ i ];
-			rm_emsg_lineno = stp->s_lineno;
-			sprintf( emsg,
-				"%s element has no matching %s element.",
-				stp->s_type == SYM_H5 ? "h5" : "h3",
-				stp->s_type == SYM_H5 ? "p5" : "p3" );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d %s element has no matching %s element.", rm_wdfname, rm_lineno,
+                                stp->s_type == SYM_H5 ? "h5" : "h3", stp->s_type == SYM_H5 ? "p5" : "p3" );
 		}
 	}
 	if( rm_error )
@@ -912,9 +922,8 @@ static	int	link_tags( int n_descr, STREL_T descr[] )
 		}else if( stp->s_type == SYM_T1 ){
 			stp1 = stp->s_mates[ 0 ];
 			if( !chk_proper_nesting( stp, stp1, descr ) ){
-				rm_emsg_lineno = stp->s_lineno;
-				RM_errormsg( FALSE,
-				"Triplex elements must be properly nested." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d riplex elements must be properly nested.", rm_wdfname, rm_lineno);
 				continue;
 			}
 			stp2 = stp->s_mates[ 1 ];
@@ -926,16 +935,14 @@ static	int	link_tags( int n_descr, STREL_T descr[] )
 		}else if( stp->s_type == SYM_Q1 ){
 			stp1 = stp->s_mates[ 0 ];
 			if( !chk_proper_nesting( stp, stp1, descr ) ){
-				rm_emsg_lineno = stp->s_lineno;
-				RM_errormsg( FALSE,
-				"Quad elements must be properly nested." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d Quad elements must be properly nested.", rm_wdfname, rm_lineno);
 				continue;
 			}
 			stp2 = stp->s_mates[ 1 ];
 			if( !chk_proper_nesting( stp1, stp2, descr ) ){
-				rm_emsg_lineno = stp->s_lineno;
-				RM_errormsg( FALSE,
-				"Quad elements must be properly nested." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d Quad elements must be properly nested.", rm_wdfname, rm_lineno);
 				continue;
 			}
 			stp3 = stp->s_mates[ 2 ];
@@ -978,10 +985,9 @@ static	void	chk_tagorder( int n_tags, STREL_T *tags[] )
 			duptags_error( 1, n_tags, tags );
 	}else if( t1 == SYM_H5 ){
 		if( n_tags < 2 ){
-			sprintf( emsg, "wc-helix '%s' has no h3() element.", 
-				tags[ 0 ]->s_tag );
-			rm_emsg_lineno = tags[ 0 ]->s_lineno;
-			RM_errormsg( FALSE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d wc-helix '%s' has not h3() element.",
+				rm_wdfname, tags[0]->s_lineno, tags[0]->s_tag);
 		}else{
 			t2 = tags[ 1 ]->s_type;
 			if( t2 == SYM_H3 ){
@@ -995,11 +1001,9 @@ static	void	chk_tagorder( int n_tags, STREL_T *tags[] )
 		}
 	}else if( t1 == SYM_P5 ){
 		if( n_tags < 2 ){
-			sprintf( emsg,
-				"parallel-helix '%s' has no h3() element.", 
-				tags[ 0 ]->s_tag );
-			rm_emsg_lineno = tags[ 0 ]->s_lineno;
-			RM_errormsg( FALSE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d parallel-helix '%s' has no p3() element.",
+				rm_wdfname, tags[0]->s_lineno, tags[0]->s_tag);
 		}else{
 			t2 = tags[ 1 ]->s_type;
 			if( t2 == SYM_P3 ){
@@ -1013,11 +1017,9 @@ static	void	chk_tagorder( int n_tags, STREL_T *tags[] )
 		}
 	}else if( t1 == SYM_T1 ){
 		if( n_tags < 3 ){
-			sprintf( emsg,
-				"triplex '%s' is has < 3 elements.",
-				tags[ 0 ]->s_tag );
-			rm_emsg_lineno = tags[ 0 ]->s_lineno;
-			RM_errormsg( FALSE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d triplex '%s' has < 3 elements.",
+				rm_wdfname, tags[0]->s_lineno, tags[0]->s_tag);
 		}else{
 			t2 = tags[ 1 ]->s_type;
 			t3 = tags[ 2 ]->s_type;
@@ -1032,11 +1034,9 @@ static	void	chk_tagorder( int n_tags, STREL_T *tags[] )
 		}
 	}else if( t1 == SYM_Q1 ){
 		if( n_tags < 4 ){
-			sprintf( emsg,
-				"4-plex '%s' is has < 4 elements.",
-				tags[ 0 ]->s_tag );
-			rm_emsg_lineno = tags[ 0 ]->s_lineno;
-			RM_errormsg( FALSE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d 4-plex '%s' has < 4 elements.",
+				rm_wdfname, tags[0]->s_lineno, tags[0]->s_tag);
 		}else{
 			t2 = tags[ 1 ]->s_type;
 			t3 = tags[ 2 ]->s_type;
@@ -1051,10 +1051,9 @@ static	void	chk_tagorder( int n_tags, STREL_T *tags[] )
 				duptags_error( 3, n_tags, tags );
 		}
 	}else{
-		sprintf( emsg, "1st use of tag '%s' is out of order.",
-			tags[ 0 ]->s_tag );
-		rm_emsg_lineno = tags[ 0 ]->s_lineno;
-		RM_errormsg( FALSE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d 1st use of tag '%s' is out of order.",
+			rm_wdfname, tags[0]->s_lineno, tags[0]->s_tag);
 	}
 }
 
@@ -1090,9 +1089,8 @@ static	void	duptags_error( int need, int n_tags, STREL_T *tags[] )
 	int	i;
 
 	for( i = need; i < n_tags; i++ ){
-		sprintf( emsg, "duplicate tag '%s'.", tags[ i ]->s_tag );
-		rm_emsg_lineno = tags[ i ]->s_lineno;
-		RM_errormsg( FALSE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d duplicate tag '%s'.", rm_wdfname, tags[i]->s_lineno, tags[i]->s_tag);
 	}
 }
 
@@ -1113,161 +1111,6 @@ static	int	chk_proper_nesting( STREL_T *stp0, STREL_T *stp1,
 		}
 	}
 	return( 1 );
-}
-
-static	void	find_pknots0( STREL_T *stp, int n_descr, STREL_T descr[] )
-{
-	int	i, j, k;
-	int	pk, h5, h3;
-	STREL_T	*stp1, *stp2, *stp3;
-	STREL_T	*pknot[ 4 ];
-	STREL_T	**stps;
-
-	if( stp->s_type == SYM_SS ){
-		stp->s_checked = 1;
-		return;
-	}
-	if( stp->s_attr[ SA_PROPER ] ){
-		stp->s_checked = 1;
-		for( j = 0; j < stp->s_n_mates; j++ ){
-			stp1 = stp->s_mates[ j ];
-			stp1->s_checked = 1;
-		}
-		return;
-	}
-
-	/* improper structure: only pknots permitted:	*/
-	stp2 = stp->s_mates[ 0 ];
-	for( pk = FALSE, j = stp->s_index + 1; j < n_descr; j++ ){
-		stp1 = &descr[ j ];
-		if( stp1->s_type != SYM_H5 )
-			continue;
-		stp3 = stp1->s_mates[ 0 ];
-		if( stp3->s_index > stp2->s_index ){
-			stp1->s_checked = 1;
-			stp2->s_checked = 1;
-			stp3->s_checked = 1;
-			pk = 1;
-			break;
-		}
-	}
-
-	if( !pk ){
-		rm_emsg_lineno = stp->s_lineno;
-		sprintf( emsg,
-			"find_pknots0: INTERNAL ERROR: improper helix %d.",
-			stp->s_index );
-		RM_errormsg( TRUE, emsg );
-	}
-
-	pknot[ 0 ] = stp;
-	pknot[ 1 ] = stp1;
-	pknot[ 2 ] = stp2;
-	pknot[ 3 ] = stp3;
-	for( i = 0; i < 3; i++ ){
-		h5 = pknot[ i ]->s_index;
-		h3 = pknot[ i + 1 ]->s_index;
-		for( j = h5 + 1; j < h3; j++ ){
-			stp1 = &descr[ j ];
-			for( k = 0; k < stp1->s_n_mates; k++ ){
-				stp2 = stp1->s_mates[ k ];
-				if( stp2->s_index < h5 || stp2->s_index > h3 ){
-					rm_emsg_lineno = pknot[i]->s_lineno;
-					RM_errormsg( FALSE,
-					"find_pknots0: improper pseudoknot." );
-					return;
-				}
-			}
-		}
-	}
-
-	if( rm_error )
-		return;
-
-	for( i = 0; i < 4; i++ ){
-		stps = ( STREL_T ** )malloc( 4 * sizeof( STREL_T * ) );
-		if( stps == NULL )
-			RM_errormsg( TRUE, "find_pknots0: can't alloc stps." );
-		for( j = 0; j < 4; j++ )
-			stps[ j ] = pknot[ j ];
-		free( pknot[i]->s_scopes );
-		pknot[i]->s_scopes = stps;
-		pknot[i]->s_n_scopes = 4;
-		pknot[i]->s_scope = i;
-	}
-}
-
-static	void	find_pknots1( STREL_T *stp, int n_descr, STREL_T descr[] )
-{
-	int	i, j;
-	STREL_T	*stp1, *stp2, *stp3;
-	static	STREL_T	**pknot = NULL;
-	int	n_pknot;
-	STREL_T	**stps;
-
-	if( stp->s_type == SYM_SS ){
-		stp->s_checked = 1;
-		return;
-	}
-	if( stp->s_attr[ SA_PROPER ] ){
-		stp->s_checked = 1;
-		for( j = 0; j < stp->s_n_mates; j++ ){
-			stp1 = stp->s_mates[ j ];
-			stp1->s_checked = 1;
-		}
-		return;
-	}
-
-	if( pknot == NULL ){
-		pknot = ( STREL_T ** )malloc( n_descr * sizeof( STREL_T * ) );
-		if( pknot == NULL )
-			RM_errormsg( TRUE,
-				"find_pknots1: can't allocate pknot." );
-	}
-
-	/* determine the extent of snarl */
-	stp3 = stp->s_mates[ 0 ];
-	pknot[ 0 ] = stp;
-	pknot[ 1 ] = stp3;
-	n_pknot = 2;
-	for( i = stp->s_index + 1; i < stp3->s_index; i++ ){
-		stp1 = &descr[ i ];
-		if( stp1->s_type != SYM_H5 )
-			continue;
-		stp2 = stp1->s_mates[ 0 ];
-		if( stp2->s_index < stp3->s_index ){
-			for( j = 0; j < n_pknot; j++ ){
-				if( stp1->s_index < pknot[ j ]->s_index &&
-					stp2->s_index > pknot[ j ]->s_index ){
-					pknot[ n_pknot ] = stp1;
-					pknot[ n_pknot + 1 ] = stp2;
-					n_pknot += 2;
-					break;
-				}
-			}
-		}else{
-			pknot[ n_pknot ] = stp1;
-			pknot[ n_pknot + 1 ] = stp2;
-			n_pknot += 2;
-			stp3 = stp2;
-		}
-	}
-
-	qsort( pknot, n_pknot, sizeof( int ), pk_cmp );
-
-	for( i = 0; i < n_pknot; i++ ){
-		stps = ( STREL_T ** )malloc( n_pknot * sizeof( STREL_T * ) );
-		if( stps == NULL )
-			RM_errormsg( TRUE,
-				"find_pknots1: can't allocate stps." );
-		for( j = 0; j < n_pknot; j++ )
-			stps[ j ] = pknot[ j ];
-		free( pknot[ i ]->s_scopes );
-		pknot[ i ]->s_checked = 1;
-		pknot[ i ]->s_scopes = stps;
-		pknot[ i ]->s_n_scopes = n_pknot;
-		pknot[ i ]->s_scope = i;
-	}
 }
 
 static	void	find_pknots( STREL_T *stp, int n_descr, STREL_T descr[] )
@@ -1297,9 +1140,11 @@ static	void	find_pknots( STREL_T *stp, int n_descr, STREL_T descr[] )
 
 	if( pknot == NULL ){
 		pknot = ( int * )malloc( n_descr * sizeof( int * ) );
-		if( pknot == NULL )
-			RM_errormsg( TRUE,
-				"find_pknots: can't allocate pknot." );
+		if( pknot == NULL ){
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate pknot.", rm_wdfname, rm_lineno);
+			exit(1);
+		}
 	}
 
 	stp3 = stp->s_mates[ 0 ];
@@ -1371,9 +1216,11 @@ static	void	find_pknots( STREL_T *stp, int n_descr, STREL_T descr[] )
 
 	for( i = 0; i < n_pknot; i++ ){
 		stps = ( STREL_T ** )malloc( n_pknot * sizeof( STREL_T * ) );
-		if( stps == NULL )
-			RM_errormsg( TRUE,
-				"find_pknots: can't allocate stps." );
+		if( stps == NULL ){
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate stps.", rm_wdfname, rm_lineno);
+			exit(1);
+		}
 		for( j = 0; j < n_pknot; j++ )
 			stps[ j ] = &rm_descr[ pknot[ j ] ];
 		stp1 = &rm_descr[ pknot[ i ] ];
@@ -1399,12 +1246,12 @@ static	int	chk_strel_parms( int n_descr, STREL_T descr[] )
 	if( rm_lctx != NULL ){
 		if( rm_lctx->s_mismatch == UNDEF )
 			rm_lctx->s_mismatch = 0;
-		err != chk_1_strel_parms( rm_lctx );
+		err |= chk_1_strel_parms( rm_lctx );
 	}
 	if( rm_rctx != NULL ){
 		if( rm_rctx->s_mismatch == UNDEF )
 			rm_rctx->s_mismatch = 0;
-		err != chk_1_strel_parms( rm_rctx );
+		err |= chk_1_strel_parms( rm_rctx );
 	}
 	if( !err )
 		chk_strict_helices( n_descr, descr );
@@ -1469,9 +1316,8 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 					stpv = stp1;
 				else if( stpv->s_mispair != stp1->s_mispair ){
 					err1 = 1;
-					rm_emsg_lineno = stp1->s_lineno;
-					RM_errormsg( FALSE,
-					"inconsistant mispair values." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d inconsistent mispair values.", rm_wdfname, stp1->s_lineno);
 				}
 			}else if( stp1->s_pairfrac != UNDEF ){
 				pfrac = 1;
@@ -1479,9 +1325,8 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 					stpv = stp1;
 				else if( stpv->s_pairfrac != stp1->s_pairfrac ){
 					err1 = 1;
-					rm_emsg_lineno = stp1->s_lineno;
-					RM_errormsg( FALSE,
-					"inconsistant pairfrac values." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d inconsistent pairfrac values.", rm_wdfname, stp1->s_lineno);
 				}
 			}
 		}
@@ -1510,12 +1355,10 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 			if( stp1->s_pairset != NULL ){
 				if( stpv == NULL )
 					stpv = stp1;
-				else if( !pairop( "equal", stpv->s_pairset,
-					stp1->s_pairset ) ){
+				else if( !pairop( "equal", stpv->s_pairset, stp1->s_pairset ) ){
 					err1 = 1;
-					rm_emsg_lineno = stp1->s_lineno;
-					RM_errormsg( FALSE,
-					"inconsistant pairset values." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d inconsistent pairset values.", rm_wdfname, stp1->s_lineno);
 				}
 			}
 		}
@@ -1529,7 +1372,8 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 			}else if( stype == SYM_Q1 ){
 				ip = RM_find_id( "qu" );
 				pval = ip->i_val.v_value.v_pval;
-			}
+			}else
+				pval = NULL;
 		}else
 			pval = stpv->s_pairset;
 		err |= err1;
@@ -1537,8 +1381,7 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 			for( i = 0; i < n_egroup; i++ ){
 				stp1 = egroup[ i ];
 				if( stp1->s_pairset == NULL )
-					stp1->s_pairset = pairop( "copy",
-						pval, NULL );
+					stp1->s_pairset = pairop( "copy", pval, NULL );
 			}
 		}
 
@@ -1548,12 +1391,10 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 			if( stp1->s_attr[ SA_ENDS ] != UNDEF ){
 				if( stpv == NULL )
 					stpv = stp1;
-				else if( stpv->s_attr[ SA_ENDS ] !=
-					stp1->s_attr[ SA_ENDS ] ){
+				else if( stpv->s_attr[ SA_ENDS ] != stp1->s_attr[ SA_ENDS ] ){
 					err1 = 1;
-					rm_emsg_lineno = stp1->s_lineno;
-					RM_errormsg( FALSE,
-					"inconsistant ends values." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d inconsistent ends values.", rm_wdfname, stp1->s_lineno);
 				}
 			}
 		}
@@ -1570,7 +1411,8 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 			}else if( stype == SYM_Q1 ){
 				ip = RM_find_id( "qu_ends" );
 				ival = ends2attr( ip->i_val.v_value.v_pval );
-			}
+			}else
+				ival = FALSE;
 		}else
 			ival = stpv->s_attr[ SA_ENDS ];
 
@@ -1589,12 +1431,10 @@ static	int	chk_1_strel_parms( STREL_T *stp )
 			if( stp1->s_attr[ SA_STRICT ] != UNDEF ){
 				if( stpv == NULL )
 					stpv = stp1;
-				else if( stpv->s_attr[ SA_STRICT ] !=
-					stp1->s_attr[ SA_STRICT ] ){
+				else if( stpv->s_attr[ SA_STRICT ] != stp1->s_attr[ SA_STRICT ] ){
 					err1 = 1;
-					rm_emsg_lineno = stp1->s_lineno;
-					RM_errormsg( FALSE,
-					"inconsistant strict values." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d inconsistent strict values.", rm_wdfname, stp1->s_lineno);
 				}
 			}
 		}
@@ -1649,9 +1489,8 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 				x_minl = stp->s_minlen;
 			else if( stp->s_minlen != x_minl ){
 				err = 1;
-				rm_emsg_lineno = stp->s_lineno;
-				RM_errormsg( FALSE,
-					"inconsistant minlen values." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d inconsistent minlen values.", rm_wdfname, stp->s_lineno);
 			}
 		}
 		if( stp->s_maxlen != UNDEF ){
@@ -1659,9 +1498,8 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 				x_maxl = stp->s_maxlen;
 			else if( stp->s_maxlen != x_maxl ){
 				err = 1;
-				rm_emsg_lineno = stp->s_lineno;
-				RM_errormsg( FALSE,
-					"inconsistant maxlen values." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d inconsistent maxlen values.", rm_wdfname, stp->s_lineno);
 			}
 		}
 	}
@@ -1674,8 +1512,10 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 			stp->s_expbuf =
 				( char * )malloc( size * sizeof( char ) );
 			if( stp->s_expbuf == NULL ){
-				rm_emsg_lineno = stp->s_lineno;
-				RM_errormsg( TRUE, "can't allocate s_expbuf." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d can't allocate s_expbuf.", rm_wdfname, stp->s_lineno);
+				exit(1);
+			
 			}
 			stp->s_e_expbuf = &stp->s_expbuf[ size ];
 			compile( stp->s_seq, stp->s_expbuf,
@@ -1691,9 +1531,8 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 		mm_seqlen( stp, 1, &i1_minl, &i1_maxl, &mmok );
 		if( !mmok && stp->s_mismatch > 0 ){
 			err = 1;
-			rm_emsg_lineno = stp->s_lineno;
-			RM_errormsg( FALSE,
-				"mismatches not allowed in this seq." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d mismatches not allowed in this seq.", rm_wdfname, stp->s_lineno);
 		}
 		if( i1_minl != UNDEF ){
 			if( i_minl == UNDEF )
@@ -1706,9 +1545,8 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 				i_maxl = i1_maxl;
 			else if( i1_maxl != i_maxl ){	/* all must agree */
 				err = 1;
-				rm_emsg_lineno = stp->s_lineno;
-				RM_errormsg( FALSE,
-					"inconsistant implied max lengths." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d inconsistent implied max lengths.", rm_wdfname, stp->s_lineno);
 			}
 		}
 	}
@@ -1734,10 +1572,10 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 		else if( x_maxl == i_maxl )
 			maxl = x_maxl;
 		else{
+			maxl = x_maxl;
 			err = 1;
-			rm_emsg_lineno = stp0->s_lineno;
-			RM_errormsg( FALSE,
-				"explicit and implicit maxlen values differ." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d explicit and implicit maxlen values differ.", rm_wdfname, stp0->s_lineno);
 		}
 	}else if( i_maxl != UNDEF ){
 		maxl = i_maxl;
@@ -1752,8 +1590,8 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 
 	if( minl > maxl ){
 		err = 1;
-		rm_emsg_lineno = stp0->s_lineno;
-		RM_errormsg( FALSE, "minlen > maxlen." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d minlen > maxlen.", rm_wdfname, stp0->s_lineno);
 	}
 
 	if( !err ){
@@ -1787,21 +1625,23 @@ static	void	chk_strict_helices( int n_descr, STREL_T descr[] )
 	rm_args->a_strict_helices = sh;
 }
 
-IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
-	VALUE_T *vp )
+IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit, VALUE_T *vp )
 {
 	IDENT_T	*ip;
 	char	*np;
 
 	ip = ( IDENT_T * )malloc( sizeof( IDENT_T ) );
 	if( ip == NULL ){
-		sprintf( emsg, "RM_enter_id: can't alloc ip for %s id '%s'.",
-			scope == S_GLOBAL ? "global" : "local", name );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate ip for %s id '%s'.", rm_wdfname, rm_lineno,
+			scope == S_GLOBAL ? "global" : "local", name);
+		exit(1);
 	}
 	np = ( char * )malloc( strlen( name ) + 1 );
 	if( np == NULL ){
-		RM_errormsg( TRUE, "RM_enter_id: can't alloc np for name." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate np for name.", rm_wdfname, rm_lineno);
+		exit(1);
 	}
 	strcpy( np, name );
 	ip->i_left = NULL;
@@ -1825,8 +1665,9 @@ IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
 				np = ( char * )
 					malloc(strlen(vp->v_value.v_pval)+1);
 				if( np == NULL ){
-					RM_errormsg( TRUE,
-				"RM_enter_id: can't alloc np for string val." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d can't allocate np for string val.", rm_wdfname, rm_lineno);
+					exit(1);
 				}
 				strcpy( np, vp->v_value.v_pval );
 				ip->i_val.v_value.v_pval = np;
@@ -1841,8 +1682,9 @@ IDENT_T	*RM_enter_id( char name[], int type, int class, int scope, int reinit,
 		rm_n_global_ids++;
 	}else{
 		if( n_local_ids >= LOCAL_IDS_SIZE ){
-			RM_errormsg( TRUE,
-				"RM_enter_id: local symbol tab overflow." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d local symtab tab overflow.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		local_ids[ n_local_ids ] = ip;
 		n_local_ids++;
@@ -1874,10 +1716,9 @@ static	IDENT_T	*enterid( IDENT_T *root, IDENT_T *ip )
 	else if( cv > 0 )
 		root->i_left = enterid( root->i_left, ip );
 	else{
-		rm_emsg_lineno = rm_lineno;
-		sprintf( emsg, "enterid: attempt to redefine symbol '%s'.",
-			ip->i_name );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d attempt to redefine symbol '%s'.", rm_wdfname, rm_lineno, ip->i_name);
+		exit(1);
 	}
 	return( root );
 }
@@ -1905,9 +1746,8 @@ static	int	ends2attr( char str[] )
 		return( 0 );
 	slen = strlen( str );
 	if( slen != 2 ){
-		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( FALSE,
-		"ends2attr: end values are \"pp\", \"mp\", \"pm\" & \"mm\"." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d end values are \"pp\", \"mp\", \"pm\" & \"mm\".", rm_wdfname, rm_lineno);
 		return( 0 );
 	}
 	for( lp = l_str, sp = str; *sp; sp++ ){
@@ -1923,9 +1763,8 @@ static	int	ends2attr( char str[] )
 	else if( !strcmp( l_str, "mm" ) )
 		return( 0 );
 	else{
-		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( FALSE,
-		"ends2attr: end values are \"pp\", \"mp\", \"pm\" & \"mm\"." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d end values are \"pp\", \"mp\", \"pm\" & \"mm\".", rm_wdfname, rm_lineno);
 		return( 0 );
 	}
 }
@@ -1946,9 +1785,8 @@ static	int	strict2attr( int sval )
 	else if( sval == 35 || sval == 53 )
 		return( SA_5STRICT | SA_3STRICT );
 	else{
-		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( FALSE,
-		"strict2attr: strict values are 0, 1, 3, 5, 35, 53.\n" );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d strict values are 0, 1, 3, 5, 35, 53", rm_wdfname, rm_lineno);
 		return( 0 );
 	}
 }
@@ -1964,7 +1802,6 @@ static	void	eval( NODE_T *expr, int d_ok )
 	if( expr ){
 		eval( expr->n_left, d_ok );
 		eval( expr->n_right, d_ok );
-		rm_emsg_lineno = expr->n_lineno;
 		switch( expr->n_sym ){
 
 		case SYM_INT :
@@ -1985,8 +1822,9 @@ static	void	eval( NODE_T *expr, int d_ok )
 			sp = ( char * )
 				malloc(strlen( expr->n_val.v_value.v_pval )+1);
 			if( sp == NULL ){
-				RM_errormsg( TRUE,
-				"eval: can't allocate sp for string." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d can't allocate sp for string.", rm_wdfname, rm_lineno);
+				exit(1);
 			}
 			strcpy( sp, expr->n_val.v_value.v_pval );
 			valstk[ n_valstk ].v_type = T_STRING;
@@ -2017,9 +1855,9 @@ static	void	eval( NODE_T *expr, int d_ok )
 						T_UNDEF, C_VAR, S_GLOBAL, FALSE,
 						NULL);
 				}else{
-					sprintf( emsg, "eval: unknown id '%s'.",
-						expr->n_val.v_value.v_pval );
-					RM_errormsg( TRUE, emsg );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d unknown id '%s'.", rm_wdfname, rm_lineno, (char *)expr->n_val.v_value.v_pval);
+					exit(1);
 				}
 			}
 			valstk[ n_valstk ].v_type = T_IDENT;
@@ -2058,8 +1896,9 @@ static	void	eval( NODE_T *expr, int d_ok )
 				sp = ( char * )malloc( strlen( l_sp ) +
 					strlen( r_sp ) + 1 );
 				if( sp == NULL ){
-					RM_errormsg( TRUE,
-					"eval: can't alloc sp for str +." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d can't allocate sp for str +.", rm_wdfname, rm_lineno);
+					exit(1);
 				}
 				strcpy( sp, l_sp );
 				strcat( sp, r_sp );
@@ -2072,7 +1911,9 @@ static	void	eval( NODE_T *expr, int d_ok )
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
 				break;
 			default :
-				RM_errormsg( TRUE, "eval: type mismatch '+'." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d type mismatch '+'.", rm_wdfname, rm_lineno);
+				exit(1);
 				break;
 			}
 			n_valstk--;
@@ -2117,7 +1958,9 @@ static	void	eval( NODE_T *expr, int d_ok )
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_pos;
 				break;
 			default :
-				RM_errormsg( TRUE, "eval: type mismatch '-'." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d type mismatch '-'.", rm_wdfname, rm_lineno);
+				exit(1);
 				break;
 			}
 			n_valstk--;
@@ -2137,7 +1980,9 @@ static	void	eval( NODE_T *expr, int d_ok )
 					-valstk[ n_valstk - 1 ].v_value.v_dval;
 				break;
 			default :
-				RM_errormsg( TRUE, "eval: type mismatch '-'." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d type mismatch '-'.", rm_wdfname, rm_lineno);
+				exit(1);
 				break;
 			}
 			break;
@@ -2179,7 +2024,9 @@ static	void	eval( NODE_T *expr, int d_ok )
 			case T_IJ( T_POS, T_POS ) :
 				break;
 			default :
-				RM_errormsg( TRUE, "eval: type mismatch '='." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d type mismatch '='.", rm_wdfname, rm_lineno);
+				exit(1);
 				break;
 			}
 			storeexprval( ip, &valstk[ n_valstk-1 ] );
@@ -2216,8 +2063,9 @@ static	void	eval( NODE_T *expr, int d_ok )
 				sp = ( char * )malloc( strlen( l_sp ) +
 					strlen( r_sp ) + 1 );
 				if( sp == NULL ){
-					RM_errormsg( TRUE,
-					"eval: can't alloc sp for str +." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d can't allocate sp for str '+='.", rm_wdfname, rm_lineno);
+					exit(1);
 				}
 				strcpy( sp, l_sp );
 				strcat( sp, r_sp );
@@ -2230,8 +2078,9 @@ static	void	eval( NODE_T *expr, int d_ok )
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
 				break;
 			default :
-				RM_errormsg( TRUE,
-					"eval: type mismatch '+='." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d type mismatch '+='.", rm_wdfname, rm_lineno);
+				exit(1);
 				break;
 			}
 			storeexprval( ip, &valstk[ n_valstk - 2 ] );
@@ -2269,8 +2118,9 @@ static	void	eval( NODE_T *expr, int d_ok )
 				valstk[ n_valstk - 2 ].v_value.v_pval = n_ps;
 				break;
 			default :
-				RM_errormsg( TRUE,
-					"eval: type mismatch '+='." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d type mimatch '-='.", rm_wdfname, rm_lineno);
+				exit(1);
 				break;
 			}
 			storeexprval( ip, &valstk[ n_valstk - 2 ] );
@@ -2278,9 +2128,9 @@ static	void	eval( NODE_T *expr, int d_ok )
 			break;
 
 		default :
-			sprintf( emsg, "eval: operator %d not implemented.",
-				expr->n_sym );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d operator %d not implemented.", rm_wdfname, rm_lineno, expr->n_sym);
+			exit(1);
 			break;
 		}
 	}
@@ -2291,41 +2141,37 @@ static	int	loadidval( VALUE_T *vp )
 	int	type;
 	IDENT_T	*ip;
 	char	*sp;
-	PAIRSET_T	*ps ;
+	PAIRSET_T	*ps = NULL;
 
 	ip = vp->v_value.v_pval;
 	type = ip->i_type;
 	if( type == T_INT ){
 		if( ip->i_val.v_value.v_ival == UNDEF ){
-			sprintf( emsg,
-				"loadidval: id '%s' has int value UNDEF.",
-				ip->i_name );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d id '%s' has int value UNDER.", rm_wdfname, rm_lineno, ip->i_name);
+			exit(1);
 		}
 		vp->v_type = T_INT;
 		vp->v_value.v_ival = ip->i_val.v_value.v_ival;
 	}else if( type == T_FLOAT ){
 		if( ip->i_val.v_value.v_ival == UNDEF ){
-			sprintf( emsg,
-				"loadidval: id '%s' has int value UNDEF.",
-				ip->i_name );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d id '%s' has int value UNDEF.", rm_wdfname, rm_lineno, ip->i_name);
+			exit(1);
 		}
 		vp->v_type = T_FLOAT;
 		vp->v_value.v_dval = ip->i_val.v_value.v_dval;
 	}else if( type == T_STRING ){
 		if( ip->i_val.v_value.v_pval == NULL ){
-			sprintf( emsg,
-				"loadidval: id '%s' has string value NULL.",
-				ip->i_name );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d id '%s' has string value NULL.", rm_wdfname, rm_lineno, ip->i_name);
+			exit(1);
 		}
 		sp = ( char * )malloc( strlen( ip->i_val.v_value.v_pval ) + 1 );
 		if( sp == NULL ){
-			sprintf( emsg,
-				"loadidval: can't allocate sp for '%s'.",
-				ip->i_name );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate sp for '%s'.", rm_wdfname, rm_lineno, ip->i_name);
+			exit(1);
 		}
 		vp->v_type = T_STRING;
 		strcpy( sp, ip->i_val.v_value.v_pval );
@@ -2335,10 +2181,9 @@ static	int	loadidval( VALUE_T *vp )
 			if( open_pairset != NULL )
 				ps = open_pairset;
 			else{
-				sprintf( emsg,
-				"loadidval: id '%s' has pair value NULL.",
-					 ip->i_name );
-				RM_errormsg( TRUE, emsg );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d id '%s' has pair value NULL.", rm_wdfname, rm_lineno, ip->i_name);
+				exit(1);
 			}
 		}else
 			ps = ip->i_val.v_value.v_pval;
@@ -2367,7 +2212,9 @@ static	void	storeexprval( IDENT_T *ip, VALUE_T *vp )
 		ip->i_type = T_STRING;
 		sp = ( char * )malloc( strlen( vp->v_value.v_pval ) + 1 );
 		if( sp == NULL ){
-			RM_errormsg( TRUE, "storeexprval: can't allocate sp." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate sp.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		strcpy( sp, vp->v_value.v_pval ); 
 		ip->i_val.v_type = T_STRING;
@@ -2391,7 +2238,9 @@ static	PAIRSET_T	*pairop( char op[], PAIRSET_T *ps1, PAIRSET_T *ps2 )
 
 	if( !strcmp( op, "check" ) ){
 		if( ps1 == NULL ){
-			RM_errormsg( TRUE, "pairop: check: ps1 == NULL." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d check: ps1 == NULL.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		pp = ps1->ps_pairs;
 		for( nb = UNDEF, i = 0; i < ps1->ps_n_pairs; i++, pp++ ){
@@ -2399,10 +2248,9 @@ static	PAIRSET_T	*pairop( char op[], PAIRSET_T *ps1, PAIRSET_T *ps2 )
 			if( nb == UNDEF )
 				nb = b;
 			else if( b != nb ){
-				sprintf( emsg,
-	"pairop: check: pairset contains elements with %d and %d bases.",
-					nb, b );
-				RM_errormsg( FALSE, emsg );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d check: pairset contains elements with %d and %d bases.",
+					rm_wdfname, rm_lineno, nb, b);
 				return( ps1 );
 			}
 			for( j = 0; j < b; j++ ){
@@ -2427,8 +2275,8 @@ static	PAIRSET_T	*pairop( char op[], PAIRSET_T *ps1, PAIRSET_T *ps2 )
 				}
 				if( !diff ){
 					ppj->p_n_bases = 0;
-					RM_errormsg( FALSE,
-		"pairop: check: pairset contains duplicate pair-strings." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d check: pairset contains duplicate pair-strings.", rm_wdfname, rm_lineno);
 				}
 			}
 		}
@@ -2454,13 +2302,15 @@ static	PAIRSET_T	*pairop( char op[], PAIRSET_T *ps1, PAIRSET_T *ps2 )
 			return( NULL );
 		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
 		if( n_ps == NULL ){
-			RM_errormsg( TRUE,
-				"pairop: copy: can't allocate n_ps." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d copy: can't allocate n_ps.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		n_pp = ( PAIR_T * )malloc( ps1->ps_n_pairs*sizeof( PAIR_T ) );
 		if( n_pp == NULL ){
-			RM_errormsg( TRUE,
-				"pairop: copy: can't allocate n_pp." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d copy: can't allocate n_pp.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		n_ps->ps_n_pairs = ps1->ps_n_pairs;
 		n_ps->ps_pairs = n_pp;
@@ -2478,21 +2328,23 @@ static	PAIRSET_T	*pairop( char op[], PAIRSET_T *ps1, PAIRSET_T *ps2 )
 		ppi = ps1->ps_pairs;
 		ppj = ps2->ps_pairs;
 		if( ppi->p_n_bases != ppj->p_n_bases ){
-			sprintf( emsg,
-			"pairop: add: pairsets have %d and %d elements.",
-				ppi->p_n_bases, ppj->p_n_bases );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d add: pairsets have %d and %d elements.",
+				rm_wdfname, rm_lineno, ppi->p_n_bases, ppj->p_n_bases);
+			exit(1);
 		}
 		sz = ps1->ps_n_pairs + ps2->ps_n_pairs;
 		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
 		if( n_ps == NULL ){
-			RM_errormsg( TRUE,
-				"pairop: add: can't allocate n_ps." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d add: can't allocate n_ps.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		n_pp = ( PAIR_T * )malloc( sz * sizeof( PAIR_T ) );
 		if( n_pp == NULL ){
-			RM_errormsg( TRUE,
-				"pairop: add: can't allocate n_pp." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d add: can't allocate n_pp.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		n_ps->ps_n_pairs = ps1->ps_n_pairs;
 		n_ps->ps_pairs = n_pp;
@@ -2526,21 +2378,23 @@ static	PAIRSET_T	*pairop( char op[], PAIRSET_T *ps1, PAIRSET_T *ps2 )
 		ppi = ps1->ps_pairs;
 		ppj = ps2->ps_pairs;
 		if( ppi->p_n_bases != ppj->p_n_bases ){
-			sprintf( emsg,
-			"pairop: sub: pairsets have %d and %d elements.",
-				ppi->p_n_bases, ppj->p_n_bases );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d sub: pairsets have %d and %d elements.",
+				rm_wdfname, rm_lineno, ppi->p_n_bases, ppj->p_n_bases);
+			exit(1);
 		}
 		sz = ps1->ps_n_pairs;
 		n_ps = ( PAIRSET_T * )malloc( sizeof( PAIRSET_T ) );
 		if( n_ps == NULL ){
-			RM_errormsg( TRUE,
-				"pairop: add: can't allocate n_ps." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d add: can't allocate n_ps.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		n_pp = ( PAIR_T * )malloc( sz * sizeof( PAIR_T ) );
 		if( n_pp == NULL ){
-			RM_errormsg( TRUE,
-				"pairop: add: can't allocate n_pp." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d add: can't allocate n_pp.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		n_ps->ps_n_pairs = ps1->ps_n_pairs;
 		n_ps->ps_pairs = n_pp;
@@ -2599,8 +2453,9 @@ static	PAIRSET_T	*pairop( char op[], PAIRSET_T *ps1, PAIRSET_T *ps2 )
 		}
 		return( ps1 );
 	}else{
-		sprintf( emsg, "pairop: unknown op '%s'.", op );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d unknown op '%s'.", rm_wdfname, rm_lineno, op);
+		exit(1);
 		return( NULL );
 	}
 }
@@ -2610,7 +2465,7 @@ static	void*	mk_bmatp( PAIRSET_T *ps )
 	PAIR_T	*pp;
 	int	i, nb;
 	int	bi1, bi2, bi3, bi4;
-	void	*bmatp;
+	void	*bmatp = NULL;
 	BP_MAT_T	*bpmatp;
 	BT_MAT_T	*btmatp;
 	BQ_MAT_T	*bqmatp;
@@ -2619,38 +2474,47 @@ static	void*	mk_bmatp( PAIRSET_T *ps )
 	nb = pp->p_n_bases;
 	if( nb == 2 ){
 		bmatp = bpmatp = ( BP_MAT_T * )malloc( sizeof( BP_MAT_T ) );
-		if( bpmatp == NULL )
-			RM_errormsg( TRUE, "mk_bmatp: can't alloc bpmatp." );
+		if( bpmatp == NULL ){
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate bpmatp", rm_wdfname, rm_lineno);
+			exit(1);
+		}
 		memset( bmatp, 0, sizeof( BP_MAT_T ) );
 		for( i = 0; i < ps->ps_n_pairs; i++ ){
 			pp = &ps->ps_pairs[ i ];
-			bi1 = rm_b2bc[ pp->p_bases[ 0 ] ];
-			bi2 = rm_b2bc[ pp->p_bases[ 1 ] ];
+			bi1 = rm_b2bc[ (int)pp->p_bases[ 0 ] ];
+			bi2 = rm_b2bc[ (int)pp->p_bases[ 1 ] ];
 			(*bpmatp)[bi1][bi2] = 1;
 		}
 	}else if( nb == 3 ){
 		bmatp = btmatp = ( BT_MAT_T * )malloc( sizeof( BT_MAT_T ) );
-		if( btmatp == NULL )
-			RM_errormsg( TRUE, "mk_bmatp: can't alloc btmatp." );
+		if( btmatp == NULL ){
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate btmatp.", rm_wdfname, rm_lineno);
+			exit(1);
+		}
 		memset( bmatp, 0, sizeof( BT_MAT_T ) );
 		for( i = 0; i < ps->ps_n_pairs; i++ ){
 			pp = &ps->ps_pairs[ i ];
-			bi1 = rm_b2bc[ pp->p_bases[ 0 ] ];
-			bi2 = rm_b2bc[ pp->p_bases[ 1 ] ];
-			bi3 = rm_b2bc[ pp->p_bases[ 2 ] ];
+			bi1 = rm_b2bc[ (int)pp->p_bases[ 0 ] ];
+			bi2 = rm_b2bc[ (int)pp->p_bases[ 1 ] ];
+			bi3 = rm_b2bc[ (int)pp->p_bases[ 2 ] ];
 			(*btmatp)[bi1][bi2][bi3] = 1;
 		}
 	}else if( nb == 4 ){
 		bmatp = bqmatp = ( BQ_MAT_T * )malloc( sizeof( BQ_MAT_T ) );
-		if( bqmatp == NULL )
-			RM_errormsg( TRUE, "mk_bmatp: can't alloc bqmatp." );
+		if( bqmatp == NULL ){
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate bpmatp.", rm_wdfname, rm_lineno);
+			exit(1);
+		}
 		memset( bmatp, 0, sizeof( BQ_MAT_T ) );
 		for( i = 0; i < ps->ps_n_pairs; i++ ){
 			pp = &ps->ps_pairs[ i ];
-			bi1 = rm_b2bc[ pp->p_bases[ 0 ] ];
-			bi2 = rm_b2bc[ pp->p_bases[ 1 ] ];
-			bi3 = rm_b2bc[ pp->p_bases[ 2 ] ];
-			bi4 = rm_b2bc[ pp->p_bases[ 3 ] ];
+			bi1 = rm_b2bc[ (int)pp->p_bases[ 0 ] ];
+			bi2 = rm_b2bc[ (int)pp->p_bases[ 1 ] ];
+			bi3 = rm_b2bc[ (int)pp->p_bases[ 2 ] ];
+			bi4 = rm_b2bc[ (int)pp->p_bases[ 3 ] ];
 			(*bqmatp)[bi1][bi2][bi3][bi4] = 1;
 		}
 	}
@@ -2670,8 +2534,11 @@ static	void*	mk_rbmatp( PAIRSET_T *ps )
 	pp = &ps->ps_pairs[ 0 ];
 	nb = pp->p_n_bases;
 	bmatp = bpmatp = ( BP_MAT_T * )malloc( sizeof( BP_MAT_T ) );
-	if( bpmatp == NULL )
-		RM_errormsg( TRUE, "pairop: mk_rbmatp: can't alloc bpmatp." );
+	if( bpmatp == NULL ){
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate bpmatp.", rm_wdfname, rm_lineno);
+		exit(1);
+	}
 	memset( bmatp, 0, sizeof( BP_MAT_T ) );
 
 	if( nb == 3 ){
@@ -2708,15 +2575,18 @@ static	POS_T	*posop( char op[], void *ptr, POS_T *r_pos )
 	if( !strcmp( op, "cvt" ) ){
 		vp = ( VALUE_T * )ptr;
 		if( vp->v_value.v_ival < 0 ){
-			RM_errormsg( TRUE,
-		"posop: cvt: only ints > 0 can be convert to positions." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d cvt: only ints > 0 can be converted to positions.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		n_pos = ( POS_T * )malloc( sizeof( POS_T ) );
 		if( n_pos == NULL ){
-			RM_errormsg( TRUE, "posop: cvt: can't alloc n_pos." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d cvt: can't allocate n_pos.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		n_pos->p_type = SYM_DOLLAR;
-		n_pos->p_lineno = rm_emsg_lineno;
+		n_pos->p_lineno = rm_lineno;
 		n_pos->p_tag = NULL;
 		n_pos->p_addr.a_l2r = 1;
 		n_pos->p_addr.a_offset = vp->v_value.v_ival;
@@ -2726,23 +2596,28 @@ static	POS_T	*posop( char op[], void *ptr, POS_T *r_pos )
 	}else if( !strcmp( op, "sub" ) ){
 		l_pos = ( POS_T * )ptr;
 		if( l_pos->p_addr.a_l2r || !r_pos->p_addr.a_l2r ){
-			RM_errormsg( TRUE,
-"posop: sub: expr must have the form '% - expr'; expr is int. valued > 0." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d sub: expr must have the form '$ - expr'; expr is int valued > 0.",
+				rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		n_pos = ( POS_T * )malloc( sizeof( POS_T ) );
 		if( n_pos == NULL ){
-			RM_errormsg( TRUE, "posop: sub: can't alloc n_pos." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d sub: can't allocate n_pos.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		n_pos->p_type = SYM_DOLLAR;
-		n_pos->p_lineno = rm_emsg_lineno;
+		n_pos->p_lineno = rm_lineno;
 		n_pos->p_tag = NULL;
 		n_pos->p_addr.a_l2r = FALSE;
 		n_pos->p_addr.a_offset =
 			l_pos->p_addr.a_offset + r_pos->p_addr.a_offset;
 		return( n_pos );
 	}else{
-		sprintf( emsg, "posop: unknown op '%s'.", op );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d unknown op '%s'.", rm_wdfname, rm_lineno, op);
+		exit(1);
 		return( NULL );
 	}
 }
@@ -2757,7 +2632,9 @@ char	*RM_str2seq( char str[] )
 	if( str == NULL || *str == '\0' ){
 		sp = ( char * )malloc( 1 * sizeof( char ) );
 		if( sp == NULL ){
-			RM_errormsg( TRUE, "RM_str2seq: can't alloc sp." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate sp.", rm_wdfname, rm_lineno);
+			exit(1);
 		}
 		*sp = '\0';
 		return( sp );
@@ -2765,12 +2642,14 @@ char	*RM_str2seq( char str[] )
 	ip = RM_find_id( "iupac" );
 	if( ip )
 		iupac = ip->i_val.v_value.v_ival;
+	else
+		iupac = 0;
 	for( s1 = str, s2 = seq; *s1; s1++ ){
 		c = isupper( *s1 ) ? tolower( *s1 ) : *s1;
 		if( c == 'u' )
 			c = 't';
 		if( iupac ){
-			if( s3 = rm_iupac[ c ] ){
+			if((s3 = rm_iupac[ c ])){
 				strcpy( s2, s3 );
 				s2 += strlen( s3 );
 			}else
@@ -2781,7 +2660,9 @@ char	*RM_str2seq( char str[] )
 	*s2 = '\0';
 	sp = ( char * )malloc( strlen( seq ) + 1 );
 	if( sp == NULL ){
-		RM_errormsg( TRUE, "RM_str2seq: can't alloc sp." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate sp.", rm_wdfname, rm_lineno);
+		exit(1);
 	}
 	strcpy( sp, seq );
 	return( sp );
@@ -2793,15 +2674,14 @@ void	POS_open( int ptype )
 
 	n_valstk = 0;
 	if( ptype == SYM_SE ){
-		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( TRUE,
-		"POS_open: site type 'se' allowed only in score section." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d site tpe 'se' allowed only in score section.", rm_wdfname, rm_lineno);
+		exit(1);
 	}
 	if( rm_n_pos == rm_s_pos ){
-		rm_emsg_lineno = rm_lineno;
-		sprintf( emsg,
-			"POS_open: pos array size(%d) exceeded.", rm_s_pos );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d pos array size(%d) esceeded.", rm_wdfname, rm_lineno, rm_s_pos);
+		exit(1);
 	}
 	posp = &rm_pos[ rm_n_pos ];
 	rm_n_pos++;
@@ -2855,15 +2735,17 @@ void	SI_close( NODE_T *expr )
 
 	posp = ( POS_T * )malloc( rm_n_pos * sizeof( POS_T ) );
 	if( posp == NULL ){
-		rm_emsg_lineno = rm_pos[ 0 ].p_lineno;
-		RM_errormsg( TRUE, "SI_close: can't allocate posp." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate posp.", rm_wdfname, rm_lineno);
+		exit(1);
 	}
 	for( i = 0; i < rm_n_pos; i++ )
 		posp[ i ] = rm_pos[ i ];
 	sip = ( SITE_T * )malloc( sizeof( SITE_T ) );
 	if( sip == NULL ){
-		rm_emsg_lineno = rm_pos[ 0 ].p_lineno;
-		RM_errormsg( TRUE, "SI_close: can't allocate sip." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate sip.", rm_wdfname, rm_lineno);
+		exit(1);
 	}
 	sip->s_next = NULL;
 	sip->s_pos = posp;
@@ -2893,15 +2775,14 @@ static	int	chk_site( SITE_T *sip )
 	err = FALSE;
 	if( sip->s_n_pos != sip->s_pairset->ps_pairs[ 0 ].p_n_bases ){
 		err = TRUE;
-		rm_emsg_lineno = sip->s_pos[ 0 ].p_lineno;
-		RM_errormsg( FALSE,
-	"chk_site: Number of positions in site must agree with pairset." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d Number of positions in site must agree with pairset.", rm_wdfname, sip->s_pos[0].p_lineno);
 	}
 	for( posp = sip->s_pos, i = 0; i < sip->s_n_pos; i++, posp++ ){
 		if( ( sp = posp->p_tag ) == NULL ){
 			err = 1;
-			rm_emsg_lineno = posp->p_lineno;
-			RM_errormsg( FALSE, "all positions must be tagged." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d all positions must be tagged.", rm_wdfname, posp->p_lineno);
 		}else{
 			stp = rm_descr;
 			for( j = 0; j < rm_n_descr; j++, stp++ ){
@@ -2916,11 +2797,8 @@ static	int	chk_site( SITE_T *sip )
 			}
 			if( posp->p_descr == NULL ){
 				err = 1;
-				sprintf( emsg,
-					"position with undefined tag '%s'.",
-					sp );
-				rm_emsg_lineno = posp->p_lineno;
-				RM_errormsg( FALSE, emsg );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d position with undefined tag '%s'.", rm_wdfname, posp->p_lineno, sp);
 			}
 		}
 	}
@@ -2931,14 +2809,13 @@ static	int	chk_site( SITE_T *sip )
 		if( posp->p_addr.a_l2r ){
 			if( posp->p_addr.a_offset > stp->s_minlen ){
 				err = 1;
-				rm_emsg_lineno = posp->p_lineno;
-				RM_errormsg( FALSE,
-					"position offset > strel minlen." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d position offset > strel minlen.", rm_wdfname, posp->p_lineno);
 			}
 		}else if( posp->p_addr.a_offset + 1 > stp->s_minlen ){
 			err = 1;
-			rm_emsg_lineno = posp->p_lineno;
-			RM_errormsg( FALSE, "position offset > strel minlen." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d position offset > strel minlen.", rm_wdfname, posp->p_lineno);
 		}
 	}
 
@@ -2989,8 +2866,7 @@ static	STREL_T	*set_scopes( int fd, int ld, STREL_T descr[] )
 	return( &descr[ fd ] );
 }
 
-static	void	find_gi_len( int fd, STREL_T descr[],
-	int *tminlen, int *tmaxlen )
+static	void	find_gi_len( int fd, STREL_T descr[], int *tminlen, int *tmaxlen )
 {
 	int	d, d1, nd;
 	int	gminlen, gmaxlen;
@@ -3204,9 +3080,9 @@ static	void	find_search_order( int fd, STREL_T descr[] )
 		case SYM_SS :
 			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
 			if( srp == NULL ){
-				sprintf( emsg,
-			"find_search_order: can't allocate srp for ss." );
-				RM_errormsg( TRUE, emsg );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d can't allocate srp for ss.", rm_wdfname, stp->s_lineno);
+				exit(1);
 			}
 			srp->s_descr = stp;
 			stp->s_searchno = rm_n_searches;
@@ -3222,9 +3098,9 @@ static	void	find_search_order( int fd, STREL_T descr[] )
 			if( stp->s_attr[ SA_PROPER ] ){
 				srp = ( SEARCH_T * )malloc(sizeof( SEARCH_T ));
 				if( srp == NULL ){
-					sprintf( emsg,
-			"find_search_order: can't allocate srp for hlx h5." );
-					RM_errormsg( TRUE, emsg );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d can't allocate srp for hlx h5.", rm_wdfname, stp->s_lineno);
+					exit(1);
 				}
 				srp->s_descr = stp;
 				stp->s_searchno = rm_n_searches;
@@ -3243,9 +3119,9 @@ static	void	find_search_order( int fd, STREL_T descr[] )
 						srp = ( SEARCH_T * )
 						    malloc(sizeof(SEARCH_T));
 						if( srp == NULL ){
-							sprintf( emsg,
-			"find_search_order: can't allocate srp for hlx h5." );
-							RM_errormsg(TRUE,emsg);
+							rm_error = TRUE;
+							LOG_ERROR("%s:%d can't allocate srp for hlx h5.", rm_wdfname, stp->s_lineno);
+							exit(1);
 						}
 						srp->s_descr = stp1;
 						stp1->s_searchno=rm_n_searches;
@@ -3268,10 +3144,9 @@ static	void	find_search_order( int fd, STREL_T descr[] )
 		case SYM_P5 :
 			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
 			if( srp == NULL ){
-				rm_emsg_lineno = stp->s_lineno;
-				sprintf( emsg,
-		"find_search_order: can't allocate srp for p-hlx p5." );
-				RM_errormsg( TRUE, emsg );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d can't allocate srp for p-hlx p5.", rm_wdfname, stp->s_lineno);
+				exit(1);
 			}
 			srp->s_descr = stp;
 			stp->s_searchno = rm_n_searches;
@@ -3282,16 +3157,14 @@ static	void	find_search_order( int fd, STREL_T descr[] )
 			stp1 = stp->s_inner;
 			if( stp1 != NULL )
 				find_search_order( stp1->s_index, descr );
-			rm_emsg_lineno = stp->s_lineno;
 			break;
 
 		case SYM_T1 :
 			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
 			if( srp == NULL ){
-				rm_emsg_lineno = stp->s_lineno;
-				sprintf( emsg,
-		"find_search_order: can't allocate srp for triple t1." );
-				RM_errormsg( TRUE, emsg );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d can't allocate srp for triple t1.", rm_wdfname, stp->s_lineno);
+				exit(1);
 			}
 			srp->s_descr = stp;
 			stp->s_searchno = rm_n_searches;
@@ -3311,10 +3184,9 @@ static	void	find_search_order( int fd, STREL_T descr[] )
 		case SYM_Q1 :
 			srp = ( SEARCH_T * )malloc( sizeof( SEARCH_T ) );
 			if( srp == NULL ){
-				rm_emsg_lineno = stp->s_lineno;
-				sprintf( emsg,
-		"find_search_order: can't allocate srp for quad q1." );
-				RM_errormsg( TRUE, emsg );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d can't allocate srp for quad q1.", rm_wdfname, stp->s_lineno);
+				exit(1);
 			}
 			srp->s_descr = stp;
 			stp->s_searchno = rm_n_searches;
@@ -3345,10 +3217,9 @@ static	void	find_search_order( int fd, STREL_T descr[] )
 			break;
 
 		default :
-			rm_emsg_lineno = stp->s_lineno;
-			sprintf( emsg, "find_search_order: illegal sybmol %d.",
-				stp->s_type );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d illegal symbol %d.", rm_wdfname, stp->s_lineno, stp->s_type);
+			exit(1);
 			break;
 		}
 		stp1 = stp->s_next;
@@ -3417,8 +3288,9 @@ static	void	optimize_query( void )
 		rm_o_expbuf = ( char * )
 			mm_regdup( &rm_o_stp->s_expbuf[ bpos ], blen );
 		if( rm_o_expbuf == NULL ){
-			RM_errormsg( TRUE,
-				"optimize_query: can't allocate rm_o_expbuf" );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate rm_o_expbuf.", rm_wdfname, rm_o_stp->s_lineno);
+			exit(1);
 		}
 
 		if( rm_o_stp->s_maxlen != UNBOUNDED ){
@@ -3462,19 +3334,7 @@ static	void	optimize_query( void )
 	}
 }
 
-/*
-static	int	pk_cmp( STREL_T **d1, STREL_T **d2 )
-{
-
-	return( ( *d1 )->s_index - ( *d2 )->s_index );
-}
-*/
-static	int	pk_cmp( const void *d1, const void *d2 )
-{
-
-	return (*((STREL_T **)d1))->s_index - (*((STREL_T **)d2))->s_index;
-}
-
+#if 0
 static	void	dump_bestpat( FILE *fp, STREL_T *stp )
 {
 	float	o_ecnt;
@@ -3516,3 +3376,4 @@ static	void	dump_bestpat( FILE *fp, STREL_T *stp )
 		fprintf( fp, "%d", o_rmax );
 	fprintf( fp, "\n" );
 }
+#endif

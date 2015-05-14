@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 int	regerr;
 
@@ -8,6 +9,8 @@ int	regerr;
 #define	UNGETC(c)	(--sp)
 #define	RETURN(c)	{ regerr = 0; return; }
 #define	ERROR(c)	{ remsg(c); return; }
+
+int	advance(register char *, register char *);
 
 static	void	remsg( mval )
 int	mval;
@@ -419,6 +422,7 @@ register char *p1, *p2;
 	return(0);
 }
 
+int
 advance(lp, ep)
 register char *lp, *ep;
 {
@@ -471,11 +475,11 @@ register char *lp, *ep;
 			return(0);
 		
 		case CBRA:
-			braslist[*ep++] = lp;
+			braslist[(int)*ep++] = lp;
 			continue;
 	
 		case CKET:
-			braelist[*ep++] = lp;
+			braelist[(int)*ep++] = lp;
 			continue;
 	
 		case CCHR | RNGE:
@@ -547,8 +551,8 @@ register char *lp, *ep;
 			goto star;
 	
 		case CBACK:
-			bbeg = braslist[*ep];
-			ct = braelist[*ep++] - bbeg;
+			bbeg = braslist[(int)*ep];
+			ct = braelist[(int)*ep++] - bbeg;
 	
 			if(ecmp(bbeg, lp, ct)) {
 				lp += ct;
@@ -557,8 +561,8 @@ register char *lp, *ep;
 			return(0);
 	
 		case CBACK | STAR:
-			bbeg = braslist[*ep];
-			ct = braelist[*ep++] - bbeg;
+			bbeg = braslist[(int)*ep];
+			ct = braelist[(int)*ep++] - bbeg;
 			curlp = lp;
 			while(ecmp(bbeg, lp, ct))
 				lp += ct;
@@ -617,7 +621,7 @@ register char *lp, *ep;
 			}
 
 			if(*ep == CBACK) {
-				c = *(braslist[ep[1]]);
+				c = *(braslist[(int)ep[1]]);
 				do {
 					if(*lp != c)
 						continue;

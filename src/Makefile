@@ -31,7 +31,7 @@ rnamotif:	$(RNAMOTOBJS)
 
 rnamot.o:	rmdefs.h rnamot.h dbutil.h log.h
 
-compile.o:	rmdefs.h rnamot.h mm_regexp.h y.tab.h
+compile.o:	log.h rmdefs.h rnamot.h mm_regexp.h y.tab.h
 
 dbutil.o:	rmdefs.h dbutil.h
 
@@ -40,9 +40,9 @@ dump.o:		rmdefs.h rnamot.h y.tab.h
 dumpnode.h:	y.tab.h mk_dumpnode.h.sh
 		./mk_dumpnode.h.sh y.tab.h > dumpnode.h
 
-efn.o:		rmdefs.h rnamot.h split.h
+efn.o:		log.h split.h rmdefs.h rnamot.h
 
-efn2.o:		rmdefs.h rnamot.h split.h
+efn2.o:		log.h split.h rmdefs.h rnamot.h
 
 errormsg.o:	rmdefs.h
 
@@ -52,11 +52,11 @@ getargs.o:	rmdefs.h rnamot.h
 
 mm_regexp.o:	rmdefs.h rnamot.h mm_regexp.h
 
-node.o:		dumpnode.h rnamot.h y.tab.h
+node.o:		log.h rmdefs.h rnamot.h y.tab.h dumpnode.h
 
-preprocessor.o:	rnamot.h
+preprocessor.o:	log.h rmdefs.h rnamot.h
 
-score.o:	rmdefs.h rnamot.h mm_regexp.h y.tab.h
+score.o:	log.h rmdefs.h rnamot.h mm_regexp.h y.tab.h
 
 y.tab.o:	rnamot.h y.tab.c
 
@@ -79,13 +79,13 @@ rmfmt:		rmfmt.o split.o log.o
 rm2ct:		rm2ct.o split.o log.o
 	$(CC)	$(CFLAGS) -o rm2ct rm2ct.o split.o log.o
 
-efn_drv:	efn_drv.o efn.o errormsg.o split.o log.o
-	$(CC)	$(CFLAGS) -o efn_drv efn_drv.o efn.o errormsg.o split.o log.o -lm
+efn_drv:	efn_drv.o efn.o split.o log.o
+	$(CC)	$(CFLAGS) -o efn_drv efn_drv.o efn.o split.o log.o -lm
 
-efn_drv.o:	rmdefs.h rnamot.h log.h
+efn_drv.o:	log.h rmdefs.h rnamot.h
 
-efn2_drv:	efn2_drv.o efn2.o errormsg.o split.o log.o
-	$(CC)	$(CFLAGS) -o efn2_drv efn2_drv.o efn2.o errormsg.o split.o log.o -lm 
+efn2_drv:	efn2_drv.o efn2.o split.o log.o
+	$(CC)	$(CFLAGS) -o efn2_drv efn2_drv.o efn2.o split.o log.o -lm 
 
 efn2_drv.o:	log.h rmdefs.h rnamot.h
 

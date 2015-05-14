@@ -4,8 +4,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "log.h"
 #include "rmdefs.h"
 #include "rnamot.h"
+#include "mm_regexp.h"
 #include "y.tab.h"
 
 #define	FMTLIST		"bBdiouxXfeEgGcCsSpn%"
@@ -23,9 +25,9 @@
 	((s)==SYM_PLUS_ASSIGN||(s)==SYM_MINUS_ASSIGN||\
 	 (s)==SYM_PERCENT_ASSIGN||(s)==SYM_SLASH_ASSIGN||(s)==SYM_STAR_ASSIGN)
 
+extern	int	rm_error;
 extern	char	*rm_wdfname;
 extern	int	rm_lineno;
-extern	int	rm_emsg_lineno;	
 extern	STREL_T	rm_descr[];
 extern	int	rm_n_descr;
 extern	STREL_T	*rm_lctx;
@@ -49,6 +51,8 @@ static	STREL_T	**rm_xdescr;
 static	int	rm_n_xdescr;
 
 extern	int	circf;	/* reg. exp. ^ kludge	*/
+extern	void	compile(char *, register char *, char *, int);
+extern	int	step(register char *, register char *);
 
 #define	LABTAB_SIZE	1000
 static	int	labtabs[ N_PROG ][ LABTAB_SIZE ];
@@ -213,8 +217,6 @@ static	int	sp;		/* stack pointer	*/
 static	int	estk[ ESTK_SIZE ];
 static	int	esp;		/* element stack pointer*/
 
-static	char	emsg[ 256 ];
-
 #define	SPRINTFBUF_SIZE	10000
 static	char	sprintfbuf[ SPRINTFBUF_SIZE ];
 static	char	*sbp;
@@ -270,10 +272,13 @@ static	void	mk_stref_name( int, char []);
 static	void	addnode( int, NODE_T *, int );
 static	void	addinst( NODE_T *, int, VALUE_T * );
 static	void	dumpinst( FILE *, int, INST_T * );
+#ifdef	DEBUG_SCORE
 static	void	dumpstk( FILE *, char [] );
+#endif
 
 char	*getenv();
 
+#ifdef DEBUG_MEM
 #define	TM_MEM_SIZE	1000
 typedef	struct	tm_mem_t	{
 	int	t_freed;
@@ -283,10 +288,13 @@ typedef	struct	tm_mem_t	{
 } TM_MEM_T;
 static	TM_MEM_T	tm_mem[ TM_MEM_SIZE ];
 static	int	tm_n_mem;
+#endif
 
 static	char	*tm_malloc( int, char [] );
 static	void	tm_free( void * );
+#ifdef DEBUG_MEM
 static	void	tm_report( void );
+#endif
 
 void	RM_action( NODE_T *np )
 {
@@ -428,10 +436,9 @@ void	RM_break( NODE_T *np )
 	else{
 		lev = np->n_val.v_value.v_ival;
 		if( lev < 1 || lev > *loopstkp ){
-			sprintf( emsg,
-				"continue level must be between 1 and %d.",
-				lev );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("bad break level %d, must be between 1 and %d.", lev, *loopstk);
+			exit(1);
 		}
 	}
 	v_lab.v_type = T_INT;
@@ -448,10 +455,9 @@ void	RM_continue( NODE_T *np )
 	else{
 		lev = np->n_val.v_value.v_ival;
 		if( lev < 1 || lev > *loopstkp ){
-			sprintf( emsg,
-				"continue level must be between 1 and %d.",
-				lev );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("bad continue level %d, must be between 1 and %d.", lev, *loopstk);
+			exit(1);
 		}
 	}
 	v_lab.v_type = T_INT;
@@ -534,8 +540,9 @@ void	RM_linkscore( void )
 		rm_n_xdescr++;
 	rm_xdescr = ( STREL_T ** )malloc( rm_n_xdescr * sizeof( STREL_T * ) );
 	if( rm_xdescr == NULL ){
-		rm_emsg_lineno = UNDEF;
-		RM_errormsg( TRUE, "RM_linkscore: can't allocate rm_xdescr." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate rm_xdescr.", rm_wdfname, UNDEF);
+		exit(1);
 	}
 	if( rm_lctx != NULL && rm_lctx_explicit ){
 		rm_xdescr[ 0 ] = rm_lctx;
@@ -615,9 +622,9 @@ int	RM_score( int comp, int slen, char sbuf[], IDENT_T **h_idp )
 	esp = sp = mp = -1;
 	for( rval = 0, pc = 0; ; ){
 		if( pc < 0 || pc >= *l_prog ){
-			sprintf( emsg, "RM_score: pc: %d: out of range 0..%d.",
-				pc, *l_prog - 1 );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("bad pc %d, must be in 0 to %d.", pc, *l_prog - 1);
+			exit(1);
 		}
 		ip = &prog[ pc ];
 
@@ -630,8 +637,9 @@ dumpstk( stderr, "before op" );
 		switch( ip->i_op ){
 		case OP_HALT :
 			if( c_prog == P_MAIN ){
-				sprintf( emsg, "RM_score: pc: %d: HALT", pc );
-				RM_errormsg( TRUE, emsg );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d pc %d, HALT", ip->i_filename, ip->i_lineno, pc);
+				exit(1);
 			}
 			goto SCORED;
 			break;
@@ -765,10 +773,9 @@ dumpstk( stderr, "before op" );
 			pc = ip->i_val.v_value.v_ival;
 			break;
 		default :
-			rm_wdfname = ip->i_filename; 
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg, "RM_score: unknown op %d.", ip->i_op );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d unknown op %d.", ip->i_filename, ip->i_lineno, ip->i_op);
+			exit(1);
 			break;
 		}
 
@@ -780,7 +787,7 @@ dumpstk( stderr, "after op " );
 
 SCORED : ;
 
-#ifdef MEMDEBUG
+#ifdef DEBUG_MEM
 	tm_report();
 #endif
 	
@@ -866,56 +873,44 @@ static	void	fix_kw_stref( NODE_T *np )
 			ip = np3->n_val.v_value.v_pval;
 			if( !strcmp( ip, "index" ) ){
 				if( n_index != NULL ){
-					rm_wdfname = n_index->n_filename;
-					rm_emsg_lineno = n_index->n_lineno;
-					RM_errormsg( TRUE,
-	"fix_kw_stref: index parameter may not appear more than once." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d index parameter may not appear more than once.", n_index->n_filename, n_index->n_lineno);
+					exit(1);
 				}else
 					n_index = np2->n_right;
 			}else if( !strcmp( ip, "tag" ) ){
 				if( n_tag != NULL ){
-					rm_wdfname = n_tag->n_filename;
-					rm_emsg_lineno = n_tag->n_lineno;
-					RM_errormsg( TRUE,
-	"fix_kw_stref: tag parameter may not appear more than once." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d tag parameter man not appear more than once.", n_tag->n_filename, n_tag->n_lineno);
+					exit(1);
 				}else
 					n_tag = np2->n_right;
 			}else if( !strcmp( ip, "pos" ) ){
 				if( n_pos != NULL ){
-					rm_wdfname = n_pos->n_filename;
-					rm_emsg_lineno = n_pos->n_lineno;
-					RM_errormsg( TRUE,
-		"fix_kw_stref: pos parameter may not appear more than once." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d pos parameter may not appear more than once.", n_pos->n_filename, n_pos->n_lineno);
+					exit(1);
 				}else
 					n_pos = np2->n_right;
 			}else if( !strcmp( ip, "len" ) ){
 				if( n_len != NULL ){
-					rm_wdfname = n_len->n_filename;
-					rm_emsg_lineno = n_len->n_lineno;
-					RM_errormsg( TRUE,
-		"fix_kw_stref: len parameter may not appear more than once." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d len parameter may not appear more than once.", n_len->n_filename, n_len->n_lineno);
+					exit(1);
 				}else
 					n_len = np2->n_right;
 			}else{
-				rm_wdfname = np3->n_filename;
-				rm_emsg_lineno = np3->n_lineno;
-				sprintf( emsg,
-				"fix_kw_stref: unknown parameter: '%s'.",
-					ip );
-				RM_errormsg( TRUE, emsg );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d unknown parameter: '%s'.", np3->n_filename, np3->n_lineno, ip);
+				exit(1);
 			}
 		}
 	}
 
-	rm_wdfname = np->n_filename;
-	rm_emsg_lineno = np->n_lineno;
-	if( n_index == NULL && n_tag == NULL ||
-		n_index != NULL && n_tag != NULL )
-	{
-		rm_wdfname = np->n_filename;
-		rm_emsg_lineno = np->n_lineno;
-		RM_errormsg( TRUE,
-		"fix_kw_stref: one of index= or tag= required for stref()." );
+	if((n_index == NULL && n_tag == NULL) || (n_index != NULL && n_tag != NULL)) {
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d one of index= or tag= is required for stref().", np->n_filename, np->n_lineno);
+		exit(1);
 	}else
 		n_id = n_index != NULL ? n_index : n_tag;
 
@@ -1005,7 +1000,7 @@ static	NODE_T	*mk_call_strid( int strel, NODE_T *n_id )
 static	void	fix_call( NODE_T *np )
 {
 	int	sc, pcnt;
-	NODE_T	*np1, *np2, *np3;
+	NODE_T	*np1, *np2, *np3 = NULL;
 	VALUE_T	v_expr;
 
 	sc = is_syscall( np );
@@ -1015,10 +1010,9 @@ static	void	fix_call( NODE_T *np )
 
 	switch( sc ){
 	case SC_STRID :
-		rm_wdfname = np->n_filename;
-		rm_emsg_lineno = np->n_lineno;
-		RM_errormsg( TRUE,
-			"fix_call: STRID can not be called by user." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d STRID can not be called by user.", np->n_filename, np->n_lineno);
+		exit(1);
 		break;
 	case SC_BITS :
 	case SC_EFN :
@@ -1026,12 +1020,9 @@ static	void	fix_call( NODE_T *np )
 		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
 			pcnt++;
 		if( pcnt != 2 ){
-			rm_wdfname = np->n_filename;
-			rm_emsg_lineno = np->n_lineno;
-			sprintf( emsg,
-				"fix_call: function '%s' has 2 parameters.",
-				 scnames[ sc ] );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d function '%s' has the wrong number of paramters %d, takes 2", np->n_filename, np->n_lineno, scnames[sc], pcnt);
+			exit(1);
 		}
 		np1 = np->n_right;
 		np2 = np1->n_right;
@@ -1040,24 +1031,18 @@ static	void	fix_call( NODE_T *np )
 		np2 = np2->n_left;
 
 		if( np1->n_sym != SYM_KW_STREF && np1->n_sym != SYM_IX_STREF ){
-			rm_wdfname = np1->n_filename;
-			rm_emsg_lineno = np1->n_lineno;
-			sprintf( emsg,
-			"fix_call: function '%s' takes only strel arguments.",
-				scnames[ sc ] );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d function '%s' takes only strel arguments.", np1->n_filename, np1->n_lineno, scnames[sc]);
+			exit(1);
 		}else{
 			np1 = np1->n_right;
 			for( np3 = np1; np3->n_right ; np3 = np3->n_right )
 				;
 		}
 		if( np2->n_sym != SYM_KW_STREF && np2->n_sym != SYM_IX_STREF ){
-			rm_wdfname = np2->n_filename;
-			rm_emsg_lineno = np2->n_lineno;
-			sprintf( emsg,
-			"fix_call: function '%s' takes only strel arguments.",
-				scnames[ sc ] );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d function '%s' takes only strel arguments.", np2->n_filename, np2->n_lineno, scnames[sc]);
+			exit(1);
 		}else
 			np2 = np2->n_right;
 
@@ -1070,22 +1055,16 @@ static	void	fix_call( NODE_T *np )
 		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
 			pcnt++;
 		if( pcnt != 1 ){
-			rm_wdfname = np->n_filename;
-			rm_emsg_lineno = np->n_lineno;
-			sprintf( emsg,
-				"fix_call: function '%s' has 1 parameters.",
-				 scnames[ sc ] );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d function '%s' has the wrong number of parameters %d, takes 1.", np->n_filename, np->n_lineno, scnames[sc], pcnt);
+			exit(1);
 		}
 		np1 = np->n_right;
 		np1 = np1->n_left;
 		if( np1->n_sym != SYM_KW_STREF && np1->n_sym != SYM_IX_STREF ){
-			rm_wdfname = np1->n_filename;
-			rm_emsg_lineno = np1->n_lineno;
-			sprintf( emsg,
-			"fix_call: function '%s' takes only strel arguments.",
-				scnames[ sc ] );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d function '%s' takes only strel arguments.", np1->n_filename, np1->n_lineno, scnames[sc]);
+			exit(1);
 		}else
 			np1 = np1->n_right;
 		np->n_right = np1;
@@ -1102,12 +1081,9 @@ static	void	fix_call( NODE_T *np )
 		}else if( pcnt == 2 ){
 			np->n_val.v_value.v_ival = SC_MISMATCHES_2;
 		}else{
-			rm_wdfname = np->n_filename;
-			rm_emsg_lineno = np->n_lineno;
-			sprintf( emsg,
-				"fix_call: function '%s' has 1 parameter.",
-				 scnames[ sc ] );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d function '%s' has the wrong number of parameters %d, takes 1 or 2.", np->n_filename, np->n_lineno, scnames[sc], pcnt);
+			exit(1);
 		}
 		break;
 	case SC_MISPAIRS :
@@ -1115,12 +1091,9 @@ static	void	fix_call( NODE_T *np )
 		for( pcnt = 0, np1 = np->n_right; np1; np1 = np1->n_right )
 			pcnt++;
 		if( pcnt != 1 ){
-			rm_wdfname = np->n_filename;
-			rm_emsg_lineno = np->n_lineno;
-			sprintf( emsg,
-				"fix_call: function '%s' has 1 parameter.",
-				 scnames[ sc ] );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d function '%s' has the wrong number of parameters %d, takes 1.", np->n_filename, np->n_lineno, scnames[sc], pcnt);
+			exit(1);
 		}
 		np1 = np->n_right;
 		np1 = np1->n_left;
@@ -1140,19 +1113,16 @@ static	void	fix_call( NODE_T *np )
 			np3 = RM_node( SYM_INT, &v_expr, 0, 0 );
 			np2 = RM_node( SYM_LIST, 0, np3, NULL );
 			np1->n_right = np2;
-		}else if( pcnt != 3 ){
-			rm_wdfname = np->n_filename;
-			rm_emsg_lineno = np->n_lineno;
-			sprintf( emsg,
-			"fix_call: function '%s' has 2 or 3 parameters.",
-				 scnames[ sc ] );
-			RM_errormsg( TRUE, emsg );
+		}else if( pcnt != 3 ){	// TODO: fix me!
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d function '%s' has wrong number of parameters %d, takes 2 or 3.", np->n_filename, np->n_lineno, scnames[sc], pcnt);
+			exit(1);
 		}
 		break;
 	default :
-		rm_wdfname = np->n_filename;
-		rm_emsg_lineno = np->n_lineno;
-		RM_errormsg( TRUE, "fix_call: unknown syscall." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d unknown syscall %d", np->n_filename, np->n_lineno, sc);
+		exit(1);
 		break;
 	}
 }
@@ -1160,9 +1130,9 @@ static	void	fix_call( NODE_T *np )
 static	void	do_fcl( INST_T *ip )
 {
 
-	rm_wdfname = ip->i_filename;
-	rm_emsg_lineno = ip->i_lineno;
-	RM_errormsg( TRUE, "do_fcl: Unimplemented instruction." );
+	rm_error = TRUE;
+	LOG_ERROR("%s:%d unimplemented instruction.", ip->i_filename, ip->i_lineno);
+	exit(1);
 }
 
 static	void	do_scl( INST_T *ip )
@@ -1221,32 +1191,26 @@ static	void	do_scl( INST_T *ip )
 	case SC_LOC :
 		idx  = mem[ sp - 2 ].v_value.v_ival;
 		if( idx < 0 || idx >= rm_n_xdescr ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg, 
-		"do_scl: loc: descr index must be between 1 and %d.",
-				rm_n_xdescr );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d descr index %d is out of range; must be between 1 and %d.", ip->i_filename, ip->i_lineno, idx + 1, rm_n_xdescr);
+			exit(1);
 		}
 		stp = rm_xdescr[ idx ];
 		pos = mem[ sp - 1 ].v_value.v_ival;
 		if( pos == UNDEF )
 			pos = 1;
 		else if( pos < 0 ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE, "do_scl: loc: pos must be > 0." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d loc: bad pos %d, must be > 0.", ip->i_filename, ip->i_lineno, pos);
+			exit(1);
 		}else if( stp->s_matchlen == 0 ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE,
-	"do_scl: loc: descr must have match len > 0." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d loc: bad matchlen %d, must be > 0.", ip->i_filename, ip->i_lineno, stp->s_matchlen);
+			exit(1);
 		}else if( pos > stp->s_matchlen ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg, "do_scl: loc: pos must be <= %d.",
-				stp->s_matchlen );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d loc: bad pos %d, must be <= %d.", ip->i_filename, ip->i_lineno, pos, stp->s_matchlen);
+			exit(1);
 		}
 		pos--;
 		len  = mem[ sp ].v_value.v_ival;
@@ -1260,12 +1224,9 @@ static	void	do_scl( INST_T *ip )
 	case SC_MISMATCHES_1 :
 		idx = mem[ sp - 2 ].v_value.v_ival;
 		if( idx < 0 || idx >= rm_n_xdescr ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg, 
-		"do_scl: mismatches: descr index must be between 1 and %d.",
-				rm_n_xdescr );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d mismatches: bad descr index %d, must be betwen 1 and %d.", ip->i_filename, ip->i_lineno, idx + 1, rm_n_xdescr);
+			exit(1);
 		}
 		stp = rm_xdescr[ idx ];
 		sp = mp;
@@ -1285,10 +1246,9 @@ static	void	do_scl( INST_T *ip )
 			eb_size = size;
 			expbuf = ( char * )malloc( eb_size * sizeof( char ) );
 			if( expbuf == NULL ){
-				rm_wdfname = ip->i_filename;
-				rm_emsg_lineno = ip->i_lineno;
-				RM_errormsg( TRUE,
-					"do_scl: can't alloc expbuf" );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d can't alloc expbuf.", ip->i_filename, ip->i_lineno);
+				exit(1);
 			}
 		}
 		e_expbuf = &expbuf[ eb_size ];
@@ -1308,12 +1268,9 @@ static	void	do_scl( INST_T *ip )
 	case SC_MISPAIRS :
 		idx = mem[ sp - 2 ].v_value.v_ival;
 		if( idx < 0 || idx >= rm_n_xdescr ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg, 
-		"do_scl: mispairs: descr index must be between 1 and %d.",
-				rm_n_xdescr );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d mispairs: bad descr index %d, must be between 1 and %d.", ip->i_filename, ip->i_lineno, idx + 1, rm_n_xdescr);
+			exit(1);
 		}
 		stp = rm_xdescr[ idx ];
 		sp = mp;
@@ -1325,32 +1282,25 @@ static	void	do_scl( INST_T *ip )
 	case SC_PAIRED :
 		idx = mem[ sp - 2 ].v_value.v_ival;
 		if( idx < 0 || idx >= rm_n_xdescr ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg, 
-		"do_scl: paired: descr index must be between 1 and %d.",
-				rm_n_xdescr );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d paired: bad descr index %d, must be bewteen 1 and %d.", ip->i_filename, ip->i_lineno, idx + 1, rm_n_xdescr);
+			exit(1);
 		}
 		stp = rm_xdescr[ idx ];
 		
 		pos = mem[ sp - 1 ].v_value.v_ival;
 		if( pos < 1 || pos > stp->s_matchlen ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg, 
-		"do_scl: paired: pos must be between 1 and %d.",
-				stp->s_matchlen );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d paired: bad pos %d, must be between 1 and %d.", ip->i_filename, ip->i_lineno, pos, stp->s_matchlen);
+			exit(1);
 		}
 		pos--;
 
 		len = mem[ sp ].v_value.v_ival;
 		if( len == 0 ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg, "do_scl: paired: len must be > 0." );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d paired: bad len %d, must be > 0.", ip->i_filename, ip->i_lineno, len);
+			exit(1);
 		}else if( len < 0 )
 			len = stp->s_matchlen - pos;
 		else
@@ -1365,9 +1315,9 @@ static	void	do_scl( INST_T *ip )
 		do_sc_sprintf( ip );
 		cp = ( char * )malloc( strlen( sprintfbuf ) + 1 );
 		if( cp == NULL ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE, "do_strf: can't allocate cp1." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate cp.", ip->i_filename, ip->i_lineno);
+			exit(1);
 		}
 		strcpy( cp, sprintfbuf );
 		for( i = sp; i > mp; i-- ){
@@ -1386,24 +1336,21 @@ static	void	do_scl( INST_T *ip )
 		pos = mem[ sp - 1 ].v_value.v_ival;
 		len = mem[ sp ].v_value.v_ival;
 		if( pos < 1 || pos > c_len ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg,
-		"do_scl: substr: bad position %d: limits 1..%d.", pos, c_len );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d substr: bad positiion %d, must be between 1 and %d.", ip->i_filename, ip->i_lineno, pos, c_len);
+			exit(1);
 		}
 		if( len < 1 ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE, "do_scl: substr: len must >= 1" );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d substr: bad len %d, must be >= 1.", ip->i_filename, ip->i_lineno, len);
+			exit(1);
 		}
 		len = MIN( c_len - pos + 1, len ); 
 		ssp = ( char * )tm_malloc( len + 1, "do_scl:substr" );
 		if( ssp == NULL ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE,
-				"do_scl: substr: can't allocate ssp." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d substr: can't allocate ssp.", ip->i_filename, ip->i_lineno);
+			exit(1);
 		}
 		strncpy( ssp, &cp[ pos - 1 ], len );
 		ssp[ len ] = '\0';
@@ -1415,27 +1362,25 @@ static	void	do_scl( INST_T *ip )
 		break;
 
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_scl: undefined syscall." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d undefined syscall %d", ip->i_filename, ip->i_lineno, ip->i_val.v_value.v_ival);
+		exit(1);
 		break;
 	}
 }
 
 static	int	strid( int stype, VALUE_T *v_id )
 {
-	int	s, idx;
+	int	s, idx = UNDEF;
 	STREL_T	*stp;
 	char	*tag, name1[ 20 ], name2[ 20 ];
 
 	if( v_id->v_type == T_INT ){
 		idx = v_id->v_value.v_ival;
 		if( idx < 1 || idx > rm_n_xdescr ){
-			rm_emsg_lineno = UNDEF;
-			sprintf( emsg,
-				"strid: index (%d) out of range: 1 .. %d.",
-				idx, rm_n_xdescr );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d index %d out of range, must be between 1 and %d.", rm_wdfname, UNDEF, idx, rm_n_xdescr);
+			exit(1);
 		}
 		idx--;
 		stp = rm_xdescr[ idx ];
@@ -1443,11 +1388,9 @@ static	int	strid( int stype, VALUE_T *v_id )
 			if( stp->s_type != stype ){
 				mk_stref_name( stype, name1 );
 				mk_stref_name( stp->s_type, name2 );
-				rm_emsg_lineno = UNDEF;
-				sprintf( emsg,
-			"strid: descr type mismatch: is %s should be %s.",
-					name1, name2 );
-				RM_errormsg( TRUE, emsg );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d descr type mismatch: have %s, need %s.", rm_wdfname, UNDEF, name1, name2);
+				exit(1);
 			}
 		}
 	}else if( v_id->v_type == T_STRING ){
@@ -1467,9 +1410,9 @@ static	int	strid( int stype, VALUE_T *v_id )
 			}
 		}
 		if( idx == UNDEF ){
-			rm_emsg_lineno = UNDEF;
-			sprintf( emsg, "strid: no such descr '%s'.", tag );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d no such descr '%s'.", rm_wdfname, UNDEF, tag);
+			exit(1);
 		}
 	}
 	return( idx );
@@ -1481,6 +1424,7 @@ static	int	paired( STREL_T *stp, int pos, int len )
 	int	i, mlen;
 	int	p1, p2, p3, p4;
 	int	b1, b2, b3, b4;
+	int	rval = 1;
 
 	mlen = stp->s_matchlen;
 	switch( stp->s_n_mates ){
@@ -1495,10 +1439,11 @@ static	int	paired( STREL_T *stp, int pos, int len )
 		for( i = 0; i < len; i++ ){
 			b1 = sc_sbuf[ p1 + pos + i ];
 			b2 = sc_sbuf[ p2 - pos - i ];
-			if( !RM_paired( stp1->s_pairset, b1, b2 ) )
-				return( 0 );
+			if( !RM_paired( stp1->s_pairset, b1, b2 ) ){
+				rval = 0;
+				break;
+			}
 		}
-		return( 1 );
 		break;
 	case 2 :
 		if( stp->s_index < stp->s_mates[ 0 ]->s_index )
@@ -1514,10 +1459,11 @@ static	int	paired( STREL_T *stp, int pos, int len )
 			b1 = sc_sbuf[ p1 + pos + i ];
 			b2 = sc_sbuf[ p2 - pos - i ];
 			b3 = sc_sbuf[ p3 + pos + i ];
-			if( !RM_triple( stp1->s_pairset, b1, b2, b3 ) )
-				return( 0 );
+			if( !RM_triple( stp1->s_pairset, b1, b2, b3 ) ){
+				rval = 0;
+				break;
+			}
 		}
-		return( 1 );
 		break;
 	case 3 :
 		if( stp->s_index < stp->s_mates[ 0 ]->s_index )
@@ -1536,18 +1482,21 @@ static	int	paired( STREL_T *stp, int pos, int len )
 			b2 = sc_sbuf[ p2 - pos - i ];
 			b3 = sc_sbuf[ p3 + pos + i ];
 			b4 = sc_sbuf[ p4 - pos - i ];
-			if( !RM_quad( stp1->s_pairset, b1, b2, b3, b4 ) )
-				return( 0 );
+			if( !RM_quad( stp1->s_pairset, b1, b2, b3, b4 ) ){
+				rval = 1;
+				break;
+			}
 		}
-		return( 1 );
 		break;
 	default :
-		rm_emsg_lineno = stp->s_lineno;
-		RM_errormsg( TRUE,
-			"paired() does not accept descr type 'ss'." );
-		return( 0 );
+		rval = 0;
+		rm_error = TRUE;
+		LOG_ERROR("paired() does not accept descr type 'ss'.");
+		exit(1);
 		break;
 	}
+
+	return rval;
 }
 
 static	float	do_sc_bits( INST_T *ip )
@@ -1557,69 +1506,58 @@ static	float	do_sc_bits( INST_T *ip )
 
 	idx  = mem[ sp - 5 ].v_value.v_ival;
 	if( idx < 0 || idx >= rm_n_xdescr ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, 
-			"do_sc_bits: 1st descr index must be between 1 and %d.",
-			rm_n_xdescr );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bits: bad 1st descr index %d, must be between 1 and %d.",
+			ip->i_filename, ip->i_lineno, idx + 1, rm_n_xdescr);
+		exit(1);
 	}
 	stp = rm_xdescr[ idx ];
 	pos = mem[ sp - 4 ].v_value.v_ival;
 	if( pos == UNDEF )
 		pos = 1;
-	else if( pos < 0 ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_sc_bits: pos1 must be > 0." );
+	else if( pos <= 0 ){
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bits: bad pos1 %d, must be > 0.", ip->i_filename, ip->i_lineno, pos);
+		exit(1);
 	}else if( stp->s_matchlen == 0 ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE,
-			"do_sc_bits: descr1 must have match len > 0." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bits: descr1 must have match len > 0.", ip->i_filename, ip->i_lineno);
+		exit(1);
 	}else if( pos > stp->s_matchlen ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_sc_bits: pos1 must be <= %d.",
-			stp->s_matchlen );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bits: bad pos1 %d, must be <= %d.", ip->i_filename, ip->i_lineno, pos, stp->s_matchlen);
+		exit(1);
 	}
 	pos--;
 
 	idx2 = mem[ sp - 2 ].v_value.v_ival;
 	if( idx2 < 0 || idx2 >= rm_n_xdescr ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, 
-			"do_sc_bits: 2nd descr index must be between 1 and %d.",
-			rm_n_xdescr );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bits: bad 2nd descr index %d, must be between 1 and %d.",
+			ip->i_filename, ip->i_lineno, idx + 1, rm_n_xdescr);
+		exit(1);
 	}else if( idx >= idx2 ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, 
-			"do_sc_bits: 2nd descr index must follow 1st descr." );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bits: bad 2nd descr index %d, must follow 1st descr index %d.",
+			ip->i_filename, ip->i_lineno, idx + 1, idx2 + 1);
+		exit(1);
 	}
 	stp2 = rm_xdescr[ idx2 ];
 	pos2 = mem[ sp - 1 ].v_value.v_ival;
 	if( pos2 == UNDEF )
 		pos2 = stp2->s_matchlen;
 	else if( pos2 < 0 ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_sc_bits: pos2 must be > 0." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bits: bad pas2 %d, must be > 0", ip->i_filename, ip->i_lineno, pos2);
+		exit(1);
 	}else if( stp2->s_matchlen == 0 ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE,
-			"do_sc_bits: descr2 must have match len > 0." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bits: descr2 must have match len > 0.", ip->i_filename, ip->i_lineno);
+		exit(1);
 	}else if( pos2 > stp2->s_matchlen ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_scl: bits: pos2 must be <= %d.",
-			stp2->s_matchlen );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bits: bad pos2 %d, must be <= %d.", ip->i_filename, ip->i_lineno, pos2, stp2->s_matchlen);
+		exit(1);
 	}
 	pos2--;
 
@@ -1676,78 +1614,58 @@ static	float	do_sc_efnx( INST_T *ip )
 
 	idx  = mem[ sp - 5 ].v_value.v_ival;
 	if( idx < 0 || idx >= rm_n_xdescr ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, 
-		"do_sc_efnx: %s: 1st descr index must be between 1 and %d.",
-			scnames[ sc ], rm_n_xdescr );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d %s: bad 1st descr index %d, must be between 1 and %d.",
+			ip->i_filename, ip->i_lineno, scnames[sc], idx + 1, rm_n_xdescr);
+		exit(1);
 	}
 	stp = rm_xdescr[ idx ];
 	pos = mem[ sp - 4 ].v_value.v_ival;
 	if( pos == UNDEF )
 		pos = 1;
-	else if( pos < 0 ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_sc_efnx: %s: pos1 must be > 0.",
-			scnames[ sc ] );
-		RM_errormsg( TRUE, emsg );
+	else if( pos <= 0 ){
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d %s: bad pos1 %d, must be > 0.", ip->i_filename, ip->i_lineno, scnames[sc], pos);
+		exit(1);
 	}else if( stp->s_matchlen == 0 ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg,
-			"do_sc_efnx: %s: descr1 must have match len > 0.",
-			scnames[ sc ] );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d %s: descr1 must have a match len > 0.", ip->i_filename, ip->i_lineno, scnames[sc]);
+		exit(1);
 	}else if( pos > stp->s_matchlen ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_sc_efnx: %s: pos1 must be <= %d.",
-			scnames[ sc ], stp->s_matchlen );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d %s: bad pos1 %d, must be <= %d.", ip->i_filename, ip->i_lineno, scnames[sc], pos, stp->s_matchlen);
+		exit(1);
 	}
 	pos--;
 
 	idx2 = mem[ sp - 2 ].v_value.v_ival;
 	if( idx2 < 0 || idx2 >= rm_n_xdescr ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, 
-	"do_sc_efnx: %s: 2nd descr index must be between 1 and %d.",
-			scnames[ sc ], rm_n_xdescr );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d %s: bad 2nd descr %d, must be between 1 and %d.",
+			ip->i_filename, ip->i_lineno, scnames[sc], idx2 + 1, rm_n_xdescr);
+		exit(1);
 	}else if( idx >= idx2 ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, 
-	"do_sc_efnx: %s: 2nd descr index (%d) must follow 1st descr.",
-			scnames[ sc ], rm_n_descr );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d %s: bad 2nd descr index %d, must follow 1st descr %d.",
+			ip->i_filename, ip->i_lineno, scnames[sc], idx2 + 1, idx + 1);
+		exit(1);
 	}
 	stp2 = rm_xdescr[ idx2 ];
 	pos2 = mem[ sp - 1 ].v_value.v_ival;
 	if( pos2 == UNDEF )
 		pos2 = stp2->s_matchlen;
 	else if( pos2 < 0 ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_sc_efnx: %s: pos2 must be > 0.",
-			scnames[ sc ] );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d %s: bad pos2 %d, must be > 0.", ip->i_filename, ip->i_lineno, scnames[sc], pos2);
+		exit(1);
 	}else if( stp2->s_matchlen == 0 ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg,
-			"do_sc_efnx: %s: descr2 must have match len > 0.",
-			scnames[ sc ] );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d %s: descr2 must have a match len > 0.", ip->i_filename, ip->i_lineno, scnames[sc]);
+		exit(1);
 	}else if( pos > stp2->s_matchlen ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_sc_efnx: %s: pos2 must be <= %d.",
-			scnames[ sc ], stp2->s_matchlen );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d %s: bad pos2 %d, must be <= %d.", ip->i_filename, ip->i_lineno, scnames[sc], pos2, stp2->s_matchlen);
+		exit(1);
 	}
 	pos2--;
 
@@ -1774,14 +1692,14 @@ static	int	do_sc_sprintf( INST_T *ip )
 	n_args = sp - mp;
 	fstr = mem[ mp + 1 ].v_value.v_pval;
 	sbp = sprintfbuf;
-	for( c_arg = 0, fp = fstr; pp = strchr( fp, '%' ); ){
+	for( c_arg = 0, fp = fstr; (pp = strchr( fp, '%' )); ){
 		strncpy( sbp, fp, pp - fp );
 		sbp[ pp - fp ] = '\0';
 		sbp += strlen( sbp );
 		epp = strpbrk( &pp[ 1 ], FMTLIST );
 		strncpy( fmt, pp, epp - pp + 1 );
 		fmt[ epp - pp + 1 ] = '\0';
-		if( rval = fmt_1_item( ip, fmt, n_args, &c_arg ) )
+		if((rval = fmt_1_item( ip, fmt, n_args, &c_arg )))
 			break;
 		fp = epp + 1;
 	}
@@ -1823,7 +1741,7 @@ static	int	fmt_1_item( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	strncpy( work, &fmt[ 1 ], efp - &fmt[ 1 ] + 1 );
 	work[ efp - &fmt[ 1 ] + 1 ] = '\0';
 
-	if( dot = strchr( work, '.' ) ){
+	if((dot = strchr( work, '.' ))){
 		strcpy( prec, dot );
 		*dot = '\0'; 
 		if( prec[ 1 ] == '*' ){
@@ -1838,7 +1756,7 @@ static	int	fmt_1_item( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	}else
 		*prec = '\0';
 
-	if( star = strchr( work, '*' ) ){
+	if((star = strchr( work, '*' ))){
 		w_ind = 1;
 		strcpy( width, star );
 		*star = '\0';
@@ -1848,7 +1766,7 @@ static	int	fmt_1_item( INST_T *ip, char *fmt, int n_args, int *c_arg )
 			u_wid = -1;
 			i_argc++;
 		}
-		if( dollar = strchr( work, '$' ) ){
+		if((dollar = strchr( work, '$' ))){
 			dollar++;
 			strncpy( posp, work, dollar - work );
 			posp[ dollar - work ] = '\0'; 
@@ -1857,7 +1775,7 @@ static	int	fmt_1_item( INST_T *ip, char *fmt, int n_args, int *c_arg )
 			*posp = '\0';
 			strcpy( flags, work );
 		}
-	}else if( dollar = strchr( work, '$' ) ){
+	}else if((dollar = strchr( work, '$' ))){
 		dollar++;
 		strncpy( posp, work, dollar - work );
 		posp[ dollar - work ] = '\0'; 
@@ -1883,10 +1801,8 @@ static	int	fmt_1_item( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	v_arg = NULL;
 	r_arg = u_arg < 0 ? *c_arg - u_arg : u_arg;
 	if( r_arg < 1 || r_arg >= n_args ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "fmt_1_item: No such argument (%d).", r_arg );
-		RM_errormsg( FALSE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d No such argument %d.", ip->i_filename, ip->i_lineno, r_arg);
 		rval = 1;
 		goto DONE;
 	}else
@@ -1895,20 +1811,15 @@ static	int	fmt_1_item( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	v_wid = NULL;
 	r_wid = u_wid < 0 ? *c_arg - u_wid : u_wid;
 	if( r_wid < 0 || r_wid >= n_args ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "fmt_1_item: No such width argument (%d).",
-			r_wid );
-		RM_errormsg( FALSE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d No such width argument %d.", ip->i_filename, ip->i_lineno, r_wid);
 		rval = 1;
 		goto DONE;
 	}else if( r_wid != 0 ){
 		v_wid = &mem[ mp + r_wid + 1 ];
 		if( v_wid->v_type != T_INT ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( FALSE,
-				"fmt_1_item: Ind. width must be int." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d Ind. width must be int.", ip->i_filename, ip->i_lineno);
 			rval = 1;
 			goto DONE;
 		}
@@ -1917,20 +1828,15 @@ static	int	fmt_1_item( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	v_prec = NULL;
 	r_prec = u_prec < 0 ? *c_arg - u_prec : u_prec;
 	if( r_prec < 0 || r_prec >= n_args ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg,
-			"fmt_1_item: No such prec. argument (%d).", r_prec );
-		RM_errormsg( FALSE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d No such prec. argument %d.", ip->i_filename, ip->i_lineno, r_prec);
 		rval = 1;
 		goto DONE;
 	}else if( r_prec != 0 ){
 		v_wid = &mem[ mp + r_prec + 1 ];
 		if( v_prec->v_type != T_INT ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( FALSE,
-				"fmt_1_item: Ind. prec. must be int." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d Ind. prec. must be int.", ip->i_filename, ip->i_lineno);
 			rval = 1;
 			goto DONE;
 		}
@@ -1943,20 +1849,14 @@ static	int	fmt_1_item( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	*c_arg += *posp ? i_argc : i_argc + 1;
 
 	switch( type ){
-	case 'b' :
-	case 'B' :
 	case 'e' :
 	case 'E' :
 	case 'f' :
 	case 'g' :
 	case 'G' :
 		if( v_arg->v_type != T_FLOAT ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg,
-				"fmt_1_item: '%c' format requires float arg.",
-				type );
-			RM_errormsg( FALSE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d '%c' format requires float arg.", ip->i_filename, ip->i_lineno, type);
 			rval = 1;
 			goto DONE;
 		}	
@@ -1982,12 +1882,8 @@ static	int	fmt_1_item( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	case 'd' :
 	case 'i' :
 		if( v_arg->v_type != T_INT ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg,
-				"fmt_1_item: '%c' format requires int arg.",
-				type );
-			RM_errormsg( FALSE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d '%c' format requires int arg.", ip->i_filename, ip->i_lineno, type);
 			rval = 1;
 			goto DONE;
 		}	
@@ -2015,12 +1911,8 @@ static	int	fmt_1_item( INST_T *ip, char *fmt, int n_args, int *c_arg )
 	case 'x' :
 	case 'X' :
 		if( v_arg->v_type != T_INT ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg,
-				"fmt_1_item: '%c' format requires int arg.",
-				type );
-			RM_errormsg( FALSE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d '%c' format requires int arg.", ip->i_filename, ip->i_lineno, type);
 			rval = 1;
 			goto DONE;
 		}	
@@ -2045,14 +1937,9 @@ static	int	fmt_1_item( INST_T *ip, char *fmt, int n_args, int *c_arg )
 		}
 		break;
 	case 's' :
-	case 'S' :
 		if( v_arg->v_type != T_STRING ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg,
-			"fmt_1_item: '%c' format requires string/seq arg.",
-				type );
-			RM_errormsg( FALSE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d '%c' format requires string/seq arg.", ip->i_filename, ip->i_lineno, type);
 			rval = 1;
 			goto DONE;
 		}	
@@ -2082,12 +1969,8 @@ static	int	fmt_1_item( INST_T *ip, char *fmt, int n_args, int *c_arg )
 		else if( v_arg->v_type == T_FLOAT )
 			v_arg->v_value.v_dval = nprt;
 		else{
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg,
-				"fmt_1_item: '%c' format requires int arg.",
-				type );
-			RM_errormsg( FALSE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d '%c' format requires int arg.", ip->i_filename, ip->i_lineno, type);
 			rval = 1;
 			goto DONE;
 		}
@@ -2097,14 +1980,9 @@ static	int	fmt_1_item( INST_T *ip, char *fmt, int n_args, int *c_arg )
 		sbp[ 1 ] = '\0';
 		nprt++;
 		break;
-	case 'c' :
-	case 'C' :
-	case 'p' :
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "fmt_1_item: '%c' unsupported format.", type );
-		RM_errormsg( FALSE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d '%c' unsupported format.", ip->i_filename, ip->i_lineno, type);
 		rval = 1;
 		goto DONE;
 		break;
@@ -2127,36 +2005,34 @@ static	void	do_rlse( INST_T *ip )
 	switch( idp->i_type ){
 	case T_UNDEF :
 		if( c_prog != P_END ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			sprintf( emsg, "do_rlse: variable '%s' is undefined.",
-				idp->i_name );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d variable '%s' is undefined.", ip->i_filename, ip->i_lineno, idp->i_name);
+			exit(1);
 		}
 		break;
 	case T_HIT :
 		hp = ( HIT_T * )idp->i_val.v_value.v_pval;
 		if( hp->h_def == NULL ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE, "do_rlse: h_def is NULL." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d h_def is NULL", ip->i_filename, ip->i_lineno);
+			exit(1);
 		}else
 			fputs( hp->h_def, stdout );
 /*MEM*/		free( hp->h_def );
 		hp->h_def = NULL;
 		if( hp->h_match == NULL ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE, "do_rlse: h_match is NULL." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d h_match is NULL.", ip->i_filename, ip->i_lineno);
+			exit(1);
 		}else
 			fputs( hp->h_match, stdout );
 /*MEM*/		free( hp->h_match );
 		hp->h_match = NULL;
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_rlse: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -2171,10 +2047,9 @@ static	void	do_hold( INST_T *ip, IDENT_T **h_idp )
 	if( idp->i_type == T_UNDEF ){
 /*MEM*/		hp = ( HIT_T * )malloc( sizeof( HIT_T ) );
 		if( hp == NULL ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE, "do_hold: can't allocate hp." );
-			exit( 1 );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate hp.", ip->i_filename, ip->i_lineno);
+			exit(1);
 		}
 		hp->h_def = NULL;
 		hp->h_match = NULL;
@@ -2197,9 +2072,9 @@ static	void	do_hold( INST_T *ip, IDENT_T **h_idp )
 		*h_idp = idp;
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_hold: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -2216,41 +2091,37 @@ static	void	do_strf( INST_T *ip )
 	pos   = mem[ sp - 1 ].v_value.v_ival;
 	index = mem[ sp - 2 ].v_value.v_ival;
 	if( index < 0 || index >= rm_n_xdescr ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;;
-		sprintf( emsg, "do_strf: no such descriptor %d.", index );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d no such descr %d.", ip->i_filename, ip->i_lineno, index);
+		exit(1);
 	}
 	stp = rm_xdescr[ index ];
 	if( pos == UNDEF )
 		pos = 1;
 	else if( pos < 0 ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_strf: pos must be > 0." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bad pos %d, must be > 0.", ip->i_filename, ip->i_lineno, pos);
+		exit(1);
 	}else if( stp->s_matchlen == 0 ){
 		pos = 1;	
 	}else if( pos > stp->s_matchlen ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_strf: pos must be <= %d.\n",
-			stp->s_matchlen );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bad pos %d, must be <= %d.", ip->i_filename, ip->i_lineno, pos, stp->s_matchlen);
+		exit(1);
 	}
 	pos--;
 	if( len == 0 ){ 
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_strf: len must be > 0." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bad len %d, must be > 0.", ip->i_filename, ip->i_lineno, len);
+		exit(1);
 	}else if( len == UNDEF )	/* rest of string */
 		len = stp->s_matchlen - pos;
 	else
 		len = MIN( stp->s_matchlen - pos, len );
 	cp = ( char * )tm_malloc( ( len + 1 ) * sizeof( char ), "do_strf" );
 	if( cp == NULL ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_strf: can't allocate cp." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate cp.", ip->i_filename, ip->i_lineno);
 		exit( 1 );
 	}
 	strncpy( cp, &sc_sbuf[ stp->s_matchoff + pos ], len );
@@ -2284,11 +2155,9 @@ static	void	do_lod( INST_T *ip )
 	idp = ip->i_val.v_value.v_pval;
 	switch( idp->i_type ){
 	case T_UNDEF :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg,
-			"do_lod: variable '%s' is undefined.", idp->i_name );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d variable '%s' is undefined.", ip->i_filename, ip->i_lineno, idp->i_name);
+		exit(1);
 		break;
 	case T_INT :
 		v_top->v_type = T_INT;
@@ -2299,21 +2168,20 @@ static	void	do_lod( INST_T *ip )
 		v_top->v_value.v_dval = idp->i_val.v_value.v_dval;
 		break;
 	case T_STRING :
-		cp = ( char * )tm_malloc(
-			strlen(idp->i_val.v_value.v_pval)+1, "do_lod" );
+		cp = ( char * )tm_malloc( strlen(idp->i_val.v_value.v_pval)+1, "do_lod" );
 		if( cp == NULL ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE, "do_lod: can't allocate cp." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate cp.", ip->i_filename, ip->i_lineno);
+			exit(1);
 		}
 		strcpy( cp, idp->i_val.v_value.v_pval );
 		v_top->v_type = T_STRING;
 		v_top->v_value.v_pval = cp;
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_lod: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -2337,12 +2205,11 @@ static	void	do_ldc( INST_T *ip )
 		break;
 	case T_STRING :
 		v_top->v_type = T_STRING;
-		cp = ( char * )tm_malloc(
-			strlen( ip->i_val.v_value.v_pval ) + 1, "do_ldc" );
+		cp = ( char * )tm_malloc( strlen( ip->i_val.v_value.v_pval ) + 1, "do_ldc" );
 		if( cp == NULL ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE, "do_ldc: can't allocate cp." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate cp.", ip->i_filename, ip->i_lineno);
+			exit(1);
 		}
 		strcpy( cp, ip->i_val.v_value.v_pval );
 		v_top->v_value.v_pval = cp;
@@ -2351,16 +2218,15 @@ static	void	do_ldc( INST_T *ip )
 		v_top->v_type = T_INT;
 		idx = estk[ esp ];
 		v_top->v_value.v_ival = rm_descr[ idx ].s_matchlen;
-		
 		break;
 	case 	T_PAIRSET :
 		v_top->v_type = T_PAIRSET;
 		v_top->v_value.v_pval = ip->i_val.v_value.v_pval;
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_ldc: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -2393,13 +2259,11 @@ static	void	do_sto( INST_T *ip )
 		idp->i_val.v_value.v_dval = v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_UNDEF, T_STRING ):
-		cp = ( char * )tm_malloc(
-			strlen( v_top->v_value.v_pval ) + 1, "do_sto: US" );
+		cp = ( char * )tm_malloc( strlen( v_top->v_value.v_pval ) + 1, "do_sto: US" );
 		if( cp == NULL ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE,
-				"do_sto: can't allocate new string." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate new string.", ip->i_filename, ip->i_lineno);
+			exit(1);
 		}
 		strcpy( cp, v_top->v_value.v_pval );
 		idp->i_type = T_STRING;
@@ -2420,13 +2284,11 @@ static	void	do_sto( INST_T *ip )
 		idp->i_val.v_value.v_dval = v_top->v_value.v_dval;
 		break;
 	case T_IJ( T_STRING, T_STRING ) :
-		cp = ( char * )tm_malloc(
-			strlen( v_top->v_value.v_pval ) + 1, "do_sto: SS" );
+		cp = ( char * )tm_malloc( strlen( v_top->v_value.v_pval ) + 1, "do_sto: SS" );
 		if( cp == NULL ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE,
-				"do_sto: can't allocate new string." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate new string.", ip->i_filename, ip->i_lineno);
+			exit(1);
 		}
 		strcpy( cp, v_top->v_value.v_pval );
 		tm_free( idp->i_val.v_value.v_pval );
@@ -2434,9 +2296,9 @@ static	void	do_sto( INST_T *ip )
 		tm_free( v_top->v_value.v_pval );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_sto: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -2444,7 +2306,7 @@ static	void	do_sto( INST_T *ip )
 static	void	do_and( INST_T *ip )
 {
 	VALUE_T	*v_top;
-	int	t_top, rv;
+	int	t_top, rv = 0;
 	char	*cp;
 
 	v_top = &mem[ sp ];
@@ -2464,9 +2326,9 @@ static	void	do_and( INST_T *ip )
 		tm_free( cp );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_and: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 	if( !rv )
@@ -2476,7 +2338,7 @@ static	void	do_and( INST_T *ip )
 static	void	do_ior( INST_T *ip )
 {
 	VALUE_T	*v_top;
-	int	t_top, rv;
+	int	t_top, rv = 0;
 	char	*cp;
 
 	v_top = &mem[ sp ];
@@ -2496,9 +2358,9 @@ static	void	do_ior( INST_T *ip )
 		tm_free( cp );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_ior: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 	if( rv )
@@ -2525,9 +2387,9 @@ static	void	do_not( INST_T *ip )
 			!( *( char * )v_top->v_value.v_pval != '\0' );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_not: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -2560,9 +2422,9 @@ static	void	do_mat( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_mat: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d typemismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -2578,37 +2440,33 @@ static	void	do_ins( INST_T *ip )
 
 	n_bases = sp - mp - 1;
 	if( n_bases < 2 || n_bases > 4 ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_ins: pair has %d bases, requires %d-%d.",
-			n_bases, 2, 4 );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d pair has bad number of bases %d, requires %d-%d.", ip->i_filename, ip->i_lineno, n_bases, 2, 4);
+		exit(1);
 	}
 
 	v_top = &mem[ sp ];
 	if( v_top->v_type != T_PAIRSET ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE,
-			"do_ins: rhs of \"in\" must have type pairset." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d rhs of \"in\" has wrong type %d, must be of type pairset (%d).",
+			ip->i_filename, ip->i_lineno, v_top->v_type, T_PAIRSET);
+		exit(1);
 	}
 	ps_top = v_top->v_value.v_pval;
 	for( l0 = UNDEF, i = 0; i < n_bases; i++ ){
 		v_bases[ i ] = &mem[ mp + 1 + i ];
 		if( v_bases[ i ]->v_type != T_STRING ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE,
-				"do_ins: pair elements must be type string." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d pair elements must have type string.", ip->i_filename, ip->i_lineno);
+			exit(1);
 		}
 		l_bases[ i ] = strlen( v_bases[ i ]->v_value.v_pval );
 		if( l0 == UNDEF )
 			l0 = l_bases[ i ]; 
 		else if( l_bases[ i ] != l0 ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE,
-		"do_ins: all pair elements must have the same length." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d all pair elements must have the same length.", ip->i_filename, ip->i_lineno);
+			exit(1);
 		}
 		s_bases[ i ] = v_bases[ i ]->v_value.v_pval;
 	}
@@ -2694,9 +2552,9 @@ static	void	do_gtr( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_gtr: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -2739,9 +2597,8 @@ static	void	do_geq( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_geq: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
 		exit( 1 );
 		break;
 	}
@@ -2785,9 +2642,9 @@ static	void	do_equ( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_equ: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -2830,9 +2687,9 @@ static	void	do_neq( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_neq: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -2875,9 +2732,9 @@ static	void	do_leq( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_leq: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -2920,9 +2777,9 @@ static	void	do_les( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_les: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -2956,13 +2813,11 @@ static	void	do_add( INST_T *ip )
 	case T_IJ( T_STRING, T_STRING ) :
 		s_tm1 = v_tm1->v_value.v_pval;
 		s_top = v_top->v_value.v_pval;
-		cp = ( char * )tm_malloc(
-			strlen( s_tm1 ) + strlen( s_top ) + 1, "do_add" );
+		cp = ( char * )tm_malloc( strlen( s_tm1 ) + strlen( s_top ) + 1, "do_add" );
 		if( cp == NULL ){
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE,
-				"do_add: can't allocate new string." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate new string.", ip->i_filename, ip->i_lineno);
+			exit(1);
 		}
 		strcpy( cp, s_tm1 );
 		strcat( cp, s_top );
@@ -2971,9 +2826,9 @@ static	void	do_add( INST_T *ip )
 		tm_free( s_tm1 );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_add: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -3003,9 +2858,9 @@ static	void	do_sub( INST_T *ip )
 		v_tm1->v_value.v_dval -= v_top->v_value.v_dval;
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_sub: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -3035,9 +2890,9 @@ static	void	do_mul( INST_T *ip )
 		v_tm1->v_value.v_dval *= v_top->v_value.v_dval;
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_mul: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -3067,9 +2922,9 @@ static	void	do_div( INST_T *ip )
 		v_tm1->v_value.v_dval /= v_top->v_value.v_dval;
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_div: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -3090,9 +2945,9 @@ static	void	do_mod( INST_T *ip )
 		v_tm1->v_value.v_ival %= v_top->v_value.v_ival;
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_mod: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -3113,9 +2968,9 @@ static	void	do_neg( INST_T *ip )
 		v_top->v_value.v_dval = -v_top->v_value.v_dval;
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_neg: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -3132,19 +2987,16 @@ static	void	do_i_pp( INST_T *ip )
 	
 	switch( t_top ){
 	case T_UNDEF :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_i_pp: variable '%s' is undefined.",
-			idp->i_name );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d variable '%s' is undefined.", ip->i_filename, ip->i_lineno, idp->i_name);
+		exit(1);
 		break;
 	case T_INT :
 		v_top->v_value.v_ival = ( idp->i_val.v_value.v_ival )++;
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_i_pp: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
 		break;
 	}
 }
@@ -3161,19 +3013,16 @@ static	void	do_pp_i( INST_T *ip )
 	
 	switch( t_top ){
 	case T_UNDEF :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_pp_i: variable '%s' is undefined.",
-			idp->i_name );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d variable '%s' is undefined.", ip->i_filename, ip->i_lineno, idp->i_name);
+		exit(1);
 		break;
 	case T_INT :
 		v_top->v_value.v_ival = ++( idp->i_val.v_value.v_ival );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_pp_i: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
 		break;
 	}
 }
@@ -3190,20 +3039,17 @@ static	void	do_i_mm( INST_T *ip )
 	
 	switch( t_top ){
 	case T_UNDEF :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_i_mm: variable '%s' is undefined.",
-			idp->i_name );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d variable '%s' is undefined.", ip->i_filename, ip->i_lineno, idp->i_name);
+		exit(1);
 		break;
 	case T_INT :
 		v_top->v_value.v_ival = ( idp->i_val.v_value.v_ival )--;
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_i_mm: type mismatch." );
-		exit( 1 );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -3220,19 +3066,17 @@ static	void	do_mm_i( INST_T *ip )
 	
 	switch( t_top ){
 	case T_UNDEF :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "do_mm_i: variable '%s' is undefined.",
-			idp->i_name );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d variable '%s' is undefined.", ip->i_filename, ip->i_lineno, idp->i_name);
+		exit(1);
 		break;
 	case T_INT :
 		v_top->v_value.v_ival = --( idp->i_val.v_value.v_ival );
 		break;
 	default :
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, "do_mm_i: type mismatch." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d type mismatch.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		break;
 	}
 }
@@ -3264,7 +3108,7 @@ static	float	RM_bits( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 	}
 
 	for( bn = 0, bp = &sc_sbuf[ start ], i = start; i <= stop; i++, bp++ ){
-		if( ( bc = rm_b2bc[ *bp ] ) != BCODE_N ){
+		if( ( bc = rm_b2bc[ (int)*bp ] ) != BCODE_N ){
 			if( ( bi = bindex[ bc ] ) == UNDEF )
 				bi = bindex[ bc ] = bn++;
 			bvec[ bi ]++;
@@ -3307,7 +3151,7 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 	i = 0;
 	bp = &sc_sbuf[ stp5->s_matchoff + pos ];
 	for( p = pos; p < stp5->s_matchlen; p++, i++ ){
-		rm_bcseq[ i ] = rm_b2bc[ *bp++ ];
+		rm_bcseq[ i ] = rm_b2bc[ (int)*bp++ ];
 		if( stp5->s_type == SYM_H5 ){
 			if( !setbp( ip, stp5, p, i, off5, len, rm_basepr ) ){
 				return( 0 );
@@ -3317,10 +3161,9 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 		}else if( stp5->s_type == SYM_SS ){
 			rm_basepr[ i ] = UNDEF;
 		}else{
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE, 
-		"setupefn: efn()/efn2() only works on h5/ss/h3 elements." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d efn()/efn2() only works on h5/ss/h3 elements.", ip->i_filename, ip->i_lineno);
+			exit(1);
 			return( 0 );
 		} 
 		rm_hstnum[ i ] = off + i * inc;
@@ -3328,26 +3171,19 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 	for( stp = &rm_descr[ stp5->s_index + 1 ]; stp < stp3; stp++ ){
 		bp = &sc_sbuf[ stp->s_matchoff ];
 		for( p = 0; p < stp->s_matchlen; p++, i++ ){
-			rm_bcseq[ i ] = rm_b2bc[ *bp++ ];
+			rm_bcseq[ i ] = rm_b2bc[ (int)*bp++ ];
 			if( stp->s_type == SYM_H5 ){
-				if( !setbp( ip,
-					stp, p, i, off5, len, rm_basepr ) )
-				{
+				if( !setbp( ip, stp, p, i, off5, len, rm_basepr ) )
 					return( 0 );
-				}
 			}else if( stp->s_type == SYM_H3 ){
-				if( !setbp( ip,
-					stp, p, i, off5, len, rm_basepr ) )
-				{
+				if( !setbp( ip, stp, p, i, off5, len, rm_basepr ) )
 					return( 0 );
-				}
 			}else if( stp->s_type == SYM_SS ){
 				rm_basepr[ i ] = UNDEF;
 			}else{
-				rm_wdfname = ip->i_filename;
-				rm_emsg_lineno = ip->i_lineno;
-				RM_errormsg( TRUE, 
-		"setupefn: efn()/efn2() only works on h5/ss/h3 elements." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d efn()/efn2() only works on h5/ss/h3 elements.", ip->i_filename, ip->i_lineno);
+				exit(1);
 				return( 0 );
 			}
 			rm_hstnum[ i ] = off + i * inc;
@@ -3355,7 +3191,7 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 	}
 	bp = &sc_sbuf[ stp3->s_matchoff ];
 	for( p = 0; p <= pos2; p++, i++ ){
-		rm_bcseq[ i ] = rm_b2bc[ *bp++ ];
+		rm_bcseq[ i ] = rm_b2bc[ (int)*bp++ ];
 		if( stp3->s_type == SYM_H5 ){	/* treat as ss() */
 			rm_basepr[ i ] = UNDEF;
 		}else if( stp3->s_type == SYM_H3 ){
@@ -3365,10 +3201,9 @@ static	int	setupefn( INST_T *ip, int idx, int pos, int idx2, int pos2 )
 		}else if( stp3->s_type == SYM_SS ){
 			rm_basepr[ i ] = UNDEF;
 		}else{
-			rm_wdfname = ip->i_filename;
-			rm_emsg_lineno = ip->i_lineno;
-			RM_errormsg( TRUE, 
-		"setupefn: efn()/efn2() only works on h5/ss/h3 elements." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d efn()/efn2() only works on h5/ss/h3 elements.", ip->i_filename, ip->i_lineno);
+			exit(1);
 			return( 0 );
 		} 
 		rm_hstnum[ i ] = off + i * inc;
@@ -3388,10 +3223,9 @@ static	int	setbp( INST_T *ip, STREL_T *stp, int p, int i, int off, int len,
 	PAIRSET_T	*ps;
 
 	if( !stp->s_attr[ SA_PROPER ] ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		RM_errormsg( TRUE, 
-			"setbp: efn()/efn2() does not work on pknots." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d efn()/efn2() does not work on pknots.", ip->i_filename, ip->i_lineno);
+		exit(1);
 		return( 0 );
 	}
 	bp = p + stp->s_matchoff - off;
@@ -3403,10 +3237,9 @@ static	int	setbp( INST_T *ip, STREL_T *stp, int p, int i, int off, int len,
 	b1 = sc_sbuf[ p1 + stp1->s_matchoff ];
 
 	if( bp1 < 0 || bp1 >= len ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "setbp: out of bounds bp: %4d.%4d\n", bp, bp1 ); 
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d out of bounds bp: %4d.%4d.", ip->i_filename, ip->i_lineno, bp, bp1);
+		exit(1);
 		return( 0 );
 	}else{
 		ps = rm_efnusestdbp ? rm_efnstdbp : stp->s_pairset;
@@ -3475,8 +3308,6 @@ static	void	addnode( int lval, NODE_T *np, int l_andor )
 {
 	VALUE_T	v_node;
 
-	rm_wdfname = np->n_filename;
-	rm_emsg_lineno = np->n_lineno;
 	switch( np->n_sym ){
 
 	case SYM_CALL :
@@ -3666,11 +3497,14 @@ static	void	addnode( int lval, NODE_T *np, int l_andor )
 	case SYM_SEMICOLON :
 		break;
 	case SYM_ERROR :
-		RM_errormsg( TRUE, "addnode: SYM_ERROR." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d SYM_ERROR.", np->n_filename, np->n_lineno);
+		exit(1);
 		break;
 	default :
-		sprintf( emsg, "addnode: Unknown symbol %d\n", np->n_sym );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d Unknown symbol %d", np->n_filename, np->n_lineno, np->n_sym);
+		exit(1);
 		break;
 	}
 }
@@ -3682,7 +3516,12 @@ static	void	addinst( NODE_T *np, int op, VALUE_T *vp )
 	IDENT_T	*idp;
 
 	if( pc >= PROG_SIZE ){
-		RM_errormsg( TRUE, "addinst: program size exceeded." );
+		rm_error = TRUE;
+		if(np != NULL)
+			LOG_ERROR("%s:%d program too big. Limit is %d", np->n_filename, np->n_lineno, PROG_SIZE);
+		else
+			LOG_ERROR("%s:%d program too big. Limit is %d", " -- No File --", UNDEF, PROG_SIZE);
+		exit(1);
 	}else{
 		ip = &prog[ *l_prog ];
 		( *l_prog )++;
@@ -3704,28 +3543,23 @@ static	void	addinst( NODE_T *np, int op, VALUE_T *vp )
 			else if( vp->v_type == T_FLOAT )
 				ip->i_val.v_value.v_dval = vp->v_value.v_dval;
 			else if( vp->v_type==T_STRING ){
-				sp = ( char * )malloc( 
-					strlen( vp->v_value.v_pval ) + 1 );
+				sp = ( char * )malloc( strlen( vp->v_value.v_pval ) + 1 );
 				if( sp == NULL ){
-					RM_errormsg( TRUE,
-						"addinst: can't allocate sp." );
+					rm_error = TRUE;
+					LOG_ERROR("%s:%d can't allocate sp.", ip->i_filename, ip->i_lineno);
+					exit(1);
 				}
 				strcpy( sp, vp->v_value.v_pval );
 				ip->i_val.v_value.v_pval = sp;
 			}else if( vp->v_type==T_IDENT ){
 				idp = RM_find_id( vp->v_value.v_pval );
 				if( idp == NULL ){
-					idp = RM_enter_id( vp->v_value.v_pval,
-						T_UNDEF, C_VAR, S_GLOBAL,
-						TRUE, NULL );
+					idp = RM_enter_id( vp->v_value.v_pval, T_UNDEF, C_VAR, S_GLOBAL, TRUE, NULL );
 				}else if( !idp->i_reinit ){
 					if( op == OP_LDA || op == OP_HOLD ){
-						rm_wdfname = ip->i_filename;
-						rm_emsg_lineno = ip->i_lineno;
-						sprintf( emsg,
-					"addinst: variable '%s' is readonly.", 
-							idp->i_name );
-						RM_errormsg( TRUE, emsg );
+						rm_error = TRUE;
+						LOG_ERROR("%s:%d variable '%s' is readonly.", ip->i_filename, ip->i_lineno, idp->i_name);
+						exit(1);
 					}
 				}
 				ip->i_val.v_value.v_pval = idp;
@@ -3742,10 +3576,9 @@ static	void	dumpinst( FILE *fp, int i, INST_T * ip )
 	IDENT_T	*idp;
 
 	if( ip->i_op < 0 || ip->i_op >= N_OP ){
-		rm_wdfname = ip->i_filename;
-		rm_emsg_lineno = ip->i_lineno;
-		sprintf( emsg, "dumpinst: bad op %d\n", ip->i_op );
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bad op %d", ip->i_filename, ip->i_lineno, ip->i_op);
+		exit(1);
 	}
 
 	fprintf( fp, "%5d ", i );
@@ -3825,11 +3658,11 @@ static	void	dumpinst( FILE *fp, int i, INST_T * ip )
 	}else if( vp->v_type == T_FLOAT ) 
 		fprintf( fp, " %f", vp->v_value.v_dval );
 	else if( vp->v_type == T_STRING )
-		fprintf( fp, " \"%s\"", vp->v_value.v_pval );
+		fprintf( fp, " \"%s\"", (char *)vp->v_value.v_pval );
 	else if( vp->v_type == T_POS )
 		fprintf( fp, " $" );
 	else if( vp->v_type == T_IDENT ){
-		fprintf( fp, " %s", vp->v_value.v_pval );
+		fprintf( fp, " %s", (char *)vp->v_value.v_pval );
 	}else if( vp->v_type == T_PAIRSET ){
 		fprintf( fp, " " );
 		RM_dump_pairset( fp, vp->v_value.v_pval );
@@ -3837,6 +3670,7 @@ static	void	dumpinst( FILE *fp, int i, INST_T * ip )
 	fprintf( fp, "\n" );
 }
 
+#ifdef	DEBUG_SCORE
 static	void	dumpstk( FILE *fp, char msg[] )
 {
 	int	i;
@@ -3874,13 +3708,14 @@ static	void	dumpstk( FILE *fp, char msg[] )
 		fprintf( fp, "\n" );
 	}
 }
+#endif
 
 static	char	*tm_malloc( int size, char id[] )
 {
 	char	*ptr;
 
 	ptr = ( char * )malloc( size * sizeof( char ) );
-#ifdef	MEMDEBUG
+#ifdef	DEBUG_MEM
 	if( tm_n_mem < TM_MEM_SIZE ){
 		tm_mem[ tm_n_mem ].t_freed = 0;
 		tm_mem[ tm_n_mem ].t_id = id;
@@ -3894,12 +3729,12 @@ static	char	*tm_malloc( int size, char id[] )
 
 static	void	tm_free( void *ptr )
 {
-#ifdef	MEMDEBUG
+#ifdef	DEBUG_MEM
 	int	i;
 #endif
 
 	free( ptr );
-#ifdef	MEMDEBUG
+#ifdef	DEBUG_MEM
 	for( i = 0;i < tm_n_mem; i++ ){
 		if( tm_mem[ i ].t_addr == ptr ){
 			tm_mem[ i ].t_freed = 1;
@@ -3908,6 +3743,7 @@ static	void	tm_free( void *ptr )
 #endif
 }
 
+#ifdef DEBUG_MEM
 static	void	tm_report( void )
 {
 	int	i;
@@ -3923,3 +3759,4 @@ static	void	tm_report( void )
 	if( cnt > 1 )
 		exit( 1 );
 }
+#endif

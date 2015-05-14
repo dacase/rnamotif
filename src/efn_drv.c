@@ -23,7 +23,8 @@
 
 int	rm_error;
 char	*rm_wdfname;
-int	rm_emsg_lineno = UNDEF;
+int	rm_lineno = UNDEF;
+//int	rm_emsg_lineno = UNDEF;
 
 char	rm_bc2b[ N_BCODES ] = { 'a', 'c', 'g', 't', 'n' };
 

@@ -81,7 +81,7 @@ int	FN_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	}
 	if( c != '\n' ){
 		dp = sdef;
-		for( cnt = 1, *dp++ = c; c = getc( fp ); ){
+		for( cnt = 1, *dp++ = c; (c = getc( fp )); ){
 			if( c == '\n' || c == EOF )
 				break;
 			cnt++;
@@ -181,7 +181,7 @@ int	PIR_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	}else
 		c = getc( fp );
 	dp = sdef;
-	for( cnt = 1, *dp++ = c; c = getc( fp ); ){
+	for( cnt = 1, *dp++ = c; (c = getc( fp )); ){
 		if( c == '\n' || c == EOF )
 			break;
 		cnt++;
@@ -244,16 +244,17 @@ int	GB_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 	if( *locus == '\0' )
 		return( EOF );
 
-	while( fgets( line, sizeof( line ), fp ) ){
+	for(dp = sdef, cnt = 0;  fgets( line, sizeof( line ), fp ); ){
 		if( !strncmp( line, "DEFINITION", 10 ) ){
-			for( dp = sdef, cnt = 0, lp = line; *lp; lp++ ){
+			for( /*dp = sdef, cnt = 0,*/ lp = line; *lp; lp++ ){
 				cnt++;
 				if( cnt < s_sdef )
 					*dp++ = *lp == '\n' ? ' ' : *lp;
 			}
 			*dp = '\0';
 		}else if( !strncmp( line, "ACCESSION", 9 ) ){
-			dp[ -1 ] = '\0';
+			if(dp > sdef)
+				dp[-1] = '\0';
 			break;
 		}else{
 			for( lp = line; *lp; lp++ ){
@@ -264,6 +265,7 @@ int	GB_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 			*dp = '\0';
 		}
 	}
+	*dp = '\0';
 	if( *sdef == '\0' ){
 		fprintf( stderr, "GB_fgetseq: missing DEFINITION line.\n" );
 		return( EOF );
@@ -284,7 +286,7 @@ int	GB_fgetseq( FILE *fp, char sid[], int s_sdef, char sdef[],
 		fprintf( stderr, "GB_fgetseq: missing VERSION line.\n" );
 		return( EOF );
 	}
-	if( dp = strchr( acc, '.' ) )
+	if((dp = strchr( acc, '.' )))
 		*dp = '\0';
 	sprintf( sid, "gi|%s|gb|%s|%s", gid, acc, locus );
 

@@ -1,6 +1,12 @@
 %{
 
+#include <stdio.h>
+#include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
+
+#include "log.h"
+#include "rmdefs.h"
 #include "rnamot.h"
 #include "y.tab.h"
 
@@ -8,6 +14,7 @@ double	atof();
 char	*RM_str2seq();
 
 extern	int	rm_context;
+extern	int	rm_error;
 extern	char	*rm_wdfname;
 extern	int	rm_lineno;
 extern	int	rm_emsg_lineno;
@@ -15,7 +22,6 @@ extern	VALUE_T	rm_tokval;
 
 static	char	*sp;
 static	POS_T	*posp;
-static	char	emsg[ 256 ];
 
 typedef	struct	fname_t	{
 	struct	fname_t	*f_left;
@@ -76,8 +82,9 @@ while		return( SYM_WHILE );
 [a-zA-Z][_a-zA-Z0-9]*	{
 		  sp = ( char * )malloc(( yyleng + 1 ) *sizeof( char ));
 		  if( sp == NULL ){
-			RM_errormsg( 1, 
-				"lex.yy.c: can't alloc sp for SYM_IDENT." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate sp for SYM_IDENT.", rm_wdfname, rm_lineno);
+			exit(1);
 		  }
 		  strcpy( sp, yytext );
 		  rm_tokval.v_type = T_STRING;
@@ -100,15 +107,13 @@ while		return( SYM_WHILE );
 			yytext[ yyleng ] = '\0';
 			sp = ( char * )malloc( ( yyleng - 1 )*sizeof( char ) );
 			if( sp == NULL ){
-				RM_errormsg( 1,
-				"lex.yy.c: can't alloc sp for SYM_STRING." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d can't allocate sp for SYM_STRING.", rm_wdfname, rm_lineno);
+				exit(1);
 			}
 			strncpy( sp, &yytext[1], yyleng - 2 );
 			sp[ yyleng - 2 ] = '\0';
 			rm_tokval.v_type = T_STRING;
-/*
-			rm_tokval.v_value.v_pval = sp;
-*/
 			rm_tokval.v_value.v_pval = RM_str2seq( sp );
 			return( SYM_STRING );
 		  }
@@ -120,8 +125,9 @@ while		return( SYM_WHILE );
 			yytext[ yyleng ] = '\0';
 			sp = ( char * )malloc( ( yyleng - 1 )*sizeof( char ) );
 			if( sp == NULL ){
-				RM_errormsg( 1,
-				"lex.yy.c: can't alloc sp for SYM_STRING." );
+				rm_error = TRUE;
+				LOG_ERROR("%s:%d can't allocate sp for SYM_STRING.", rm_wdfname, rm_lineno);
+				exit(1);
 			}
 			strncpy( sp, &yytext[1], yyleng - 2 );
 			sp[ yyleng - 2 ] = '\0';
@@ -135,8 +141,9 @@ while		return( SYM_WHILE );
 =		return( SYM_ASSIGN );
 \$		{ posp = ( POS_T * )malloc( sizeof( POS_T ) );
 		  if( posp == NULL ){
-			RM_errormsg( 1,
-				"lex.yy.c: can't alloc posp for SYM_DOLLAR." );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate posp for SYM_DOLLAR.", rm_wdfname, rm_lineno);
+			exit(1);
 		  }
 		  posp->p_type = SYM_DOLLAR;
 		  posp->p_lineno = rm_lineno;
@@ -212,7 +219,7 @@ static	void	setfileinfo( char data[] )
 	if( *dp != '\'' )
 		return;
 	dp++;
-	if( qp = strchr( dp, '\'' ) ){
+	if((qp = strchr( dp, '\'' ))){
 		rm_lineno = lnum;
 		strncpy( work, dp, qp - dp );
 		work[ qp - dp ] = '\0';
@@ -230,21 +237,17 @@ static	FNAME_T	*enter_fname( FNAME_T **root, char fname[] )
 	if( *root == NULL ){
 		fnp = ( FNAME_T * )malloc( sizeof( FNAME_T ) );
 		if( fnp == NULL ){
-			sprintf( emsg,
-			"enter_fname: can't allocate space for fnp for '%s'.",
-				fname );
-			rm_emsg_lineno = rm_lineno;
-			RM_errormsg( 1, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate space for fnp for '%s'.", rm_wdfname, rm_lineno, fname);
+			exit(1);
 		}
 		fnp->f_left = NULL;
 		fnp->f_right = NULL;
 		sp = ( char * )malloc( strlen( fname ) + 1 );
 		if( sp == NULL ){
-			sprintf( emsg,
-		"enter_fname: can't allocate space for f_name for '%s'.",
-				fname );
-			rm_emsg_lineno = rm_lineno;
-			RM_errormsg( 1, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d can't allocate space for f_name for '%s'.", rm_wdfname, rm_lineno, fname);
+			exit(1);
 		}
 		strcpy( sp, fname );
 		fnp->f_name = sp;

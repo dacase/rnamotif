@@ -1,21 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "log.h"
+#include "rmdefs.h"
 #include "rnamot.h"
 #include "y.tab.h"
 
-extern	int	rm_lineno;
+extern	int	rm_error;
 extern	char	*rm_wdfname;
+extern	int	rm_lineno;
 
 NODE_T	*RM_node( int sym, VALUE_T *vp, NODE_T *left, NODE_T *right )
 {
 	NODE_T	*np;
-	char	emsg[ 256 ];
 
 	np = ( NODE_T * )malloc( sizeof( NODE_T ) );
 	if( np == NULL ){
-		sprintf( emsg, "RM_node: can't allocate np for sym %d.", sym );
-		RM_errormsg( 1, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate np for sym %d", rm_wdfname, rm_lineno, sym);
+		exit(1);
 	}
 	np->n_sym = sym;
 	np->n_type = T_UNDEF;

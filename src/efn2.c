@@ -5,6 +5,7 @@
 
 double	atof();
 
+#include "log.h"
 #include "split.h"
 #include "rmdefs.h"
 #include "rnamot.h"
@@ -82,7 +83,9 @@ extern	int	*rm_basepr;
 
 extern	int	efn2_nbases;
 
-static	char	emsg[ 256 ];
+extern	int	rm_error;
+extern	char	*rm_wdfname;
+extern	int	rm_lineno;
 
 static	int	bmap[] =
 	{ BCODE_A, BCODE_C, BCODE_G, BCODE_T, BCODE_G, BCODE_T };
@@ -193,9 +196,8 @@ static	int	getmiscloop( char fname[] )
 
 	sprintf( pname, "%s/%s", rm_efndatadir, fname );
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
-		sprintf( emsg, "getmiscloop: can't read miscloop file '%s'.",
-			pname );
-		RM_errormsg( FALSE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("can't read miscloop file '%s'.", pname);
 		return( 0 );
 	}
 
@@ -205,7 +207,8 @@ static	int	getmiscloop( char fname[] )
 		sscanf( line, "%f", &ef2dp->e2_prelog );
 		ef2dp->e2_prelog *= 10.0;
 	}else{
-		RM_errormsg( FALSE, "getmiscloop: no prelog." );
+		rm_error = TRUE;
+		LOG_ERROR("no prolog.");
 		rval = 0;
 		goto CLEAN_UP;
 	}
@@ -215,7 +218,8 @@ static	int	getmiscloop( char fname[] )
 		sscanf( line, "%f", &fv1 );
 		ef2dp->e2_maxpen = NINT( 100.0*fv1 );
 	}else{
-		RM_errormsg( FALSE, "getmiscloop: no maxpen." );
+		rm_error = TRUE;
+		LOG_ERROR("no paxpen.");
 		rval = 0;
 		goto CLEAN_UP;
 	}
@@ -229,7 +233,8 @@ static	int	getmiscloop( char fname[] )
 		ef2dp->e2_poppen[ 3 ] = NINT( 100.0*fv3 );
 		ef2dp->e2_poppen[ 4 ] = NINT( 100.0*fv4 );
 	}else{
-		RM_errormsg( FALSE, "getmiscloop: no poppen values." );
+		rm_error = TRUE;
+		LOG_ERROR("no poppen values.");
 		rval = 0;
 		goto CLEAN_UP;
 	}
@@ -255,8 +260,8 @@ static	int	getmiscloop( char fname[] )
 
 		ef2dp->e2_eparam[ 10 ] = NINT( 100.0*fv3 );
 	}else{
-		RM_errormsg( FALSE,
-			"getmiscloop: no multibranched loop values." );
+		rm_error = TRUE;
+		LOG_ERROR("no multibranched loop values.");
 		rval = 0;
 		goto CLEAN_UP;
 	}
@@ -280,8 +285,8 @@ static	int	getmiscloop( char fname[] )
 */
 			ef2dp->e2_auend = NINT( 100.0*fv1 );
 		}else{
-			RM_errormsg( FALSE,
-				"getmiscloop: no terminal AU penalty." );
+			rm_error = TRUE;
+			LOG_ERROR("no terminal AU pernalty.");
 			rval = 0;
 			goto CLEAN_UP;
 		}
@@ -294,8 +299,8 @@ static	int	getmiscloop( char fname[] )
 */
 			ef2dp->e2_gubonus = NINT( 100.0*fv1 );
 		}else{
-			RM_errormsg( FALSE,
-				"getmiscloop: no GGG hairpin term." );
+			rm_error = TRUE;
+			LOG_ERROR("no GGG hairpin term.");
 			rval = 0;
 			goto CLEAN_UP;
 		}
@@ -308,8 +313,8 @@ static	int	getmiscloop( char fname[] )
 */
 			ef2dp->e2_cslope = NINT( 100.0*fv1 );
 		}else{
-			RM_errormsg( FALSE,
-				"getmiscloop: no c hairpin slope." );
+			rm_error = TRUE;
+			LOG_ERROR("no c hairpin slope.");
 			rval = 0;
 			goto CLEAN_UP;
 		}
@@ -322,8 +327,8 @@ static	int	getmiscloop( char fname[] )
 */
 			ef2dp->e2_cint = NINT( 100.0*fv1 );
 		}else{
-			RM_errormsg( FALSE,
-				"getmiscloop: no c hairpin intercept." );
+			rm_error = TRUE;
+			LOG_ERROR("no c hairpin intercept.");
 			rval = 0;
 			goto CLEAN_UP;
 		}
@@ -336,8 +341,8 @@ static	int	getmiscloop( char fname[] )
 */
 			ef2dp->e2_c3 = NINT( 100.0*fv1 );
 		}else{
-			RM_errormsg( FALSE,
-				"getmiscloop: no c hairpin of 3 term." );
+			rm_error = TRUE;
+			LOG_ERROR("no c hairpin of 3 term.");
 			rval = 0;
 			goto CLEAN_UP;
 		}
@@ -350,8 +355,8 @@ static	int	getmiscloop( char fname[] )
 */
 			ef2dp->e2_init = NINT( 100.0*fv1 );
 		}else{
-			RM_errormsg( FALSE,
-			"getmiscloop: no Intermol init free energy." );
+			rm_error = TRUE;
+			LOG_ERROR("no Intermol init free energy.");
 			rval = 0;
 			goto CLEAN_UP;
 		}
@@ -363,7 +368,8 @@ static	int	getmiscloop( char fname[] )
 */
 			sscanf( line, "%d", &ef2dp->e2_gail );
 		}else{
-			RM_errormsg( FALSE, "getmiscloop: no GAIL Rule term." );
+			rm_error = TRUE;
+			LOG_ERROR("no GAIL Rule term.");
 			rval = 0;
 			goto CLEAN_UP;
 		}
@@ -389,17 +395,15 @@ static	int	getibhloop( char fname[] )
 
 	sprintf( pname, "%s/%s", rm_efndatadir, fname );
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
-		sprintf( emsg, "getibhloop: can't read ibhloop file '%s'.",
-			pname );
-		RM_errormsg( FALSE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("can't read ibhloop file '%s'.", pname);
 		return( 0 );
 	}
 	rval = 1;
 
 	if( !skipto( fp, "---", sizeof( line ), line ) ){
-		sprintf( emsg, "getibhloop: error in ibhloop file '%s'.",
-			fname );
-		RM_errormsg( FALSE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("error in ibhloop file '%s'.", fname);
 		rval = 0;
 		goto CLEAN_UP;
 	}
@@ -449,9 +453,8 @@ static	int	getdangle( char fname[] )
 
 	sprintf( pname, "%s/%s", rm_efndatadir, fname );
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
-	    sprintf( emsg, "getdangle: can't read dangle file '%s'.",
-		pname );
-	    RM_errormsg( FALSE, emsg );
+	    rm_error = TRUE;
+	    LOG_ERROR("can't read dangle file '%s'.", pname);
 	    return( 0 );
 	}
 	rval = 1;
@@ -480,12 +483,10 @@ static	int	getdangle( char fname[] )
 	for( v4 = 0; v4 < 2; v4++ ){
 	    for( v1 = 0; v1 < 4; v1++ ){
 		if( !skipto( fp, "<--", sizeof( line ), line ) ){
-		    sprintf( emsg,
-			"getdangle: premature end of dangle file '%s'\n", 
-			fname );
-		     RM_errormsg( FALSE, emsg );
-		     rval = 0;
-		     goto CLEAN_UP;
+		    rm_error = TRUE;
+		    LOG_ERROR("premature end of dangle file '%s'.", fname);
+		    rval = 0;
+		    goto CLEAN_UP;
 		}
 		fgets( line, sizeof( line ), fp );
 		n_fields = split( line, fields, " \t\n" );
@@ -525,9 +526,8 @@ static	int	getstack( char sfname[],
 	
 	sprintf( pname, "%s/%s", rm_efndatadir, sfname );
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
-		sprintf( emsg, "getstack: can't read stack file '%s'.",
-			pname );
-		RM_errormsg( FALSE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("can't read stack file '%s'.", pname);
 		return( 0 );
 	}
 	rval = 1;
@@ -547,12 +547,10 @@ static	int	getstack( char sfname[],
 
 	for( v1 = 0; v1 < 4; v1++ ){
 	    if( !skipto( fp, "<--", sizeof( line ), line ) ){
-			sprintf( emsg,
-				"getstack: premature end of stack file '%s'.",
-				pname );
-			RM_errormsg( FALSE, emsg );
-			rval = 0;
-			goto CLEAN_UP;
+		rm_error = TRUE;
+		LOG_ERROR("premature end of stack file '%s'.", pname);
+		rval = 0;
+		goto CLEAN_UP;
 	    }
 	    for( v3 = 0; v3 < 4; v3++ ){
 		fgets( line, sizeof( line ), fp );
@@ -591,9 +589,8 @@ static	int	getcoax( char sfname[],
 	
 	sprintf( pname, "%s/%s", rm_efndatadir, sfname );
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
-	    sprintf( emsg, "getcoax: can't read stack file '%s'.",
-		pname );
-	    RM_errormsg( FALSE, emsg );
+	    rm_error = TRUE;
+	    LOG_ERROR("can't read stack file '%s'.", pname);
 	    return( 0 );
 	}
 	rval = 1;
@@ -613,9 +610,8 @@ static	int	getcoax( char sfname[],
 
 	for( v1 = 0; v1 < 4; v1++ ){
 	    if( !skipto( fp, "<--", sizeof( line ), line ) ){
-		sprintf( emsg, "getcoax: premature end of stack file '%s'.",
-		    pname );
-		RM_errormsg( FALSE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("premature end of stack file '%s'.", pname);
 		rval = 0;
 		goto CLEAN_UP;
 	    }
@@ -657,9 +653,8 @@ static	int	gettstack( char sfname[],
 
 	sprintf( pname, "%s/%s", rm_efndatadir, sfname );
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
-	    sprintf( emsg, "gettstack: can't read stack file '%s'.\n",
-		pname );
-	    RM_errormsg( FALSE, emsg );
+	    rm_error = TRUE;
+	    LOG_ERROR("can't read stack file '%s'.", pname);
 	    return( 0 );
 	}
 	rval = 1;
@@ -667,10 +662,8 @@ static	int	gettstack( char sfname[],
 	for( v1 = 0; v1 < N_BCODES; v1++ ){
 	    if( v1 !=BCODE_N ){
 			if( !skipto( fp, "<--", sizeof( line ), line ) ){
-				sprintf( emsg,
-			"gettstack: premature end of tstack file '%s'.\n",
-					pname );
-				RM_errormsg( FALSE, emsg );
+				rm_error = TRUE;
+				LOG_ERROR("premature end of stack file '%s'.", pname);
 				rval = 0;
 				goto CLEAN_UP;
 			}
@@ -718,9 +711,8 @@ static	int	gettloop( char fname[] )
 
 	sprintf( pname, "%s/%s", rm_efndatadir, fname );
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
-	    sprintf( emsg, "gettloop: can't read tloop file '%s'.",
-		pname );
-	    RM_errormsg( FALSE, emsg );
+	    rm_error = TRUE;
+	    LOG_ERROR("can't read tloop file '%s'.", pname);
 	    return( 0 );
 	}
 	rval = 1;
@@ -735,15 +727,15 @@ static	int	gettloop( char fname[] )
 		    ef2dp->e2_tloop[ t+1 ][ 1 ] = NINT( 100.0 * energy );
 		}
 	    }
-	}else
+	}else{
+	    t = 0;
 	    rval = 0;
+	}
 	fclose( fp );
 
 	if( t > EFN2_MAXTLOOP ){
-	    sprintf( emsg,
-"gettloop: # of tloop (%d) exceeds EFN2_MAXTLOOP (%d), last %d tloop ignored.",
-		t, EFN2_MAXTLOOP, t - EFN2_MAXTLOOP );
-	    RM_errormsg( FALSE, emsg );
+	    rm_error = TRUE;
+	    LOG_ERROR("# of tloops (%d) exceeds EFN2_MAXTLOOP (%d), last %d tloops ignored.", t, EFN2_MAXTLOOP, t - EFN2_MAXTLOOP);
 	    ef2dp->e2_ntloops = EFN2_MAXTLOOP;
 	}else
 	    ef2dp->e2_ntloops = t;
@@ -762,9 +754,8 @@ static	int	gettriloop( char fname[] )
 
 	sprintf( pname, "%s/%s", rm_efndatadir, fname );
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
-	    sprintf( emsg, "gettriloops: can't read triloops file '%s'.",
-		pname );
-	    RM_errormsg( FALSE, emsg );
+	    rm_error = TRUE;
+	    LOG_ERROR("can't read triloops file '%s'.", pname);
 	    return( 0 );
 	}
 	rval = 1;
@@ -779,15 +770,15 @@ static	int	gettriloop( char fname[] )
 		    ef2dp->e2_triloop[ t+1 ][ 1 ] = NINT( 100.0 * energy );
 		}
 	    }
-	}else
+	}else{
+		t = 0;
 		rval = 0;
+	}
 	fclose( fp );
 
 	if( t > EFN2_MAXTRILOOP ){
-	    sprintf( emsg,
-"gettloops: # of triloop (%d) exceeds EFN2_MAXTRILOOP (%d), last %d triloop ignored.",
-		t, EFN2_MAXTRILOOP, t - EFN2_MAXTRILOOP );
-	    RM_errormsg( FALSE, emsg );
+	    rm_error = TRUE;
+	    LOG_ERROR("# of triloops (%d) exceeds EFN2_MAXTRILOOP (%d), last %d triloops ignored.", t, EFN2_MAXTRILOOP, t - EFN2_MAXTRILOOP);
 	    ef2dp->e2_ntriloops = EFN2_MAXTRILOOP;
 	}else
 	    ef2dp->e2_ntriloops = t;
@@ -809,9 +800,8 @@ static	int	get1x1loop( char fname[] )
 
 	sprintf( pname, "%s/%s", rm_efndatadir, fname );
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
-	    sprintf( emsg, "get1x1loop: can't read 2x2 loop file '%s'",
-		pname );
-	    RM_errormsg( FALSE, emsg );
+	    rm_error = TRUE;
+	    LOG_ERROR("can't read 1x1 loop file '%s'.", pname);
 	    return( 0 );
 	}
 	rval = 1;
@@ -833,9 +823,8 @@ static	int	get1x1loop( char fname[] )
 
 	/* Skip the header */
 	if( !skipto( fp, "<--", sizeof( line ), line ) ){
-	    sprintf( emsg, "get2x2loop: error in int2 file '%s'.",
-		pname );
-	    RM_errormsg( FALSE, emsg );
+	    rm_error = TRUE;
+	    LOG_ERROR("error in 1x1 file '%s'.", pname);
 	    rval = 0;
 	    goto CLEAN_UP;
 	}
@@ -843,12 +832,10 @@ static	int	get1x1loop( char fname[] )
 	/* this 6 is pairs: a:u, c:g, g:c, u:a, g:u, u:g 	*/
 	for( v1 = 0; v1 < 6; v1++ ){
 	    if( !skipto( fp, "<--", sizeof( line ), line ) ){
-			sprintf( emsg,
-			"getsymint: premature end of sym-2 loop file '%s'.",
-				pname );
-			RM_errormsg( FALSE, emsg );
-			rval = 0;
-			goto CLEAN_UP;
+		rm_error = TRUE;
+		LOG_ERROR("premature end of 1x1 loop file '%s'.", pname);
+		rval = 0;
+		goto CLEAN_UP;
 	    }
 	    a = bmap[ v1 ];
 	    d = rmap[ v1 ];
@@ -894,9 +881,8 @@ static	int	get2x1loop( char fname[] )
 
 	sprintf( pname, "%s/%s", rm_efndatadir, fname );
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
-	    sprintf( emsg, "get2x1loop: can't read 2x1 loop file '%s'.",
-		pname );
-	    RM_errormsg( FALSE, emsg );
+	    rm_error = TRUE;
+	    LOG_ERROR("can't read 2x1 loop file '%s'.", pname);
 	    return( 0 );
 	}
 	rval = 1;
@@ -922,8 +908,8 @@ static	int	get2x1loop( char fname[] )
 
 	/* Skip the header */
 	if( !skipto( fp, "<--", sizeof( line ), line ) ){
-	    sprintf( emsg, "get2x1loop: error in int21 file '%s'.",
-		pname );
+	    rm_error = TRUE;
+	    LOG_ERROR("error in 2x1 loop file '%s'.", pname);
 	    rval = 0;
 	    goto CLEAN_UP;
 	}
@@ -938,12 +924,10 @@ static	int	get2x1loop( char fname[] )
 	    b = rmap[ v1 ];
 	    for( e = 0; e < 4; e++ ){
 		if( !skipto( fp, "<--", sizeof( line ), line ) ){
-		    sprintf( emsg,
-			"get2x1loop: premature end of int21 file '%s'.",
-			pname );
-		     RM_errormsg( FALSE, emsg );
-		     rval = 0;
-		     goto CLEAN_UP;
+		    rm_error = TRUE;
+		    LOG_ERROR("premature end of 2x1 loop file '%s'.", pname);
+		    rval = 0;
+		    goto CLEAN_UP;
 		}
 		for( c = 0; c < 4; c++ ){
 		    fgets( line, sizeof( line ), fp );
@@ -985,9 +969,8 @@ static	int	get2x2loop( char fname[] )
 
 	sprintf( pname, "%s/%s", rm_efndatadir, fname );
 	if( ( fp = fopen( pname, "r" ) ) == NULL ){
-	    sprintf( emsg, "get2x2loop: can't read 2x2 loop file '%s'",
-		pname );
-	    RM_errormsg( FALSE, emsg );
+	    rm_error = TRUE;
+	    LOG_ERROR("can't read 2x2 loop file '%s'.", pname);
 	    return( 0 );
 	}
 	rval = 1;
@@ -1015,9 +998,8 @@ static	int	get2x2loop( char fname[] )
 
 	/* Skip the header */
 	if( !skipto( fp, "<--", sizeof( line ), line ) ){
-	    sprintf( emsg, "get2x2loop: error in int2 file '%s'.",
-		pname );
-	    RM_errormsg( FALSE, emsg );
+	    rm_error = TRUE;
+	    LOG_ERROR("error in 2x2 loop file '%s'.", pname);
 	    rval = 0;
 	    goto CLEAN_UP;
 	}
@@ -1032,10 +1014,8 @@ static	int	get2x2loop( char fname[] )
 	    c = rmap[ v1 ];
 	    for( v2 = 0; v2 < 6; v2++ ){
 		if( !skipto( fp, "<--", sizeof( line ), line ) ){
-		    sprintf( emsg,
-			"getsymint: premature end of sym-2 loop file '%s'.",
-			pname );
-		    RM_errormsg( FALSE, emsg );
+		    rm_error = TRUE;
+		    LOG_ERROR("premature end of 2x2 loop file '%s'.", pname);
 		    rval = 0;
 		    goto CLEAN_UP;
 		}
@@ -1094,9 +1074,8 @@ static	int	packloop( char loop[] )
 			num = ( num * 5 ) + BCODE_T;
 			break;
 		default :
-			sprintf( emsg,
-				"packloop: illegal char %c (%d)", *lp, *lp );
-			RM_errormsg( TRUE, emsg );
+			rm_error = TRUE;
+			LOG_ERROR("%s:%d illegal char %c (%d)", rm_wdfname, rm_lineno, *lp, *lp);
 			exit( 1 );
 		}
 	}
@@ -1139,6 +1118,7 @@ SUBROUTINE : ;
 
 	pop( &stack, &i, &j, &open, &null, &stz );
 
+	ip = jp = 0;
 	while( stz != 1 ){
 
 		while( rm_basepr[i] == j ){
@@ -1232,8 +1212,8 @@ SUBROUTINE : ;
 						for( h1 = 0; h1 < n_helix; h1++ ){
 							coax[h1][h1] = 0;
 							mw_5pgap = FALSE;
-							if( h1 == 0 && helix[h1][1]-helix[n_helix-1][0] > 1 ||
-								h1 != 0 && helix[h1][1]-helix[h1-1][0] > 1 )
+							if((h1 == 0 && helix[h1][1]-helix[n_helix-1][0] > 1)||
+								(h1 != 0 && helix[h1][1]-helix[h1-1][0] > 1))
 							{
 								mw_5pgap = TRUE;
 							}

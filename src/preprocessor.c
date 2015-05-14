@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "log.h"
 #include "rmdefs.h"
 #include "rnamot.h"
 
@@ -11,10 +12,6 @@ extern	int	rm_error;
 extern	ARGS_T	*rm_args;
 extern	char	*rm_wdfname;
 extern	int	rm_lineno;
-extern	int	rm_emsg_lineno;
-/*
-extern	INCDIR_T	*rm_idlist;
-*/
 
 typedef	struct	fstk_t	{
 	char	*f_fname;
@@ -28,12 +25,12 @@ static	int	fstkp = -1;
 #define	IS_FSTK_EMPTY()	(fstkp==-1)
 #define	IS_FSTK_FULL()	(fstkp>=FSTK_SIZE-1)
 
-static	char	emsg[ 256 ];
-
 static	FILE	*pushfile( char [] );
 static	FILE	*popfile();
 static	FILE	*include();
+#if 0
 static	void	dumpfstk( FILE *, char [] );
+#endif
 static	FILE	*RM_getline( char [], int, FILE * );
 static	void	putline( FILE *, char [], int, char [] );
 static	char	*isdescr( char [] );
@@ -52,10 +49,6 @@ char	*RM_preprocessor( void )
 			rm_args->a_dfname );
 		return( NULL );
 	}
-/*
-	if( rm_args->a_xdfname == NULL )
-		rm_args->a_xdfname = tempnam( NULL, "rmxd" );
-*/
 	if( rm_args->a_xdfname == NULL ){
 		rm_args->a_xdfname = strdup( "rmxd_XXXXXX" );
 		mkstemp( rm_args->a_xdfname );
@@ -67,14 +60,14 @@ char	*RM_preprocessor( void )
 		return( NULL );
 	}
 
-	for( ; dfp = RM_getline( line, sizeof( line ), dfp ); ){
+	for( ; (dfp = RM_getline( line, sizeof( line ), dfp )); ){
 		rm_lineno++;
 		if( *line == '#' ){
 			for( lp = &line[1]; isspace( *lp ); lp++ )
 				;
 			if( !strncmp( lp, "include", 7 ) )
 				dfp = include( line );		
-		}else if( dp = isdescr( line ) ){
+		}else if((dp = isdescr( line ))){
 			if( rm_args->a_cldefs != NULL ){
 				if( dp > line ){
 					strncpy( work, line, dp - line );
@@ -103,22 +96,21 @@ static	FILE	*pushfile( char fname[] )
 	FSTK_T	*fsp;
 
 	if( IS_FSTK_FULL() ){
-		sprintf( emsg, "pushfile: fstk overflow: '%s'.", fname );
-		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d fstk overflow: '%s'.", rm_wdfname, rm_lineno, fname);
+		exit(1);
 	}
 	sp = ( char * )malloc( strlen( fname ) + 1 );
 	if( sp == NULL ){
-		sprintf( emsg, "RM_pushfile: can't allocate fname for: '%s'.",
-			fname );
-		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't allocate fname for '%s'.", rm_wdfname, rm_lineno, fname);
+		exit(1);
 	}
 	strcpy( sp, fname );
 	if( ( fp = fopen( fname, "r" ) ) == NULL ){
-		sprintf( emsg, "RM_pushfile: can't read '%s'.", fname );
-		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't read '%s'.", rm_wdfname, rm_lineno, fname);
+		exit(1);
 	}
 	if( !IS_FSTK_EMPTY() )
 		fstk[ fstkp ].f_lineno = rm_lineno;
@@ -167,7 +159,9 @@ static	FILE	*include( char str[] )
 	for( ; *sp && !isspace( *sp ); sp++ )
 		;
 	if( *sp == '\0' ){
-		RM_errormsg( TRUE, "RM_include: no filename." );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d no filename.", rm_wdfname, rm_lineno);
+		exit(1);
 	}
 	for( ; isspace( *sp ); sp++ )
 		;
@@ -178,15 +172,16 @@ static	FILE	*include( char str[] )
 	else if( *sp == '\'' )
 		c = '\'';
 	else{
-		sprintf( emsg, "RM_include: bad include filename '%s'.", sp );
-		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( TRUE, emsg );
+		c = '\0';
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bad include filename '%s'.", rm_wdfname, rm_lineno, sp);
+		exit(1);
 	}
 	sp++;
 	if( ( sp1 = strchr( sp, c ) ) == NULL ){
-		sprintf( emsg, "RM_include: bad include filename '%s'.", sp );
-		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d bad include filename '%s'.", rm_wdfname, rm_lineno, sp);
+		exit(1);
 	}
 	strncpy( work, sp, sp1 - sp );
 	work[ sp1 - sp ] = '\0';
@@ -196,28 +191,25 @@ static	FILE	*include( char str[] )
 	}else
 		strcpy( fname, work );
 
-/*
-	if( rm_idlist == NULL )
-*/
 	if( rm_args->a_idlist == NULL )
 		fp = pushfile( fname );
 	else{
 		for( idp = rm_args->a_idlist; idp; idp = idp->i_next ){
 			sprintf( path, "%s/%s", idp->i_name, fname );
-			if( fp = pushfile( path ) )
+			if((fp = pushfile( path )))
 				break;
 		}
 	}
 	if( fp == NULL ){
-		sprintf( emsg,
-			"RM_include: can't find include file '%s'.", fname );
-		rm_emsg_lineno = rm_lineno;
-		RM_errormsg( TRUE, emsg );
+		rm_error = TRUE;
+		LOG_ERROR("%s:%d can't find include file '%s'.", rm_wdfname, rm_lineno, fname);
+		exit(1);
 	}
 	
 	return( fp );
 }
 
+#if 0
 static	void	dumpfstk( FILE *fp, char msg[] )
 {
 	int	f;	
@@ -231,6 +223,7 @@ static	void	dumpfstk( FILE *fp, char msg[] )
 			
 	} 
 }
+#endif
 
 static	FILE	*RM_getline( char line[], int l_size, FILE *fp )
 {
@@ -238,7 +231,7 @@ static	FILE	*RM_getline( char line[], int l_size, FILE *fp )
 	do{
 		if( fgets( line, l_size, fp ) )
 			return( fp );
-	}while( fp = popfile() );
+	}while((fp = popfile()));
 	return( NULL );
 }
 static	void	putline( FILE *fp, char fname[], int lineno, char line[] ) 
