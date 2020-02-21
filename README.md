@@ -78,10 +78,10 @@ I. Installing rnamotif.
 
    The binaries will left in the subdirectory 'src'.  There are four:
 
-	rnamotif	The actual serach program.
-	rmprune		Remove hits that differ only by 'unzipped' base pairs.
-	rmfmt		Format the output.
-	rm2ct		Convert the output to ct-format suitable for drawing.
+*	rnamotif	The actual serach program.
+*	rmprune		Remove hits that differ only by 'unzipped' base pairs.
+*	rmfmt		Format the output.
+*	rm2ct		Convert the output to ct-format suitable for drawing.
 
 6. Test the binaries.  One test computes the effective energies of the 
    solutions.  To run this, rnamotif must read the files that are in 
@@ -125,9 +125,9 @@ II. Using the codes.
 
 1.2. The full form of the rnamotif command is shown below:
 
-rnamotif [ options ] descr [ seq-file ... ]
+    rnamotif [ options ] descr [ seq-file ... ]
 
-options:
+    options:
 	-c			Compile only, no search
 	-d			Dump internal data structures
 	-h			Dump the strucure hierarchy
@@ -138,7 +138,7 @@ options:
 	-xdfname file-name	Preprocessor output file
 	-help			Print this message
 
-descr:	Use one:
+    descr:	Use one:
 	-descr descr-file	May have includes; use cmd-line defs
 	-xdescr xdescr-file	May not have includes; ignore cmd-line defs
 
@@ -152,7 +152,7 @@ descr:	Use one:
 
    As an example consider this descriptor:
 
-descr
+  descr
 	h5( minlen=4, maxlen=6 ) ss( minlen=4, maxlen=6 ) h3
 
    This descriptor specifies a simple hairpin where the stem must be 4-6
