@@ -1,0 +1,20 @@
+
+trna.general.descr        : text file of general descriptor for finding tRNA genes.
+general_descr_fig.eps     : EPS file pictorally depicting the general descriptor.
+EcoliO157:H7.032301.fastn : FASTN file of E. coli O157:H7 genome, obtained
+			    from NCBI on 3/23/01.
+run_rnamotif              : shell script for running RNAMOTIF using the general
+                            descriptor and searching the E. coli O157:H7 genome.
+			    Also includes steps to clean up the results.
+*.save			  : saved output files for comparison
+
+
+The "rnamotif" executable outputs a "raw" data file in which the sequences are not
+aligned.  The "rmfmt" executable cleans this up, producing a file in which the 
+sequences are aligned to each other using the secondary structures queried in the
+descriptor, and the results are sorted using the score.
+
+Some sequences appear multiple times because there are different ways of arranging
+certain nucleotides that would all fit the descriptor.  The duplicate sequences
+can be removed by "extract_seq_info".  The command-line argument "low" (optional)
+keeps the arrangement of a sequence with the lowest-score.

@@ -1,0 +1,11 @@
+#!/bin/csh
+
+setenv RNAMOTIF /prog/rnamotif
+setenv EFNDATA $RNAMOTIF/efndata
+
+$RNAMOTIF/src/rnamotif -descr trna.general.descr EcoliO157:H7.032301.fastn > trna.general.raw.dat
+$RNAMOTIF/src/rmfmt -l trna.general.raw.dat > trna.general.dat
+
+
+./extract_seq_info trna.general.raw.dat low > trna.general.cleaned.raw.dat
+$RNAMOTIF/src/rmfmt -l trna.general.cleaned.raw.dat > trna.general.cleaned.dat

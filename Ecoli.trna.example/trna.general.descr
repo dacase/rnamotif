@@ -1,0 +1,36 @@
+parms
+	wc += gu;
+
+descr
+	   h5(tag='h1',len=7,mispair=1,ends='mm')
+	      ss(tag='s1',len=2)
+	      h5(tag='h2',minlen=3,maxlen=4,mispair=1,ends='mm')
+	         ss(tag='s2',minlen=8,maxlen=11)
+	      h3(tag='h2')
+	      ss(tag='s3',len=1)
+	      h5(tag='h3',len=5,mispair=1,ends='mm')
+	         ss(tag='s4',len=7)
+	      h3(tag='h3')
+	      ss(tag='s5',minlen=4,maxlen=22)
+	      h5(tag='h4',len=5,mispair=1,ends='mm')
+	         ss(tag='s6',len=7)
+	      h3(tag='h4')
+	   h3(tag='h1')
+	   ss(tag='s7',len=4)
+
+score
+{
+	n = 0;
+	if (ss['s1',1,1] != "u")  n++;
+	if (ss['s4',2,1] != "u")  n++;
+	if (h5['h4',5,1] != "g")  n++;
+	if (ss['s6',1,1] != "u")  n++;
+	if (ss['s6',2,1] != "u")  n++;
+	if (ss['s6',3,1] != "c")  n++;
+	if (ss['s6',5,1] != "a")  n++;
+	if (h3['h4',1,1] != "c")  n++;
+
+	if (n > 1) REJECT;
+
+	SCORE = efn( h5['h1'],ss['s7'] );
+}

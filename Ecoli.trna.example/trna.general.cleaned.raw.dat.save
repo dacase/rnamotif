@@ -1,0 +1,234 @@
+#RM scored
+#RM descr h5(tag='h1') ss(tag='s1') h5(tag='h2') ss(tag='s2') h3(tag='h2') ss(tag='s3') h5(tag='h3') ss(tag='s4') h3(tag='h3') ss(tag='s5') h5(tag='h4') ss(tag='s6') h3(tag='h4') h3(tag='h1') ss(tag='s7')
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12512920|gb|AE005195|AE005195  -26.500 0   11284   77 aggcttg ta gctc aggtggtta gagc g caccc ctgataa gggtg aggtc ggtgg ttcaagt ccact caggcct acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12512920|gb|AE005195|AE005195  -29.600 0   11403   76 ggggcta ta gctc agctggga gagc g cctgc tttgcac gcagg aggtc tgcgg ttcgatc ccgca tagctcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12512934|gb|AE005196|AE005196  -26.200 0    3290   77 ggagcgg ta gttc agtcggtta gaat a cctgc ctgtcac gcagg gggtc gcggg ttcgagt cccgt ccgttcc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12512945|gb|AE005197|AE005197  -26.200 0      97   77 ggagcgg ta gttc agtcggtta gaat a cctgc ctgtcac gcagg gggtc gcggg ttcgagt cccgt ccgttcc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513011|gb|AE005202|AE005202  -23.500 0    6279   76 gccgata ta gctc agttggta gagc a gcgca ttcgtaa tgcga aggtc gtagg ttcgact cctat tatcggc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513338|gb|AE005226|AE005226    8.500 1    7840   79 tgtttaa ta atg atctcact cgc g aagtt ccgccct gtttt attgccgggg cggag ttcgatc cgctg ctggatg acag
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513427|gb|AE005234|AE005234  -30.400 0    8154   77 gcgccct ta gctc agttggata gagc a acgac cttctaa gtcgt gggcc gcagg ttcgaat cctgc agggcgc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513567|gb|AE005245|AE005245  -20.600 1    5337   77 ggctacg ta gctc agttggtta gagc a catca ctcataa tgatg gggtc acagg ttcgaat cccgt cgtagcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513567|gb|AE005245|AE005245  -27.600 1    5250   85 gcgggag tg gcg aaattggtaga cgc a ccaga tttaggt tctgg cgccgcaaggtgt gcgag ttcaagt ctcgc ctcccgc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513567|gb|AE005245|AE005245  -27.900 1    5142   75 tggggta tc gcc aagcggtaa ggc a ccggt ttttgat accgg cattc cctgg ttcgaat ccagg tacccca gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513567|gb|AE005245|AE005245  -27.900 1    5033   75 tggggta tc gcc aagcggtaa ggc a ccggt ttttgat accgg cattc cctgg ttcgaat ccagg tacccca gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513567|gb|AE005245|AE005245  -20.600 1    4943   77 ggctacg ta gctc agttggtta gagc a catca ctcataa tgatg gggtc acagg ttcgaat cccgt cgtagcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513567|gb|AE005245|AE005245  -27.800 1    4818   75 tggggta tc gcc aagcggtaa ggc a ccgga ttctgat tccgg cattc cgagg ttcgaat cctcg tacccca gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513567|gb|AE005245|AE005245  -27.800 1    4706   75 tggggta tc gcc aagcggtaa ggc a ccgga ttctgat tccgg cattc cgagg ttcgaat cctcg tacccca gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513678|gb|AE005253|AE005253  -25.200 0     113   76 gggtcgt ta gctc agttggta gagc a gttga cttttaa tcaat tggtc gcagg ttcgaat cctgc acgaccc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513678|gb|AE005253|AE005253  -29.000 0     224   76 gggtgat ta gctc agctggga gagc a cctcc cttacaa ggagg ggggc ggcgg ttcgatc ccgtc atcaccc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513678|gb|AE005253|AE005253  -25.200 0     302   76 gggtcgt ta gctc agttggta gagc a gttga cttttaa tcaat tggtc gcagg ttcgaat cctgc acgaccc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513678|gb|AE005253|AE005253  -29.000 0     429   76 gggtgat ta gctc agctggga gagc a cctcc cttacaa ggagg ggggc ggcgg ttcgatc ccgtc atcaccc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513678|gb|AE005253|AE005253  -25.200 0     508   76 gggtcgt ta gctc agttggta gagc a gttga cttttaa tcaat tggtc gcagg ttcgaat cctgc acgaccc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513678|gb|AE005253|AE005253  -25.200 0     730   76 gggtcgt ta gctc agttggta gagc a gttga cttttaa tcaat tggtc gcagg ttcgaat cctgc acgaccc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12513718|gb|AE005256|AE005256    1.400 1    9236   78 tcttccg tt ttt gttttttaa cag g cgtgg ataccgg ttccg gtgagggt gacgg ttcggta ctgtc cgggaca ctct
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514031|gb|AE005277|AE005277  -27.500 1    6503   88 ggtgagg tg tcc gagtggctgaa gga g cacgc ctggaaa gtgtg tatacggcaacgtatc ggggg ttcgaat ccccc cctcacc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514092|gb|AE005282|AE005282   -0.200 0   11484   76 cagcctt tc tca acggagagt tgt g ccagt gtctgcc attgt tccagc gtagg gtcgata ccggt tgggttg tggc
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514229|gb|AE005291|AE005291  -24.400 1    2306   88 ggaagtg tg gcc gagcggttgaa ggc a ccggt cttgaaa accgg cgacccgaaagggttc cagag ttcgaat ctctg cgcttcc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514307|gb|AE005296|AE005296  -28.500 0    5780   76 ggccctt ta gctc agtggtga gagc g agcga ctcataa tcgcc aggtc gctgg ttcaaat ccagc aagggcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514307|gb|AE005296|AE005296  -27.200 0    5865   77 ccgccat ta gctc atcgggaca gagc g ccagc cttcgaa gctgg ctgcg cgggg ttcgagt cctcg atggcgg tcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514307|gb|AE005296|AE005296  -21.700 0    5955   77 gcgttgt ta gctc agccggaca gagc a attgc cttctga gcaat cggtc actgg ttcgaat ccagt acaacgc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514555|gb|AE005314|AE005314  -27.500 1    4287   88 ggtgagg tg tcc gagtggctgaa gga g cacgc ctggaaa gtgtg tatacggcaacgtatc ggggg ttcgaat ccccc cctcacc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514694|gb|AE005323|AE005323  -24.500 0    5912   76 agccctt ta gctc agtggtga gagc g agcga ctcataa tcgcc aggtc gctgg ttcaaat ccagc aagggcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514694|gb|AE005323|AE005323  -19.900 0    5995   77 ccgccat ta gctc atcaggaaa gagc g ccagc tttcgaa gctgg ttgcg cggag ttcgggt ccccg aaggcgg tcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514694|gb|AE005323|AE005323  -21.700 0    6085   77 gcgttgt ta gctc agccggaca gagc a attgc cttctaa gcaat cggtc actgg ttcgaat ccagt acaacgc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514843|gb|AE005333|AE005333    9.800 1    7286   91 ttataaa tt ttt atggtccgt ggt t gttca ctcattc tgaat gccattatgcaagcctcacaa tgtag ttaaatg cgatg tttttga cagt
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514944|gb|AE005340|AE005340  -27.800 1    7807   85 ggtgggg tt ccc gagcggccaaa ggg a gcaga ctgtaaa tctgc cgtcatcgacttc gaagg ttcgaat ccttc ccccacc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514944|gb|AE005340|AE005340  -27.800 1    7513   85 ggtgggg tt ccc gagcggccaaa ggg a gcaga ctgtaaa tctgc cgtcatcgacttc gaagg ttcgaat ccttc ccccacc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514997|gb|AE005344|AE005344  -28.500 0    7318   76 ggccctt ta gctc agcggtga gagc g agcga ctcataa tcgcc aggtc gctgg ttcaaat ccagc aagggcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12514997|gb|AE005344|AE005344  -21.700 0    7474   77 gcgttgt ta gctc agccggaca gagc a attgc cttctaa gcaat cggtc actgg ttcgaat ccagt acaacgc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12515050|gb|AE005347|AE005347    1.200 0    3018   85 tggacat tt gaaa gagcccgctt tttg c gggtt tttttat gactg aaaaacggcacg gggcg ttaaacg cgctg gtggttg ctaa
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12515050|gb|AE005347|AE005347  -28.500 0    4254   76 ggccctt ta gctc agtggtga gagc g agcga ctcataa tcgcc aggtc gctgg ttcaaat ccagc aagggcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12515050|gb|AE005347|AE005347  -21.700 0    4430   77 gcgttgt ta gctc agccggaca gagc a attgc cttctaa gcaat cggtc agtgg ttsgact ccact acaacgc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12515084|gb|AE005349|AE005349   -0.500 0   11598   80 attccgc tg tgtg ccgcacctgac cggg c gtcgt tttgagc acggg gtgacg gactg ttacacc ctgtt ccgggat gcat
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12515360|gb|AE005369|AE005369  -28.500 1    8307   76 ggccctt ta gctc agtggtga gagc g agcga ctcataa tcgcc aggtc gctgg ttcaaat ccagc aagggcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12515360|gb|AE005369|AE005369  -21.700 1    8131   77 gcgttgt ta gctc agccggaca gagc a attgc cttctaa gcaat cggtc agtgg ttcgact ccact acaacgc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12515413|gb|AE005372|AE005372    6.800 1    7048   89 gagtatt tt tag tcatcctg ttt a cctct ttctcag ggagt ttagtctccaggatttccgg ggcgg ttcattt cggtc aatgtct gcag
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12515569|gb|AE005383|AE005383    0.600 0    8952   78 cgatttt ga tga ccatcatc gtg a tggct atggtgt tgctg ttagcttat ctggg ttccacg ctcaa cgagttg acgc
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12515665|gb|AE005390|AE005390  -26.500 0     185   77 gcgttca ta gctc agttggtta gagc a ccacc ttgacat ggtgg gggtc gttgg ttcgagt ccaat tgaacgc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12515665|gb|AE005390|AE005390  -31.700 0     266   77 gcgtccg ta gctc agttggtta gagc a ccacc ttgacat ggtgg gggtc ggtgg ttcgagt ccact cggacgc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12515908|gb|AE005408|AE005408   -0.900 1    2071   89 gtaatca tt gact ccatcatctg ggnc g ccgtg attaccg ctcgg tttagctgacgcgcac gacgg atcaacg ctttc tgaatgc cgac
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516006|gb|AE005414|AE005414  -29.900 1    2810   76 gcgggaa ta gctc agttggta gagc a cgacc ttgccaa ggtcg gggtc gcgag ttcgagt ctcgt ttcccgc tcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516006|gb|AE005414|AE005414  -22.900 1    2681   74 ggcgcgt ta aca aagcggtta tgt a gcgga ttgcaaa tccgt ctag tccgg ttcgact ccgga acgcgcc tcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516006|gb|AE005414|AE005414  -27.400 1    2595   87 gcccgga tg gtg gaatcggtaga cac a aggga tttaaaa tccct cggcgttcgcgctgt gcggg ttcaagt cccgc tccgggt acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516096|gb|AE005420|AE005420   -0.500 1    1164   80 attccgc tg tgtg ccgcacctgac cggg c gtcgt tttgagc acggg gtgacg gactg ttacacc ctgtt ccgggat gcat
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516116|gb|AE005421|AE005421  -28.500 1    9127   76 ggccctt ta gctc agtggtga gagc g agcga ctcataa tcgcc aggcc gctgg ttcaaat ccagc aagggcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516116|gb|AE005421|AE005421  -20.800 1    9044   77 ccgccat ta gctc atcgggata gaac g ccagc cttcgaa gctgg tttcg cgggg ttcgagt ctccg atggcgg tcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516116|gb|AE005421|AE005421  -15.200 1    8954   77 gcgtttt ta gctc agccggaca gagc a attgc cttctaa gcaat cggtc actgg ttcgaac ccagt acaacgc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516148|gb|AE005423|AE005423  -23.700 0    2318   76 tcctctg ta gttc agtcggta gaac g gcgga ctgttaa tccgt atgtc actgg ttcgagt ccagt cagagga gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516148|gb|AE005423|AE005423  -30.000 1    1326   90 ggagaga tg ccg gagcggctgaa cgg a ccggt ctcgaaa accgg agtgggggcaactccacc ggggg ttcaaat ccccc tctctcc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516155|gb|AE005424|AE005424  -23.700 0    7733   76 tcctctg ta gttc agtcggta gaac g gcgga ctgttaa tccgt atgtc actgg ttcgagt ccagt cagagga gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516155|gb|AE005424|AE005424  -23.700 1    5984   76 tcctctg ta gttc agtcggta gaac g gcgga ctgttaa tccgt atgtc actgg ttcgagt ccagt cagagga gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516166|gb|AE005425|AE005425  -19.700 0     172   76 tcctctg ta gttc agtcggta gaas g gcgga ctgttaa tccgt atgtc actgg ttcgagt ccagt cagagga gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516288|gb|AE005435|AE005435   -0.800 1    5606   77 ggcgtga tg gtg gatttgccgaa tat a ttgtc gttaagc gaaaa aatgt ctttg ctctacc cacgg atatgcc tatt
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516513|gb|AE005451|AE005451  -27.600 0    7838   77 cggcacg ta gcgc agcctggta gcgc a ccgtc atggggt gtcgg gggtc ggagg ttcaaat cctct cgtgccg acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516598|gb|AE005458|AE005458   -0.300 1   10792   76 tccggcg ta cat cacctgaac gtg c tggac ttccagc gtcag atccgt acctg tccgaaa ccggt tgtcgcg atgg
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516709|gb|AE005466|AE005466  -24.800 0    5965   75 gtcctct ta gtta aatggata taac g agccc ctcctaa gggct aatt gcagg ttcgatt cctgc aggggac acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516764|gb|AE005470|AE005470  -27.800 1    8444   76 ggggcta ta gctc agctggga gagc g cttgc atggcat gcaag aggtc agcgg ttcgatc ccgct tagctcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516777|gb|AE005471|AE005471  -29.000 0    1980   76 gggtgat ta gctc agctggga gagc a cctcc cttacaa ggagg gggtc ggcgg ttcgatc ccgtc atcaccc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516777|gb|AE005471|AE005471  -29.000 0    2100   76 gggtgat ta gctc agctggga gagc a cctcc cttacaa ggagg gggtc ggcgg ttcgatc ccgtc atcaccc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516777|gb|AE005471|AE005471  -29.000 0    2222   76 gggtgat ta gctc agctggga gagc a cctcc cttacaa ggagg gggtc ggcgg ttcgatc ccgtc atcaccc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12516777|gb|AE005471|AE005471  -25.200 0    2302   76 gggtcgt ta gctc agttggta gagc a gttga cttttaa tcaat tggtc gcagg ttcgaat cctgc acgaccc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517009|gb|AE005489|AE005489  -31.100 1    6818   76 gtcccct tc gtct agaggccca ggac a ccgcc ctttcac ggcgg taac agggg ttcgaat cccct aggggac gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517082|gb|AE005494|AE005494  -28.900 1    7942   76 ggccctt ta gctc agtggtta gagc a ggcga ctcataa tcgtc cggtc gctgg ttcaagt ccagc aagggcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517121|gb|AE005497|AE005497  -30.900 1   10234   94 ggtgagg tg gcc gagaggctgaa ggc g ctccc ctgctaa gggag tatgcggtcaaaagctgcatcc agggg ttcgaat ccccg cctcacc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517121|gb|AE005497|AE005497  -27.400 1   10137   77 gcatccg ta gctc agctggata gagt a ctcgg ctacgaa ccgag cggtc ggagg ttcgaat cctcc cggatgc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517121|gb|AE005497|AE005497  -20.900 1    9996   77 gcatccg ta gctc agctggata gagt a ctcgg ctacgaa ccgag cggtc ggang ttcgaat cctcc cggatgc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517121|gb|AE005497|AE005497  -27.400 1    9857   77 gcatccg ta gctc agctggata gagt a ctcgg ctacgaa ccgag cggtc ggagg ttcgaat cctcc cggatgc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517121|gb|AE005497|AE005497  -27.400 1    9678   77 gcatccg ta gctc agctggata gagt a ctcgg ctacgaa ccgag cggtc ggagg ttcgaat cctcc cggatgc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517134|gb|AE005498|AE005498    3.600 0    9478   86 ctggcgg ag tac ggcattacg gtg c attca ctgatgc tcggt aacctgctgaaatcgc cgatg ttccagt cgctg ttgccac aata
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517290|gb|AE005509|AE005509  -30.500 0    4675   77 cgcgggg tg gagc agcctggta gctc g tcggg ctcataa cccga aggtc gtcgg ttcaaat ccggc ccccgca acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517290|gb|AE005509|AE005509  -30.500 0    4785   77 cgcgggg tg gagc agcctggta gctc g tcggg ctcataa cccga aggtc gtcgg ttcaaat ccggc ccccgca acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517290|gb|AE005509|AE005509  -30.500 0    4895   77 cgcgggg tg gagc agcctggta gctc g tcggg ctcataa cccga aggtc gtcgg ttcaaat ccggc ccccgca acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517306|gb|AE005511|AE005511   -7.900 1    2871   85 ggttacc tt cgc gcgtctttat atg c ggtat ttccgcg ttacc gcctgtttatctcc aggcg ctccagg cgctg ggtaaac atat
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517379|gb|AE005516|AE005516  -26.200 1    2362   74 gcgggcg ta gtt caatggtag aac g agagc ttcccaa gctct atac gaggg ttcgatt ccctt cgcccgc tcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517518|gb|AE005527|AE005527  -33.000 0      84   76 gcccgga ta gctc agtcggta gagc a gggga ttgaaaa tcccc gtgtc cttgg ttcgatt ccgag tccgggc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517647|gb|AE005536|AE005536  -31.600 0    4577   76 ggcccct ta gctc agtggtta gagc a ggcga ctcataa tcgct tggtc gctgg ttcaagt ccagc aggggcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517784|gb|AE005546|AE005546  -25.700 1    4076   87 gccgagg tg gtg gaattggtaga cac g ctacc ttgaggt ggtag tgcccaatagggctt acggg ttcaagt cccgt cctcggt acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517784|gb|AE005546|AE005546  -30.500 1     207   77 cgcgggg tg gagc agcctggta gctc g tcggg ctcataa cccga aggtc gtcgg ttcaaat ccggc ccccgca acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517891|gb|AE005554|AE005554   -3.100 1    6003   78 tggttcc tg gcg cggcttccccc tga a tctcc attgacg gcaga ccgttg tagcg ttccagt cgcgg agagcca taca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517905|gb|AE005555|AE005555  -26.500 1    3886   77 aggcttg ta gctc aggtggtta gagc g caccc ctgataa gggtg aggtc ggtgg ttcaagt ccact caggcct acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517905|gb|AE005555|AE005555  -29.600 1    3767   76 ggggcta ta gctc agctggga gagc g cctgc tttgcac gcagg aggtc tgcgg ttcgatc ccgca tagctcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517905|gb|AE005555|AE005555  -29.200 1     377   76 gctgata tg gctc agttggta gagc g caccc ttggtaa gggtg aggtc cccag ttcgact ctggg tatcagc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12517942|gb|AE005557|AE005557    5.000 0    5826   78 gaatcat ta aaaa acccgctgcc tttt g ggcca tttctgg cggct gcggg tttcg ttatagg ctggg atagttt gctg
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518196|gb|AE005575|AE005575    9.200 1    2130   91 gtcggtt tt tta ctttccagccc aga g ttggt ggctctg gctgg agtgagaatgcccacatct aacgg ttcaata ctatt agccagt ggct
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518271|gb|AE005581|AE005581  -25.600 1     479   77 cggtgat tg gcgc agcctggta gcgc a cttcg ttcggga cgaag gggtc ggagg ttcgaat cctct atcaccg acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518342|gb|AE005587|AE005587    8.500 0    1135   80 tggcgtg tt cacg ctgactatcc tggg c ggtgg tctggtt tctcc ggcatct ccggg ttctatc cttgc tgtactg gcga
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518416|gb|AE005593|AE005593  -22.900 0    7449   93 gaagatc gt cgtc tccggtga ggcg g ctgga cttcaaa tccag ttggggccgccagcggtcccgg gcagg ttcgact cctgt gatcttc cgcc
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518614|gb|AE005607|AE005607  -31.100 0    6234   76 gtcccct tc gtct agaggccca ggac a ccgcc ctttcac ggcgg taac agggg ttcgaat cccct aggggac gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518614|gb|AE005607|AE005607  -26.200 0    9672   77 ggagcgg ta gttc agtcggtta gaat a cctgc ctgtcac gcagg gggtc gcggg ttcgagt cccgt ccgttcc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518614|gb|AE005607|AE005607  -27.400 0    9757   76 aggggcg ta gttc aattggta gagc a ccggt ctccaaa accgg gtgtt gggag ttcgagt ctctc cgcccct gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518662|gb|AE005611|AE005611  -31.300 0    1614   77 gcgcccg ta gctc agctggata gagc g ctgcc ctccgga ggcag aggtc tcagg ttcgaat cctgt cgggcgc gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518662|gb|AE005611|AE005611  -26.300 0    1749   76 gtggcta ta gctc agttggta gagc c ctgga ttgtgat tccag ttgtc gtggg ttcgaat cccat tagccac ccca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518662|gb|AE005611|AE005611  -23.000 0    1845   87 gcgaagg tg gcg gaattggtaga cgc g ctagc ttcaggt gttag tgtccttacggacgt ggggg ttcaagt ccccc ccctcgc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518662|gb|AE005611|AE005611  -30.100 0    1974   77 cggcgag ta gcgc agcttggta gcgc a actgg tttggga ccagt gggtc ggagg ttcgaat cctct ctcgccg acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518731|gb|AE005616|AE005616  -26.500 0    1831   77 aggcttg ta gctc aggtggtta gagc g caccc ctgataa gggtg aggtc ggtgg ttcaagt ccact caggcct acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518731|gb|AE005616|AE005616  -29.600 0    1950   76 ggggcta ta gctc agctggga gagc g cctgc tttgcac gcagg aggtc tgcgg ttcgatc ccgca tagctcc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518897|gb|AE005629|AE005629  -31.100 0      74   76 gtcccct tc gtct agaggccca ggac a ccgcc ctttcac ggcgg taac agggg ttcgaat cccct aggggac gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518897|gb|AE005629|AE005629  -21.500 0    6908   76 gccgact ta gctc agtaggta gagc a actga cttgtaa tcagt aggtc accag ttcgatt ccggt agtcggc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518897|gb|AE005629|AE005629  -27.800 0    6992   85 ggtgggg tt ccc gagcggccaaa ggg a gcaga ctgtaaa tctgc cgtcacagacttc gaagg ttcgaat ccttc ccccacc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518897|gb|AE005629|AE005629  -26.600 0    7193   75 gcgggca tc gta taatggctat tac c tcagc cttccaa gctga tgat gcggg ttcgatt cccgc tgcccgc tcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518897|gb|AE005629|AE005629  -29.500 0    7274   76 gctgata ta gctc agttggta gagc g caccc ttggtaa gggtg aggtc ggcag ttcgaat ctgcc tatcagc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12518934|gb|AE005632|AE005632  -25.700 0    7908   76 gtcccct tc gty tagaggcccag gac a ccgcc ctttcac ggcgg taac agggg ttcgaat cccct aggggac gcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12519111|gb|AE005647|AE005647  -33.000 1    4001   76 gcccgga ta gctc agtcggta gagc a gggga ttgaaaa tcccc gtgtc cttgg ttcaatt ccgag tccgggc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12519141|gb|AE005649|AE005649  -29.900 0    9370   76 gcgggaa ta gctc agttggta gagc a cgacc ttgccaa ggtcg gggtc gcgag ttcgagt ctcgt ttcccgc tcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12519141|gb|AE005649|AE005649  -29.900 0    9482   76 gcgggaa ta gctc agttggta gagc a cgacc ttgccaa ggtcg gggtc gcgag ttcgagt ctcgt ttcccgc tcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12519141|gb|AE005649|AE005649  -29.900 0    9593   76 gcgggaa ta gctc agttggta gagc a cgacc ttgccaa ggtcg gggtc gcgag ttcgagt ctcgt ttcccgc tcca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12519163|gb|AE005651|AE005651   -3.800 0   10268   84 tcttgcc tg ggaa gaagacgctcg ctcc g gcgca tttgtgg cgcgc gcggcgcgtt ttatg ttgcacg cacag gttgagg cggg
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12519271|gb|AE005658|AE005658  -24.600 0    7176   85 gccgaag tg gcg aaatcggtaga cgc a gttga ttcaaaa tcaac cgtagaaatacgt gccgg ttcgagt ccggc cttcggc acca
+>gi|12512920|gb|AE005195|AE005195 Escherichia coli O157:H7 genome, contig 1 of 3, section 19 of 155.
+gi|12519388|gb|AE005668|AE005668  -23.000 1    4627   87 gcgaagg tg gcg gaattggtaga cgc g ctagc ttcaggt gttag tgtccttacggacgt ggggg ttcaagt ccccc ccctcgc acca
