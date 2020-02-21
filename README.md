@@ -1,7 +1,7 @@
 
-   The "rnamotif" program searchs input sequences for portions that match
+   The **rnamotif** program searchs input sequences for portions that match
    a given descriptor or "motif".  Matching sequences can also be ranked by
-   various scoring functions.  See doc/rnamotif.pdf for documentation.
+   various scoring functions.  See `doc/rnamotif.pdf` for full documentation.
 
 ==============================================================================
 
@@ -45,10 +45,7 @@ Please send comments and questions to Tom Macke <macke_tom@yahoo.com>.
 
 ==============================================================================
 
-The full documentation is in the doc/rnamotif.pdf file.  A brief summary
-is given here:
-
-# Installing rnamotif.
+# Installing rnamotif
 
 1. rnamotif can be cloned from github:
 ```
@@ -61,10 +58,10 @@ utility programs (*rmprune*, *rmfmt* and *rm2ct*), test data and data required t
 compute the free energy of the potential secondary structures found by
 rnamotif.
 
-4. Change directory to where rnamotif was cloned, and edit the configuration 
+3. Change directory to where rnamotif was cloned, and edit the configuration 
 file config.h
 
-5. make the binaries: 
+4. make the binaries: 
 ```
 	make
 ```
@@ -75,14 +72,14 @@ The binaries will left in the subdirectory 'src'.  There are four:
 *	rmfmt		Format the output.
 *	rm2ct		Convert the output to ct-format suitable for drawing.
 
-6. Test the binaries.  One test computes the effective energies of the 
+5. Test the binaries.  One test computes the effective energies of the 
 solutions.  To run this, rnamotif must read the files that are in 
 the subdirectory "efndata".  Please set this environment symbol EFNDATA 
 to point to the directory rnamotif/efndata and then run the tests:
 ```
 	make test >& test.out &
 ```
-7. This can take up to 20 minutes.  This runs rnamotif on 9 descriptors in
+6. This can take up to 20 minutes.  This runs rnamotif on 9 descriptors in
 the subdirectory "test".  These descriptors seaerch the database
 gbrna.111.0.fastn which contains all of the sequences of the (no longer
 broken out) RNA part of Genbank, release 111, from April 1999.
@@ -94,13 +91,13 @@ versions of Red Hat and sorts the output of the score.1, mp.ends and sprintf
 tests differently.  These tests are not marked as PASSED, but the problem is
 due to the odd sort, so they do pass.
 
-8. (Optional) Move the binaries and/or efndata.  Remember that the symbol
+7. (Optional) Move the binaries and/or efndata.  Remember that the symbol
 EFNDATA must point to the directory that contains the energy data in order
 for rnamotif to compute the dG of the solutions.
 
-# Using the codes.
+# Using the codes
 
-1. rnamotif.
+## rnamotif
 
 rnamotif is run from the command line.  It takes two arguments: a descriptor
 that specifies the 2d strucutre to look for, and a file of fastn data to
@@ -134,7 +131,7 @@ The full form of the rnamotif command is shown below:
 	-descr descr-file	May have includes; use cmd-line defs
 	-xdescr xdescr-file	May not have includes; ignore cmd-line defs
 ```
-2. rmprune.
+## rmprune
 
 Many descriptors, eg, a variable length stem that contains a variable
 length loop have several solutions that differ only in that the stem has
@@ -182,7 +179,7 @@ following rnamotif:
 ```
 	rnamotif -descr hp.descr test.fastn | rmprune
 ```
-3. rmfmt.
+## rmfmt
 
 This program is used to format rnamotif output.  Two formats are supported.
 The first is a viewing option that removes the fastn definition line from
@@ -222,7 +219,7 @@ case the file is formatted with dashes, unsorted and the names of the
 sequences are reduced to the last name in the bar separated name section
 of the fastn definition line.
 
-4. rm2ct.
+## rm2ct
 
 This program converts the rnamotif output to a ct-format structure file,
 which can used by various programs to create a graphical representation of
