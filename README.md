@@ -9,7 +9,7 @@
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any later
    version. The GNU General Public License should be in a file called
-   COPYING.GNU; if not, write to the Free Software Foundation, Inc., 59 Temple
+   LICENSE; if not, write to the Free Software Foundation, Inc., 59 Temple
    Place, Suite 330, Boston, MA  02111-1307  USA
 
    This program is distributed in the hope that it will be useful, but
@@ -54,13 +54,14 @@ Please send comments and questions to Tom Macke <macke_tom@yahoo.com>.
 
 ==============================================================================
 
-More detailed instructions:
+The full documentation is in the doc/rnamotif.pdf file.  A brief summary
+is given here:
 
 I. Installing rnamotif.
 
-1. rnamotif is distributed as a zipped tar file available here:
+1. rnamotif can be cloned from github:
 
-	http://casegroup.rutgers.edu/rnamotif-3.1.1.tar.gz
+	https://github.com/dacase/rnamotif
 
 2. This file contains a single top level directory, rnamotif, which contains
    several subdirectories which in turn contain the sources to rnamotif, three
@@ -68,10 +69,8 @@ I. Installing rnamotif.
    compute the free energy of the potential secondary structures found by
    rnamotif.
 
-3. Decide where you wish to put this top level directory and unzip and untar
-   the file from that place.
-
-4. Change directory to rnamotif and edit the configuration file config.h
+4. Change directory to where rnamotif was cloned, and edit the configuration 
+   file config.h
 
 5. make the binaries: 
 
