@@ -1,26 +1,27 @@
 
-   The **rnamotif** program searchs input sequences for portions that match
-   a given descriptor or "motif".  Matching sequences can also be ranked by
-   various scoring functions.  See `doc/rnamotif.pdf` for full documentation.
-
+The **rnamotif** program searchs input sequences for portions that match
+a given descriptor or "motif".  Matching sequences can also be ranked by
+various scoring functions.  See `doc/rnamotif.pdf` for full documentation.
+Authors are Tom Macke and David A. Case.
+  
 ==============================================================================
 
-   This program is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by the
-   Free Software Foundation; either version 2, or (at your option) any later
-   version. The GNU General Public License should be in a file called
-   LICENSE; if not, write to the Free Software Foundation, Inc., 59 Temple
-   Place, Suite 330, Boston, MA  02111-1307  USA
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 2, or (at your option) any later
+version. The GNU General Public License should be in a file called
+LICENSE; if not, write to the Free Software Foundation, Inc., 59 Temple
+Place, Suite 330, Boston, MA  02111-1307  USA
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
-   or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License 
-   for more details.
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License 
+for more details.
 
-   We thank Dave Ecker and Ranga Sampath for encouragement, and Isis
-   Pharmaceuticals for financial support; Robin Gutell and Daniel Gautheret for
-   suggestions; Vickie Tsui for serving as a beta tester, and for many helpful
-   comments and suggestions.
+We thank Dave Ecker and Ranga Sampath for encouragement, and Isis
+Pharmaceuticals for financial support; Robin Gutell and Daniel Gautheret for
+suggestions; Vickie Tsui for serving as a beta tester, and for many helpful
+comments and suggestions.
 
 ==============================================================================
 
@@ -133,10 +134,10 @@ The full form of the rnamotif command is shown below:
 ```
 ## rmprune
 
-Many descriptors, eg, a variable length stem that contains a variable
-length loop have several solutions that differ only in that the stem has
-had bases on one or the other or both ends `unzipped'  rmprune takes the
-output of rnamotif and removes unzipped solutions, leaving only that
+Many descriptors, (such as a variable length stem that contains a variable
+length loop) have several solutions that differ only in that the stem has
+had bases on one or the other or both ends `unzipped'.  *rmprune* takes the
+output of *rnamotif* and removes unzipped solutions, leaving only that
 solution with the longest possible stem.
 
 As an example consider this descriptor:
@@ -164,7 +165,7 @@ it finds 11 possible hairpins:
 	11	3 14 aaaa   cccctt   tttt
 ```
 Many of these hairpins are merely subsets of the base pairs of the others.
-rmprune removes these 'unzipped' subsets, leaving 5 unique pairings:
+*rmprune* removes these 'unzipped' subsets, leaving 5 unique pairings:
 ```
 	 1	1 14 aaaa   aacccc   tttt
 	 2	1 15 aaaaa  acccc   ttttt	contains 5
@@ -172,20 +173,22 @@ rmprune removes these 'unzipped' subsets, leaving 5 unique pairings:
 	 8 	2 15 aaaaa  cccct   ttttt	contains 10
 	11	3 14 aaaa   cccctt   tttt
 ```
-rmprune is run from the command line and takes an optional argument,
-a file containing the output of an rnamotif search.  If this file is
-not given, it reads from stdin, allowing it to be placed in a pipeline
-following rnamotif:
+*rmprune* is run from the command line and takes an optional argument,
+a file containing the output of an *rnamotif* search.  If this file is
+not given, it reads from *stdin*, allowing it to be placed in a pipeline
+following *rnamotif*:
 ```
 	rnamotif -descr hp.descr test.fastn | rmprune
 ```
 ## rmfmt
 
-This program is used to format rnamotif output.  Two formats are supported.
+This program is used to format *rnamotif* output.  Two formats are supported.
+
 The first is a viewing option that removes the fastn definition line from
 the rnamotif output.  At the same time sequences that correspond to long
 fields in the descriptor (ie > 20 bases) are condensed, showing only the
 1st 3 and last 3 bases surroungind the total length of the string in parens.
+
 For example the string 'acgtacgtacgtacgtacgtacgt' (len=24) would be
 replaced by 'acg...(24)...cgt'.  The strings are also aligned so that
 strings that represent ss, h5, p5, t1, t3, q1 and q3 elements are left
@@ -196,13 +199,13 @@ possible the rnamotif solutions are sorted into descending order based on
 the value of the score column (#2) placing the best (or worst) solutions at
 the top.  This format option is specified by the -l option.
 
-The second format option is to convert the rnamotif output into a fastn
+The second format option is to convert the *rnamotif* output into a *fastn*
 format alignemnt.  Justification is as in -l, but the fill characater is
 the dash (-).  Fields are separated by a vertical bar (|).  Aligned output
 is not sorted and the fastn definition lines are retained.  This format
 option is specified by the -a option.
 
-The full rmfmt command is show below:
+The full *rmfmt* command is show below:
 ```
 	rmfmt [ -a ] [ -l ] [ -smax N ] [ -td dir ] [ rm-output-file ]
 ```
@@ -221,18 +224,18 @@ of the fastn definition line.
 
 ## rm2ct
 
-This program converts the rnamotif output to a ct-format structure file,
+This program converts the *rnamotif* output to a ct-format structure file,
 which can used by various programs to create a graphical representation of
 the sequence and its 2d structure.
 
-The rm2ct command takes a single optional argument, the name of the file
-containing the rnamotif output to convert.  The output is written to stdout.
-If no argument is given, rm2ct reads from stdin, allowing it to stand in a
+The *rm2ct* command takes a single optional argument, the name of the file
+containing the *rnamotif* output to convert.  The output is written to stdout.
+If no argument is given, *rm2ct* reads from stdin, allowing it to stand in a
 pipe:
 ```
 	rnamotif -descr hp.descr test.fastn | rm2ct
 ```
-ct-format can only represent duplexes, for this reason rm2ct exits with
+ct-format can only represent duplexes, for this reason *rm2ct* exits with
 an error message if its input contains triples or quads.  However, all
 dumplexes, including parallel duplexes and pseudoknots are converted,
 although not it is likely that many ct-format plotting programs can not
