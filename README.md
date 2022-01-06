@@ -1,8 +1,15 @@
+# rnamotif
 
 The **rnamotif** program searchs input sequences for portions that match
 a given descriptor or "motif".  Matching sequences can also be ranked by
 various scoring functions.  See `doc/rnamotif.pdf` for full documentation.
 Authors are Tom Macke and David A. Case.
+
+Key literature citations:
+
+* T. Macke, D. Ecker, R. Gutell, D. Gautheret, D.A. Case and R. Sampath. RNAMotif: A new RNA secondary structure definition and discovery algorithm. Nucl. Acids Res. 29, 4724-4735 (2001). 
+
+* V. Tsui, T. Macke and D.A. Case. A novel method for finding tRNA genes. RNA 9, 507-517 (2003).
   
 ==============================================================================
 
