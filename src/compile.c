@@ -243,51 +243,83 @@ int	RM_init( int argc, char *argv[] )
 	RM_enter_id( "show_progress", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_INT;
-	val.v_value.v_ival = 0;
-	RM_enter_id( "ctx_minlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
-
-	val.v_type = T_INT;
-	val.v_value.v_ival = 100;
-	RM_enter_id( "ctx_maxlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
-
-	val.v_type = T_INT;
 	val.v_value.v_ival = 10000;
 	RM_enter_id( "ALL", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_INT;
-	val.v_value.v_ival = 3;
+	val.v_value.v_ival = CTX_MINLEN;
+	RM_enter_id( "ctx_minlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = CTX_MAXLEN;
+	RM_enter_id( "ctx_maxlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = SS_MINLEN;
+	RM_enter_id( "ss_minlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = SS_MAXLEN;
+	RM_enter_id( "ss_maxlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = WC_MINLEN;
 	RM_enter_id( "wc_minlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_INT;
-	val.v_value.v_ival = 30;
+	val.v_value.v_ival = WC_MAXLEN;
 	RM_enter_id( "wc_maxlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_STRING;
-	val.v_value.v_pval = "pp";
+	val.v_value.v_pval = WC_ENDS;
 	RM_enter_id( "wc_ends", T_STRING, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = rm_args->a_strict_helices;
 	RM_enter_id( "wc_strict", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
 
+	val.v_type = T_INT;
+	val.v_value.v_ival = PHLX_MINLEN;
+	RM_enter_id( "phlx_minlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val);
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = PHLX_MAXLEN;
+	RM_enter_id( "phlx_maxlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val);
+
 	val.v_type = T_STRING;
-	val.v_value.v_pval = "pp";
+	val.v_value.v_pval = PHLX_ENDS;
 	RM_enter_id( "phlx_ends", T_STRING, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = rm_args->a_strict_helices;
 	RM_enter_id( "phlx_strict", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
 
+	val.v_type = T_INT;
+	val.v_value.v_ival = TR_MINLEN;
+	RM_enter_id( "tr_minlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = TR_MAXLEN;
+	RM_enter_id( "tr_maxlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
+
 	val.v_type = T_STRING;
-	val.v_value.v_pval = "pp";
+	val.v_value.v_pval = TR_ENDS;
 	RM_enter_id( "tr_ends", T_STRING, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_INT;
 	val.v_value.v_ival = rm_args->a_strict_helices;
 	RM_enter_id( "tr_strict", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
 
+	val.v_type = T_INT;
+	val.v_value.v_ival = QU_MINLEN;
+	RM_enter_id( "qu_minlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
+
+	val.v_type = T_INT;
+	val.v_value.v_ival = QU_MAXLEN;
+	RM_enter_id( "qu_maxlen", T_INT, C_VAR, S_GLOBAL, FALSE, &val );
+
 	val.v_type = T_STRING;
-	val.v_value.v_pval = "pp";
+	val.v_value.v_pval = QU_ENDS;
 	RM_enter_id( "qu_ends", T_STRING, C_VAR, S_GLOBAL, FALSE, &val );
 
 	val.v_type = T_INT;

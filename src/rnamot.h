@@ -85,6 +85,31 @@ data:\t(Optional) Use one:\n\
 #define	SA_HOLD		1
 #define	SA_ACCEPT	2
 
+	/* default element properties except pairs, triples, quads */
+#define	CTX_MINLEN	0
+#define	CTX_MAXLEN	100
+#define	SS_MINLEN	1
+
+	/* The ifndef allows SS_MAXLEN to be set via the config w/o having to edit rnamot.h
+	 * WARNING: An ss w/o a len=, maxlen= will generate _HUGE_ amount of output!
+	 */
+#ifndef	SS_MAXLEN
+#define	SS_MAXLEN	1000
+#endif
+
+#define	WC_MINLEN	3
+#define	WC_MAXLEN	30
+#define	WC_ENDS		"pp"
+#define	PHLX_MINLEN	3
+#define	PHLX_MAXLEN	30
+#define	PHLX_ENDS	"pp"
+#define	TR_MINLEN	3
+#define	TR_MAXLEN	30
+#define	TR_ENDS		"pp"
+#define	QU_MINLEN	3
+#define	QU_MAXLEN	30
+#define	QU_ENDS		"pp"
+
 typedef	struct	value_t	{
 	int	v_type;
 	union	{
