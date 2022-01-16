@@ -1590,12 +1590,25 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 			minl = MAX( x_minl, i_minl );
 	}else if( i_minl != UNDEF ){
 		minl = i_minl;
+	}else if( stp0->s_type == SYM_CTX ){
+		ip = RM_find_id( "ctx_minlen" );
+		minl = ip->i_val.v_value.v_ival;
+	}else if( stp0->s_type == SYM_SS ){
+		ip = RM_find_id( "ss_minlen" );
+		minl = ip->i_val.v_value.v_ival;
 	}else if( stp0->s_type == SYM_H5 ){
 		ip = RM_find_id( "wc_minlen" );
 		minl = ip->i_val.v_value.v_ival;
-	}else if( stp0->s_type == SYM_CTX )
-		minl = 0;
-	else
+	}else if( stp0->s_type == SYM_P5 ){
+		ip = RM_find_id( "phlx_minlen" );
+		minl = ip->i_val.v_value.v_ival;
+	}else if( stp0->s_type == SYM_T1 ){
+		ip = RM_find_id( "tr_minlen" );
+		minl = ip->i_val.v_value.v_ival;
+	}else if( stp0->s_type == SYM_Q1 ){
+		ip = RM_find_id( "qu_minlen" );
+		minl = ip->i_val.v_value.v_ival;
+	}else
 		minl = 1;
 
 	if( x_maxl != UNDEF ){
@@ -1611,11 +1624,23 @@ static	int	chk_len_seq( int n_egroup, STREL_T *egroup[] )
 		}
 	}else if( i_maxl != UNDEF ){
 		maxl = i_maxl;
+	}else if( stp0->s_type == SYM_CTX ){
+		ip = RM_find_id( "ctx_maxlen" );
+		maxl = ip->i_val.v_value.v_ival;
+	}else if( stp0->s_type == SYM_SS ){
+		ip = RM_find_id( "ss_maxlen" );
+		maxl = ip->i_val.v_value.v_ival;
 	}else if( stp0->s_type == SYM_H5 ){
 		ip = RM_find_id( "wc_maxlen" );
 		maxl = ip->i_val.v_value.v_ival;
-	}else if( stp0->s_type == SYM_CTX ){
-		ip = RM_find_id( "ctx_maxlen" );
+	}else if( stp0->s_type == SYM_P5 ){
+		ip = RM_find_id( "phlx_maxlen" );
+		maxl = ip->i_val.v_value.v_ival;
+	}else if( stp0->s_type == SYM_T1 ){
+		ip = RM_find_id( "tr_maxlen" );
+		maxl = ip->i_val.v_value.v_ival;
+	}else if( stp0->s_type == SYM_Q1 ){
+		ip = RM_find_id( "qu_maxlen" );
 		maxl = ip->i_val.v_value.v_ival;
 	}else
 		maxl = UNBOUNDED;
