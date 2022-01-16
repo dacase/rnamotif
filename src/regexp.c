@@ -125,6 +125,7 @@ void
 compile(instring, ep, endbuf, seof)
 register char *ep;
 char *instring, *endbuf;
+int seof;
 {
 	INIT	/* Dependent declarations and initializations */
 	register int c;

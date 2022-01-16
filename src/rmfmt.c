@@ -55,7 +55,7 @@ main( int argc, char *argv[] )
 	FILE	*ifp, *tfp1, *tfp2;
 	char	tfnp1[ 256 ], tfnp2[ 256 ];
 	int	tfd1, tfd2;
-	char	cmd[ 256 ];
+	char	cmd[ 1024 ];
 	char	*sp, *vbp, *l_vbp;
 	int	ac, f, fw, fs, of1, df1;
 	int	aopt, lopt, scored, sort;
@@ -472,7 +472,7 @@ static	int	fcmprs( int flen, char field[] )
 static	void	align( FILE *fp, int lopt, char dline[], char line[] )
 {
 	char	*def;
-	char	name[ 256 ], ver[ 10 ];
+	char	name[ 256 ], ver[ 20 ];
 	static	char	l_name[ 256 ] = "";
 	static	int	l_cnt = 1;
 	int	f, fs, fw;

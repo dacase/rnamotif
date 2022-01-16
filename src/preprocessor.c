@@ -51,7 +51,11 @@ char	*RM_preprocessor( void )
 	}
 	if( rm_args->a_xdfname == NULL ){
 		rm_args->a_xdfname = strdup( "rmxd_XXXXXX" );
-		mkstemp( rm_args->a_xdfname );
+		if( mkstemp( rm_args->a_xdfname ) == -1){
+			fprintf( stderr,
+				"RM_preprocessor: can't create temp file rmxd_XXXXXX.\n");
+			return( NULL );
+		}
 	}
 	if( ( ofp = fopen( rm_args->a_xdfname, "w" ) ) == NULL ){
 		fprintf( stderr,
@@ -149,7 +153,7 @@ static	FILE	*popfile( void )
 static	FILE	*include( char str[] )
 {
 	char	*sp, *sp1, *sp2;
-	char	work[ 256 ], fname[ 256 ], path[ 256 ];
+	char	work[ 256 ], fname[ 256 ], path[ 1024 ];
 	int	c;
 	FILE	*fp;
 	INCDIR_T	*idp;
