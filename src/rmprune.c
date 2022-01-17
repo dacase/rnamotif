@@ -654,7 +654,7 @@ static int	chkrel( BLOCK_T *bp, BLOCK_T *bp1 )
 	DETAIL_T *dp1, *dp1_2;
 	int	brel, brel1;
 
-	brel = B_UNDEF; 
+	brel = brel1 = B_UNDEF; 
 	for( d = 0; d < n_descr; d++ ){
 		switch( descr[ d ].d_type ){
 		case DT_H5 :

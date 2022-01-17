@@ -2435,7 +2435,7 @@ static	void	do_ins( INST_T *ip )
 	char	*s_bases[ 4 ];
 	int	l0, l_bases[ 4 ];
 	int	i, n_bases;
-	int	rv;
+	int	rv = 0;
 	PAIRSET_T	*ps_top;
 
 	n_bases = sp - mp - 1;

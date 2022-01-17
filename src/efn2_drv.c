@@ -122,6 +122,7 @@ int	CT_read( FILE *cfp )
 	char	line[ 256 ];
 	int	nbases, i;
 	char	*hp;
+	int	err = 0;
 
 	if( !fgets( line, sizeof( line ), cfp ) )
 		return( 0 );
@@ -136,7 +137,11 @@ int	CT_read( FILE *cfp )
 	*hp = '\0';
 
 	for( i = 0; i < nbases; i++ ){
-		fgets( line, sizeof( line ), cfp );
+		if( !fgets( line, sizeof( line ), cfp ) ){
+			fprintf( stderr, "short structure: need %d items, got %d\n", nbases, i);
+			err = 1;
+			goto CLEAN_UP;
+		}
 		sscanf( line, "%*d %c %*d %*d %d %d",
 			&efn2_nucs[i], &rm_basepr[i], &rm_hstnum[i] );
 		if( rm_basepr[i] != 0 )
@@ -145,6 +150,11 @@ int	CT_read( FILE *cfp )
 			rm_basepr[i] = UNDEF;
 		rm_bcseq[i] = CT_b2i( efn2_nucs[i] );
 	}
+
+CLEAN_UP : ;
+
+	if( err )
+		nbases = 0;
 
 	return( nbases );
 }

@@ -112,15 +112,24 @@ static	int	getct( FILE *fp )
 	int	i, npr;
 	int	bn, prev, next, pn, hn;
 	char	b[ 2 ];
+	int	err = 0;
 
-	fgets( line, sizeof( line ), fp );
+	if( !fgets( line, sizeof( line ), fp ) ){
+		fprintf( stderr, "empty ct file\n" );
+		err = 1;
+		goto CLEAN_UP;
+	}
 	sscanf( line, "%d", &npr );
 
 	if( RM_allocefnds( npr ) )
 		return( 0 );
 
 	for( i = 0; i < npr; i++ ){
-		fgets( line, sizeof( line ), fp );
+		if( !fgets( line, sizeof( line ), fp ) ){
+			fprintf( stderr, "short ct file: need %d pairs, got %d\n", npr, i );
+			err = 1;
+			goto CLEAN_UP;
+		}
 		sscanf( line, "%d %s %d %d %d %d",
 			&bn, b, &prev, &next, &pn, &hn );
 		bn--;
@@ -129,6 +138,11 @@ static	int	getct( FILE *fp )
 		rm_basepr[ bn ] = pn;
 		rm_hstnum[ bn ] = hn;
 	}
+
+CLEAN_UP : ;
+
+	if( err )
+		npr = 0;
 
 	return( npr );
 }
