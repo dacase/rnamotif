@@ -61,6 +61,7 @@ main( int argc, char *argv[] )
 	int	aopt, lopt, scored, sort;
 	int	smax;
 	struct	stat	sbuf;
+	int	rv = 0;
 
 	ifname = NULL;
 	tfdir = NULL;
@@ -272,7 +273,10 @@ main( int argc, char *argv[] )
 				tfnp1, tfnp2 );
 		}else
 			sprintf( cmd, "cp %s %s\n", tfnp1, tfnp2 );
-		system( cmd );
+		if( ( rv = system( cmd ) ) ){
+			LOG_ERROR("system() failed: rv = %d, cmd = '%s'", rv, cmd);
+			exit(1);
+		}
 
 		if( ( tfp2 = fdopen( tfd2, "r" ) ) == NULL ){
 			LOG_ERROR("can't open sorted temp-file '%s'", tfnp2 );
